@@ -10,6 +10,20 @@ import de.fhg.iais.roberta.syntax.actors.arduino.RelayAction;
 import de.fhg.iais.roberta.syntax.actors.arduino.sensebox.PlotClearAction;
 import de.fhg.iais.roberta.syntax.actors.arduino.sensebox.PlotPointAction;
 import de.fhg.iais.roberta.syntax.actors.arduino.sensebox.SendDataAction;
+import de.fhg.iais.roberta.syntax.neuralnetwork.NeuralNetworkAddRawData;
+import de.fhg.iais.roberta.syntax.neuralnetwork.NeuralNetworkClassify;
+import de.fhg.iais.roberta.syntax.neuralnetwork.NeuralNetworkNew;
+import de.fhg.iais.roberta.syntax.neuralnetwork.NeuralNetworkTrain;
+import de.fhg.iais.roberta.syntax.neuralnetwork.NeuralNetworkTrainingOfClass;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Apds9960ColorSensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Apds9960DistanceSensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Apds9960GestureSensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Hts221HumiditySensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Hts221TemperatureSensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lps22hbPressureSensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lsm9ds1AccSensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lsm9ds1GyroSensor;
+import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lsm9ds1MagneticFieldSensor;
 import de.fhg.iais.roberta.syntax.sensors.arduino.sensebox.EnvironmentalSensor;
 import de.fhg.iais.roberta.syntax.sensors.arduino.sensebox.GpsSensor;
 import de.fhg.iais.roberta.util.dbc.DbcException;
@@ -75,6 +89,62 @@ public interface IArduinoVisitor<V>
 
     @Override
     default V visitMotorStopAction(MotorStopAction<V> motorStopAction) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitLsm9ds1AccSensor(Lsm9ds1AccSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitLsm9ds1GyroSensor(Lsm9ds1GyroSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitLsm9ds1MagneticFieldSensor(Lsm9ds1MagneticFieldSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitApds9960DistanceSensor(Apds9960DistanceSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitApds9960GestureSensor(Apds9960GestureSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitApds9960ColorSensor(Apds9960ColorSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitLps22hbPressureSensor(Lps22hbPressureSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitHts221TemperatureSensor(Hts221TemperatureSensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitHts221HumiditySensor(Hts221HumiditySensor<V> sensor) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitNeuralNetworkNew(NeuralNetworkNew<V> nn) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitNeuralNetworkTrainingOfClass(NeuralNetworkTrainingOfClass<V> nn) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitNeuralNetworkAddRawData(NeuralNetworkAddRawData<V> nn) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitNeuralNetworkTrain(NeuralNetworkTrain<V> nn) {
+        throw new DbcException("Not supported!");
+    }
+
+    default V visitNeuralNetworkClassify(NeuralNetworkClassify<V> nn) {
         throw new DbcException("Not supported!");
     }
 }

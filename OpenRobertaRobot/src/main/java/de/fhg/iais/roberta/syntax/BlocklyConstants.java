@@ -46,6 +46,8 @@ public final class BlocklyConstants {
     public static final String NOT = "NOT";
     public static final String BOOL = "BOOL";
     public static final String OP = "OP";
+    public static final String R = "R";
+    public static final String G = "G";
     public static final String B = "B";
     public static final String A = "A";
     public static final String SENSORTYPE = "SENSORTYPE";

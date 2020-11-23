@@ -152,7 +152,7 @@ public final class Ast2JaxbHelper {
      * @param value is the AST representation of the Blockly block where the value is stored; must be <b>not</b> null
      */
     public static void addValue(Block block, String name, Phrase<?> value) {
-        Assert.isTrue(!name.equals(""));
+        // Assert.isTrue(!name.equals(""));
         Assert.notNull(block);
         Assert.notNull(value);
         if ( !value.getKind().hasName("EMPTY_EXPR") ) {
@@ -219,7 +219,7 @@ public final class Ast2JaxbHelper {
     }
 
     private static List<Block> extractStmtList(Phrase<?> phrase) {
-        List<Block> result = new ArrayList<Block>();
+        List<Block> result = new ArrayList<>();
         Assert.isTrue(phrase.getKind().hasName("STMT_LIST"), "Phrase is not StmtList!");
         StmtList<?> stmtList = (StmtList<?>) phrase;
         for ( Stmt<?> stmt : stmtList.get() ) {
@@ -229,7 +229,7 @@ public final class Ast2JaxbHelper {
     }
 
     private static List<Block> extractExprList(Phrase<?> phrase) {
-        List<Block> result = new ArrayList<Block>();
+        List<Block> result = new ArrayList<>();
         Assert.isTrue(phrase.getKind().hasName("EXPR_LIST"), "Phrase is not ExprList!");
         ExprList<?> exprList = (ExprList<?>) phrase;
         for ( Expr<?> expr : exprList.get() ) {

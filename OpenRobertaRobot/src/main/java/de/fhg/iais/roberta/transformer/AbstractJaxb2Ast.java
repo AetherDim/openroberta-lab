@@ -398,7 +398,6 @@ abstract public class AbstractJaxb2Ast<V> {
         } else {
             return blockToAST(block);
         }
-
     }
 
     private static Block shadow2block(Shadow shadow) {
@@ -596,6 +595,23 @@ abstract public class AbstractJaxb2Ast<V> {
                 isInTask(block),
                 isShadow(block),
                 isErrorAttribute(block));
+    }
+
+    /**
+     * extract from a value list (a XML substructure) the phrase matching<br>
+     * - a variable - a given name
+     * 
+     * @param values
+     * @param name
+     * @return the Var<V> phrase; throw exception, if not found
+     */
+    public Var<V> getVar(List<Value> values, String name) {
+        Phrase<V> p = extractValue(values, new ExprParam(name, BlocklyType.NUMBER_INT));
+        if ( p instanceof Var ) {
+            return (Var<V>) p;
+        } else {
+            throw new DbcException("only variables allowed for field " + name);
+        }
     }
 
     public static int getElseIf(Mutation mutation) {

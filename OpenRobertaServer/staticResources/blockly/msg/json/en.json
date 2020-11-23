@@ -1,7 +1,7 @@
 {
 	"@metadata": {
 		"author": "Ellen Spertus <ellen.spertus@gmail.com>",
-		"lastupdated": "2020-11-25 21:42:50.802413",
+		"lastupdated": "2020-12-07 18:36:05.153888",
 		"locale": "en",
 		"messagedocumentation" : "qqq"
 	},
@@ -639,9 +639,11 @@
 	"TOOLBOX_COMMUNICATION": "Messages",
 	"TOOLBOX_PIN": "Pin",
 	"TOOLBOX_SENSOR": "Sensors",
+	"TOOLBOX_INTEGRATED_SENSOR": "Integrated Sensors",
 	"TOOLBOX_CONTROL": "Control",
 	"TOOLBOX_LOGIC": "Logic",
 	"TOOLBOX_MATH": "Math",
+	"TOOLBOX_NEURAL_NETWORK": "Neural Network",
 	"TOOLBOX_TEXT": "Text",
 	"TOOLBOX_LIST": "Lists",
 	"TOOLBOX_COLOUR": "Colours",
