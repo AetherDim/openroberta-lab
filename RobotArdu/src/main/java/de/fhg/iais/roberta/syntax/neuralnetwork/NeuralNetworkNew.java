@@ -45,7 +45,6 @@ public class NeuralNetworkNew<V> extends Stmt<V> {
     @Override
     protected V acceptImpl(IVisitor<V> visitor) {
         return ((IArduinoVisitor<V>) visitor).visitNeuralNetworkNew(this);
-
     }
 
     /**

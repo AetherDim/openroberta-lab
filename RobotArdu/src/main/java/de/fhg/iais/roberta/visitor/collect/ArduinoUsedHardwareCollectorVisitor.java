@@ -34,9 +34,7 @@ import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lsm9ds1Magnetic
 import de.fhg.iais.roberta.visitor.hardware.IArduinoVisitor;
 
 /**
- * This visitor collects information for used actors and sensors in blockly program.
- *
- * @author eovchinnikova
+ * This visitor collects information for used actors and sensors in the NEPO AST
  */
 public final class ArduinoUsedHardwareCollectorVisitor extends AbstractUsedHardwareCollectorVisitor implements IArduinoVisitor<Void> {
 
@@ -150,16 +148,21 @@ public final class ArduinoUsedHardwareCollectorVisitor extends AbstractUsedHardw
 
     @Override
     public Void visitNeuralNetworkNew(NeuralNetworkNew<Void> nn) {
+        nn.getNumberOfClasses().accept(this);
         return null;
     }
 
     @Override
     public Void visitNeuralNetworkTrainingOfClass(NeuralNetworkTrainingOfClass<Void> nn) {
+        nn.getClassNumber().accept(this);
         return null;
     }
 
     @Override
     public Void visitNeuralNetworkAddRawData(NeuralNetworkAddRawData<Void> nn) {
+        nn.getX().accept(this);
+        nn.getY().accept(this);
+        nn.getZ().accept(this);
         return null;
     }
 
