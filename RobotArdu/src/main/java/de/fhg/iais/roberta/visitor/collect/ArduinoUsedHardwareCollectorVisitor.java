@@ -7,6 +7,7 @@ import com.google.common.collect.ClassToInstanceMap;
 import de.fhg.iais.roberta.bean.IProjectBean;
 import de.fhg.iais.roberta.bean.UsedHardwareBean;
 import de.fhg.iais.roberta.components.ConfigurationAst;
+import de.fhg.iais.roberta.components.ConfigurationComponent;
 import de.fhg.iais.roberta.components.UsedActor;
 import de.fhg.iais.roberta.components.UsedSensor;
 import de.fhg.iais.roberta.syntax.Phrase;
@@ -31,6 +32,8 @@ import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lps22hbPressure
 import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lsm9ds1AccSensor;
 import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lsm9ds1GyroSensor;
 import de.fhg.iais.roberta.syntax.sensors.arduino.nano33blesense.Lsm9ds1MagneticFieldSensor;
+import de.fhg.iais.roberta.typecheck.NepoInfo;
+import de.fhg.iais.roberta.util.dbc.DbcException;
 import de.fhg.iais.roberta.visitor.hardware.IArduinoVisitor;
 
 /**
@@ -39,7 +42,6 @@ import de.fhg.iais.roberta.visitor.hardware.IArduinoVisitor;
 public final class ArduinoUsedHardwareCollectorVisitor extends AbstractUsedHardwareCollectorVisitor implements IArduinoVisitor<Void> {
 
     public ArduinoUsedHardwareCollectorVisitor(
-        List<List<Phrase<Void>>> phrasesSet,
         ConfigurationAst robotConfiguration,
         ClassToInstanceMap<IProjectBean.IBuilder<?>> beanBuilders) {
         super(robotConfiguration, beanBuilders);
@@ -74,6 +76,11 @@ public final class ArduinoUsedHardwareCollectorVisitor extends AbstractUsedHardw
 
     @Override
     public Void visitPinGetValueSensor(PinGetValueSensor<Void> pinGetValueSensor) {
+        ConfigurationComponent sensor = this.robotConfiguration.optConfigurationComponent(pinGetValueSensor.getPort());
+        if (sensor == null) {
+            throw new DbcException("Inconsistent configuration and program " + pinGetValueSensor);
+        }
+
         this.getBuilder(UsedHardwareBean.Builder.class).addUsedSensor(new UsedSensor(pinGetValueSensor.getPort(), SC.PIN_VALUE, pinGetValueSensor.getMode()));
         return null;
     }

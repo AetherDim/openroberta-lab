@@ -12,6 +12,6 @@ public final class ArduinoUsedHardwareCollectorWorker extends AbstractUsedHardwa
     @Override
     protected AbstractCollectorVisitor getVisitor(
         Project project, ClassToInstanceMap<IProjectBean.IBuilder<?>> beanBuilders) {
-        return new ArduinoUsedHardwareCollectorVisitor(project.getProgramAst().getTree(), project.getConfigurationAst(), beanBuilders);
+        return new ArduinoUsedHardwareCollectorVisitor(project.getConfigurationAst(), beanBuilders);
     }
 }
