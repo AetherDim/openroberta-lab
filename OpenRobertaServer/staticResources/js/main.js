@@ -17,6 +17,8 @@ require.config({
         'volume-meter': 'libs/sound/volume-meter',
         'neuralnetwork-lib': 'libs/neuralnetwork/lib',
         'd3': 'libs/neuralnetwork/d3.min',
+        'pixijs': 'libs/pixi.js/pixi.min', // workaround with fake module for pixi.js due to reqirejs not supporting .js within the name
+        'matter-js': 'libs/matterjs/matter.min',
 
         'confDelete.controller': 'app/roberta/controller/confDelete.controller',
         'configuration.controller': 'app/roberta/controller/configuration.controller',
@@ -105,6 +107,8 @@ require.config({
         'port': 'app/configVisualization/port',
         'robotBlock': 'app/configVisualization/robotBlock',
         'wires': 'app/configVisualization/wires',
+
+        'scene': 'app/simulation/simulationLogic/scene',
 
     },
     shim: {

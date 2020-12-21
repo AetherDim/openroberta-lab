@@ -1,537 +1,282 @@
-define({
-
-    ARG1: "arg1",
-
-    ARG2: "arg2",
-
-    EXPR: "expr",
-
-    VALUE: "value",
-
-    OP: "op",
-
-    LEFT: "left",
-
-    RIGHT: "right",
-
-    ENTER: "enter",
-
-    DOWN: "down",
-
-    UP: "up",
-
-    ANY: "any",
-
-    ESCAPE: "escape",
-
-    SHAKE: "shake",
-
-    FREEFALL: "freefall",
-
-    FACE_UP: "face_up",
-
-    FACE_DOWN: "face_down",
-
-    BINARY: "Binary",
-
-    UNARY: "Unary",
-
-    VAR: "Var",
-
-    TYPE: "type",
-
-    NAME: "name",
-
-    STMT: "stmt",
-
-    PARAMETERS: "parameters",
-
-    FUNCTION_DECLARATION: "functionDeclaration",
-
-    VAR_DECLARATION: "VarDeclaration",
-
-    SINGLE_FUNCTION: "SingleFunction",
-
-    MATH_RAIN_FUNCTION: "MathrainFunct",
-
-    RANDOM_INT: "randInt",
-
-    RANDOM_DOUBLE: "randDouble",
-
-    RANDOM: "random",
-
-    ASSIGN_STMT: "AssignStmt",
-
-    ASSIGN_METHOD_PARAMETER_STMT: "AssignMethodParameter",
-
-    REPEAT_STMT: "RepeatStmt",
-
-    IF_STMT: "IfStatement",
-
-    WAIT_STMT: "WaitStmt",
-
-    MATH_CONST: "createMathConstant",
-
-    SHOW_TEXT_ACTION: "ShowTextAction",
-
-    SHOW_PICTURE_ACTION: "ShowPictureAction",
-
-    DISPLAY_IMAGE_ACTION: "DisplayImageAction",
-
-    CLEAR_DISPLAY_ACTION: "ClearDisplay",
-
-    CREATE_DEBUG_ACTION: "CreateDebugAction",
-
-    TONE_ACTION: "ToneAction",
-
-    FREQUENCY: "frequency",
-
-    DURATION: "duration",
-
-    GET_VOLUME: "GetVolume",
-
-    SET_VOLUME_ACTION: "SetVolumeAction",
-
-    VOLUME: "volume",
-
-    IMAGE: "image",
-
-    IMAGE_SHIFT_ACTION: "ImageShiftAction",
-
-    IMAGE_INVERT_ACTION: "ImageInvertAction",
-
-    DIRECTION: "direction",
-
-    PLAY_FILE_ACTION: "PlayFileAction",
-    
-    SET_LANGUAGE_ACTION: "SetLanguageAction",
-    
-    SAY_TEXT_ACTION: "SayTextAction",
-    
-    LANGUAGE: "language",
-
-    PITCH: "pitch",
-
-    FILE: "file",
-
-    TEXT: "text",
-
-    CHARACTER: "character",
-
-    TEXT_APPEND: "textAppend",
-
-    PICTURE: "picture",
-
-    X: "x",
-
-    Y: "y",
-
-    N: "n",
-
-    MATH_PROP_FUNCT: "MathPropFunct",
-
-    WAIT_TIME_STMT: "WaitTimeSTMT",
-
-    TIME: "time",
-
-    LIST: "list",
-
-    STMT_LIST: "stmtList",
-
-    DRIVE_ACTION: "DriveAction",
-
-    CURVE_ACTION: "CurveAction",
-
-    TURN_LIGHT: "turnLight",
-
-    TURN_ACTION: "TurnAction",
-
-    STOP_DRIVE: "stopDrive",
-
-    DRIVE_DIRECTION: "driveDirection",
-
-    TURN_DIRECTION: "turnDirection",
-
-    SPEED: "speed",
-
-    SPEED_L: "speedL",
-
-    SPEED_R: "speedR",
-
-    DISTANCE: "distance",
-
-    PRESENCE: "presence",
-
-    SEEK: "presence",
-
-    RESET: "reset",
-
-    GET_SAMPLE: "GetSample",
-
-    SENSOR_TYPE: "sensorType",
-
-    SENSOR_MODE: "sensorMode",
-
-    THEN_LIST: "thenList",
-
-    ELSE_STMTS: "elseStmts",
-
-    EXPR_LIST: "exprList",
-
-    STATEMENTS: "statements",
-
-    TOUCH: "touch",
-
-    INFRARED: "infrared",
-
-    ULTRASONIC: "ultrasonic",
-
-    GYRO: "gyro",
-
-    SOUND: "sound",
-
-    BUTTONS: "buttons",
-
-    RATE: "rate",
-
-    NUM_CONST: "NumConst",
-
-    BOOL_CONST: "BoolConst",
-
-    STRING_CONST: "StringConst",
-
-    IMAGE_CONST: "image",
-
-    ANIMATION: "animation",
-
-    STRING: "STRING",
-
-    BOOLEAN: "BOOLEAN",
-
-    NUMBER: "NUMBER",
-
-    NULL_CONST: "null",
-
-    LOOP_NUMBER: "loopNumber",
-
-    TERNARY_EXPR: "createTernaryExpr",
-
-    NUMERIC: "Numeric",
-
-    ARRAY_NUMBER: "Array_Number",
-
-    ARRAY_STRING: "Array_String",
-
-    ARRAY_BOOLEAN: "Array_Boolean",
-
-    ARRAY_COLOR: "Array_Colour",
-
-    ARRAY_IMAGE: "Array_Image",
-
-    CONTINUE: "continue",
-
-    BREAK: "break",
-
-    FLOW_CONTROL: "flowControl",
-
-    ADD: "ADD",
-
-    MINUS: "MINUS",
-
-    POWER: "POWER",
-
-    DIVIDE: "DIVIDE",
-
-    MULTIPLY: "MULTIPLY",
-
-    LT: "LT",
-
-    GT: "GT",
-
-    EQ: "EQ",
-
-    NEQ: "NEQ",
-
-    IN: "in",
-
-    GTE: "GTE",
-
-    LTE: "LTE",
-
-    OR: "OR",
-
-    AND: "AND",
-
-    NEG: "NEG",
-
-    MOD: "MOD",
-
-    MIN: "min",
-
-    MAX: "max",
-
-    AVERAGE: "average",
-
-    MEDIAN: "median",
-
-    MODE: "mode",
-
-    STD_DEV: "stdDev",
-
-    FOREWARD: "FOREWARD",
-
-    BACKWARD: "BACKWARD",
-
-    WHILE: "WHILE",
-
-    UNTIL: "UNTIL",
-
-    FOREVER: "FOREVER",
-
-    FOR: "FOR",
-
-    FOR_EACH: "forEach",
-
-    MATH_CHANGE: "mathChange",
-
-    NOT: "NOT",
-
-    ANGLE: "angle",
-
-    COLOR: "color",
-
-    COLOUR: "colorValue",
-
-    LED_COLOR_CONST: "ledColor",
-
-    RGB_COLOR_CONST: "rgbColor",
-
-    LED_ON_ACTION: "ledOnAction",
-
-    GREEN: "GREEN",
-
-    RED: "red",
-
-    ANIMATION: "animation",
-
-    SUM: "sum",
-
-    RGB: "rgb",
-
-    ORANGE: "ORANGE",
-
-    ON: "ON",
-
-    OFF: "OFF",
-
-    FLASH: "FLASH",
-
-    DOUBLE_FLASH: "DOUBLE_FLASH",
-
-    STATUS_LIGHT_ACTION: "statusLightAction",
-
-    AMBIENTLIGHT: "ambientlight",
-
-    DISPLAY_TEXT_ACTION: "displayTextAction",
-
-    BRIGHTNESS: "brightness",
-
-    PIXEL: "pixel",
-
-    DISPLAY_SET_BRIGHTNESS_ACTION: "displaySetBrightnessAction",
-
-    DISPLAY_SET_PIXEL_ACTION: "displaySetPixelAction",
-
-    DISPLAY_GET_BRIGHTNESS_ACTION: "displayGetBrightnessAction",
-
-    DISPLAY_GET_PIXEL_ACTION: "displayGetPixelAction",
-
-    TIMES: "TIMES",
-
-    SIZE: "size",
-
-    CREATE_LIST_IS_EMPTY: "isListEmpty",
-
-    CREATE_LIST_LENGTH: "listLength",
-
-    CREATE_LIST_WITH_ITEM: "createCreateListWithItem",
-
-    CREATE_LIST_FIND_ITEM: "createListFindItem",
-
-    COLOR_CONST: "COLOR_CONST",
-
-    PILOT: "pilot",
-
-    MOTOR_LEFT: "C",
-
-    MOTOR_RIGHT: "B",
-
-    MOTOR_XA: "XA",
-
-    MOTOR_XB: "XB",
-
-    MOTOR_XAB: "XAB",
-
-    MOTOR_SIDE: "motorSide",
-
-    MOTOR_ON_ACTION: "motorOnAction",
-
-    MOTOR_GET_POWER: "motorGetPowerAction",
-
-    MOTOR_SET_POWER: "motorSetPowerAction",
-
-    ENCODER_SENSOR_RESET: "encoderSensorReset",
-
-    ENCODER_SENSOR_SAMPLE: "encoderSensorSample",
-
-    GET_GYRO_SENSOR_SAMPLE: "gyroSensorSample",
-
-    MOTOR_STOP: "motorStop",
-
-    MOTOR_MOVE_MODE: "motorMoveMode",
-
-    MOTOR_DURATION: "motorDuration",
-
-    MOTOR_DURATION_VALUE: "motorDurationValue",
-
-    ROTATIONS: "ROTATIONS",
-
-    ROTATION: "ROTATION",
-
-    DEGREE: "DEGREE",
-
-    POSITION: "position",
-
-    FIRST: "first",
-
-    LAST: "last",
-
-    FROM_START: "fromStart",
-
-    FROM_END: "fromEnd",
-
-    GET: "get",
-
-    SET: "set",
-
-    REMOVE: "remove",
-
-    GET_REMOVE: "getRemove",
-
-    ITEM: "item",
-
-    CREATE_LISTS_SET_INDEX: "createListsSetIndex",
-
-    CREATE_LISTS_GET_INDEX: "createListsGetIndex",
-
-    CREATE_LISTS_GET_INDEX_STMT: "createListsGetIndexStmt",
-
-    CREATE_LISTS_GET_SUBLIST: "createGetSubList",
-
-    GYRO_SENSOR_RESET: "createResetGyroSensor",
-
-    TIMER_SENSOR_RESET: "createResetTimer",
-
-    METHOD_VOID: "createMethodVoid",
-
-    METHOD_RETURN: "createMethodReturn",
-    
-    IF_RETURN: "createMethodIfReturn",
-
-    RETURN_TYPE: "returnType",
-
-    METHOD_CALL_VOID: "createMethodCallVoid",
-
-    METHOD_CALL_RETURN: "createMethodCallReturn",
-
-    TEXT_JOIN: "createTextJoin",
-
-    LIGHT_ACTION: "lightSensorAction",
-
-    WHERE1: "where1",
-
-    WHERE2: "where2",
-
-    AT1: "at1",
-
-    AT2: "at2",
-
-    RETURN: "return",
-
-    VALUES: "values",
-
-    INSERT: "insert",
-
-    LIGHT: "light",
-
-    BUTTON_A: "A",
-
-    BUTTON_B: "B",
-
-    COMMENT : "comment",
-
-    COMPASS: "compass",
-
-    GESTURE: "gesture",
-
-    TEMPERATURE: "temperature",
-
-    ANALOG: "analog",
-
-    DIGITAL: "digital",
-
-    PIN_TOUCH_SENSOR: "createPinTouchSensor",
-
-    PIN_GET_VALUE_SENSOR: "createPinGetValueSensor",
-
-    PIN_WRITE_VALUE_SENSOR: "createPinWriteValueSensor",
-    
-    NOOP_STMT: "createNoopStmt",
-
-    PIN: "pin",
-    
-    ASSERT_STMT: "createAssertStmt",
-    
-    TEST: "test",
-    
-    CONSOLE_DEBUG: "createConsoleDebugAction",
-
-    COLOR_ENUM: {
-        NONE: "NONE",
-        BLACK: "BLACK",
-        BLUE: "BLUE",
-        GREEN: "GREEN",
-        YELLOW: "YELLOW",
-        RED: "RED",
-        WHITE: "WHITE",
-        BROWN: "BROWN"
-    },
-
-    TIMER: "timer",
-
-    MATH_ON_LIST: "createMathOnList",
-
-    TRACKWIDTH: 40,
-
-    TURN_RATIO: (40 / 3.) / 2.8,
-
-    WHEEL_DIAMETER: 5.6,
-
-    MAXDIAG: 2500,
-
-    MAXPOWER: 0.351858377 * 3, // real Robot drives approx. 35 cm / 1 sec -> 105 pix/sec | 3pix : 1cm
-
-    ENC: 360.0 / (3.0 * Math.PI * 5.6),
-
-    MAX_WIDTH: 2000,
-
-    MAX_HEIGHT: 820,
-
-    WAVE_LENGTH: 60,
-
-    DEBUG_BREAKPOINT: "DebugBreakpoint",
-
-    DEBUG_STEP_INTO: "DebugStepInto",
-
-    DEBUG_STEP_OVER: "DebugStepOver"
+define(["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CONSTANTS = void 0;
+    var CONSTANTS = /** @class */ (function () {
+        function CONSTANTS() {
+        }
+        CONSTANTS.ARG1 = "arg1";
+        CONSTANTS.ARG2 = "arg2";
+        CONSTANTS.EXPR = "expr";
+        CONSTANTS.VALUE = "value";
+        CONSTANTS.OP = "op";
+        CONSTANTS.LEFT = "left";
+        CONSTANTS.RIGHT = "right";
+        CONSTANTS.ENTER = "enter";
+        CONSTANTS.DOWN = "down";
+        CONSTANTS.UP = "up";
+        CONSTANTS.ANY = "any";
+        CONSTANTS.ESCAPE = "escape";
+        CONSTANTS.SHAKE = "shake";
+        CONSTANTS.FREEFALL = "freefall";
+        CONSTANTS.FACE_UP = "face_up";
+        CONSTANTS.FACE_DOWN = "face_down";
+        CONSTANTS.BINARY = "Binary";
+        CONSTANTS.UNARY = "Unary";
+        CONSTANTS.VAR = "Var";
+        CONSTANTS.TYPE = "type";
+        CONSTANTS.NAME = "name";
+        CONSTANTS.STMT = "stmt";
+        CONSTANTS.PARAMETERS = "parameters";
+        CONSTANTS.FUNCTION_DECLARATION = "functionDeclaration";
+        CONSTANTS.VAR_DECLARATION = "VarDeclaration";
+        CONSTANTS.SINGLE_FUNCTION = "SingleFunction";
+        CONSTANTS.MATH_RAIN_FUNCTION = "MathrainFunct";
+        CONSTANTS.RANDOM_INT = "randInt";
+        CONSTANTS.RANDOM_DOUBLE = "randDouble";
+        CONSTANTS.RANDOM = "random";
+        CONSTANTS.ASSIGN_STMT = "AssignStmt";
+        CONSTANTS.ASSIGN_METHOD_PARAMETER_STMT = "AssignMethodParameter";
+        CONSTANTS.REPEAT_STMT = "RepeatStmt";
+        CONSTANTS.IF_STMT = "IfStatement";
+        CONSTANTS.WAIT_STMT = "WaitStmt";
+        CONSTANTS.MATH_CONST = "createMathConstant";
+        CONSTANTS.SHOW_TEXT_ACTION = "ShowTextAction";
+        CONSTANTS.SHOW_PICTURE_ACTION = "ShowPictureAction";
+        CONSTANTS.DISPLAY_IMAGE_ACTION = "DisplayImageAction";
+        CONSTANTS.CLEAR_DISPLAY_ACTION = "ClearDisplay";
+        CONSTANTS.CREATE_DEBUG_ACTION = "CreateDebugAction";
+        CONSTANTS.TONE_ACTION = "ToneAction";
+        CONSTANTS.FREQUENCY = "frequency";
+        CONSTANTS.DURATION = "duration";
+        CONSTANTS.GET_VOLUME = "GetVolume";
+        CONSTANTS.SET_VOLUME_ACTION = "SetVolumeAction";
+        CONSTANTS.VOLUME = "volume";
+        CONSTANTS.IMAGE = "image";
+        CONSTANTS.IMAGE_SHIFT_ACTION = "ImageShiftAction";
+        CONSTANTS.IMAGE_INVERT_ACTION = "ImageInvertAction";
+        CONSTANTS.DIRECTION = "direction";
+        CONSTANTS.PLAY_FILE_ACTION = "PlayFileAction";
+        CONSTANTS.SET_LANGUAGE_ACTION = "SetLanguageAction";
+        CONSTANTS.SAY_TEXT_ACTION = "SayTextAction";
+        CONSTANTS.LANGUAGE = "language";
+        CONSTANTS.PITCH = "pitch";
+        CONSTANTS.FILE = "file";
+        CONSTANTS.TEXT = "text";
+        CONSTANTS.CHARACTER = "character";
+        CONSTANTS.TEXT_APPEND = "textAppend";
+        CONSTANTS.PICTURE = "picture";
+        CONSTANTS.X = "x";
+        CONSTANTS.Y = "y";
+        CONSTANTS.N = "n";
+        CONSTANTS.MATH_PROP_FUNCT = "MathPropFunct";
+        CONSTANTS.WAIT_TIME_STMT = "WaitTimeSTMT";
+        CONSTANTS.TIME = "time";
+        CONSTANTS.LIST = "list";
+        CONSTANTS.STMT_LIST = "stmtList";
+        CONSTANTS.DRIVE_ACTION = "DriveAction";
+        CONSTANTS.CURVE_ACTION = "CurveAction";
+        CONSTANTS.TURN_LIGHT = "turnLight";
+        CONSTANTS.TURN_ACTION = "TurnAction";
+        CONSTANTS.STOP_DRIVE = "stopDrive";
+        CONSTANTS.DRIVE_DIRECTION = "driveDirection";
+        CONSTANTS.TURN_DIRECTION = "turnDirection";
+        CONSTANTS.SPEED = "speed";
+        CONSTANTS.SPEED_L = "speedL";
+        CONSTANTS.SPEED_R = "speedR";
+        CONSTANTS.DISTANCE = "distance";
+        CONSTANTS.PRESENCE = "presence";
+        CONSTANTS.SEEK = "presence";
+        CONSTANTS.RESET = "reset";
+        CONSTANTS.GET_SAMPLE = "GetSample";
+        CONSTANTS.SENSOR_TYPE = "sensorType";
+        CONSTANTS.SENSOR_MODE = "sensorMode";
+        CONSTANTS.THEN_LIST = "thenList";
+        CONSTANTS.ELSE_STMTS = "elseStmts";
+        CONSTANTS.EXPR_LIST = "exprList";
+        CONSTANTS.STATEMENTS = "statements";
+        CONSTANTS.TOUCH = "touch";
+        CONSTANTS.INFRARED = "infrared";
+        CONSTANTS.ULTRASONIC = "ultrasonic";
+        CONSTANTS.GYRO = "gyro";
+        CONSTANTS.SOUND = "sound";
+        CONSTANTS.BUTTONS = "buttons";
+        CONSTANTS.RATE = "rate";
+        CONSTANTS.NUM_CONST = "NumConst";
+        CONSTANTS.BOOL_CONST = "BoolConst";
+        CONSTANTS.STRING_CONST = "StringConst";
+        CONSTANTS.IMAGE_CONST = "image";
+        CONSTANTS.ANIMATION = "animation";
+        CONSTANTS.STRING = "STRING";
+        CONSTANTS.BOOLEAN = "BOOLEAN";
+        CONSTANTS.NUMBER = "NUMBER";
+        CONSTANTS.NULL_CONST = "null";
+        CONSTANTS.LOOP_NUMBER = "loopNumber";
+        CONSTANTS.TERNARY_EXPR = "createTernaryExpr";
+        CONSTANTS.NUMERIC = "Numeric";
+        CONSTANTS.ARRAY_NUMBER = "Array_Number";
+        CONSTANTS.ARRAY_STRING = "Array_String";
+        CONSTANTS.ARRAY_BOOLEAN = "Array_Boolean";
+        CONSTANTS.ARRAY_COLOR = "Array_Colour";
+        CONSTANTS.ARRAY_IMAGE = "Array_Image";
+        CONSTANTS.CONTINUE = "continue";
+        CONSTANTS.BREAK = "break";
+        CONSTANTS.FLOW_CONTROL = "flowControl";
+        CONSTANTS.ADD = "ADD";
+        CONSTANTS.MINUS = "MINUS";
+        CONSTANTS.POWER = "POWER";
+        CONSTANTS.DIVIDE = "DIVIDE";
+        CONSTANTS.MULTIPLY = "MULTIPLY";
+        CONSTANTS.LT = "LT";
+        CONSTANTS.GT = "GT";
+        CONSTANTS.EQ = "EQ";
+        CONSTANTS.NEQ = "NEQ";
+        CONSTANTS.IN = "in";
+        CONSTANTS.GTE = "GTE";
+        CONSTANTS.LTE = "LTE";
+        CONSTANTS.OR = "OR";
+        CONSTANTS.AND = "AND";
+        CONSTANTS.NEG = "NEG";
+        CONSTANTS.MOD = "MOD";
+        CONSTANTS.MIN = "min";
+        CONSTANTS.MAX = "max";
+        CONSTANTS.AVERAGE = "average";
+        CONSTANTS.MEDIAN = "median";
+        CONSTANTS.MODE = "mode";
+        CONSTANTS.STD_DEV = "stdDev";
+        CONSTANTS.FOREWARD = "FOREWARD";
+        CONSTANTS.BACKWARD = "BACKWARD";
+        CONSTANTS.WHILE = "WHILE";
+        CONSTANTS.UNTIL = "UNTIL";
+        CONSTANTS.FOREVER = "FOREVER";
+        CONSTANTS.FOR = "FOR";
+        CONSTANTS.FOR_EACH = "forEach";
+        CONSTANTS.MATH_CHANGE = "mathChange";
+        CONSTANTS.NOT = "NOT";
+        CONSTANTS.ANGLE = "angle";
+        CONSTANTS.COLOR = "color";
+        CONSTANTS.COLOUR = "colorValue";
+        CONSTANTS.LED_COLOR_CONST = "ledColor";
+        CONSTANTS.RGB_COLOR_CONST = "rgbColor";
+        CONSTANTS.LED_ON_ACTION = "ledOnAction";
+        CONSTANTS.GREEN = "GREEN";
+        CONSTANTS.RED = "red";
+        CONSTANTS.SUM = "sum";
+        CONSTANTS.RGB = "rgb";
+        CONSTANTS.ORANGE = "ORANGE";
+        CONSTANTS.ON = "ON";
+        CONSTANTS.OFF = "OFF";
+        CONSTANTS.FLASH = "FLASH";
+        CONSTANTS.DOUBLE_FLASH = "DOUBLE_FLASH";
+        CONSTANTS.STATUS_LIGHT_ACTION = "statusLightAction";
+        CONSTANTS.AMBIENTLIGHT = "ambientlight";
+        CONSTANTS.DISPLAY_TEXT_ACTION = "displayTextAction";
+        CONSTANTS.BRIGHTNESS = "brightness";
+        CONSTANTS.PIXEL = "pixel";
+        CONSTANTS.DISPLAY_SET_BRIGHTNESS_ACTION = "displaySetBrightnessAction";
+        CONSTANTS.DISPLAY_SET_PIXEL_ACTION = "displaySetPixelAction";
+        CONSTANTS.DISPLAY_GET_BRIGHTNESS_ACTION = "displayGetBrightnessAction";
+        CONSTANTS.DISPLAY_GET_PIXEL_ACTION = "displayGetPixelAction";
+        CONSTANTS.TIMES = "TIMES";
+        CONSTANTS.SIZE = "size";
+        CONSTANTS.CREATE_LIST_IS_EMPTY = "isListEmpty";
+        CONSTANTS.CREATE_LIST_LENGTH = "listLength";
+        CONSTANTS.CREATE_LIST_WITH_ITEM = "createCreateListWithItem";
+        CONSTANTS.CREATE_LIST_FIND_ITEM = "createListFindItem";
+        CONSTANTS.COLOR_CONST = "COLOR_CONST";
+        CONSTANTS.PILOT = "pilot";
+        CONSTANTS.MOTOR_LEFT = "C";
+        CONSTANTS.MOTOR_RIGHT = "B";
+        CONSTANTS.MOTOR_XA = "XA";
+        CONSTANTS.MOTOR_XB = "XB";
+        CONSTANTS.MOTOR_XAB = "XAB";
+        CONSTANTS.MOTOR_SIDE = "motorSide";
+        CONSTANTS.MOTOR_ON_ACTION = "motorOnAction";
+        CONSTANTS.MOTOR_GET_POWER = "motorGetPowerAction";
+        CONSTANTS.MOTOR_SET_POWER = "motorSetPowerAction";
+        CONSTANTS.ENCODER_SENSOR_RESET = "encoderSensorReset";
+        CONSTANTS.ENCODER_SENSOR_SAMPLE = "encoderSensorSample";
+        CONSTANTS.GET_GYRO_SENSOR_SAMPLE = "gyroSensorSample";
+        CONSTANTS.MOTOR_STOP = "motorStop";
+        CONSTANTS.MOTOR_MOVE_MODE = "motorMoveMode";
+        CONSTANTS.MOTOR_DURATION = "motorDuration";
+        CONSTANTS.MOTOR_DURATION_VALUE = "motorDurationValue";
+        CONSTANTS.ROTATIONS = "ROTATIONS";
+        CONSTANTS.ROTATION = "ROTATION";
+        CONSTANTS.DEGREE = "DEGREE";
+        CONSTANTS.POSITION = "position";
+        CONSTANTS.FIRST = "first";
+        CONSTANTS.LAST = "last";
+        CONSTANTS.FROM_START = "fromStart";
+        CONSTANTS.FROM_END = "fromEnd";
+        CONSTANTS.GET = "get";
+        CONSTANTS.SET = "set";
+        CONSTANTS.REMOVE = "remove";
+        CONSTANTS.GET_REMOVE = "getRemove";
+        CONSTANTS.ITEM = "item";
+        CONSTANTS.CREATE_LISTS_SET_INDEX = "createListsSetIndex";
+        CONSTANTS.CREATE_LISTS_GET_INDEX = "createListsGetIndex";
+        CONSTANTS.CREATE_LISTS_GET_INDEX_STMT = "createListsGetIndexStmt";
+        CONSTANTS.CREATE_LISTS_GET_SUBLIST = "createGetSubList";
+        CONSTANTS.GYRO_SENSOR_RESET = "createResetGyroSensor";
+        CONSTANTS.TIMER_SENSOR_RESET = "createResetTimer";
+        CONSTANTS.METHOD_VOID = "createMethodVoid";
+        CONSTANTS.METHOD_RETURN = "createMethodReturn";
+        CONSTANTS.IF_RETURN = "createMethodIfReturn";
+        CONSTANTS.RETURN_TYPE = "returnType";
+        CONSTANTS.METHOD_CALL_VOID = "createMethodCallVoid";
+        CONSTANTS.METHOD_CALL_RETURN = "createMethodCallReturn";
+        CONSTANTS.TEXT_JOIN = "createTextJoin";
+        CONSTANTS.LIGHT_ACTION = "lightSensorAction";
+        CONSTANTS.WHERE1 = "where1";
+        CONSTANTS.WHERE2 = "where2";
+        CONSTANTS.AT1 = "at1";
+        CONSTANTS.AT2 = "at2";
+        CONSTANTS.RETURN = "return";
+        CONSTANTS.VALUES = "values";
+        CONSTANTS.INSERT = "insert";
+        CONSTANTS.LIGHT = "light";
+        CONSTANTS.BUTTON_A = "A";
+        CONSTANTS.BUTTON_B = "B";
+        CONSTANTS.COMMENT = "comment";
+        CONSTANTS.COMPASS = "compass";
+        CONSTANTS.GESTURE = "gesture";
+        CONSTANTS.TEMPERATURE = "temperature";
+        CONSTANTS.ANALOG = "analog";
+        CONSTANTS.DIGITAL = "digital";
+        CONSTANTS.PIN_TOUCH_SENSOR = "createPinTouchSensor";
+        CONSTANTS.PIN_GET_VALUE_SENSOR = "createPinGetValueSensor";
+        CONSTANTS.PIN_WRITE_VALUE_SENSOR = "createPinWriteValueSensor";
+        CONSTANTS.NOOP_STMT = "createNoopStmt";
+        CONSTANTS.PIN = "pin";
+        CONSTANTS.ASSERT_STMT = "createAssertStmt";
+        CONSTANTS.TEST = "test";
+        CONSTANTS.CONSOLE_DEBUG = "createConsoleDebugAction";
+        CONSTANTS.COLOR_ENUM = {
+            NONE: "NONE",
+            BLACK: "BLACK",
+            BLUE: "BLUE",
+            GREEN: "GREEN",
+            YELLOW: "YELLOW",
+            RED: "RED",
+            WHITE: "WHITE",
+            BROWN: "BROWN"
+        };
+        CONSTANTS.TIMER = "timer";
+        CONSTANTS.MATH_ON_LIST = "createMathOnList";
+        CONSTANTS.TRACKWIDTH = 40;
+        CONSTANTS.TURN_RATIO = (40 / 3.) / 2.8;
+        CONSTANTS.WHEEL_DIAMETER = 5.6;
+        CONSTANTS.MAXDIAG = 2500;
+        CONSTANTS.MAXPOWER = 0.351858377 * 3; // real Robot drives approx. 35 cm / 1 sec -> 105 pix/sec | 3pix  = 1cm
+        CONSTANTS.ENC = 360.0 / (3.0 * Math.PI * 5.6);
+        CONSTANTS.MAX_WIDTH = 2000;
+        CONSTANTS.MAX_HEIGHT = 820;
+        CONSTANTS.WAVE_LENGTH = 60;
+        CONSTANTS.DEBUG_BREAKPOINT = "DebugBreakpoint";
+        CONSTANTS.DEBUG_STEP_INTO = "DebugStepInto";
+        CONSTANTS.DEBUG_STEP_OVER = "DebugStepOver";
+        return CONSTANTS;
+    }());
+    exports.CONSTANTS = CONSTANTS;
 });

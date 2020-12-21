@@ -9,7 +9,16 @@
   "license": "ISC",
   "dependencies": {
     "@types/d3": "^3.5.34",
-    "@types/node": "^14.11.8",
-    "d3": "^3.5.16"
+    "@types/matter-js": "^0.14.8",
+    "@types/node": "^14.14.14",
+    "blockly": "^4.20201217.0",
+    "d3": "^3.5.16",
+    "jquery": "^3.5.1",
+    "matter-js": "^0.14.2",
+    "pixi.js": "^5.3.5"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.5",
+    "typescript": "^4.1.3"
   }
 }
