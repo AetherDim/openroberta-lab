@@ -109,6 +109,9 @@ require.config({
         'wires': 'app/configVisualization/wires',
 
         'scene': 'app/simulation/simulationLogic/scene',
+        'simulationEngine': 'app/simulation/simulationLogic/simulationEngine',
+        'timer': 'app/simulation/simulationLogic/timer',
+        'entities': 'app/simulation/simulationLogic/entities',
 
     },
     shim: {

@@ -1,26 +1,21 @@
-define(["require", "exports", "./scene", "matter-js"], function (require, exports, scene_1, matter) {
+define(["require", "exports", "./simulationEngine"], function (require, exports, simulationEngine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
-    var Engine = matter.Engine;
-    var Render = matter.Render;
-    var World = matter.World;
-    var Bodies = matter.Bodies;
-    var Mouse = matter.Mouse;
-    // create an engine
-    var engine = Engine.create();
-    // create two boxes and a ground
-    var boxA = Bodies.rectangle(400, 200, 80, 80);
-    var boxB = Bodies.rectangle(450, 50, 80, 80);
-    var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
-    // add all of the bodies to the world
-    World.add(engine.world, [boxA, boxB, ground]);
-    // run the engine
-    Engine.run(engine);
-    var scene = null;
-    function init(resultArr, nani, nani2) {
+    var engine = new simulationEngine_1.SimulationEngine('simDiv', true);
+    //engine.setupDebugRenderer('notConstantValue');
+    engine.testPhysics();
+    var interpreters;
+    var configurations = [];
+    //$('#blockly').openRightView("sim", 0.5);
+    function init(programs, refresh, robotType) {
+        $('#blockly').openRightView("sim", 0.5);
         console.log("init");
-        scene = new scene_1.Scene(engine);
+        /*interpreters = programs.map((x:any) => {
+            var src = JSON.parse(x.javaScriptProgram);
+            configurations.push(x.javaScriptConfiguration);
+            return new Interpreter(src, new RobotMbedBehaviour(), () => {console.log("Interpreter terminated")}, []);
+        });*/
     }
     exports.init = init;
     function getNumRobots() {
@@ -31,10 +26,11 @@ define(["require", "exports", "./scene", "matter-js"], function (require, export
     }
     exports.setPause = setPause;
     function run(p1, p2) {
-        console.log("run");
+        engine.startSim();
     }
     exports.run = run;
     function stopProgram() {
+        engine.stopSim();
     }
     exports.stopProgram = stopProgram;
     function importImage() {

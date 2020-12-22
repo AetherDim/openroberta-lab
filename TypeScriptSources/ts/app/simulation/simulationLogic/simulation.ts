@@ -1,31 +1,27 @@
-import { Scene } from "./scene";
-import * as matter from 'matter-js'
+import { RobotMbedBehaviour } from './interpreter.robotSimBehaviour'
+import { Interpreter } from './interpreter.interpreter'
+import { SimulationEngine } from './simulationEngine'
 
-const Engine = matter.Engine;
-const Render = matter.Render;
-const World = matter.World;
-const Bodies = matter.Bodies;
-const Mouse = matter.Mouse;
+var engine = new SimulationEngine('simDiv', true);
+//engine.setupDebugRenderer('notConstantValue');
 
-// create an engine
-const engine = Engine.create()
+engine.testPhysics();
 
-// create two boxes and a ground
-var boxA = Bodies.rectangle(400, 200, 80, 80);
-var boxB = Bodies.rectangle(450, 50, 80, 80);
-var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+var interpreters: Interpreter[]
+var configurations: any[] = []
 
-// add all of the bodies to the world
-World.add(engine.world, [boxA, boxB, ground]);
+//$('#blockly').openRightView("sim", 0.5);
 
-// run the engine
-Engine.run(engine);
+export function init(programs: any, refresh: boolean, robotType: string) {
+    $('#blockly').openRightView("sim", 0.5);
 
-var scene = null;
-
-export function init(resultArr: any, nani:boolean, nani2:any) {
     console.log("init");
-    scene = new Scene(engine);
+
+    /*interpreters = programs.map((x:any) => {
+        var src = JSON.parse(x.javaScriptProgram);
+        configurations.push(x.javaScriptConfiguration);
+        return new Interpreter(src, new RobotMbedBehaviour(), () => {console.log("Interpreter terminated")}, []);
+    });*/
 
 }
 
@@ -39,11 +35,11 @@ export function setPause(pause:boolean) {
 }
 
 export function run(p1:boolean, p2: any) {
-    console.log("run");
+    engine.startSim();
 }
 
 export function stopProgram() {
-    
+    engine.stopSim();
 }
 
 export function importImage() {

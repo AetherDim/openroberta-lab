@@ -5,6 +5,8 @@ define(["require", "exports"], function (require, exports) {
     var Robot = /** @class */ (function () {
         function Robot() {
         }
+        Robot.prototype.simulate = function () {
+        };
         return Robot;
     }());
     exports.Robot = Robot;
