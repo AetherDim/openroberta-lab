@@ -20,7 +20,7 @@ define(['exports', 'util', 'message', 'guiState.model', 'progHelp.controller', '
             GUISTATE.gui.view = 'tabProgram';
             GUISTATE.gui.prevView = 'tabProgram';
             GUISTATE.gui.language = language;
-            GUISTATE.gui.startWithoutPopup = false;
+            GUISTATE.gui.startWithoutPopup = true;
 
             GUISTATE.gui.robot = GUISTATE.server.defaultRobot;
             GUISTATE.gui.defaultRobot = GUISTATE.server.defaultRobot;
