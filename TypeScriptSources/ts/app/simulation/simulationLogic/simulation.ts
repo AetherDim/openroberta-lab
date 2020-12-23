@@ -7,6 +7,7 @@ var engine = new SimulationEngine('sceneCanvas');
 engine.scene.setupDebugRenderer('notConstantValue');
 
 engine.scene.testPhysics();
+engine.startSim()
 
 var interpreters: Interpreter[]
 var configurations: any[] = []

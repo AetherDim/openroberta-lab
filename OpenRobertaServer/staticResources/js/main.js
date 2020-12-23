@@ -1,6 +1,13 @@
+function addPaths(defaultPaths, simulationNames) {
+	simulationNames.forEach(name => {
+		defaultPaths[name] = 'app/simulation/simulationLogic/'+name;
+	})
+	return defaultPaths;
+}
+
 require.config({
     baseUrl: 'js',
-    paths: {
+    paths: addPaths({
         'codeflask': 'libs/codeflask/codeflask.min',
         'blockly': '../blockly/blockly_compressed',
         'bootstrap': 'libs/bootstrap/bootstrap-3.3.1-dist/dist/js/bootstrap.min',
@@ -108,13 +115,14 @@ require.config({
         'robotBlock': 'app/configVisualization/robotBlock',
         'wires': 'app/configVisualization/wires',
 
-        'scene': 'app/simulation/simulationLogic/scene',
-        'simulationEngine': 'app/simulation/simulationLogic/simulationEngine',
-        'timer': 'app/simulation/simulationLogic/timer',
-        'entities': 'app/simulation/simulationLogic/entities',
-        'extendedMatter': 'app/simulation/simulationLogic/extendedMatter',
-
-    },
+    },[
+        'scene',
+        'simulationEngine',
+        'timer',
+        'entities',
+        'extendedMatter',
+        'robot'
+    ]),
     shim: {
         'bootstrap': {
             deps: ['jquery']

@@ -5,6 +5,7 @@ define(["require", "exports", "./simulationEngine", "./extendedMatter"], functio
     var engine = new simulationEngine_1.SimulationEngine('sceneCanvas');
     engine.scene.setupDebugRenderer('notConstantValue');
     engine.scene.testPhysics();
+    engine.startSim();
     var interpreters;
     var configurations = [];
     //$('#blockly').openRightView("sim", 0.5);
