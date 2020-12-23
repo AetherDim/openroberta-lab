@@ -52,9 +52,6 @@ export class Displayable {
 
 export abstract class DisplaySettings {
 
-    x: number;
-    y: number;
-
     texture?: PIXI.Texture;
     color?: number = 0xFFFFFF;
     alpha?: number = 1;
@@ -65,42 +62,42 @@ export abstract class DisplaySettings {
 }
 
 
-export function createRect(settings: DisplaySettings, width: number, height: number, roundingAngle: number=0) {
+export function createRect(x: number, y: number, width: number, height: number, settings: DisplaySettings={}, roundingAngle: number=0) {
 
     const graphics = new PIXI.Graphics();
 
     graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
     graphics.beginFill(settings.color, settings.alpha);
-    graphics.drawRoundedRect(settings.x, settings.y, width, height, roundingAngle);
+    graphics.drawRoundedRect(x, y, width, height, roundingAngle);
     graphics.endFill();
 
 
     var displayable = new Displayable(graphics);
 
-    return Bodies.rectangle(settings.x, settings.y, width, height, {displayable: displayable});
+    return Bodies.rectangle(x, y, width, height, {displayable: displayable});
 }
 
-export function createCircle(settings: DisplaySettings, radius: number) {
+export function createCircle(x: number, y: number, radius: number, settings: DisplaySettings={}) {
 
     const graphics = new PIXI.Graphics();
 
     graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
     graphics.beginFill(settings.color, settings.alpha);
-    graphics.drawCircle(settings.x, settings.y, radius);
+    graphics.drawCircle(x, y, radius);
     graphics.endFill();
 
     var displayable = new Displayable(graphics);
 
-    return Bodies.circle(settings.x, settings.y, radius, {displayable: displayable});
+    return Bodies.circle(x, y, radius, {displayable: displayable});
 }
 
-export function createPoligon(settings: DisplaySettings, radius: number) {
+export function createPoligon(x: number, y: number, radius: number, settings: DisplaySettings={}) {
 
     const graphics = new PIXI.Graphics();
 
     graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
     graphics.beginFill(settings.color, settings.alpha);
-    graphics.drawCircle(settings.x, settings.y, radius);
+    graphics.drawCircle(x, y, radius);
     graphics.endFill();
 
     var displayable = new Displayable(graphics);

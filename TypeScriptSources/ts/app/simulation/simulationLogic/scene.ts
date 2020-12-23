@@ -2,14 +2,15 @@ import './pixijs'
 import * as $ from "jquery";
 import { Robot } from './robot';
 import { Displayable } from './displayable';
-import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite } from 'matter-js';
 import { contains } from 'jquery';
 
 export class Scene {
 
-    robots: Robot[] = [];
+    readonly robots: Array<Robot> = new Array<Robot>();
+    readonly displayables: Array<Displayable> = new Array<Displayable>();
 
-    engine: Engine = Engine.create();
+    readonly engine: Engine = Engine.create();
 
     debugRenderer: Render = null;
 
@@ -17,11 +18,55 @@ export class Scene {
 
 
 
-    constructor() {}
+    constructor() {
+        const _this = this;
+        Events.on(this.engine.world, "afterAdd", (e: IEventComposite<Composite>) => {
+            _this.addPhysics(e.object);
+        });
+    }
 
 
     initMouse(mouse: Mouse) {
-        // TODO
+        // TODO: different mouse constarains?
+        var mouseConstraint = MouseConstraint.create(this.engine, {
+            mouse: mouse
+        });
+        World.add(this.engine.world, mouseConstraint);
+    }
+
+    addPhysics(element: Body | Composite | Constraint) {
+
+        if(!element) {
+            return;
+        }
+
+
+        switch (element.type) {
+            case 'body':
+                var body = <Body>element;
+                if(body.displayable && !this.displayables.includes(body.displayable)) {
+                    this.displayables.push(body.displayable);
+                }
+                break;
+
+            case 'composite':
+                Composite.allBodies(<Composite>element).forEach((e) => {
+                    this.addPhysics(e);
+                });
+                break;
+
+            case "mouseConstraint":
+            case 'constraint':
+                var constraint = <Constraint>element;
+                this.addPhysics(constraint.bodyA);
+                this.addPhysics(constraint.bodyB);
+                break;
+        
+            default:
+                console.error("unknown type: " + element.type);
+                break;
+        }
+
     }
 
     /**

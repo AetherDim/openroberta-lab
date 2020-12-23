@@ -56,32 +56,35 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
         return DisplaySettings;
     }());
     exports.DisplaySettings = DisplaySettings;
-    function createRect(settings, width, height, roundingAngle) {
+    function createRect(x, y, width, height, settings, roundingAngle) {
+        if (settings === void 0) { settings = {}; }
         if (roundingAngle === void 0) { roundingAngle = 0; }
         var graphics = new PIXI.Graphics();
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
         graphics.beginFill(settings.color, settings.alpha);
-        graphics.drawRoundedRect(settings.x, settings.y, width, height, roundingAngle);
+        graphics.drawRoundedRect(x, y, width, height, roundingAngle);
         graphics.endFill();
         var displayable = new Displayable(graphics);
-        return matter_js_1.Bodies.rectangle(settings.x, settings.y, width, height, { displayable: displayable });
+        return matter_js_1.Bodies.rectangle(x, y, width, height, { displayable: displayable });
     }
     exports.createRect = createRect;
-    function createCircle(settings, radius) {
+    function createCircle(x, y, radius, settings) {
+        if (settings === void 0) { settings = {}; }
         var graphics = new PIXI.Graphics();
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
         graphics.beginFill(settings.color, settings.alpha);
-        graphics.drawCircle(settings.x, settings.y, radius);
+        graphics.drawCircle(x, y, radius);
         graphics.endFill();
         var displayable = new Displayable(graphics);
-        return matter_js_1.Bodies.circle(settings.x, settings.y, radius, { displayable: displayable });
+        return matter_js_1.Bodies.circle(x, y, radius, { displayable: displayable });
     }
     exports.createCircle = createCircle;
-    function createPoligon(settings, radius) {
+    function createPoligon(x, y, radius, settings) {
+        if (settings === void 0) { settings = {}; }
         var graphics = new PIXI.Graphics();
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
         graphics.beginFill(settings.color, settings.alpha);
-        graphics.drawCircle(settings.x, settings.y, radius);
+        graphics.drawCircle(x, y, radius);
         graphics.endFill();
         var displayable = new Displayable(graphics);
         //return Bodies.polygon(settings.x, settings.y, width, height, {displayable: displayable});

@@ -4,13 +4,50 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
     exports.Scene = void 0;
     var Scene = /** @class */ (function () {
         function Scene() {
-            this.robots = [];
+            this.robots = new Array();
+            this.displayables = new Array();
             this.engine = matter_js_1.Engine.create();
             this.debugRenderer = null;
             this.dt = 10;
+            var _this = this;
+            matter_js_1.Events.on(this.engine.world, "afterAdd", function (e) {
+                _this.addPhysics(e.object);
+            });
         }
         Scene.prototype.initMouse = function (mouse) {
-            // TODO
+            // TODO: different mouse constarains?
+            var mouseConstraint = matter_js_1.MouseConstraint.create(this.engine, {
+                mouse: mouse
+            });
+            matter_js_1.World.add(this.engine.world, mouseConstraint);
+        };
+        Scene.prototype.addPhysics = function (element) {
+            var _this_1 = this;
+            if (!element) {
+                return;
+            }
+            switch (element.type) {
+                case 'body':
+                    var body = element;
+                    if (body.displayable && !this.displayables.includes(body.displayable)) {
+                        this.displayables.push(body.displayable);
+                    }
+                    break;
+                case 'composite':
+                    matter_js_1.Composite.allBodies(element).forEach(function (e) {
+                        _this_1.addPhysics(e);
+                    });
+                    break;
+                case "mouseConstraint":
+                case 'constraint':
+                    var constraint = element;
+                    this.addPhysics(constraint.bodyA);
+                    this.addPhysics(constraint.bodyB);
+                    break;
+                default:
+                    console.error("unknown type: " + element.type);
+                    break;
+            }
         };
         /**
          * called on scene switch
