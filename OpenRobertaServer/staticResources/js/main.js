@@ -122,7 +122,8 @@ require.config({
         'entities',
         'extendedMatter',
         'robot',
-        'displayable'
+        'displayable',
+        'robotSimBehaviour'
     ]),
     shim: {
         'bootstrap': {

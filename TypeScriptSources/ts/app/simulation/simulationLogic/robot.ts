@@ -3,7 +3,8 @@ import { createRect } from './displayable'
 
 import "./extendedMatter"
 import { MAXPOWER } from './interpreter.constants'
-import { RobotMbedBehaviour } from './interpreter.robotSimBehaviour'
+import { Interpreter } from './interpreter.interpreter'
+import { RobotSimBehaviour } from './robotSimBehaviour'
 
 export class Robot {
 
@@ -27,7 +28,12 @@ export class Robot {
         frontRight: createRect( 50,  15, 20, 10)
     }
 
-    robotBehaviour = new RobotMbedBehaviour()
+    robotBehaviour: RobotSimBehaviour = null;
+
+    configuration: any = null;
+    programCode: any = null;
+
+    interpreter: Interpreter = null;
 
     constructor() {
         this.makePhysicsObject()
@@ -78,8 +84,34 @@ export class Robot {
         right: 0
     };
 
-    update() {
+
+
+    setProgram(program: any, breakpoints: any[]) {
+        const _this = this;
+        this.programCode = JSON.parse(program.javaScriptProgram);
+        this.configuration = program.javaScriptConfiguration
+        this.robotBehaviour = new RobotSimBehaviour();
+        this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
+            _this.programTermineted();
+        }, breakpoints);
+    }
+
+    private programTermineted() {
+        console.log("Interpreter terminated");
+    }
+
+
+    update(dt: number) {
+
+        if(!this.robotBehaviour || !this.interpreter) {
+            return;
+        }
+
+        this.interpreter.run(dt);
+
+        this.robotBehaviour.setBlocking(false);
         
+
         // update pose
         var motors = this.robotBehaviour.getActionState("motors", true);
         if (motors) {
@@ -103,10 +135,13 @@ export class Robot {
                 this.rightForce = right * maxForce;
             }
         }
+
+        this.driveWithWheel(this.wheels.rearLeft, this.leftForce)
+        this.driveWithWheel(this.wheels.rearRight, this.rightForce)
+
         // var tempRight = this.right;
         // var tempLeft = this.left;
         //this.pose.theta = (this.pose.theta + 2 * Math.PI) % (2 * Math.PI);
-        const dt = 0.016 //SIM.getDt()
         const leftWheelVelocity = this.velocityAlongBody(this.wheels.rearLeft)
         const rightWheelVelocity = this.velocityAlongBody(this.wheels.rearRight)
         this.encoder.left += leftWheelVelocity * dt;

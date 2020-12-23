@@ -20,11 +20,7 @@ export function init(programs: any, refresh: boolean, robotType: string) {
 
     console.log("init");
 
-    /*interpreters = programs.map((x:any) => {
-        var src = JSON.parse(x.javaScriptProgram);
-        configurations.push(x.javaScriptConfiguration);
-        return new Interpreter(src, new RobotMbedBehaviour(), () => {console.log("Interpreter terminated")}, []);
-    });*/
+    engine.setPrograms(programs);
 
 }
 

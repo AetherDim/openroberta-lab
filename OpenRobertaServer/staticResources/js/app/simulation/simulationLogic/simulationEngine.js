@@ -50,6 +50,9 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./pi
                 this.startSim();
             }
         }
+        SimulationEngine.prototype.setPrograms = function (programs) {
+            this.scene.setPrograms(programs);
+        };
         SimulationEngine.prototype.startSim = function () {
             this.simTicker.start();
         };

@@ -25,6 +25,16 @@ export class Scene {
         });
     }
 
+    setPrograms(programs: any[]) {
+        if(programs.length < this.robots.length) {
+            console.error("not enough programs!");
+            return;
+        }
+        for (let i = 0; i < this.robots.length; i++) {
+            this.robots[i].setProgram(programs[i], []); // TODO: breakpoints
+        }
+    }
+
 
     initMouse(mouse: Mouse) {
         // TODO: different mouse constarains?
@@ -97,9 +107,11 @@ export class Scene {
 
     // for physics tics
     update() {
+        this.robots.forEach((robot) => robot.update(this.dt));
+
         Engine.update(this.engine, this.dt);
 
-        var bodies = Composite.allBodies(this.engine.world);
+        /*Üvar bodies = Composite.allBodies(this.engine.world);
         bodies.forEach(body => {
             if(body.displayable) {
                 body.displayable.updateFromBody(body);
@@ -110,7 +122,7 @@ export class Scene {
         var constraints = Composite.allConstraints(this.engine.world);
         constraints.forEach(constrait => {
             // TODO
-        });
+        });*/
     }
     
 
@@ -152,6 +164,8 @@ export class Scene {
     testPhysics() {
 
         const robot = new Robot()
+        this.robots.push(robot);
+        
         const robotComposite = robot.physicsComposite
 
         World.add(this.engine.world, robotComposite);

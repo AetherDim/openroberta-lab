@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./displayable", "./interpreter.constants", "./interpreter.robotSimBehaviour", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1, interpreter_constants_1, interpreter_robotSimBehaviour_1) {
+define(["require", "exports", "matter-js", "./displayable", "./interpreter.constants", "./interpreter.interpreter", "./robotSimBehaviour", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1, interpreter_constants_1, interpreter_interpreter_1, robotSimBehaviour_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -17,7 +17,10 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
                 frontLeft: displayable_1.createRect(50, -15, 20, 10),
                 frontRight: displayable_1.createRect(50, 15, 20, 10)
             };
-            this.robotBehaviour = new interpreter_robotSimBehaviour_1.RobotMbedBehaviour();
+            this.robotBehaviour = null;
+            this.configuration = null;
+            this.programCode = null;
+            this.interpreter = null;
             // velocity
             // left = 0
             // right = 0
@@ -30,7 +33,7 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
             this.makePhysicsObject();
         }
         Robot.prototype.makePhysicsObject = function () {
-            var _this = this;
+            var _this_1 = this;
             var wheels = [
                 this.wheels.rearLeft,
                 this.wheels.rearRight,
@@ -41,7 +44,7 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
             // set friction
             wheels.forEach(function (wheel) {
                 wheel.frictionAir = 0.3;
-                _this.physicsComposite.addRigidBodyConstraints(_this.body, wheel, 0.1, 0.001);
+                _this_1.physicsComposite.addRigidBodyConstraints(_this_1.body, wheel, 0.1, 0.001);
             });
             this.body.frictionAir = 0.0;
         };
@@ -56,7 +59,24 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
         Robot.prototype.velocityAlongBody = function (body) {
             return matter_js_1.Vector.dot(body.velocity, this.vectorAlongBody(body));
         };
-        Robot.prototype.update = function () {
+        Robot.prototype.setProgram = function (program, breakpoints) {
+            var _this = this;
+            this.programCode = JSON.parse(program.javaScriptProgram);
+            this.configuration = program.javaScriptConfiguration;
+            this.robotBehaviour = new robotSimBehaviour_1.RobotSimBehaviour();
+            this.interpreter = new interpreter_interpreter_1.Interpreter(this.programCode, this.robotBehaviour, function () {
+                _this.programTermineted();
+            }, breakpoints);
+        };
+        Robot.prototype.programTermineted = function () {
+            console.log("Interpreter terminated");
+        };
+        Robot.prototype.update = function (dt) {
+            if (!this.robotBehaviour || !this.interpreter) {
+                return;
+            }
+            this.interpreter.run(dt);
+            this.robotBehaviour.setBlocking(false);
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {
@@ -82,10 +102,11 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
                     this.rightForce = right * maxForce;
                 }
             }
+            this.driveWithWheel(this.wheels.rearLeft, this.leftForce);
+            this.driveWithWheel(this.wheels.rearRight, this.rightForce);
             // var tempRight = this.right;
             // var tempLeft = this.left;
             //this.pose.theta = (this.pose.theta + 2 * Math.PI) % (2 * Math.PI);
-            var dt = 0.016; //SIM.getDt()
             var leftWheelVelocity = this.velocityAlongBody(this.wheels.rearLeft);
             var rightWheelVelocity = this.velocityAlongBody(this.wheels.rearRight);
             this.encoder.left += leftWheelVelocity * dt;

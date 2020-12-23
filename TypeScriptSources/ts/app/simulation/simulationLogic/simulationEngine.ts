@@ -74,6 +74,10 @@ export class SimulationEngine {
 
     }
 
+    setPrograms(programs: any[]) {
+        this.scene.setPrograms(programs);
+    }
+
     startSim() {
         this.simTicker.start();
     }

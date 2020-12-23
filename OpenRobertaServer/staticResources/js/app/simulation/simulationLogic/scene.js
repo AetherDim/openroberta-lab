@@ -14,6 +14,15 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
                 _this.addPhysics(e.object);
             });
         }
+        Scene.prototype.setPrograms = function (programs) {
+            if (programs.length < this.robots.length) {
+                console.error("not enough programs!");
+                return;
+            }
+            for (var i = 0; i < this.robots.length; i++) {
+                this.robots[i].setProgram(programs[i], []); // TODO: breakpoints
+            }
+        };
         Scene.prototype.initMouse = function (mouse) {
             // TODO: different mouse constarains?
             var mouseConstraint = matter_js_1.MouseConstraint.create(this.engine, {
@@ -69,17 +78,21 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
         };
         // for physics tics
         Scene.prototype.update = function () {
+            var _this_1 = this;
+            this.robots.forEach(function (robot) { return robot.update(_this_1.dt); });
             matter_js_1.Engine.update(this.engine, this.dt);
-            var bodies = matter_js_1.Composite.allBodies(this.engine.world);
-            bodies.forEach(function (body) {
-                if (body.displayable) {
+            /*Üvar bodies = Composite.allBodies(this.engine.world);
+            bodies.forEach(body => {
+                if(body.displayable) {
                     body.displayable.updateFromBody(body);
                 }
             });
-            var constraints = matter_js_1.Composite.allConstraints(this.engine.world);
-            constraints.forEach(function (constrait) {
+    
+            
+            var constraints = Composite.allConstraints(this.engine.world);
+            constraints.forEach(constrait => {
                 // TODO
-            });
+            });*/
         };
         // for debugging
         Scene.prototype.setupDebugRenderer = function (canvas, wireframes, enableMouse) {
@@ -113,6 +126,7 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
         };
         Scene.prototype.testPhysics = function () {
             var robot = new robot_1.Robot();
+            this.robots.push(robot);
             var robotComposite = robot.physicsComposite;
             matter_js_1.World.add(this.engine.world, robotComposite);
             matter_js_1.Composite.translate(robotComposite, matter_js_1.Vector.create(300, 400));
