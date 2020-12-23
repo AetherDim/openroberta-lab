@@ -3,11 +3,12 @@ import { Interpreter } from './interpreter.interpreter'
 import { SimulationEngine } from './simulationEngine'
 import './extendedMatter'
 
-var engine = new SimulationEngine('sceneCanvas');
-engine.scene.setupDebugRenderer('notConstantValue');
+var engine = new SimulationEngine('sceneCanvas', null, true, true);
+//engine.scene.setupDebugRenderer('notConstantValue');
+engine.scene.setupDebugRenderer('simDiv');
 
 engine.scene.testPhysics();
-engine.startSim()
+
 
 var interpreters: Interpreter[]
 var configurations: any[] = []

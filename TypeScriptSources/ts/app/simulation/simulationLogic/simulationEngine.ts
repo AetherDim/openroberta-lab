@@ -33,7 +33,7 @@ export class SimulationEngine {
     debugRendererUsed = false;
     
 
-    constructor(canvas: HTMLCanvasElement | string, scene: Scene=null, startSim: boolean = false) {
+    constructor(canvas: HTMLCanvasElement | string, scene: Scene=null, startSim: boolean = false, disablePixiRenderer: boolean = false) {
 
         var htmlCanvas = null;
 
@@ -48,7 +48,9 @@ export class SimulationEngine {
         // The application will create a renderer using WebGL, if possible,
         // with a fallback to a canvas render. It will also setup the ticker
         // and the root stage PIXI.Container
-        this.app = new PIXI.Application({view: htmlCanvas, backgroundColor: rgbToNumber(backgroundColor)});
+        if(!disablePixiRenderer) {
+            this.app = new PIXI.Application({view: htmlCanvas, backgroundColor: rgbToNumber(backgroundColor)});
+        }
 
         // add mouse control
         this.mouse = Mouse.create(htmlCanvas); // call before scene switch

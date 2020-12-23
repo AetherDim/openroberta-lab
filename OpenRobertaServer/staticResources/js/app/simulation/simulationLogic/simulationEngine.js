@@ -11,9 +11,10 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./pi
     }
     // physics and graphics
     var SimulationEngine = /** @class */ (function () {
-        function SimulationEngine(canvas, scene, startSim) {
+        function SimulationEngine(canvas, scene, startSim, disablePixiRenderer) {
             if (scene === void 0) { scene = null; }
             if (startSim === void 0) { startSim = false; }
+            if (disablePixiRenderer === void 0) { disablePixiRenderer = false; }
             this.debugRenderer = null;
             this.simSleepTime = 1 / 60;
             this.debugRendererUsed = false;
@@ -28,7 +29,9 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./pi
             // The application will create a renderer using WebGL, if possible,
             // with a fallback to a canvas render. It will also setup the ticker
             // and the root stage PIXI.Container
-            this.app = new PIXI.Application({ view: htmlCanvas, backgroundColor: rgbToNumber(backgroundColor) });
+            if (!disablePixiRenderer) {
+                this.app = new PIXI.Application({ view: htmlCanvas, backgroundColor: rgbToNumber(backgroundColor) });
+            }
             // add mouse control
             this.mouse = matter_js_1.Mouse.create(htmlCanvas); // call before scene switch
             // switch to scene
