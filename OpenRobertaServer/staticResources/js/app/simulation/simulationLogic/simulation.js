@@ -1,10 +1,10 @@
-define(["require", "exports", "./simulationEngine"], function (require, exports, simulationEngine_1) {
+define(["require", "exports", "./simulationEngine", "./extendedMatter"], function (require, exports, simulationEngine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
-    var engine = new simulationEngine_1.SimulationEngine('simDiv', true);
-    //engine.setupDebugRenderer('notConstantValue');
-    engine.testPhysics();
+    var engine = new simulationEngine_1.SimulationEngine('sceneCanvas');
+    engine.scene.setupDebugRenderer('notConstantValue');
+    engine.scene.testPhysics();
     var interpreters;
     var configurations = [];
     //$('#blockly').openRightView("sim", 0.5);

@@ -112,6 +112,7 @@ require.config({
         'simulationEngine': 'app/simulation/simulationLogic/simulationEngine',
         'timer': 'app/simulation/simulationLogic/timer',
         'entities': 'app/simulation/simulationLogic/entities',
+        'extendedMatter': 'app/simulation/simulationLogic/extendedMatter',
 
     },
     shim: {

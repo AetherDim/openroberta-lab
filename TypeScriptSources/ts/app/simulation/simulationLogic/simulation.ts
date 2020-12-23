@@ -1,11 +1,12 @@
 import { RobotMbedBehaviour } from './interpreter.robotSimBehaviour'
 import { Interpreter } from './interpreter.interpreter'
 import { SimulationEngine } from './simulationEngine'
+import './extendedMatter'
 
-var engine = new SimulationEngine('simDiv', true);
-//engine.setupDebugRenderer('notConstantValue');
+var engine = new SimulationEngine('sceneCanvas');
+engine.scene.setupDebugRenderer('notConstantValue');
 
-engine.testPhysics();
+engine.scene.testPhysics();
 
 var interpreters: Interpreter[]
 var configurations: any[] = []
