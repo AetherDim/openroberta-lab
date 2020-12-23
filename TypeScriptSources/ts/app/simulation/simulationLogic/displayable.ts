@@ -62,7 +62,7 @@ export abstract class DisplaySettings {
 }
 
 
-export function createRect(x: number, y: number, width: number, height: number, settings: DisplaySettings={}, roundingAngle: number=0) {
+export function createRect(x: number, y: number, width: number, height: number, roundingAngle: number = 0, settings: DisplaySettings = {}) {
 
     const graphics = new PIXI.Graphics();
 
@@ -77,7 +77,7 @@ export function createRect(x: number, y: number, width: number, height: number, 
     return Bodies.rectangle(x, y, width, height, {displayable: displayable});
 }
 
-export function createCircle(x: number, y: number, radius: number, settings: DisplaySettings={}) {
+export function createCircle(x: number, y: number, radius: number, settings: DisplaySettings = {}) {
 
     const graphics = new PIXI.Graphics();
 
@@ -91,7 +91,7 @@ export function createCircle(x: number, y: number, radius: number, settings: Dis
     return Bodies.circle(x, y, radius, {displayable: displayable});
 }
 
-export function createPoligon(x: number, y: number, radius: number, settings: DisplaySettings={}) {
+export function createPoligon(x: number, y: number, radius: number, settings: DisplaySettings = {}) {
 
     const graphics = new PIXI.Graphics();
 
@@ -107,4 +107,3 @@ export function createPoligon(x: number, y: number, radius: number, settings: Di
 
 
 }
-

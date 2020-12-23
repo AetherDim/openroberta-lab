@@ -1,15 +1,21 @@
-define(["require", "exports", "matter-js", "./extendedMatter"], function (require, exports, matter_js_1) {
+define(["require", "exports", "matter-js", "./displayable", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
     var Robot = /** @class */ (function () {
         function Robot() {
-            this.body = matter_js_1.Bodies.rectangle(0, 0, 40, 30);
+            /**
+             * The body of the robot as `Body`s
+             */
+            this.body = displayable_1.createRect(0, 0, 40, 30);
+            /**
+             * The wheels of the robot as `Body`s
+             */
             this.wheels = {
-                rearLeft: matter_js_1.Bodies.rectangle(-50, -20, 20, 10),
-                rearRight: matter_js_1.Bodies.rectangle(-50, 20, 20, 10),
-                frontLeft: matter_js_1.Bodies.rectangle(50, -15, 20, 10),
-                frontRight: matter_js_1.Bodies.rectangle(50, 15, 20, 10)
+                rearLeft: displayable_1.createRect(-50, -20, 20, 10),
+                rearRight: displayable_1.createRect(-50, 20, 20, 10),
+                frontLeft: displayable_1.createRect(50, -15, 20, 10),
+                frontRight: displayable_1.createRect(50, 15, 20, 10)
             };
             this.makePhysicsObject();
         }

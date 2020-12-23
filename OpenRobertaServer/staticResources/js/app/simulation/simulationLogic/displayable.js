@@ -56,9 +56,9 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
         return DisplaySettings;
     }());
     exports.DisplaySettings = DisplaySettings;
-    function createRect(x, y, width, height, settings, roundingAngle) {
-        if (settings === void 0) { settings = {}; }
+    function createRect(x, y, width, height, roundingAngle, settings) {
         if (roundingAngle === void 0) { roundingAngle = 0; }
+        if (settings === void 0) { settings = {}; }
         var graphics = new PIXI.Graphics();
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
         graphics.beginFill(settings.color, settings.alpha);

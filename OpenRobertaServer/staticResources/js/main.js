@@ -121,7 +121,8 @@ require.config({
         'timer',
         'entities',
         'extendedMatter',
-        'robot'
+        'robot',
+        'displayable'
     ]),
     shim: {
         'bootstrap': {
