@@ -37,7 +37,7 @@ define(["require", "exports"], function (require, exports) {
                 this.userFunction(now - this.lastCall);
             }
             catch (error) {
-                console.log(error);
+                console.trace(error);
             }
             // error check for too long function call
             var now2 = Date.now();

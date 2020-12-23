@@ -36,6 +36,9 @@ define(["require", "exports", "./interpreter.state", "./interpreter.constants", 
         Interpreter.prototype.run = function (maxRunTime) {
             return this.evalOperation(maxRunTime);
         };
+        Interpreter.prototype.runNOperations = function (N) {
+            return this.evalNOperations(N);
+        };
         /**
          * return true, if the program is terminated
          */
@@ -178,6 +181,67 @@ define(["require", "exports", "./interpreter.state", "./interpreter.constants", 
                 }
                 this.previousBlockId = op[C.BLOCK_ID];
                 if (result > 0 || stop_1) {
+                    return result;
+                }
+                if (this.terminated) {
+                    // termination either requested by the client or by executing 'stop' or after last statement
+                    n.close();
+                    this.callbackOnTermination();
+                    return 0;
+                }
+            }
+            return 0;
+        };
+        Interpreter.prototype.evalNOperations = function (N) {
+            var s = this.s;
+            var n = this.r;
+            for (var i = 0; (i < N && !n.getBlocking()); i++) {
+                var op = s.getOp();
+                var results = this.evalSingleOperation(s, n, op);
+                var result = results[0];
+                var stop_2 = results[1];
+                if (s.getDebugMode()) {
+                    if (this.events[C.DEBUG_BREAKPOINT]) {
+                        if (this.isPossibleBreakPoint(op)) {
+                            for (var i_1 = 0; i_1 < this.breakpoints.length; i_1++) {
+                                if (op[C.BLOCK_ID] === this.breakpoints[i_1]) {
+                                    stackmachineJsHelper.setSimBreak();
+                                    this.previousBlockId = op[C.BLOCK_ID];
+                                    this.events[C.DEBUG_BREAKPOINT] = false;
+                                    return result;
+                                }
+                            }
+                        }
+                    }
+                    if (this.events[C.DEBUG_STEP_INTO]) {
+                        if (this.isPossibleStepInto(op)) {
+                            stackmachineJsHelper.setSimBreak();
+                            this.previousBlockId = op[C.BLOCK_ID];
+                            this.events[C.DEBUG_STEP_INTO] = false;
+                            return result;
+                        }
+                    }
+                    if (this.events[C.DEBUG_STEP_OVER]) {
+                        if (this.stepBlock !== null && !s.beingExecuted(this.stepBlock) && this.isPossibleStepInto(op)) {
+                            stackmachineJsHelper.setSimBreak();
+                            this.previousBlockId = op[C.BLOCK_ID];
+                            this.events[C.DEBUG_STEP_OVER] = false;
+                            this.stepBlock = null;
+                            return result;
+                        }
+                        else if (this.stepBlock === null && this.isPossibleStepOver(op)) {
+                            this.stepBlock = op;
+                        }
+                        else if (this.stepBlock === null && this.isPossibleStepInto(op)) {
+                            stackmachineJsHelper.setSimBreak();
+                            this.previousBlockId = op[C.BLOCK_ID];
+                            this.events[C.DEBUG_STEP_OVER] = false;
+                            return result;
+                        }
+                    }
+                }
+                this.previousBlockId = op[C.BLOCK_ID];
+                if (result > 0 || stop_2) {
                     return result;
                 }
                 if (this.terminated) {

@@ -57,6 +57,10 @@ export class Interpreter {
         return this.evalOperation(maxRunTime);
     }
 
+    public runNOperations(N: number) {
+        return this.evalNOperations(N);
+    }
+
     /**
      * return true, if the program is terminated
      */
@@ -221,6 +225,74 @@ export class Interpreter {
                 return 0;
             }
         }
+        return 0;
+    }
+
+    private evalNOperations(N: number) {
+        const s = this.s;
+        const n = this.r;
+
+        for (let i = 0; (i < N && !n.getBlocking()); i++) {
+            let op = s.getOp();
+            let results = this.evalSingleOperation(s, n, op);
+            let result = results[0];
+            let stop = results[1];
+
+            if (s.getDebugMode()) {
+
+                if (this.events[C.DEBUG_BREAKPOINT]) {
+                    if (this.isPossibleBreakPoint(op)) {
+                        for (let i = 0; i < this.breakpoints.length; i++) {
+                            if (op[C.BLOCK_ID] === this.breakpoints[i]) {
+                                stackmachineJsHelper.setSimBreak();
+                                this.previousBlockId = op[C.BLOCK_ID];
+                                this.events[C.DEBUG_BREAKPOINT] = false;
+                                return result;
+                            }
+                        }
+                    }
+                }
+
+                if (this.events[C.DEBUG_STEP_INTO]) {
+                    if (this.isPossibleStepInto(op)) {
+                        stackmachineJsHelper.setSimBreak();
+                        this.previousBlockId = op[C.BLOCK_ID];
+                        this.events[C.DEBUG_STEP_INTO] = false;
+                        return result;
+                    }
+                }
+
+                if (this.events[C.DEBUG_STEP_OVER]) {
+                    if (this.stepBlock !== null && !s.beingExecuted(this.stepBlock) && this.isPossibleStepInto(op)) {
+                        stackmachineJsHelper.setSimBreak();
+                        this.previousBlockId = op[C.BLOCK_ID];
+                        this.events[C.DEBUG_STEP_OVER] = false;
+                        this.stepBlock = null;
+                        return result;
+                    } else if (this.stepBlock === null && this.isPossibleStepOver(op)) {
+                        this.stepBlock = op;
+                    } else if (this.stepBlock === null && this.isPossibleStepInto(op)) {
+                        stackmachineJsHelper.setSimBreak();
+                        this.previousBlockId = op[C.BLOCK_ID];
+                        this.events[C.DEBUG_STEP_OVER] = false;
+                        return result;
+                    }
+                }
+            }
+
+            this.previousBlockId = op[C.BLOCK_ID];
+
+            if (result > 0 || stop) {
+                return result;
+            }
+            if (this.terminated) {
+                // termination either requested by the client or by executing 'stop' or after last statement
+                n.close();
+                this.callbackOnTermination()
+                return 0;
+            }
+        }
+
         return 0;
     }
 

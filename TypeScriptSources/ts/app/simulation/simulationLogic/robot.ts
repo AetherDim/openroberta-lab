@@ -107,9 +107,11 @@ export class Robot {
             return;
         }
 
-        this.interpreter.run(dt);
+        if(!this.interpreter.isTerminated()) {
+            this.interpreter.runNOperations(3);
+        }
 
-        this.robotBehaviour.setBlocking(false);
+        //this.robotBehaviour.setBlocking(false);
         
 
         // update pose

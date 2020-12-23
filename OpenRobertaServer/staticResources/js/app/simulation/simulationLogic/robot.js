@@ -75,8 +75,10 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
             if (!this.robotBehaviour || !this.interpreter) {
                 return;
             }
-            this.interpreter.run(dt);
-            this.robotBehaviour.setBlocking(false);
+            if (!this.interpreter.isTerminated()) {
+                this.interpreter.runNOperations(3);
+            }
+            //this.robotBehaviour.setBlocking(false);
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {
