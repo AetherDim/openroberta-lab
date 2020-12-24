@@ -16,12 +16,14 @@ define(["require", "exports"], function (require, exports) {
             if (this.running) {
                 return;
             }
+            this.running = true;
             var _this = this;
             this.selfCallingFunc = function () {
                 if (_this.callUserFunction()) {
                     setTimeout(_this.selfCallingFunc, _this.sleepTime);
                 }
                 else {
+                    _this.running = false;
                     console.log('Timer stopped!');
                 }
             };

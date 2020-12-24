@@ -24,11 +24,14 @@ export class Timer {
             return;
         }
 
+        this.running = true;
+
         const _this = this;
         this.selfCallingFunc = function(){
             if(_this.callUserFunction()) {
                 setTimeout(_this.selfCallingFunc, _this.sleepTime);
             } else {
+                _this.running = false;
                 console.log('Timer stopped!');
             }
         };
