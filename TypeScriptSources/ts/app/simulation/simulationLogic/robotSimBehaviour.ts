@@ -11,6 +11,9 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		U.loggingEnabled(false, false);
 	}
 
+	private clampSpeed(speed: number): number {
+		return Math.min(100, Math.max(-100, speed))
+	}
 
 	public getSample(s: State, name: string, sensor: string, port: any, mode: string) {
 		var robotText = 'robot: ' + name + ', port: ' + port + ', mode: ' + mode;
@@ -207,6 +210,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	}
 
 	public motorOnAction(name: string, port: any, duration: number, speed: number): number {
+		speed = this.clampSpeed(speed)
+
 		const robotText = 'robot: ' + name + ', port: ' + port;
 		const durText = duration === undefined ? ' w.o. duration' : (' for ' + duration + ' msec');
 		U.debug(robotText + ' motor speed ' + speed + durText);
@@ -228,6 +233,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	}
 
 	public driveAction(name: string, direction: string, speed: number, distance: number, time: number ): number {
+		speed = this.clampSpeed(speed)
+		
 		const robotText = 'robot: ' + name + ', direction: ' + direction;
 		const durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
 		U.debug(robotText + ' motor speed ' + speed + durText);
@@ -263,6 +270,9 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	}
 
 	public curveAction(name: string, direction: string, speedL: number, speedR: number, distance: number, time: number ): number {
+		speedL = this.clampSpeed(speedL)
+		speedR = this.clampSpeed(speedR)
+
 		const robotText = 'robot: ' + name + ', direction: ' + direction;
 		const durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
 		U.debug(robotText + ' left motor speed ' + speedL + ' right motor speed ' + speedR + durText);
@@ -301,6 +311,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	}
 
 	public turnAction(name: string, direction: string, speed: number, angle: number, time: number ): number {
+		speed = this.clampSpeed(speed)
+		
 		const robotText = 'robot: ' + name + ', direction: ' + direction;
 		const durText = angle === undefined ? ' w.o. duration' : (' for ' + angle + ' msec');
 		U.debug(robotText + ' motor speed ' + speed + durText);
@@ -333,6 +345,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	}
 
 	private setTurnSpeed(speed: number, direction: string): void {
+		speed = this.clampSpeed(speed)
+
 		if (direction == C.LEFT) {
 			this.hardwareState.actions.motors[C.MOTOR_LEFT] = -speed;
 			this.hardwareState.actions.motors[C.MOTOR_RIGHT] = speed;
@@ -359,6 +373,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	}
 
 	public setMotorSpeed(name: string, port: any, speed: number): void {
+		speed = this.clampSpeed(speed)
+
 		const robotText = 'robot: ' + name + ', port: ' + port;
 		U.debug(robotText + ' motor speed ' + speed);
 		if (this.hardwareState.actions.motors == undefined) {

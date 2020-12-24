@@ -57,7 +57,7 @@ export class Interpreter {
         return this.evalOperation(maxRunTime);
     }
 
-    public runNOperations(N: number) {
+    public runNOperations(N: number): number {
         return this.evalNOperations(N);
     }
 
@@ -228,7 +228,7 @@ export class Interpreter {
         return 0;
     }
 
-    private evalNOperations(N: number) {
+    private evalNOperations(N: number): number {
         const s = this.s;
         const n = this.r;
 

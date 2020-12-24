@@ -30,6 +30,9 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
                 left: 0,
                 right: 0
             };
+            // TODO: Workaround for now
+            this.time = 0;
+            this.nextTime = 0;
             this.makePhysicsObject();
         }
         Robot.prototype.makePhysicsObject = function () {
@@ -72,17 +75,24 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
             console.log("Interpreter terminated");
         };
         Robot.prototype.update = function (dt) {
+            this.time += dt;
             if (!this.robotBehaviour || !this.interpreter) {
                 return;
             }
             if (!this.interpreter.isTerminated()) {
-                this.interpreter.runNOperations(3);
+                var delay = this.interpreter.runNOperations(3);
+                if (delay != 0) {
+                    this.nextTime = this.time + delay;
+                }
+            }
+            if (this.nextTime < this.time) {
+                this.robotBehaviour.setBlocking(false);
             }
             //this.robotBehaviour.setBlocking(false);
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {
-                var maxForce = true ? 0.0003 : interpreter_constants_1.MAXPOWER;
+                var maxForce = true ? 0.0001 : interpreter_constants_1.MAXPOWER;
                 var left = motors.c;
                 if (left !== undefined) {
                     if (left > 100) {

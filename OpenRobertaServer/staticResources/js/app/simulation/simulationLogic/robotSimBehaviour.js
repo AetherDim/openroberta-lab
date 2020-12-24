@@ -23,6 +23,9 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             U.loggingEnabled(false, false);
             return _this;
         }
+        RobotSimBehaviour.prototype.clampSpeed = function (speed) {
+            return Math.min(100, Math.max(-100, speed));
+        };
         RobotSimBehaviour.prototype.getSample = function (s, name, sensor, port, mode) {
             var robotText = 'robot: ' + name + ', port: ' + port + ', mode: ' + mode;
             U.debug(robotText + ' getsample from ' + sensor);
@@ -205,6 +208,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             return 0;
         };
         RobotSimBehaviour.prototype.motorOnAction = function (name, port, duration, speed) {
+            speed = this.clampSpeed(speed);
             var robotText = 'robot: ' + name + ', port: ' + port;
             var durText = duration === undefined ? ' w.o. duration' : (' for ' + duration + ' msec');
             U.debug(robotText + ' motor speed ' + speed + durText);
@@ -222,6 +226,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             this.motorOnAction(name, port, 0, 0);
         };
         RobotSimBehaviour.prototype.driveAction = function (name, direction, speed, distance, time) {
+            speed = this.clampSpeed(speed);
             var robotText = 'robot: ' + name + ', direction: ' + direction;
             var durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
             U.debug(robotText + ' motor speed ' + speed + durText);
@@ -255,6 +260,8 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             }
         };
         RobotSimBehaviour.prototype.curveAction = function (name, direction, speedL, speedR, distance, time) {
+            speedL = this.clampSpeed(speedL);
+            speedR = this.clampSpeed(speedR);
             var robotText = 'robot: ' + name + ', direction: ' + direction;
             var durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
             U.debug(robotText + ' left motor speed ' + speedL + ' right motor speed ' + speedR + durText);
@@ -291,6 +298,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             }
         };
         RobotSimBehaviour.prototype.turnAction = function (name, direction, speed, angle, time) {
+            speed = this.clampSpeed(speed);
             var robotText = 'robot: ' + name + ', direction: ' + direction;
             var durText = angle === undefined ? ' w.o. duration' : (' for ' + angle + ' msec');
             U.debug(robotText + ' motor speed ' + speed + durText);
@@ -321,6 +329,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             }
         };
         RobotSimBehaviour.prototype.setTurnSpeed = function (speed, direction) {
+            speed = this.clampSpeed(speed);
             if (direction == C.LEFT) {
                 this.hardwareState.actions.motors[C.MOTOR_LEFT] = -speed;
                 this.hardwareState.actions.motors[C.MOTOR_RIGHT] = speed;
@@ -345,6 +354,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             s.push(speed);
         };
         RobotSimBehaviour.prototype.setMotorSpeed = function (name, port, speed) {
+            speed = this.clampSpeed(speed);
             var robotText = 'robot: ' + name + ', port: ' + port;
             U.debug(robotText + ' motor speed ' + speed);
             if (this.hardwareState.actions.motors == undefined) {

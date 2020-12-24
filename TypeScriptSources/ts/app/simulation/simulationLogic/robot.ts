@@ -100,24 +100,33 @@ export class Robot {
         console.log("Interpreter terminated");
     }
 
+    // TODO: Workaround for now
+    time = 0
+    nextTime = 0
 
     update(dt: number) {
+
+        this.time += dt
 
         if(!this.robotBehaviour || !this.interpreter) {
             return;
         }
 
         if(!this.interpreter.isTerminated()) {
-            this.interpreter.runNOperations(3);
+            const delay = this.interpreter.runNOperations(3);
+            if (delay != 0) {
+                this.nextTime = this.time + delay
+            }
         }
 
-        //this.robotBehaviour.setBlocking(false);
-        
+        if (this.nextTime < this.time) {
+            this.robotBehaviour.setBlocking(false)
+        }
 
         // update pose
         var motors = this.robotBehaviour.getActionState("motors", true);
         if (motors) {
-            const maxForce = true ? 0.0003 : MAXPOWER
+            const maxForce = true ? 0.0001 : MAXPOWER
             var left = motors.c;
             if (left !== undefined) {
                 if (left > 100) {
