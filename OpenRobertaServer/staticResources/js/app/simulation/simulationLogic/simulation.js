@@ -6,17 +6,20 @@ define(["require", "exports", "./simulationEngine", "./extendedMatter"], functio
     //engine.scene.setupDebugRenderer('notConstantValue');
     engine.scene.setupDebugRenderer('simDiv');
     engine.scene.testPhysics();
-    var interpreters;
-    var configurations = [];
-    //$('#blockly').openRightView("sim", 0.5);
+    /**
+     * @param programs
+     * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
+     * @param robotType
+     */
     function init(programs, refresh, robotType) {
         $('#blockly').openRightView("sim", 0.5);
         console.log("init");
         engine.setPrograms(programs);
+        engine.startSim();
     }
     exports.init = init;
     function getNumRobots() {
-        return 0;
+        return 1;
     }
     exports.getNumRobots = getNumRobots;
     function setPause(pause) {

@@ -88,7 +88,6 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
             if (this.nextTime < this.time) {
                 this.robotBehaviour.setBlocking(false);
             }
-            //this.robotBehaviour.setBlocking(false);
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {

@@ -1,5 +1,3 @@
-import { RobotMbedBehaviour } from './interpreter.robotSimBehaviour'
-import { Interpreter } from './interpreter.interpreter'
 import { SimulationEngine } from './simulationEngine'
 import './extendedMatter'
 
@@ -10,23 +8,24 @@ engine.scene.setupDebugRenderer('simDiv');
 engine.scene.testPhysics();
 
 
-var interpreters: Interpreter[]
-var configurations: any[] = []
 
-//$('#blockly').openRightView("sim", 0.5);
-
+/**
+ * @param programs 
+ * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
+ * @param robotType 
+ */
 export function init(programs: any, refresh: boolean, robotType: string) {
     $('#blockly').openRightView("sim", 0.5);
 
     console.log("init");
 
-    engine.setPrograms(programs);
-
+    engine.setPrograms(programs)
+    engine.startSim()
 }
 
 
 export function getNumRobots(): number {
-    return 0;
+    return 1;
 }
 
 export function setPause(pause:boolean) {
