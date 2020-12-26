@@ -1,28 +1,65 @@
 import './pixijs'
 import * as $ from "jquery";
 import { Robot } from './robot';
-import { Displayable } from './displayable';
+import { createDisplayableFromBody, Displayable } from './displayable';
 import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite } from 'matter-js';
 import { contains } from 'jquery';
 import { ElectricMotor } from './electricMotor';
+import { SimulationEngine } from './simulationEngine';
 
 export class Scene {
 
     readonly robots: Array<Robot> = new Array<Robot>();
     readonly displayables: Array<Displayable> = new Array<Displayable>();
+    readonly debugDisplayables: Array<Displayable> = new Array<Displayable>();
 
     readonly engine: Engine = Engine.create();
 
-    debugRenderer: Render = null;
+    private debugRenderer: Render = null;
 
     private dt = 0.016;
 
+    private debugPixiRendering = true;
+
+    private mouseConstraint: MouseConstraint = null;
+
+    private onDisplayableAdd: (drawable: Displayable) => void = d => {};
+    private onDisplayableRemove: (drawable: Displayable) => void = d => {};
+
+    private simEngine: SimulationEngine = null;
+
+    setSimulationEngine(simEngine: SimulationEngine = null) {
+        if(simEngine) {
+            if(simEngine != this.simEngine) {
+                this.simEngine = simEngine;
+                this.onDeInit();
+                const _this = this;
+                this.onDisplayableAdd = d => {
+                    _this.simEngine.addDiplayable(d.displayObject);
+                };
+                this.onDisplayableRemove = d => {
+                    _this.simEngine.removeDisplayable(d.displayObject);
+                }
+                simEngine.switchScene(this);
+                this.onInit();
+            }
+        } else {
+            this.simEngine = null;
+            this.onDeInit();
+            this.onDisplayableAdd = d => {};
+            this.onDisplayableRemove = d => {}
+        }
+    }
 
 
     constructor() {
         const _this = this;
-        Events.on(this.engine.world, "afterAdd", (e: IEventComposite<Composite>) => {
+        Events.on(this.engine.world, "beforeAdd", (e: IEventComposite<Composite>) => {
             _this.addPhysics(e.object);
+        });
+
+        Events.on(this.engine.world, "afterRemove", (e: IEventComposite<Composite>) => {
+            _this.removePhysics(e.object);
         });
     }
 
@@ -38,44 +75,126 @@ export class Scene {
 
 
     initMouse(mouse: Mouse) {
+        if(this.mouseConstraint) {
+            // ugly workaround for missing MouseConstraint in remove ...
+            World.remove(this.engine.world, <Constraint><any>this.mouseConstraint);
+        }
         // TODO: different mouse constarains?
-        var mouseConstraint = MouseConstraint.create(this.engine, {
+        this.mouseConstraint = MouseConstraint.create(this.engine, {
             mouse: mouse
         });
-        World.add(this.engine.world, mouseConstraint);
+        World.add(this.engine.world, this.mouseConstraint);
     }
 
-    addPhysics(element: Body | Composite | Constraint) {
+    private addPhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
 
-        if(!element) {
+        if(!obj) {
             return;
         }
 
+        const element  = <Body | Composite | Constraint><any>obj;
 
-        switch (element.type) {
-            case "body":
-                var body = <Body>element;
-                if(body.displayable && !this.displayables.includes(body.displayable)) {
-                    this.displayables.push(body.displayable);
-                }
-                break;
+        if(element.type) {
 
-            case "composite":
-                Composite.allBodies(<Composite>element).forEach((e) => {
-                    this.addPhysics(e);
-                });
-                break;
+            switch (element.type) {
+                case 'body':
+                    var body = <Body>element;
+    
+                    if(body.displayable && !this.displayables.includes(body.displayable)) {
+                        this.displayables.push(body.displayable);
+                        this.onDisplayableAdd(body.displayable);
+                    }
+                    
+                    if(this.debugPixiRendering) {
+    
+                        if(!body.debugDisplayable) {
+                            body.debugDisplayable = createDisplayableFromBody(body);
+                        }
+    
+                        if(!this.debugDisplayables.includes(body.debugDisplayable)) {
+                            this.debugDisplayables.push(body.debugDisplayable);
+                            this.onDisplayableAdd(body.debugDisplayable);
+                        }
+                        
+                    }
+                    break;
+    
+                case 'composite':
+                    Composite.allBodies(<Composite>element).forEach((e) => {
+                        this.addPhysics(e);
+                    });
+                    break;
+    
+                case "mouseConstraint":
+                case 'constraint':
+                    var constraint = <Constraint>element;
+                    this.addPhysics(constraint.bodyA);
+                    this.addPhysics(constraint.bodyB);
+                    break;
+            
+                default:
+                    console.error("unknown type: " + element.type);
+                    break;
+            }
+    
+        } else if(Array.isArray(obj)) {
+            const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
+            const _this = this;
+            array.forEach(e => _this.addPhysics(e));
+        } else {
+            console.error('unknown type: ' + obj);
+        }
 
-            case "mouseConstraint":
-            case "constraint":
-                var constraint = <Constraint>element;
-                this.addPhysics(constraint.bodyA);
-                this.addPhysics(constraint.bodyB);
-                break;
         
-            default:
-                console.error("unknown type: " + element.type);
-                break;
+    }
+
+    private removePhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
+
+        if(!obj) {
+            return;
+        }
+
+        const element  = <Body | Composite | Constraint><any>obj;
+
+        if(element.type) {
+            switch (element.type) {
+                case 'body':
+                    var body = <Body>element;
+                    if(body.displayable && this.displayables.includes(body.displayable)) {
+                        var idx = this.displayables.indexOf(body.displayable);
+                        this.displayables.splice(idx);
+                        this.onDisplayableRemove(body.displayable);
+                    }
+                    if(body.debugDisplayable && this.displayables.includes(body.debugDisplayable)) {
+                        var idx = this.debugDisplayables.indexOf(body.debugDisplayable);
+                        this.debugDisplayables.splice(idx);
+                        this.onDisplayableRemove(body.debugDisplayable);
+                    }
+                    break;
+
+                case 'composite':
+                    Composite.allBodies(<Composite>element).forEach((e) => {
+                        this.removePhysics(e);
+                    });
+                    break;
+
+                case "mouseConstraint":
+                case 'constraint':
+                    var constraint = <Constraint>element;
+                    this.removePhysics(constraint.bodyA);
+                    this.removePhysics(constraint.bodyB);
+                    break;
+            
+                default:
+                    console.error("unknown type: " + element.type);
+                    break;
+            }
+        } else if(Array.isArray(obj)) {
+            const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
+            const _this = this;
+            array.forEach(e => _this.removePhysics(e));
+        } else {
+            console.error('unknown type: ' + obj);
         }
 
     }
@@ -112,18 +231,25 @@ export class Scene {
 
         Engine.update(this.engine, this.dt);
 
-        /*Üvar bodies = Composite.allBodies(this.engine.world);
+
+        // update rendering positions
+        // TODO: switch to scene internal drawable list?
+        var bodies = Composite.allBodies(this.engine.world);
         bodies.forEach(body => {
             if(body.displayable) {
                 body.displayable.updateFromBody(body);
             }
         });
 
-        
-        var constraints = Composite.allConstraints(this.engine.world);
-        constraints.forEach(constrait => {
-            // TODO
-        });*/
+        if(this.debugDisplayables) {
+            bodies.forEach(body => {
+                if(body.debugDisplayable) {
+                    body.debugDisplayable.updateFromBody(body);
+                }
+            });
+        }
+
+
     }
     
 

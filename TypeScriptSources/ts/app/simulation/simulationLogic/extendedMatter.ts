@@ -4,10 +4,12 @@ import { Displayable } from "./displayable";
 declare module "matter-js" {
     export interface Body {
         displayable?: Displayable;
+        debugDisplayable?: Displayable;
     }
 
     export interface IBodyDefinition {
         displayable?: Displayable;
+        debugDisplayable?: Displayable;
     }
 
     export interface Composite {

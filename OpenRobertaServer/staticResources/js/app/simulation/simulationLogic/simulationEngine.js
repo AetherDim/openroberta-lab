@@ -1,14 +1,7 @@
-define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./pixijs"], function (require, exports, $, matter_js_1, scene_1, timer_1) {
+define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./color", "./pixijs"], function (require, exports, $, matter_js_1, scene_1, timer_1, color_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SimulationEngine = void 0;
-    // https://stackoverflow.com/questions/13070054/convert-rgb-strings-to-hex-in-javascript
-    function rgbToNumber(rgb) {
-        var raw = rgb.split("(")[1].split(")")[0];
-        var numbers = raw.split(',');
-        var hexnumber = '0x' + parseInt(numbers[0]).toString(16) + parseInt(numbers[1]).toString(16) + parseInt(numbers[2]).toString(16);
-        return parseInt(hexnumber, 16);
-    }
     // physics and graphics
     var SimulationEngine = /** @class */ (function () {
         function SimulationEngine(canvas, scene, startSim, disablePixiRenderer) {
@@ -30,7 +23,11 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./pi
             // with a fallback to a canvas render. It will also setup the ticker
             // and the root stage PIXI.Container
             if (!disablePixiRenderer) {
-                this.app = new PIXI.Application({ view: htmlCanvas, backgroundColor: rgbToNumber(backgroundColor) });
+                this.app = new PIXI.Application({
+                    view: htmlCanvas,
+                    backgroundColor: color_1.rgbToNumber(backgroundColor),
+                    antialias: true,
+                });
             }
             // add mouse control
             this.mouse = matter_js_1.Mouse.create(htmlCanvas); // call before scene switch
@@ -64,9 +61,26 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./pi
             this.simTicker.sleepTime = simSleepTime;
         };
         SimulationEngine.prototype.switchScene = function (scene) {
+            if (!scene) {
+                scene = new scene_1.Scene();
+            }
+            if (this.scene == scene) {
+                return;
+            }
             this.scene = scene;
             scene.initMouse(this.mouse);
+            scene.setSimulationEngine(this);
             // TODO
+        };
+        SimulationEngine.prototype.addDiplayable = function (displayable) {
+            if (this.app) {
+                this.app.stage.addChild(displayable);
+            }
+        };
+        SimulationEngine.prototype.removeDisplayable = function (displayable) {
+            if (this.app) {
+                this.app.stage.removeChild(displayable);
+            }
         };
         SimulationEngine.prototype.simulate = function () {
             if (this.scene) {

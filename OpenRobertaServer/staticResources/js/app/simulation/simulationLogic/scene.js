@@ -1,4 +1,4 @@
-define(["require", "exports", "./robot", "matter-js", "./electricMotor", "./pixijs"], function (require, exports, robot_1, matter_js_1, electricMotor_1) {
+define(["require", "exports", "./robot", "./displayable", "matter-js", "./electricMotor", "./pixijs"], function (require, exports, robot_1, displayable_1, matter_js_1, electricMotor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -6,14 +6,47 @@ define(["require", "exports", "./robot", "matter-js", "./electricMotor", "./pixi
         function Scene() {
             this.robots = new Array();
             this.displayables = new Array();
+            this.debugDisplayables = new Array();
             this.engine = matter_js_1.Engine.create();
             this.debugRenderer = null;
             this.dt = 0.016;
+            this.debugPixiRendering = true;
+            this.mouseConstraint = null;
+            this.onDisplayableAdd = function (d) { };
+            this.onDisplayableRemove = function (d) { };
+            this.simEngine = null;
             var _this = this;
-            matter_js_1.Events.on(this.engine.world, "afterAdd", function (e) {
+            matter_js_1.Events.on(this.engine.world, "beforeAdd", function (e) {
                 _this.addPhysics(e.object);
             });
+            matter_js_1.Events.on(this.engine.world, "afterRemove", function (e) {
+                _this.removePhysics(e.object);
+            });
         }
+        Scene.prototype.setSimulationEngine = function (simEngine) {
+            if (simEngine === void 0) { simEngine = null; }
+            if (simEngine) {
+                if (simEngine != this.simEngine) {
+                    this.simEngine = simEngine;
+                    this.onDeInit();
+                    var _this_1 = this;
+                    this.onDisplayableAdd = function (d) {
+                        _this_1.simEngine.addDiplayable(d.displayObject);
+                    };
+                    this.onDisplayableRemove = function (d) {
+                        _this_1.simEngine.removeDisplayable(d.displayObject);
+                    };
+                    simEngine.switchScene(this);
+                    this.onInit();
+                }
+            }
+            else {
+                this.simEngine = null;
+                this.onDeInit();
+                this.onDisplayableAdd = function (d) { };
+                this.onDisplayableRemove = function (d) { };
+            }
+        };
         Scene.prototype.setPrograms = function (programs) {
             if (programs.length < this.robots.length) {
                 console.error("not enough programs!");
@@ -24,38 +57,109 @@ define(["require", "exports", "./robot", "matter-js", "./electricMotor", "./pixi
             }
         };
         Scene.prototype.initMouse = function (mouse) {
+            if (this.mouseConstraint) {
+                // ugly workaround for missing MouseConstraint in remove ...
+                matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
+            }
             // TODO: different mouse constarains?
-            var mouseConstraint = matter_js_1.MouseConstraint.create(this.engine, {
+            this.mouseConstraint = matter_js_1.MouseConstraint.create(this.engine, {
                 mouse: mouse
             });
-            matter_js_1.World.add(this.engine.world, mouseConstraint);
+            matter_js_1.World.add(this.engine.world, this.mouseConstraint);
         };
-        Scene.prototype.addPhysics = function (element) {
+        Scene.prototype.addPhysics = function (obj) {
             var _this_1 = this;
-            if (!element) {
+            if (!obj) {
                 return;
             }
-            switch (element.type) {
-                case "body":
-                    var body = element;
-                    if (body.displayable && !this.displayables.includes(body.displayable)) {
-                        this.displayables.push(body.displayable);
-                    }
-                    break;
-                case "composite":
-                    matter_js_1.Composite.allBodies(element).forEach(function (e) {
-                        _this_1.addPhysics(e);
-                    });
-                    break;
-                case "mouseConstraint":
-                case "constraint":
-                    var constraint = element;
-                    this.addPhysics(constraint.bodyA);
-                    this.addPhysics(constraint.bodyB);
-                    break;
-                default:
-                    console.error("unknown type: " + element.type);
-                    break;
+            var element = obj;
+            if (element.type) {
+                switch (element.type) {
+                    case 'body':
+                        var body = element;
+                        if (body.displayable && !this.displayables.includes(body.displayable)) {
+                            this.displayables.push(body.displayable);
+                            this.onDisplayableAdd(body.displayable);
+                        }
+                        if (this.debugPixiRendering) {
+                            if (!body.debugDisplayable) {
+                                body.debugDisplayable = displayable_1.createDisplayableFromBody(body);
+                            }
+                            if (!this.debugDisplayables.includes(body.debugDisplayable)) {
+                                this.debugDisplayables.push(body.debugDisplayable);
+                                this.onDisplayableAdd(body.debugDisplayable);
+                            }
+                        }
+                        break;
+                    case 'composite':
+                        matter_js_1.Composite.allBodies(element).forEach(function (e) {
+                            _this_1.addPhysics(e);
+                        });
+                        break;
+                    case "mouseConstraint":
+                    case 'constraint':
+                        var constraint = element;
+                        this.addPhysics(constraint.bodyA);
+                        this.addPhysics(constraint.bodyB);
+                        break;
+                    default:
+                        console.error("unknown type: " + element.type);
+                        break;
+                }
+            }
+            else if (Array.isArray(obj)) {
+                var array = obj;
+                var _this_2 = this;
+                array.forEach(function (e) { return _this_2.addPhysics(e); });
+            }
+            else {
+                console.error('unknown type: ' + obj);
+            }
+        };
+        Scene.prototype.removePhysics = function (obj) {
+            var _this_1 = this;
+            if (!obj) {
+                return;
+            }
+            var element = obj;
+            if (element.type) {
+                switch (element.type) {
+                    case 'body':
+                        var body = element;
+                        if (body.displayable && this.displayables.includes(body.displayable)) {
+                            var idx = this.displayables.indexOf(body.displayable);
+                            this.displayables.splice(idx);
+                            this.onDisplayableRemove(body.displayable);
+                        }
+                        if (body.debugDisplayable && this.displayables.includes(body.debugDisplayable)) {
+                            var idx = this.debugDisplayables.indexOf(body.debugDisplayable);
+                            this.debugDisplayables.splice(idx);
+                            this.onDisplayableRemove(body.debugDisplayable);
+                        }
+                        break;
+                    case 'composite':
+                        matter_js_1.Composite.allBodies(element).forEach(function (e) {
+                            _this_1.removePhysics(e);
+                        });
+                        break;
+                    case "mouseConstraint":
+                    case 'constraint':
+                        var constraint = element;
+                        this.removePhysics(constraint.bodyA);
+                        this.removePhysics(constraint.bodyB);
+                        break;
+                    default:
+                        console.error("unknown type: " + element.type);
+                        break;
+                }
+            }
+            else if (Array.isArray(obj)) {
+                var array = obj;
+                var _this_3 = this;
+                array.forEach(function (e) { return _this_3.removePhysics(e); });
+            }
+            else {
+                console.error('unknown type: ' + obj);
             }
         };
         /**
@@ -81,18 +185,21 @@ define(["require", "exports", "./robot", "matter-js", "./electricMotor", "./pixi
             var _this_1 = this;
             this.robots.forEach(function (robot) { return robot.update(_this_1.dt); });
             matter_js_1.Engine.update(this.engine, this.dt);
-            /*Üvar bodies = Composite.allBodies(this.engine.world);
-            bodies.forEach(body => {
-                if(body.displayable) {
+            // update rendering positions
+            // TODO: switch to scene internal drawable list?
+            var bodies = matter_js_1.Composite.allBodies(this.engine.world);
+            bodies.forEach(function (body) {
+                if (body.displayable) {
                     body.displayable.updateFromBody(body);
                 }
             });
-    
-            
-            var constraints = Composite.allConstraints(this.engine.world);
-            constraints.forEach(constrait => {
-                // TODO
-            });*/
+            if (this.debugDisplayables) {
+                bodies.forEach(function (body) {
+                    if (body.debugDisplayable) {
+                        body.debugDisplayable.updateFromBody(body);
+                    }
+                });
+            }
         };
         // for debugging
         Scene.prototype.setupDebugRenderer = function (canvas, wireframes, enableMouse) {

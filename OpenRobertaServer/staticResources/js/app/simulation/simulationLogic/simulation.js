@@ -2,9 +2,9 @@ define(["require", "exports", "./simulationEngine", "./extendedMatter"], functio
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
-    var engine = new simulationEngine_1.SimulationEngine('sceneCanvas', null, true, true);
-    //engine.scene.setupDebugRenderer('notConstantValue');
-    engine.scene.setupDebugRenderer('simDiv');
+    var engine = new simulationEngine_1.SimulationEngine('sceneCanvas', null, true, false);
+    engine.scene.setupDebugRenderer('notConstantValue');
+    //engine.scene.setupDebugRenderer('simDiv');
     engine.scene.testPhysics();
     /**
      * @param programs

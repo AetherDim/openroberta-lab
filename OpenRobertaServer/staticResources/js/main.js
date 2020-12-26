@@ -125,7 +125,8 @@ require.config({
         'displayable',
         'robotSimBehaviour',
         'wheel',
-        'electricMotor'
+        'electricMotor',
+        'color',
     ]),
     shim: {
         'bootstrap': {

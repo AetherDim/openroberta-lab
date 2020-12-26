@@ -1,9 +1,9 @@
 import { SimulationEngine } from './simulationEngine'
 import './extendedMatter'
 
-var engine = new SimulationEngine('sceneCanvas', null, true, true);
-//engine.scene.setupDebugRenderer('notConstantValue');
-engine.scene.setupDebugRenderer('simDiv');
+var engine = new SimulationEngine('sceneCanvas', null, true, false);
+engine.scene.setupDebugRenderer('notConstantValue');
+//engine.scene.setupDebugRenderer('simDiv');
 
 engine.scene.testPhysics();
 

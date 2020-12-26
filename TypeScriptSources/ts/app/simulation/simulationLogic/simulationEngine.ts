@@ -5,15 +5,9 @@ import { Scene } from './scene';
 import { Timer } from './timer';
 import { html } from 'd3';
 import { start } from 'repl';
+import { rgbToNumber } from './color'
 
 
-// https://stackoverflow.com/questions/13070054/convert-rgb-strings-to-hex-in-javascript
-function rgbToNumber(rgb:string): number {
-    var raw = rgb.split("(")[1].split(")")[0];
-    var numbers = raw.split(',');
-    var hexnumber = '0x' + parseInt(numbers[0]).toString(16) + parseInt(numbers[1]).toString(16) + parseInt(numbers[2]).toString(16);
-    return parseInt(hexnumber, 16);
-}
 
 // physics and graphics
 export class SimulationEngine {
@@ -49,7 +43,14 @@ export class SimulationEngine {
         // with a fallback to a canvas render. It will also setup the ticker
         // and the root stage PIXI.Container
         if(!disablePixiRenderer) {
-            this.app = new PIXI.Application({view: htmlCanvas, backgroundColor: rgbToNumber(backgroundColor)});
+              this.app = new PIXI.Application(
+                    {
+                        view: htmlCanvas,
+                        backgroundColor: rgbToNumber(backgroundColor),
+                        antialias: true,
+                        
+                    }
+                  );
         }
 
         // add mouse control
@@ -93,12 +94,33 @@ export class SimulationEngine {
 
 
     switchScene(scene: Scene) {
+        if(!scene) {
+            scene = new Scene();
+        }
+
+        if(this.scene == scene) {
+            return;
+        }
+
         this.scene = scene
 
         scene.initMouse(this.mouse);
+        scene.setSimulationEngine(this);
         
         // TODO
 
+    }
+
+    addDiplayable(displayable: PIXI.DisplayObject) {
+        if(this.app) {
+            this.app.stage.addChild(displayable);
+        }
+    }
+
+    removeDisplayable(displayable: PIXI.DisplayObject) {
+        if(this.app) {
+            this.app.stage.removeChild(displayable);
+        }
     }
 
     private simulate() {

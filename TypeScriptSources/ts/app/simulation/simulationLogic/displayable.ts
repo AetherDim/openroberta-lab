@@ -1,4 +1,7 @@
-import { Body, Bodies, Vertices } from "matter-js";
+import { color } from "d3";
+import { contains } from "jquery";
+import { Body, Bodies, Vertices, Vector } from "matter-js";
+import { ColorPalette } from "./color";
 
 export class Displayable {
     displayObject: PIXI.DisplayObject = null;
@@ -62,13 +65,72 @@ export abstract class DisplaySettings {
 }
 
 
+const colorPalette = new ColorPalette();
+
+
+export function createDisplayableFromBody(body: Body, settings?: DisplaySettings) {
+
+    if(!settings) {
+        settings = {
+            alpha: 0.5,
+            color: colorPalette.next().toInt(),
+            strokeColor: parseInt('FFFFFF', 16),
+            strokeAlpha: 1,
+            strokeWidth: 2,
+        }
+    }
+
+    const container = new PIXI.Container();
+
+    var graphics = new PIXI.Graphics();
+
+    graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
+    graphics.beginFill(settings.color, settings.alpha);
+
+    var vertices = body.vertices;
+    vertices = vertices.map(e => Vector.sub(e, body.position));
+
+    graphics.moveTo(vertices[0].x, vertices[0].y);
+
+    for (var j = 1; j < vertices.length; j += 1) {
+        graphics.lineTo(vertices[j].x, vertices[j].y);
+    }
+
+    graphics.lineTo(vertices[0].x, vertices[0].y);
+
+    graphics.endFill();
+
+    container.addChild(graphics);
+
+
+    // center
+    graphics = new PIXI.Graphics();
+
+    graphics.beginFill(settings.strokeColor, settings.alpha);
+    graphics.drawRect(0, 0, 10, 10);
+    graphics.endFill();
+
+    container.addChild(graphics);
+
+    const text = new PIXI.Text("ID: " + body.id);
+    container.addChild(text);
+
+    const displayable = new Displayable(container);
+
+    //displayable.x = body.position.x;
+    //displayable.y = body.position.y;
+
+    return displayable;
+}
+
+
 export function createRect(x: number, y: number, width: number, height: number, roundingAngle: number = 0, settings: DisplaySettings = {}) {
 
     const graphics = new PIXI.Graphics();
 
     graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
     graphics.beginFill(settings.color, settings.alpha);
-    graphics.drawRoundedRect(x, y, width, height, roundingAngle);
+    graphics.drawRoundedRect(-width/2, -height/2, width, height, roundingAngle);
     graphics.endFill();
 
 
