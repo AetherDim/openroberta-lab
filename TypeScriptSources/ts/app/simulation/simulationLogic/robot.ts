@@ -1,10 +1,12 @@
 import { World, Engine, Mouse, MouseConstraint, Render, Bodies, Body, Vector, Constraint, Events, Composite } from 'matter-js'
 import { createRect } from './displayable'
+import { ElectricMotor } from './electricMotor'
 
 import "./extendedMatter"
 import { MAXPOWER } from './interpreter.constants'
 import { Interpreter } from './interpreter.interpreter'
 import { RobotSimBehaviour } from './robotSimBehaviour'
+import { Wheel } from './wheel'
 
 export class Robot {
 
@@ -22,11 +24,36 @@ export class Robot {
      * The wheels of the robot as `Body`s
      */
     wheels = {
-        rearLeft: createRect(-50, -20, 20, 10),
-        rearRight: createRect(-50,  20, 20, 10),
-        frontLeft: createRect( 50, -15, 20, 10),
-        frontRight: createRect( 50,  15, 20, 10)
+        rearLeft: new Wheel(-50, -20, 20, 10),
+        rearRight: new Wheel(-50,  20, 20, 10),
+        frontLeft: new Wheel( 50, -15, 20, 10),
+        frontRight: new Wheel( 50,  15, 20, 10)
     }
+
+    /**
+     * The wheels of the robot as `Body`s
+     */
+    physicsWheels = {
+        rearLeft: this.wheels.rearLeft.physicsWheel,
+        rearRight: this.wheels.rearRight.physicsWheel,
+        frontLeft: this.wheels.frontLeft.physicsWheel,
+        frontRight: this.wheels.frontRight.physicsWheel
+    }
+
+    /**
+     * The list of all wheels
+     */
+    wheelsList = [
+        this.wheels.rearLeft,
+        this.wheels.rearRight,
+        this.wheels.frontLeft, 
+        this.wheels.frontRight
+    ]
+
+    /**
+     * The list of all wheels
+     */
+    physicsWheelsList = this.wheelsList.map(wheel => wheel.physicsWheel)
 
     robotBehaviour: RobotSimBehaviour = null;
 
@@ -41,18 +68,13 @@ export class Robot {
 
     private makePhysicsObject() {
         
-        const wheels = [
-            this.wheels.rearLeft,
-            this.wheels.rearRight,
-            this.wheels.frontLeft,
-            this.wheels.frontRight
-        ]
+        const wheels = this.physicsWheelsList
 
         this.physicsComposite = Composite.create({bodies: [this.body].concat(wheels)})
 
         // set friction
         wheels.forEach(wheel => {
-            wheel.frictionAir = 0.3
+            wheel.frictionAir = 0.0
             this.physicsComposite.addRigidBodyConstraints(this.body, wheel, 0.1, 0.001)
         });
 
@@ -104,16 +126,47 @@ export class Robot {
     time = 0
     nextTime = 0
 
+    wheelDriveFriction = 0.03
+    wheelSlideFriction = 0.07
+
+    // TODO: (Remove) it is an old but simpler implementation than `Wheel`
+    updateWheelVelocity(wheel: Body, dt: number) {
+        const vec = this.vectorAlongBody(wheel)
+        const velocityAlongBody = Vector.mult(vec, Vector.dot(vec, wheel.velocity))
+        const velocityOrthBody = Vector.sub(wheel.velocity, velocityAlongBody)
+        const velocityChange = Vector.add(
+            Vector.mult(velocityAlongBody, -this.wheelDriveFriction),
+            Vector.mult(velocityOrthBody, -this.wheelSlideFriction))
+
+        const newVelocity = Vector.add(
+            Vector.mult(velocityAlongBody, 1 - this.wheelDriveFriction),
+            Vector.mult(velocityOrthBody, 1 - this.wheelSlideFriction))
+
+        // divide two times by `dt` since the simulation calculates velocity changes by adding
+        // force/mass * dt * dt (BUG??? only dt would be right)
+        Body.applyForce(wheel, wheel.position, Vector.mult(velocityChange, wheel.mass / dt / dt))
+    }
+
     update(dt: number) {
 
         this.time += dt
+        
+        // update wheels velocities
+        // this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
+
+        const gravitationalAcceleration = 9.81
+        const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
+        this.wheelsList.forEach(wheel => {
+            wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsWheel.mass * gravitationalAcceleration)
+            wheel.update(dt)
+        })
 
         if(!this.robotBehaviour || !this.interpreter) {
             return;
         }
 
         if(!this.interpreter.isTerminated()) {
-            const delay = this.interpreter.runNOperations(3);
+            const delay = this.interpreter.runNOperations(3) / 1000;
             if (delay != 0) {
                 this.nextTime = this.time + delay
             }
@@ -126,7 +179,7 @@ export class Robot {
         // update pose
         var motors = this.robotBehaviour.getActionState("motors", true);
         if (motors) {
-            const maxForce = true ? 0.0001 : MAXPOWER
+            const maxForce = true ? 0.01 : MAXPOWER
             var left = motors.c;
             if (left !== undefined) {
                 if (left > 100) {
@@ -147,14 +200,16 @@ export class Robot {
             }
         }
 
-        this.driveWithWheel(this.wheels.rearLeft, this.leftForce)
-        this.driveWithWheel(this.wheels.rearRight, this.rightForce)
+        // this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
+        // this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
 
-        // var tempRight = this.right;
-        // var tempLeft = this.left;
-        //this.pose.theta = (this.pose.theta + 2 * Math.PI) % (2 * Math.PI);
-        const leftWheelVelocity = this.velocityAlongBody(this.wheels.rearLeft)
-        const rightWheelVelocity = this.velocityAlongBody(this.wheels.rearRight)
+        const maxForce = 1000*1000*1000
+        this.wheels.rearLeft.applyTorqueFromMotor(new ElectricMotor(2, maxForce), this.leftForce)
+        this.wheels.rearRight.applyTorqueFromMotor(new ElectricMotor(2, maxForce), this.rightForce)
+
+
+        const leftWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearLeft)
+        const rightWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearRight)
         this.encoder.left += leftWheelVelocity * dt;
         this.encoder.right += rightWheelVelocity * dt;
         var encoder = this.robotBehaviour.getActionState("encoder", true);

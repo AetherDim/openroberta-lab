@@ -4,6 +4,7 @@ import { Robot } from './robot';
 import { Displayable } from './displayable';
 import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite } from 'matter-js';
 import { contains } from 'jquery';
+import { ElectricMotor } from './electricMotor';
 
 export class Scene {
 
@@ -14,7 +15,7 @@ export class Scene {
 
     debugRenderer: Render = null;
 
-    private dt = 10;
+    private dt = 0.016;
 
 
 
@@ -52,21 +53,21 @@ export class Scene {
 
 
         switch (element.type) {
-            case 'body':
+            case "body":
                 var body = <Body>element;
                 if(body.displayable && !this.displayables.includes(body.displayable)) {
                     this.displayables.push(body.displayable);
                 }
                 break;
 
-            case 'composite':
+            case "composite":
                 Composite.allBodies(<Composite>element).forEach((e) => {
                     this.addPhysics(e);
                 });
                 break;
 
             case "mouseConstraint":
-            case 'constraint':
+            case "constraint":
                 var constraint = <Constraint>element;
                 this.addPhysics(constraint.bodyA);
                 this.addPhysics(constraint.bodyB);
@@ -177,7 +178,7 @@ export class Scene {
     
     
         var body = robot.body;
-        const robotWheels = robot.wheels
+        const robotWheels = robot.physicsWheels
     
         var keyDownList: Array<string> = []
     
@@ -220,20 +221,19 @@ export class Scene {
             })
     
             let vec = Vector.create(Math.cos(body.angle), Math.sin(body.angle))
-            const force = Vector.mult(vec, 0.003)
+            const force = Vector.mult(vec, 0.0001 * 1000 * 1000 * 1000 * 1000)
             let normalVec = Vector.mult(Vector.create(-vec.y, vec.x), 10)
     
             const forcePos = Vector.add(body.position, Vector.mult(vec, -40))
     
-            //force = Vector.mult(vec, Vector.dot(force, vec))
-            // Body.applyForce(body, carWheels.rearLeft.position, Vector.mult(force, leftForce));
-            // Body.applyForce(body, carWheels.rearRight.position, Vector.mult(force, rightForce));
             
-            Body.applyForce(robotWheels.rearLeft, robotWheels.rearLeft.position, Vector.mult(force, leftForce));
-            Body.applyForce(robotWheels.rearRight, robotWheels.rearRight.position, Vector.mult(force, rightForce));
-    
-            // Body.applyForce(body, Vector.sub(forcePos, normalVec), Vector.mult(force, leftForce));
-            // Body.applyForce(body, Vector.add(forcePos, normalVec), Vector.mult(force, rightForce));
+            const maxForce = 1000*1000*1000
+            robot.wheels.rearLeft.applyTorqueFromMotor(new ElectricMotor(2, maxForce), leftForce)
+            robot.wheels.rearRight.applyTorqueFromMotor(new ElectricMotor(2, maxForce), rightForce)
+
+            //force = Vector.mult(vec, Vector.dot(force, vec))
+            // Body.applyForce(robotWheels.rearLeft, robotWheels.rearLeft.position, Vector.mult(force, leftForce));
+            // Body.applyForce(robotWheels.rearRight, robotWheels.rearRight.position, Vector.mult(force, rightForce));
         }
     
     

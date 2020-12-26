@@ -1,4 +1,4 @@
-define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (require, exports, robot_1, matter_js_1) {
+define(["require", "exports", "./robot", "matter-js", "./electricMotor", "./pixijs"], function (require, exports, robot_1, matter_js_1, electricMotor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -8,7 +8,7 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
             this.displayables = new Array();
             this.engine = matter_js_1.Engine.create();
             this.debugRenderer = null;
-            this.dt = 10;
+            this.dt = 0.016;
             var _this = this;
             matter_js_1.Events.on(this.engine.world, "afterAdd", function (e) {
                 _this.addPhysics(e.object);
@@ -36,19 +36,19 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
                 return;
             }
             switch (element.type) {
-                case 'body':
+                case "body":
                     var body = element;
                     if (body.displayable && !this.displayables.includes(body.displayable)) {
                         this.displayables.push(body.displayable);
                     }
                     break;
-                case 'composite':
+                case "composite":
                     matter_js_1.Composite.allBodies(element).forEach(function (e) {
                         _this_1.addPhysics(e);
                     });
                     break;
                 case "mouseConstraint":
-                case 'constraint':
+                case "constraint":
                     var constraint = element;
                     this.addPhysics(constraint.bodyA);
                     this.addPhysics(constraint.bodyB);
@@ -132,7 +132,7 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
             matter_js_1.Composite.translate(robotComposite, matter_js_1.Vector.create(300, 400));
             this.engine.world.gravity.y = 0.0;
             var body = robot.body;
-            var robotWheels = robot.wheels;
+            var robotWheels = robot.physicsWheels;
             var keyDownList = [];
             document.onkeydown = function (event) {
                 if (!keyDownList.includes(event.key)) {
@@ -169,16 +169,15 @@ define(["require", "exports", "./robot", "matter-js", "./pixijs"], function (req
                     }
                 });
                 var vec = matter_js_1.Vector.create(Math.cos(body.angle), Math.sin(body.angle));
-                var force = matter_js_1.Vector.mult(vec, 0.003);
+                var force = matter_js_1.Vector.mult(vec, 0.0001 * 1000 * 1000 * 1000 * 1000);
                 var normalVec = matter_js_1.Vector.mult(matter_js_1.Vector.create(-vec.y, vec.x), 10);
                 var forcePos = matter_js_1.Vector.add(body.position, matter_js_1.Vector.mult(vec, -40));
+                var maxForce = 1000 * 1000 * 1000;
+                robot.wheels.rearLeft.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), leftForce);
+                robot.wheels.rearRight.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), rightForce);
                 //force = Vector.mult(vec, Vector.dot(force, vec))
-                // Body.applyForce(body, carWheels.rearLeft.position, Vector.mult(force, leftForce));
-                // Body.applyForce(body, carWheels.rearRight.position, Vector.mult(force, rightForce));
-                matter_js_1.Body.applyForce(robotWheels.rearLeft, robotWheels.rearLeft.position, matter_js_1.Vector.mult(force, leftForce));
-                matter_js_1.Body.applyForce(robotWheels.rearRight, robotWheels.rearRight.position, matter_js_1.Vector.mult(force, rightForce));
-                // Body.applyForce(body, Vector.sub(forcePos, normalVec), Vector.mult(force, leftForce));
-                // Body.applyForce(body, Vector.add(forcePos, normalVec), Vector.mult(force, rightForce));
+                // Body.applyForce(robotWheels.rearLeft, robotWheels.rearLeft.position, Vector.mult(force, leftForce));
+                // Body.applyForce(robotWheels.rearRight, robotWheels.rearRight.position, Vector.mult(force, rightForce));
             }
             matter_js_1.Events.on(this.engine, 'beforeUpdate', function () {
                 updateKeysActions();

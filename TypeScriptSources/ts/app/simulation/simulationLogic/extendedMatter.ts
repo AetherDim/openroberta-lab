@@ -1,4 +1,4 @@
-import { Composite, Constraint, Vector, Body, World, ICompositeDefinition } from "matter-js";
+import { Composite, Constraint, Vector, Body, ICompositeDefinition, IBodyDefinition } from "matter-js";
 import { Displayable } from "./displayable";
 
 declare module "matter-js" {
@@ -13,7 +13,7 @@ declare module "matter-js" {
     export interface Composite {
         /** 
          * Adds constraints to `this` which constraints `bodyA` and `bodyB` such that their current
-         * relative position and orientaion is preseved (depending on `stiffness`).
+         * relative position and orientation is preserved (depending on `stiffness`).
          * 
          * Note: A `rotationStiffness` which is larger than `0.1` may be unstable.
          * 
@@ -33,8 +33,16 @@ declare module "matter-js" {
             offsetB?: Vector): void
     }
 
+    interface Body {
+
+        vectorAlongBody(length?: number): Vector
+        velocityAlongBody(this: Body): number
+
+    }
+
 }
 
+// === Composite ===
 
 function addRigidBodyConstraints(
     this: Composite,
@@ -67,4 +75,26 @@ Object.setPrototypeOf(Composite, compositePrototype)
 const oldCreate = Composite.create
 Composite.create = function (options: ICompositeDefinition = {}): Composite {
     return oldCreate({ ...options, ...compositePrototype})
+}
+
+
+
+// === Body ===
+
+function vectorAlongBody(this: Body, length: number = 1): Vector {
+    return Vector.create(length * Math.cos(this.angle), length * Math.sin(this.angle))
+}
+
+function velocityAlongBody(this: Body): number {
+    return Vector.dot(this.velocity, this.vectorAlongBody())
+}
+
+const bodyPrototype = { vectorAlongBody, velocityAlongBody }
+
+const oldBodyCreate = Body.create
+Body.create = function (options: IBodyDefinition) {
+    if (!options.density) {
+        options.density = 1000
+    }
+    return oldBodyCreate({...options, ...bodyPrototype})
 }

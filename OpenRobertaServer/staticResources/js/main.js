@@ -123,7 +123,9 @@ require.config({
         'extendedMatter',
         'robot',
         'displayable',
-        'robotSimBehaviour'
+        'robotSimBehaviour',
+        'wheel',
+        'electricMotor'
     ]),
     shim: {
         'bootstrap': {

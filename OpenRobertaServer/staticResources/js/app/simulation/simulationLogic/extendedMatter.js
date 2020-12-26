@@ -12,6 +12,7 @@ var __assign = (this && this.__assign) || function () {
 define(["require", "exports", "matter-js"], function (require, exports, matter_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // === Composite ===
     function addRigidBodyConstraints(bodyA, bodyB, rotationStiffnessA, rotationStiffnessB, offsetA, offsetB) {
         var _this = this;
         if (rotationStiffnessA === void 0) { rotationStiffnessA = 0.1; }
@@ -38,5 +39,21 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
     matter_js_1.Composite.create = function (options) {
         if (options === void 0) { options = {}; }
         return oldCreate(__assign(__assign({}, options), compositePrototype));
+    };
+    // === Body ===
+    function vectorAlongBody(length) {
+        if (length === void 0) { length = 1; }
+        return matter_js_1.Vector.create(length * Math.cos(this.angle), length * Math.sin(this.angle));
+    }
+    function velocityAlongBody() {
+        return matter_js_1.Vector.dot(this.velocity, this.vectorAlongBody());
+    }
+    var bodyPrototype = { vectorAlongBody: vectorAlongBody, velocityAlongBody: velocityAlongBody };
+    var oldBodyCreate = matter_js_1.Body.create;
+    matter_js_1.Body.create = function (options) {
+        if (!options.density) {
+            options.density = 1000;
+        }
+        return oldBodyCreate(__assign(__assign({}, options), bodyPrototype));
     };
 });

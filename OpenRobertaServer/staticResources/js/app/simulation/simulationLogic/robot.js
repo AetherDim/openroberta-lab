@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./displayable", "./interpreter.constants", "./interpreter.interpreter", "./robotSimBehaviour", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1, interpreter_constants_1, interpreter_interpreter_1, robotSimBehaviour_1) {
+define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "./interpreter.constants", "./interpreter.interpreter", "./robotSimBehaviour", "./wheel", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1, electricMotor_1, interpreter_constants_1, interpreter_interpreter_1, robotSimBehaviour_1, wheel_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -12,11 +12,33 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
              * The wheels of the robot as `Body`s
              */
             this.wheels = {
-                rearLeft: displayable_1.createRect(-50, -20, 20, 10),
-                rearRight: displayable_1.createRect(-50, 20, 20, 10),
-                frontLeft: displayable_1.createRect(50, -15, 20, 10),
-                frontRight: displayable_1.createRect(50, 15, 20, 10)
+                rearLeft: new wheel_1.Wheel(-50, -20, 20, 10),
+                rearRight: new wheel_1.Wheel(-50, 20, 20, 10),
+                frontLeft: new wheel_1.Wheel(50, -15, 20, 10),
+                frontRight: new wheel_1.Wheel(50, 15, 20, 10)
             };
+            /**
+             * The wheels of the robot as `Body`s
+             */
+            this.physicsWheels = {
+                rearLeft: this.wheels.rearLeft.physicsWheel,
+                rearRight: this.wheels.rearRight.physicsWheel,
+                frontLeft: this.wheels.frontLeft.physicsWheel,
+                frontRight: this.wheels.frontRight.physicsWheel
+            };
+            /**
+             * The list of all wheels
+             */
+            this.wheelsList = [
+                this.wheels.rearLeft,
+                this.wheels.rearRight,
+                this.wheels.frontLeft,
+                this.wheels.frontRight
+            ];
+            /**
+             * The list of all wheels
+             */
+            this.physicsWheelsList = this.wheelsList.map(function (wheel) { return wheel.physicsWheel; });
             this.robotBehaviour = null;
             this.configuration = null;
             this.programCode = null;
@@ -33,20 +55,17 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
             // TODO: Workaround for now
             this.time = 0;
             this.nextTime = 0;
+            this.wheelDriveFriction = 0.03;
+            this.wheelSlideFriction = 0.07;
             this.makePhysicsObject();
         }
         Robot.prototype.makePhysicsObject = function () {
             var _this_1 = this;
-            var wheels = [
-                this.wheels.rearLeft,
-                this.wheels.rearRight,
-                this.wheels.frontLeft,
-                this.wheels.frontRight
-            ];
+            var wheels = this.physicsWheelsList;
             this.physicsComposite = matter_js_1.Composite.create({ bodies: [this.body].concat(wheels) });
             // set friction
             wheels.forEach(function (wheel) {
-                wheel.frictionAir = 0.3;
+                wheel.frictionAir = 0.0;
                 _this_1.physicsComposite.addRigidBodyConstraints(_this_1.body, wheel, 0.1, 0.001);
             });
             this.body.frictionAir = 0.0;
@@ -74,13 +93,32 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
         Robot.prototype.programTermineted = function () {
             console.log("Interpreter terminated");
         };
+        // TODO: (Remove) it is an old but simpler implementation than `Wheel`
+        Robot.prototype.updateWheelVelocity = function (wheel, dt) {
+            var vec = this.vectorAlongBody(wheel);
+            var velocityAlongBody = matter_js_1.Vector.mult(vec, matter_js_1.Vector.dot(vec, wheel.velocity));
+            var velocityOrthBody = matter_js_1.Vector.sub(wheel.velocity, velocityAlongBody);
+            var velocityChange = matter_js_1.Vector.add(matter_js_1.Vector.mult(velocityAlongBody, -this.wheelDriveFriction), matter_js_1.Vector.mult(velocityOrthBody, -this.wheelSlideFriction));
+            var newVelocity = matter_js_1.Vector.add(matter_js_1.Vector.mult(velocityAlongBody, 1 - this.wheelDriveFriction), matter_js_1.Vector.mult(velocityOrthBody, 1 - this.wheelSlideFriction));
+            // divide two times by `dt` since the simulation calculates velocity changes by adding
+            // force/mass * dt * dt (BUG??? only dt would be right)
+            matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.mult(velocityChange, wheel.mass / dt / dt));
+        };
         Robot.prototype.update = function (dt) {
             this.time += dt;
+            // update wheels velocities
+            // this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
+            var gravitationalAcceleration = 9.81;
+            var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
+            this.wheelsList.forEach(function (wheel) {
+                wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsWheel.mass * gravitationalAcceleration);
+                wheel.update(dt);
+            });
             if (!this.robotBehaviour || !this.interpreter) {
                 return;
             }
             if (!this.interpreter.isTerminated()) {
-                var delay = this.interpreter.runNOperations(3);
+                var delay = this.interpreter.runNOperations(3) / 1000;
                 if (delay != 0) {
                     this.nextTime = this.time + delay;
                 }
@@ -91,7 +129,7 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {
-                var maxForce = true ? 0.0001 : interpreter_constants_1.MAXPOWER;
+                var maxForce_1 = true ? 0.01 : interpreter_constants_1.MAXPOWER;
                 var left = motors.c;
                 if (left !== undefined) {
                     if (left > 100) {
@@ -100,7 +138,7 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
                     else if (left < -100) {
                         left = -100;
                     }
-                    this.leftForce = left * maxForce;
+                    this.leftForce = left * maxForce_1;
                 }
                 var right = motors.b;
                 if (right !== undefined) {
@@ -110,16 +148,16 @@ define(["require", "exports", "matter-js", "./displayable", "./interpreter.const
                     else if (right < -100) {
                         right = -100;
                     }
-                    this.rightForce = right * maxForce;
+                    this.rightForce = right * maxForce_1;
                 }
             }
-            this.driveWithWheel(this.wheels.rearLeft, this.leftForce);
-            this.driveWithWheel(this.wheels.rearRight, this.rightForce);
-            // var tempRight = this.right;
-            // var tempLeft = this.left;
-            //this.pose.theta = (this.pose.theta + 2 * Math.PI) % (2 * Math.PI);
-            var leftWheelVelocity = this.velocityAlongBody(this.wheels.rearLeft);
-            var rightWheelVelocity = this.velocityAlongBody(this.wheels.rearRight);
+            // this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
+            // this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
+            var maxForce = 1000 * 1000 * 1000;
+            this.wheels.rearLeft.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.leftForce);
+            this.wheels.rearRight.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.rightForce);
+            var leftWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearLeft);
+            var rightWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearRight);
             this.encoder.left += leftWheelVelocity * dt;
             this.encoder.right += rightWheelVelocity * dt;
             var encoder = this.robotBehaviour.getActionState("encoder", true);
