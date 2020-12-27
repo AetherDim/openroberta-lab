@@ -97,13 +97,12 @@ define(["require", "exports", "d3", "matter-js", "./displayable"], function (req
             var orthVec = matter_js_1.Vector.perp(vec);
             // torque from the rolling friction
             // rollingFriction = d/R and d * F_N = torque
-            this.applyTorque(this.customFunction(-wheel.velocityAlongBody() / dt, 1)
+            this.applyTorque(this.customFunction(-wheel.velocityAlongBody(), 1)
                 * this.rollingFriction * this.wheelRadius * this.normalForce);
             // TODO: already simulated by `wheelSlideFrictionForce`?
             // const rollingFrictionForce = this.normalForce * this.rollingFriction
-            // TODO: Workaround for matter.js velocities by deviding by `dt`
             // torque for 
-            var wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody() / dt;
+            var wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody();
             var alongSlideFrictionForce = this.normalForce * this.slideFriction
                 * this.customFunction(wheelVelocityDifference);
             // torque of sliding friction
@@ -112,7 +111,7 @@ define(["require", "exports", "d3", "matter-js", "./displayable"], function (req
             // friction along wheel rolling direction
             var alongSlideFrictionForceVec = matter_js_1.Vector.mult(vec, alongSlideFrictionForce);
             // friction orthogonal to the wheel rolling direction
-            var orthVelocity = matter_js_1.Vector.dot(wheel.velocity, orthVec) / dt;
+            var orthVelocity = matter_js_1.Vector.dot(wheel.velocity, orthVec);
             var orthSlideFrictionForce = this.normalForce * this.slideFriction
                 * this.customFunction(-orthVelocity);
             var orthSlideFrictionForceVec = matter_js_1.Vector.mult(orthVec, orthSlideFrictionForce);

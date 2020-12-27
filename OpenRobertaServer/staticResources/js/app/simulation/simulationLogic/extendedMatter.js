@@ -72,4 +72,41 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
         }
         return oldBodyCreate(__assign(__assign({}, options), bodyPrototype));
     };
+    matter_js_1.Body.update = function update(body, deltaTime, timeScale, correction) {
+        // from the previous step
+        var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale, velocityPrevX = (body.position.x - body.positionPrev.x) / deltaTime, velocityPrevY = (body.position.y - body.positionPrev.y) / deltaTime;
+        // update velocity with Verlet integration
+        body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTime;
+        body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTime;
+        body.positionPrev.x = body.position.x;
+        body.positionPrev.y = body.position.y;
+        body.position.x += body.velocity.x * deltaTime;
+        body.position.y += body.velocity.y * deltaTime;
+        // update angular velocity with Verlet integration
+        body.angularVelocity = ((body.angle - body.anglePrev) / deltaTime * frictionAir * correction) + (body.torque / body.inertia) * deltaTime;
+        body.anglePrev = body.angle;
+        body.angle += body.angularVelocity * deltaTime;
+        // track speed and acceleration
+        body.speed = matter_js_1.Vector.magnitude(body.velocity);
+        body.angularSpeed = Math.abs(body.angularVelocity);
+        // transform the body geometry
+        var positionTranslation = matter_js_1.Vector.mult(body.velocity, deltaTime);
+        var angleDelta = body.angularVelocity * deltaTime;
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            matter_js_1.Vertices.translate(part.vertices, positionTranslation);
+            if (i > 0) {
+                part.position.x += positionTranslation.x;
+                part.position.y += positionTranslation.y;
+            }
+            if (angleDelta !== 0) {
+                matter_js_1.Vertices.rotate(part.vertices, angleDelta, body.position);
+                matter_js_1.Axes.rotate(part.axes, angleDelta);
+                if (i > 0) {
+                    matter_js_1.Vector.rotateAbout(part.position, angleDelta, body.position, part.position);
+                }
+            }
+            matter_js_1.Bounds.update(part.bounds, part.vertices, positionTranslation);
+        }
+    };
 });

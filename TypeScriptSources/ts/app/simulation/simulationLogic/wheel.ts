@@ -127,16 +127,15 @@ export class Wheel {
 		// torque from the rolling friction
 		// rollingFriction = d/R and d * F_N = torque
 		this.applyTorque(
-			this.customFunction(-wheel.velocityAlongBody()/dt, 1)
+			this.customFunction(-wheel.velocityAlongBody(), 1)
 				* this.rollingFriction * this.wheelRadius * this.normalForce
 		)
 
 		// TODO: already simulated by `wheelSlideFrictionForce`?
 		// const rollingFrictionForce = this.normalForce * this.rollingFriction
 
-		// TODO: Workaround for matter.js velocities by deviding by `dt`
 		// torque for 
-		const wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody()/dt
+		const wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody()
 		const alongSlideFrictionForce = this.normalForce * this.slideFriction
 		 * this.customFunction(wheelVelocityDifference)
 
@@ -150,7 +149,7 @@ export class Wheel {
 		const alongSlideFrictionForceVec = Vector.mult(vec, alongSlideFrictionForce)
 
 		// friction orthogonal to the wheel rolling direction
-		const orthVelocity = Vector.dot(wheel.velocity, orthVec) / dt
+		const orthVelocity = Vector.dot(wheel.velocity, orthVec)
 		const orthSlideFrictionForce = this.normalForce * this.slideFriction
 		 * this.customFunction(-orthVelocity)
 		const orthSlideFrictionForceVec = Vector.mult(orthVec, orthSlideFrictionForce)

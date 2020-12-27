@@ -1,15 +1,21 @@
-import { Composite, Constraint, Vector, Body, ICompositeDefinition, IBodyDefinition } from "matter-js";
+import { Composite, Constraint, Vector, Body, ICompositeDefinition, IBodyDefinition, Vertices, Axes, Bounds } from "matter-js";
 import { Displayable } from "./displayable";
 
 declare module "matter-js" {
     export interface Body {
-        displayable?: Displayable;
-        debugDisplayable?: Displayable;
+        displayable?: Displayable
+        debugDisplayable?: Displayable
+
+        positionPrev: Vector
+        anglePrev: number
+
+        vectorAlongBody(length?: number): Vector
+        velocityAlongBody(this: Body): number
     }
 
     export interface IBodyDefinition {
-        displayable?: Displayable;
-        debugDisplayable?: Displayable;
+        displayable?: Displayable
+        debugDisplayable?: Displayable
     }
 
     export interface Composite {
@@ -47,13 +53,6 @@ declare module "matter-js" {
             scaleY: number,
             point: Vector,
             recursive?: boolean)
-    }
-
-    interface Body {
-
-        vectorAlongBody(length?: number): Vector
-        velocityAlongBody(this: Body): number
-
     }
 
 }
@@ -132,3 +131,53 @@ Body.create = function (options: IBodyDefinition) {
     }
     return oldBodyCreate({...options, ...bodyPrototype})
 }
+
+Body.update = function update(body: Body, deltaTime: number, timeScale: number, correction: number) {
+    
+    // from the previous step
+    var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
+        velocityPrevX = (body.position.x - body.positionPrev.x) / deltaTime,
+        velocityPrevY = (body.position.y - body.positionPrev.y) / deltaTime;
+
+    // update velocity with Verlet integration
+    body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTime;
+    body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTime;
+
+    body.positionPrev.x = body.position.x;
+    body.positionPrev.y = body.position.y;
+    body.position.x += body.velocity.x * deltaTime;
+    body.position.y += body.velocity.y * deltaTime;
+
+    // update angular velocity with Verlet integration
+    body.angularVelocity = ((body.angle - body.anglePrev) / deltaTime * frictionAir * correction) + (body.torque / body.inertia) * deltaTime;
+    body.anglePrev = body.angle;
+    body.angle += body.angularVelocity * deltaTime;
+
+    // track speed and acceleration
+    body.speed = Vector.magnitude(body.velocity);
+    body.angularSpeed = Math.abs(body.angularVelocity);
+
+    // transform the body geometry
+    const positionTranslation = Vector.mult(body.velocity, deltaTime)
+    const angleDelta = body.angularVelocity * deltaTime
+    for (var i = 0; i < body.parts.length; i++) {
+        var part = body.parts[i];
+        
+        Vertices.translate(part.vertices, positionTranslation);
+        
+        if (i > 0) {
+            part.position.x += positionTranslation.x;
+            part.position.y += positionTranslation.y;
+        }
+
+        if (angleDelta !== 0) {
+            Vertices.rotate(part.vertices, angleDelta, body.position);
+            Axes.rotate(part.axes, angleDelta);
+            if (i > 0) {
+                Vector.rotateAbout(part.position, angleDelta, body.position, part.position);
+            }
+        }
+
+        Bounds.update(part.bounds, part.vertices, positionTranslation);
+    }
+};
