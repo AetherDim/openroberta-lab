@@ -33,7 +33,23 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             makeConstraint(offsetA, matter_js_1.Vector.sub(bodyA.position, bodyB.position), rotationStiffnessB)
         ].forEach(function (constraint) { return matter_js_1.Composite.add(_this, constraint); });
     }
-    var compositePrototype = { addRigidBodyConstraints: addRigidBodyConstraints };
+    function scale(scaleX, scaleY, point, recursive) {
+        if (recursive === void 0) { recursive = true; }
+        var constraints = recursive ? matter_js_1.Composite.allConstraints(this) : this.constraints;
+        constraints.forEach(function (constraint) {
+            if (constraint.bodyA) {
+                constraint.pointA.x = point.x + (constraint.pointA.x - point.x) * scaleX;
+                constraint.pointA.y = point.y + (constraint.pointA.y - point.y) * scaleY;
+            }
+            if (constraint.bodyB) {
+                constraint.pointB.x = point.x + (constraint.pointB.x - point.x) * scaleX;
+                constraint.pointB.y = point.y + (constraint.pointB.y - point.y) * scaleY;
+            }
+            // `constraint.length` 
+        });
+        matter_js_1.Composite.scale(this, scaleX, scaleY, point, recursive);
+    }
+    var compositePrototype = { addRigidBodyConstraints: addRigidBodyConstraints, scale: scale };
     Object.setPrototypeOf(matter_js_1.Composite, compositePrototype);
     var oldCreate = matter_js_1.Composite.create;
     matter_js_1.Composite.create = function (options) {

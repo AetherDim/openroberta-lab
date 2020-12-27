@@ -3,49 +3,11 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
     var Robot = /** @class */ (function () {
-        function Robot() {
-            /**
-             * The body of the robot as `Body`s
-             */
-            this.body = displayable_1.createRect(0, 0, 40, 30);
-            /**
-             * The wheels of the robot as `Body`s
-             */
-            this.wheels = {
-                rearLeft: new wheel_1.Wheel(-50, -20, 20, 10),
-                rearRight: new wheel_1.Wheel(-50, 20, 20, 10),
-                frontLeft: new wheel_1.Wheel(50, -15, 20, 10),
-                frontRight: new wheel_1.Wheel(50, 15, 20, 10)
-            };
-            /**
-             * The wheels of the robot as `Body`s
-             */
-            this.physicsWheels = {
-                rearLeft: this.wheels.rearLeft.physicsWheel,
-                rearRight: this.wheels.rearRight.physicsWheel,
-                frontLeft: this.wheels.frontLeft.physicsWheel,
-                frontRight: this.wheels.frontRight.physicsWheel
-            };
-            /**
-             * The list of all wheels
-             */
-            this.wheelsList = [
-                this.wheels.rearLeft,
-                this.wheels.rearRight,
-                this.wheels.frontLeft,
-                this.wheels.frontRight
-            ];
-            /**
-             * The list of all wheels
-             */
-            this.physicsWheelsList = this.wheelsList.map(function (wheel) { return wheel.physicsWheel; });
+        function Robot(robot) {
             this.robotBehaviour = null;
             this.configuration = null;
             this.programCode = null;
             this.interpreter = null;
-            // velocity
-            // left = 0
-            // right = 0
             this.leftForce = 0;
             this.rightForce = 0;
             this.encoder = {
@@ -57,10 +19,15 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             this.nextTime = 0;
             this.wheelDriveFriction = 0.03;
             this.wheelSlideFriction = 0.07;
-            this.makePhysicsObject();
+            this.body = robot.body;
+            this.leftDrivingWheel = robot.leftDrivingWheel;
+            this.rightDrivingWheel = robot.rightDrivingWheel;
+            this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels);
+            this.updatePhysicsObject();
         }
-        Robot.prototype.makePhysicsObject = function () {
+        Robot.prototype.updatePhysicsObject = function () {
             var _this_1 = this;
+            this.physicsWheelsList = this.wheelsList.map(function (wheel) { return wheel.physicsBody; });
             var wheels = this.physicsWheelsList;
             this.physicsComposite = matter_js_1.Composite.create({ bodies: [this.body].concat(wheels) });
             // set friction
@@ -69,6 +36,12 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
                 _this_1.physicsComposite.addRigidBodyConstraints(_this_1.body, wheel, 0.1, 0.001);
             });
             this.body.frictionAir = 0.0;
+        };
+        Robot.prototype.setWheels = function (wheels) {
+            this.leftDrivingWheel = wheels.leftDrivingWheel;
+            this.rightDrivingWheel = wheels.rightDrivingWheel;
+            this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(wheels.otherWheels);
+            this.updatePhysicsObject();
         };
         Robot.prototype.vectorAlongBody = function (body, length) {
             if (length === void 0) { length = 1; }
@@ -99,7 +72,6 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             var velocityAlongBody = matter_js_1.Vector.mult(vec, matter_js_1.Vector.dot(vec, wheel.velocity));
             var velocityOrthBody = matter_js_1.Vector.sub(wheel.velocity, velocityAlongBody);
             var velocityChange = matter_js_1.Vector.add(matter_js_1.Vector.mult(velocityAlongBody, -this.wheelDriveFriction), matter_js_1.Vector.mult(velocityOrthBody, -this.wheelSlideFriction));
-            var newVelocity = matter_js_1.Vector.add(matter_js_1.Vector.mult(velocityAlongBody, 1 - this.wheelDriveFriction), matter_js_1.Vector.mult(velocityOrthBody, 1 - this.wheelSlideFriction));
             // divide two times by `dt` since the simulation calculates velocity changes by adding
             // force/mass * dt * dt (BUG??? only dt would be right)
             matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.mult(velocityChange, wheel.mass / dt / dt));
@@ -111,7 +83,7 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             var gravitationalAcceleration = 9.81;
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
             this.wheelsList.forEach(function (wheel) {
-                wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsWheel.mass * gravitationalAcceleration);
+                wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration);
                 wheel.update(dt);
             });
             if (!this.robotBehaviour || !this.interpreter) {
@@ -154,10 +126,10 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             // this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
             // this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
             var maxForce = 1000 * 1000 * 1000;
-            this.wheels.rearLeft.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.leftForce);
-            this.wheels.rearRight.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.rightForce);
-            var leftWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearLeft);
-            var rightWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearRight);
+            this.leftDrivingWheel.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.leftForce);
+            this.rightDrivingWheel.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.rightForce);
+            var leftWheelVelocity = this.velocityAlongBody(this.leftDrivingWheel.physicsBody);
+            var rightWheelVelocity = this.velocityAlongBody(this.rightDrivingWheel.physicsBody);
             this.encoder.left += leftWheelVelocity * dt;
             this.encoder.right += rightWheelVelocity * dt;
             var encoder = this.robotBehaviour.getActionState("encoder", true);
@@ -342,6 +314,55 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             // }
         };
         ;
+        /**
+         * LEGO EV3 like robot with 2 main wheels and one with less friction (e.g. swivel wheel)
+         *
+         * @param scale scale of the robot
+         */
+        Robot.default = function (scale) {
+            if (scale === void 0) { scale = 1; }
+            var frontWheel = new wheel_1.Wheel(27 * scale, 0, 10 * scale, 10 * scale);
+            frontWheel.slideFriction = 0.1;
+            frontWheel.rollingFriction = 0.0;
+            return new Robot({
+                body: displayable_1.createRect(0, 0, 40, 30),
+                leftDrivingWheel: new wheel_1.Wheel(-0, -22 * scale, 20 * scale, 10 * scale),
+                rightDrivingWheel: new wheel_1.Wheel(-0, 22 * scale, 20 * scale, 10 * scale),
+                otherWheels: [
+                    frontWheel
+                ]
+            });
+        };
+        /**
+         * Long robot with 4 wheels
+         */
+        Robot.default2 = function () {
+            return new Robot({
+                body: displayable_1.createRect(0, 0, 40, 30),
+                leftDrivingWheel: new wheel_1.Wheel(-50, -20, 20, 10),
+                rightDrivingWheel: new wheel_1.Wheel(-50, 20, 20, 10),
+                otherWheels: [
+                    new wheel_1.Wheel(50, -15, 20, 10),
+                    new wheel_1.Wheel(50, 15, 20, 10)
+                ]
+            });
+        };
+        /**
+         * Similar to the EV3 LEGO robot
+         */
+        Robot.EV3 = function () {
+            var wheel = { diameter: 0.05, width: 0.02 };
+            var robot = new Robot({
+                body: displayable_1.createRect(0, 0, 0.15, 0.10),
+                leftDrivingWheel: new wheel_1.Wheel(-0.075, -0.07, wheel.diameter, wheel.width),
+                rightDrivingWheel: new wheel_1.Wheel(-0.075, 0.07, wheel.diameter, wheel.width),
+                otherWheels: [
+                    new wheel_1.Wheel(0.13, -0.03, wheel.diameter, wheel.width),
+                    new wheel_1.Wheel(0.13, 0.03, wheel.diameter, wheel.width)
+                ]
+            });
+            return robot;
+        };
         return Robot;
     }());
     exports.Robot = Robot;

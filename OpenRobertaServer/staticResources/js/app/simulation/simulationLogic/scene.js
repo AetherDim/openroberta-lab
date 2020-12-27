@@ -10,7 +10,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             this.engine = matter_js_1.Engine.create();
             this.debugRenderer = null;
             this.dt = 0.016;
-            this.debugPixiRendering = true;
+            this.debugPixiRendering = false;
             this.mouseConstraint = null;
             this.onDisplayableAdd = function (d) { };
             this.onDisplayableRemove = function (d) { };
@@ -221,6 +221,8 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 engine: this.engine,
                 options: { wireframes: wireframes }
             });
+            // scaling the context for closeup rendering
+            //this.debugRenderer.context.scale(10, 10)
             matter_js_1.Render.run(this.debugRenderer);
             if (enableMouse) {
                 var mouse = matter_js_1.Mouse.create(htmlCanvas); // call before scene switch
@@ -232,14 +234,14 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             }
         };
         Scene.prototype.testPhysics = function () {
-            var robot = new robot_1.Robot();
+            var scale = 1.0;
+            var robot = robot_1.Robot.default(scale);
             this.robots.push(robot);
             var robotComposite = robot.physicsComposite;
             matter_js_1.World.add(this.engine.world, robotComposite);
-            matter_js_1.Composite.translate(robotComposite, matter_js_1.Vector.create(300, 400));
+            matter_js_1.Composite.translate(robotComposite, matter_js_1.Vector.create(70 * scale, 90 * scale));
             this.engine.world.gravity.y = 0.0;
             var body = robot.body;
-            var robotWheels = robot.physicsWheels;
             var keyDownList = [];
             document.onkeydown = function (event) {
                 if (!keyDownList.includes(event.key)) {
@@ -279,19 +281,12 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 var force = matter_js_1.Vector.mult(vec, 0.0001 * 1000 * 1000 * 1000 * 1000);
                 var normalVec = matter_js_1.Vector.mult(matter_js_1.Vector.create(-vec.y, vec.x), 10);
                 var forcePos = matter_js_1.Vector.add(body.position, matter_js_1.Vector.mult(vec, -40));
-                var maxForce = 1000 * 1000 * 1000;
-                robot.wheels.rearLeft.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), leftForce);
-                robot.wheels.rearRight.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), rightForce);
-                //force = Vector.mult(vec, Vector.dot(force, vec))
-                // Body.applyForce(robotWheels.rearLeft, robotWheels.rearLeft.position, Vector.mult(force, leftForce));
-                // Body.applyForce(robotWheels.rearRight, robotWheels.rearRight.position, Vector.mult(force, rightForce));
+                var maxForce = 100 * 1000 * 1000;
+                robot.leftDrivingWheel.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), leftForce);
+                robot.rightDrivingWheel.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), rightForce);
             }
             matter_js_1.Events.on(this.engine, 'beforeUpdate', function () {
                 updateKeysActions();
-                // let force = Vector.mult(Vector.sub(mouse.position, body.position), forceScale);
-                // let vec = Vector.create(Math.cos(body.angle), Math.sin(body.angle))
-                // force = Vector.mult(vec ,Vector.dot(force, vec))
-                // Body.applyForce(body, body.position, force);
             });
             // TODO: remove
             var world = this.engine.world;
@@ -301,10 +296,10 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 matter_js_1.Bodies.rectangle(400, 100, 60, 60, { frictionAir: 0.05 }),
                 matter_js_1.Bodies.rectangle(600, 100, 60, 60, { frictionAir: 0.1 }),
                 // walls
-                matter_js_1.Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
+                matter_js_1.Bodies.rectangle(400, -25, 800, 50, { isStatic: true }),
                 matter_js_1.Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
                 matter_js_1.Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-                matter_js_1.Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
+                matter_js_1.Bodies.rectangle(-25, 300, 50, 600, { isStatic: true })
             ]);
         };
         return Scene;

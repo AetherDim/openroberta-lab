@@ -1,4 +1,4 @@
-import { World, Engine, Mouse, MouseConstraint, Render, Bodies, Body, Vector, Constraint, Events, Composite } from 'matter-js'
+import { Body, Vector, Composite } from 'matter-js'
 import { createRect } from './displayable'
 import { ElectricMotor } from './electricMotor'
 
@@ -18,42 +18,23 @@ export class Robot {
     /**
      * The body of the robot as `Body`s
      */
-    body = createRect(0, 0, 40, 30)
+    body: Body
 
     /**
      * The wheels of the robot as `Body`s
      */
-    wheels = {
-        rearLeft: new Wheel(-50, -20, 20, 10),
-        rearRight: new Wheel(-50,  20, 20, 10),
-        frontLeft: new Wheel( 50, -15, 20, 10),
-        frontRight: new Wheel( 50,  15, 20, 10)
-    }
-
-    /**
-     * The wheels of the robot as `Body`s
-     */
-    physicsWheels = {
-        rearLeft: this.wheels.rearLeft.physicsWheel,
-        rearRight: this.wheels.rearRight.physicsWheel,
-        frontLeft: this.wheels.frontLeft.physicsWheel,
-        frontRight: this.wheels.frontRight.physicsWheel
-    }
+    leftDrivingWheel: Wheel
+    rightDrivingWheel: Wheel
 
     /**
      * The list of all wheels
      */
-    wheelsList = [
-        this.wheels.rearLeft,
-        this.wheels.rearRight,
-        this.wheels.frontLeft, 
-        this.wheels.frontRight
-    ]
+    wheelsList: Wheel[]
 
     /**
      * The list of all wheels
      */
-    physicsWheelsList = this.wheelsList.map(wheel => wheel.physicsWheel)
+    physicsWheelsList: Body[]
 
     robotBehaviour: RobotSimBehaviour = null;
 
@@ -62,12 +43,19 @@ export class Robot {
 
     interpreter: Interpreter = null;
 
-    constructor() {
-        this.makePhysicsObject()
+
+    constructor(robot: {body: Body, leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
+        this.body = robot.body
+        this.leftDrivingWheel = robot.leftDrivingWheel
+        this.rightDrivingWheel = robot.rightDrivingWheel
+        this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels)
+
+        this.updatePhysicsObject()
     }
 
-    private makePhysicsObject() {
+    private updatePhysicsObject() {
         
+        this.physicsWheelsList = this.wheelsList.map(wheel => wheel.physicsBody)
         const wheels = this.physicsWheelsList
 
         this.physicsComposite = Composite.create({bodies: [this.body].concat(wheels)})
@@ -79,6 +67,13 @@ export class Robot {
         });
 
         this.body.frictionAir = 0.0;
+    }
+
+    setWheels(wheels: {leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
+        this.leftDrivingWheel = wheels.leftDrivingWheel
+        this.rightDrivingWheel = wheels.rightDrivingWheel
+        this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(wheels.otherWheels)
+        this.updatePhysicsObject()
     }
 
     private vectorAlongBody(body: Body, length: number = 1): Vector {
@@ -94,10 +89,6 @@ export class Robot {
         return Vector.dot(body.velocity, this.vectorAlongBody(body))
     }
 
-    // velocity
-    // left = 0
-    // right = 0
-
     leftForce = 0
     rightForce = 0
 
@@ -105,8 +96,6 @@ export class Robot {
         left: 0,
         right: 0
     };
-
-
 
     setProgram(program: any, breakpoints: any[]) {
         const _this = this;
@@ -138,9 +127,6 @@ export class Robot {
             Vector.mult(velocityAlongBody, -this.wheelDriveFriction),
             Vector.mult(velocityOrthBody, -this.wheelSlideFriction))
 
-        const newVelocity = Vector.add(
-            Vector.mult(velocityAlongBody, 1 - this.wheelDriveFriction),
-            Vector.mult(velocityOrthBody, 1 - this.wheelSlideFriction))
 
         // divide two times by `dt` since the simulation calculates velocity changes by adding
         // force/mass * dt * dt (BUG??? only dt would be right)
@@ -157,7 +143,7 @@ export class Robot {
         const gravitationalAcceleration = 9.81
         const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
         this.wheelsList.forEach(wheel => {
-            wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsWheel.mass * gravitationalAcceleration)
+            wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration)
             wheel.update(dt)
         })
 
@@ -204,12 +190,12 @@ export class Robot {
         // this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
 
         const maxForce = 1000*1000*1000
-        this.wheels.rearLeft.applyTorqueFromMotor(new ElectricMotor(2, maxForce), this.leftForce)
-        this.wheels.rearRight.applyTorqueFromMotor(new ElectricMotor(2, maxForce), this.rightForce)
+        this.leftDrivingWheel.applyTorqueFromMotor(new ElectricMotor(2, maxForce), this.leftForce)
+        this.rightDrivingWheel.applyTorqueFromMotor(new ElectricMotor(2, maxForce), this.rightForce)
 
 
-        const leftWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearLeft)
-        const rightWheelVelocity = this.velocityAlongBody(this.physicsWheels.rearRight)
+        const leftWheelVelocity = this.velocityAlongBody(this.leftDrivingWheel.physicsBody)
+        const rightWheelVelocity = this.velocityAlongBody(this.rightDrivingWheel.physicsBody)
         this.encoder.left += leftWheelVelocity * dt;
         this.encoder.right += rightWheelVelocity * dt;
         var encoder = this.robotBehaviour.getActionState("encoder", true);
@@ -402,4 +388,56 @@ export class Robot {
         // }
     };
 
+
+
+    /**
+     * LEGO EV3 like robot with 2 main wheels and one with less friction (e.g. swivel wheel)
+     * 
+     * @param scale scale of the robot
+     */
+    static default(scale: number = 1): Robot {
+        const frontWheel = new Wheel(27*scale, 0, 10*scale, 10*scale)
+        frontWheel.slideFriction = 0.1
+        frontWheel.rollingFriction = 0.0
+        return new Robot({
+            body: createRect(0, 0, 40, 30),
+            leftDrivingWheel: new Wheel(-0, -22*scale, 20*scale, 10*scale),
+            rightDrivingWheel: new Wheel(-0, 22*scale, 20*scale, 10*scale),
+            otherWheels: [
+                frontWheel
+            ]
+        })
+    }
+
+    /**
+     * Long robot with 4 wheels
+     */
+    static default2(): Robot {
+        return new Robot({
+            body: createRect(0, 0, 40, 30),
+            leftDrivingWheel: new Wheel(-50, -20, 20, 10),
+            rightDrivingWheel: new Wheel(-50, 20, 20, 10),
+            otherWheels: [
+                new Wheel(50, -15, 20, 10),
+                new Wheel(50,  15, 20, 10)
+            ]
+        })
+    }
+
+    /**
+     * Similar to the EV3 LEGO robot
+     */
+    static EV3(): Robot {
+        const wheel = { diameter: 0.05, width: 0.02 }
+        const robot = new Robot({
+            body: createRect(0, 0, 0.15, 0.10),
+            leftDrivingWheel: new Wheel(-0.075, -0.07, wheel.diameter, wheel.width),
+            rightDrivingWheel: new Wheel(-0.075,  0.07, wheel.diameter, wheel.width),
+            otherWheels: [
+                new Wheel(0.13, -0.03, wheel.diameter, wheel.width),
+                new Wheel(0.13,  0.03, wheel.diameter, wheel.width)
+            ]
+        })
+        return robot
+    }
 }

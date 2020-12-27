@@ -33,6 +33,20 @@ declare module "matter-js" {
             rotationStiffnessB?: number,
             offsetA?: Vector,
             offsetB?: Vector): void
+
+        /**
+         * Same as `Composite.scale(...)` where constraints are also scaled
+         * 
+         * @param scaleX scaling in x direction
+         * @param scaleY scaling in y direction
+         * @param point the point from which the composite is scaled
+         * @param recursive include sub composites (default: true)
+         */
+        scale(
+            scaleX: number,
+            scaleY: number,
+            point: Vector,
+            recursive?: boolean)
     }
 
     interface Body {
@@ -71,7 +85,25 @@ function addRigidBodyConstraints(
     ].forEach(constraint => Composite.add(this, constraint))
 }
 
-const compositePrototype = { addRigidBodyConstraints: addRigidBodyConstraints }
+
+function scale(this: Composite, scaleX: number, scaleY: number, point: Vector, recursive: boolean = true) {
+    const constraints = recursive ? Composite.allConstraints(this) : this.constraints
+    constraints.forEach(constraint => {
+        if (constraint.bodyA) {
+            constraint.pointA.x = point.x + (constraint.pointA.x - point.x) * scaleX
+            constraint.pointA.y = point.y + (constraint.pointA.y - point.y) * scaleY
+        }
+        if (constraint.bodyB) {
+            constraint.pointB.x = point.x + (constraint.pointB.x - point.x) * scaleX
+            constraint.pointB.y = point.y + (constraint.pointB.y - point.y) * scaleY
+        }
+        // `constraint.length` 
+    })
+
+    Composite.scale(this, scaleX, scaleY, point, recursive)
+}
+
+const compositePrototype = { addRigidBodyConstraints, scale }
 Object.setPrototypeOf(Composite, compositePrototype)
 
 const oldCreate = Composite.create

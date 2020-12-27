@@ -1,9 +1,7 @@
 import './pixijs'
-import * as $ from "jquery";
 import { Robot } from './robot';
 import { createDisplayableFromBody, Displayable } from './displayable';
 import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite } from 'matter-js';
-import { contains } from 'jquery';
 import { ElectricMotor } from './electricMotor';
 import { SimulationEngine } from './simulationEngine';
 
@@ -19,7 +17,7 @@ export class Scene {
 
     private dt = 0.016;
 
-    private debugPixiRendering = true;
+    private debugPixiRendering = false;
 
     private mouseConstraint: MouseConstraint = null;
 
@@ -275,6 +273,8 @@ export class Scene {
             engine: this.engine,
             options: {wireframes:wireframes}
         });
+        // scaling the context for closeup rendering
+        //this.debugRenderer.context.scale(10, 10)
         Render.run(this.debugRenderer);
 
         if(enableMouse) {
@@ -290,21 +290,21 @@ export class Scene {
 
     testPhysics() {
 
-        const robot = new Robot()
+        const scale = 1.0
+        const robot = Robot.default(scale)
         this.robots.push(robot);
         
         const robotComposite = robot.physicsComposite
 
         World.add(this.engine.world, robotComposite);
 
-        Composite.translate(robotComposite, Vector.create(300, 400))
+        Composite.translate(robotComposite, Vector.create(70 * scale, 90 * scale))
 
     
         this.engine.world.gravity.y = 0.0;
     
     
         var body = robot.body;
-        const robotWheels = robot.physicsWheels
     
         var keyDownList: Array<string> = []
     
@@ -353,22 +353,15 @@ export class Scene {
             const forcePos = Vector.add(body.position, Vector.mult(vec, -40))
     
             
-            const maxForce = 1000*1000*1000
-            robot.wheels.rearLeft.applyTorqueFromMotor(new ElectricMotor(2, maxForce), leftForce)
-            robot.wheels.rearRight.applyTorqueFromMotor(new ElectricMotor(2, maxForce), rightForce)
+            const maxForce = 100*1000*1000
+            robot.leftDrivingWheel.applyTorqueFromMotor(new ElectricMotor(2, maxForce), leftForce)
+            robot.rightDrivingWheel.applyTorqueFromMotor(new ElectricMotor(2, maxForce), rightForce)
 
-            //force = Vector.mult(vec, Vector.dot(force, vec))
-            // Body.applyForce(robotWheels.rearLeft, robotWheels.rearLeft.position, Vector.mult(force, leftForce));
-            // Body.applyForce(robotWheels.rearRight, robotWheels.rearRight.position, Vector.mult(force, rightForce));
         }
     
     
         Events.on(this.engine, 'beforeUpdate', function () {
             updateKeysActions()
-            // let force = Vector.mult(Vector.sub(mouse.position, body.position), forceScale);
-            // let vec = Vector.create(Math.cos(body.angle), Math.sin(body.angle))
-            // force = Vector.mult(vec ,Vector.dot(force, vec))
-            // Body.applyForce(body, body.position, force);
         });
 
 
@@ -381,10 +374,10 @@ export class Scene {
             Bodies.rectangle(600, 100, 60, 60, { frictionAir: 0.1 }),
     
             // walls
-            Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
+            Bodies.rectangle(400, -25, 800, 50, { isStatic: true }),
             Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
             Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-            Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
+            Bodies.rectangle(-25, 300, 50, 600, { isStatic: true })
         ]);
     }
 
