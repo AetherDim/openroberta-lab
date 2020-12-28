@@ -1,20 +1,88 @@
-define(["require", "exports", "./robot", "./displayable", "matter-js", "./electricMotor", "./pixijs"], function (require, exports, robot_1, displayable_1, matter_js_1, electricMotor_1) {
+define(["require", "exports", "./robot", "./displayable", "matter-js", "./electricMotor", "./timer", "./pixijs"], function (require, exports, robot_1, displayable_1, matter_js_1, electricMotor_1, timer_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
     var Scene = /** @class */ (function () {
         function Scene() {
+            /**
+             * All robots within the scene
+             */
             this.robots = new Array();
+            /**
+             * layer 0: ground
+             */
+            this.groundContainer = new PIXI.Container();
+            /**
+             * z-index for PIXI, this will define the rendering layer
+             */
+            this.groundContainerZ = 0;
+            /**
+             * layer 1: ground animation
+             */
+            this.groundAnimationContainer = new PIXI.Container();
+            /**
+             * z-index for PIXI, this will define the rendering layer
+             */
+            this.groundAnimationContainerZ = 10;
+            /**
+             * layer 2: physics/other things <- robots
+             */
+            this.entityContainer = new PIXI.Container();
+            /**
+             * z-index for PIXI, this will define the rendering layer
+             */
+            this.entityContainerZ = 20;
+            /**
+             * layer 3: top/text/menus
+             */
+            this.topContainer = new PIXI.Container();
+            this.topContainerZ = 30;
+            this.loadingContainer = new PIXI.Container();
+            this.loadingContainerZ = 50;
+            this.loadingText = null;
+            this.loadingAnimation = null;
+            /**
+             * contains all currently registered displayebles
+             * scene will destroy them all if destroy() is called
+             * if a displayable is removed, it shall be destroyed
+             */
             this.displayables = new Array();
+            /**
+             * contains all currently registered displayebles for debugging
+             * scene will destroy them all if destroy() is called
+             * if a displayable is removed, it shall be destroyed
+             */
             this.debugDisplayables = new Array();
+            /**
+             * Physics engine used by the scene
+             */
             this.engine = matter_js_1.Engine.create();
+            /**
+             * sleep time before calling update
+             */
+            this.simSleepTime = 1 / 60;
+            /**
+             * Debug renderer used by the scene for all registered physics object
+             */
             this.debugRenderer = null;
+            /**
+             * current delta time for the physics simulation
+             */
             this.dt = 0.016;
+            /**
+             * whether to create debug displayables to show all physics objects
+             */
             this.debugPixiRendering = false;
+            // TODO: remove
             this.mouseConstraint = null;
-            this.onDisplayableAdd = function (d) { };
-            this.onDisplayableRemove = function (d) { };
-            this.simEngine = null;
+            /**
+             * current rendering instance
+             */
+            this.sceneRenderer = null;
+            this.hasFinishedLoading = false;
+            this.startedLoading = false;
+            this.needsInit = false;
+            // register events
             var _this = this;
             matter_js_1.Events.on(this.engine.world, "beforeAdd", function (e) {
                 _this.addPhysics(e.object);
@@ -22,29 +90,110 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             matter_js_1.Events.on(this.engine.world, "afterRemove", function (e) {
                 _this.removePhysics(e.object);
             });
+            this.setupContainers();
+            this.simTicker = new timer_1.Timer(this.simSleepTime, function (delta) {
+                // delta is the time from last call
+                _this.update();
+            });
+            this.initLoadingContainer();
         }
-        Scene.prototype.setSimulationEngine = function (simEngine) {
-            if (simEngine === void 0) { simEngine = null; }
-            if (simEngine) {
-                if (simEngine != this.simEngine) {
-                    this.simEngine = simEngine;
-                    this.onDeInit();
-                    var _this_1 = this;
-                    this.onDisplayableAdd = function (d) {
-                        _this_1.simEngine.addDiplayable(d.displayObject);
-                    };
-                    this.onDisplayableRemove = function (d) {
-                        _this_1.simEngine.removeDisplayable(d.displayObject);
-                    };
-                    simEngine.switchScene(this);
-                    this.onInit();
+        Scene.prototype.setupContainers = function () {
+            this.groundContainer.zIndex = this.groundContainerZ;
+            this.groundAnimationContainer.zIndex = this.groundAnimationContainerZ;
+            this.entityContainer.zIndex = this.entityContainerZ;
+            this.topContainer.zIndex = this.topContainerZ;
+        };
+        Scene.prototype.registerContainersToEngine = function () {
+            this.sceneRenderer.addDiplayable(this.groundContainer);
+            this.sceneRenderer.addDiplayable(this.groundAnimationContainer);
+            this.sceneRenderer.addDiplayable(this.entityContainer);
+            this.sceneRenderer.addDiplayable(this.topContainer);
+        };
+        Scene.prototype.initLoadingContainer = function () {
+            this.loadingContainer.zIndex = this.loadingContainerZ;
+            this.loadingText = new PIXI.Text("Loading ...", {
+                fontFamily: 'Arial',
+                fontSize: 60,
+                fill: 0x000000
+            });
+            var container = new PIXI.Container();
+            this.loadingAnimation = container;
+            var ae = new PIXI.Text("æ", {
+                fontFamily: 'Arial',
+                fontSize: 100,
+                fill: 0xfd7e14
+            });
+            // fix text center
+            ae.x = -ae.width / 2;
+            ae.y = -ae.height / 2;
+            container.addChild(ae);
+            this.loadingContainer.addChild(this.loadingText);
+            this.loadingContainer.addChild(this.loadingAnimation);
+        };
+        Scene.prototype.updateLoadingAnimation = function (dt) {
+            this.loadingText.x = this.sceneRenderer.getWidth() * 0.1;
+            this.loadingText.y = this.sceneRenderer.getHeight() * 0.45;
+            this.loadingAnimation.x = this.sceneRenderer.getWidth() * 0.7;
+            this.loadingAnimation.y = this.sceneRenderer.getHeight() * 0.5;
+            this.loadingAnimation.rotation += 0.05 * dt;
+        };
+        Scene.prototype.startSim = function () {
+            if (this.hasFinishedLoading) {
+                this.simTicker.start();
+            }
+        };
+        Scene.prototype.stopSim = function () {
+            if (this.hasFinishedLoading) {
+                this.simTicker.stop();
+            }
+        };
+        Scene.prototype.setSimSleepTime = function (simSleepTime) {
+            this.simSleepTime = simSleepTime;
+            this.simTicker.sleepTime = simSleepTime;
+        };
+        Scene.prototype.setSimulationEngine = function (sceneRenderer) {
+            if (sceneRenderer === void 0) { sceneRenderer = null; }
+            if (sceneRenderer) {
+                if (sceneRenderer != this.sceneRenderer) {
+                    if (this.hasFinishedLoading) {
+                        this.onDeInit();
+                    }
+                    this.sceneRenderer = sceneRenderer; // code order!!!
+                    sceneRenderer.switchScene(this); // this will remove all registered rendering containers
+                    if (!this.startedLoading) {
+                        this.startLoading();
+                    }
+                    // add rendering containers from this scene
+                    if (this.hasFinishedLoading) {
+                        this.onInit();
+                    }
+                    else {
+                        this.needsInit = true;
+                    }
                 }
             }
             else {
-                this.simEngine = null;
-                this.onDeInit();
-                this.onDisplayableAdd = function (d) { };
-                this.onDisplayableRemove = function (d) { };
+                if (this.hasFinishedLoading) {
+                    this.onDeInit();
+                }
+                this.sceneRenderer = null;
+            }
+        };
+        Scene.prototype.finishedLoading = function () {
+            this.hasFinishedLoading = true;
+            this.startedLoading = true; // for savety
+            this.sceneRenderer.removeDisplayable(this.loadingContainer);
+            this.registerContainersToEngine(); // register rendering containers
+            if (this.needsInit) {
+                this.onInit();
+                this.needsInit = false;
+            }
+        };
+        Scene.prototype.startLoading = function () {
+            if (!this.startedLoading && !this.hasFinishedLoading) {
+                this.startedLoading = true;
+                this.sceneRenderer.addDiplayable(this.loadingContainer);
+                this.onFirstLoad();
             }
         };
         Scene.prototype.setPrograms = function (programs) {
@@ -56,6 +205,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 this.robots[i].setProgram(programs[i], []); // TODO: breakpoints
             }
         };
+        // TODO:
         Scene.prototype.initMouse = function (mouse) {
             if (this.mouseConstraint) {
                 // ugly workaround for missing MouseConstraint in remove ...
@@ -79,7 +229,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                         var body = element;
                         if (body.displayable && !this.displayables.includes(body.displayable)) {
                             this.displayables.push(body.displayable);
-                            this.onDisplayableAdd(body.displayable);
+                            this.entityContainer.addChild(body.displayable.displayObject);
                         }
                         if (this.debugPixiRendering) {
                             if (!body.debugDisplayable) {
@@ -87,7 +237,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                             }
                             if (!this.debugDisplayables.includes(body.debugDisplayable)) {
                                 this.debugDisplayables.push(body.debugDisplayable);
-                                this.onDisplayableAdd(body.debugDisplayable);
+                                this.entityContainer.addChild(body.debugDisplayable.displayObject);
                             }
                         }
                         break;
@@ -129,12 +279,12 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                         if (body.displayable && this.displayables.includes(body.displayable)) {
                             var idx = this.displayables.indexOf(body.displayable);
                             this.displayables.splice(idx);
-                            this.onDisplayableRemove(body.displayable);
+                            this.entityContainer.removeChild(body.displayable.displayObject);
                         }
                         if (body.debugDisplayable && this.displayables.includes(body.debugDisplayable)) {
                             var idx = this.debugDisplayables.indexOf(body.debugDisplayable);
                             this.debugDisplayables.splice(idx);
-                            this.onDisplayableRemove(body.debugDisplayable);
+                            this.entityContainer.removeChild(body.debugDisplayable.displayObject);
                         }
                         break;
                     case 'composite':
@@ -162,31 +312,29 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 console.error('unknown type: ' + obj);
             }
         };
-        /**
-         * called on scene switch
-         */
-        Scene.prototype.onInit = function () {
-        };
-        /**
-         * called on scene switch
-         */
-        Scene.prototype.onDeInit = function () {
-        };
-        /**
-         * destroy this scene
-         */
         Scene.prototype.destroy = function () {
+            this.onDestroy();
+            // TODO
         };
         Scene.prototype.setDT = function (dt) {
             this.dt = dt;
         };
-        // for physics tics
+        Scene.prototype.renderTick = function (dt) {
+            if (this.startedLoading && !this.hasFinishedLoading) {
+                this.updateLoadingAnimation(dt);
+            }
+            this.onRenderTick(dt);
+        };
+        /**
+         * update physics and robots
+         */
         Scene.prototype.update = function () {
             var _this_1 = this;
-            this.robots.forEach(function (robot) { return robot.update(_this_1.dt); });
-            matter_js_1.Engine.update(this.engine, this.dt);
+            this.onUpdate();
+            this.robots.forEach(function (robot) { return robot.update(_this_1.dt); }); // update robots
+            matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // update rendering positions
-            // TODO: switch to scene internal drawable list?
+            // TODO: switch to scene internal drawable list? better performance???
             var bodies = matter_js_1.Composite.allBodies(this.engine.world);
             bodies.forEach(function (body) {
                 if (body.displayable) {
@@ -200,6 +348,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                     }
                 });
             }
+            this.onUpdatePostPhysics();
         };
         // for debugging
         Scene.prototype.setupDebugRenderer = function (canvas, wireframes, enableMouse) {
@@ -301,6 +450,49 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 matter_js_1.Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
                 matter_js_1.Bodies.rectangle(-25, 300, 50, 600, { isStatic: true })
             ]);
+        };
+        //
+        // User defined functions
+        //
+        /**
+         * load all textures and call finishedLoading() when done
+         * please do not block within this method and use PIXI.Loader callbacks
+         */
+        Scene.prototype.onFirstLoad = function () {
+            var _this_1 = this;
+            setTimeout(function () {
+                _this_1.finishedLoading(); // swap from loading to scene
+            }, 2000);
+        };
+        /**
+         * called on scene switch
+         */
+        Scene.prototype.onInit = function () {
+        };
+        /**
+         * called on scene switch to null scene
+         */
+        Scene.prototype.onDeInit = function () {
+        };
+        /**
+         * destroy this scene
+         */
+        Scene.prototype.onDestroy = function () {
+        };
+        /**
+         * called before updating physics and robots
+         */
+        Scene.prototype.onUpdate = function () {
+        };
+        /**
+         * called after all updates
+         */
+        Scene.prototype.onUpdatePostPhysics = function () {
+        };
+        /**
+         * called once per frame
+         */
+        Scene.prototype.onRenderTick = function (dt) {
         };
         return Scene;
     }());

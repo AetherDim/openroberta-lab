@@ -117,7 +117,7 @@ require.config({
 
     },[
         'scene',
-        'simulationEngine',
+        'renderer',
         'timer',
         'entities',
         'extendedMatter',

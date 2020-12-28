@@ -163,7 +163,7 @@ Body.update = function update(body: Body, deltaTime: number, timeScale: number, 
     for (var i = 0; i < body.parts.length; i++) {
         var part = body.parts[i];
         
-        Vertices.translate(part.vertices, positionTranslation);
+        Vertices.translate(part.vertices, positionTranslation, null);
         
         if (i > 0) {
             part.position.x += positionTranslation.x;

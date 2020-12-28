@@ -94,7 +94,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
         var angleDelta = body.angularVelocity * deltaTime;
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
-            matter_js_1.Vertices.translate(part.vertices, positionTranslation);
+            matter_js_1.Vertices.translate(part.vertices, positionTranslation, null);
             if (i > 0) {
                 part.position.x += positionTranslation.x;
                 part.position.y += positionTranslation.y;

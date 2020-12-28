@@ -41,6 +41,7 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./co
             var _this = this;
             this.simTicker = new timer_1.Timer(this.simSleepTime, function (delta) {
                 // delta is the time from last call
+                _this.update();
                 _this.simulate();
             });
             if (startSim) {
@@ -67,10 +68,14 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./co
             if (this.scene == scene) {
                 return;
             }
+            if (this.app.stage.children.length > 0) {
+                this.app.stage.removeChildren(0, this.app.stage.children.length - 1);
+            }
             this.scene = scene;
             scene.initMouse(this.mouse);
             scene.setSimulationEngine(this);
             // TODO
+            this.app.stage.on;
         };
         SimulationEngine.prototype.addDiplayable = function (displayable) {
             if (this.app) {
@@ -86,6 +91,8 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./timer", "./co
             if (this.scene) {
                 this.scene.update();
             }
+        };
+        SimulationEngine.prototype.update = function () {
         };
         return SimulationEngine;
     }());
