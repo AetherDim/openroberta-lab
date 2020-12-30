@@ -1,5 +1,6 @@
 import { Composite, Constraint, Vector, Body, ICompositeDefinition, IBodyDefinition, Vertices, Axes, Bounds } from "matter-js";
 import { Displayable } from "./displayable";
+import { Unit } from "./Unit";
 
 declare module "matter-js" {
     export interface Body {
@@ -55,6 +56,9 @@ declare module "matter-js" {
             recursive?: boolean)
     }
 
+    export class Resolver {
+        
+    }
 }
 
 // === Composite ===
@@ -127,7 +131,7 @@ const bodyPrototype = { vectorAlongBody, velocityAlongBody }
 const oldBodyCreate = Body.create
 Body.create = function (options: IBodyDefinition) {
     if (!options.density) {
-        options.density = 1000
+        options.density = Unit.getDensity(1000)
     }
     return oldBodyCreate({...options, ...bodyPrototype})
 }

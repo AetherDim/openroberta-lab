@@ -9,7 +9,7 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-define(["require", "exports", "matter-js"], function (require, exports, matter_js_1) {
+define(["require", "exports", "matter-js", "./Unit"], function (require, exports, matter_js_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // === Composite ===
@@ -68,7 +68,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
     var oldBodyCreate = matter_js_1.Body.create;
     matter_js_1.Body.create = function (options) {
         if (!options.density) {
-            options.density = 1000;
+            options.density = Unit_1.Unit.getDensity(1000);
         }
         return oldBodyCreate(__assign(__assign({}, options), bodyPrototype));
     };

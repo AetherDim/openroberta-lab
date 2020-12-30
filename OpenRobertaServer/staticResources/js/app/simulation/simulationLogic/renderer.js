@@ -68,6 +68,16 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./color", "./pi
         SceneRender.prototype.getHeight = function () {
             return this.app.view.height;
         };
+        SceneRender.prototype.setRenderingScaleAndOffset = function (scale, offset) {
+            this.app.stage.scale.x = scale;
+            this.app.stage.scale.y = scale;
+            this.app.stage.position.x = offset.x;
+            this.app.stage.position.y = offset.y;
+            this.mouse.scale.x = 1 / scale;
+            this.mouse.scale.y = 1 / scale;
+            this.mouse.offset.x = offset.x;
+            this.mouse.offset.y = offset.y;
+        };
         SceneRender.prototype.switchScene = function (scene) {
             if (!scene) {
                 scene = new scene_1.Scene();
@@ -79,6 +89,8 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./color", "./pi
             if (this.app.stage.children.length > 0) {
                 this.app.stage.removeChildren(0, this.app.stage.children.length - 1);
             }
+            // reset rendering scale and offset
+            this.setRenderingScaleAndOffset(1, matter_js_1.Vector.create(0, 0));
             this.scene = scene;
             scene.initMouse(this.mouse);
             scene.setSimulationEngine(this);

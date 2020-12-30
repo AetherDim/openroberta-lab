@@ -1,6 +1,6 @@
 import './pixijs'
 import * as $ from "jquery";
-import { Mouse } from 'matter-js'
+import { Mouse, Vector } from 'matter-js'
 import { Scene } from './scene';
 import { rgbToNumber } from './color'
 
@@ -91,6 +91,17 @@ export class SceneRender {
     getHeight() {
         return this.app.view.height;
     }
+    setRenderingScaleAndOffset(scale: number, offset: Vector) {
+        this.app.stage.scale.x = scale
+        this.app.stage.scale.y = scale
+        this.app.stage.position.x = offset.x
+        this.app.stage.position.y = offset.y
+
+        this.mouse.scale.x = 1 / scale
+        this.mouse.scale.y = 1 / scale
+        this.mouse.offset.x = offset.x
+        this.mouse.offset.y = offset.y
+    }
 
     switchScene(scene: Scene) {
         if(!scene) {
@@ -105,6 +116,8 @@ export class SceneRender {
         if(this.app.stage.children.length > 0) {
             this.app.stage.removeChildren(0, this.app.stage.children.length-1);
         }
+        // reset rendering scale and offset
+        this.setRenderingScaleAndOffset(1, Vector.create(0, 0))
 
         this.scene = scene
 

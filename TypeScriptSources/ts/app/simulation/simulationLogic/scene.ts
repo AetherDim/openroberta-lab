@@ -1,10 +1,11 @@
 import './pixijs'
 import { Robot } from './robot';
-import { createDisplayableFromBody, Displayable } from './displayable';
-import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite } from 'matter-js';
+import { createDisplayableFromBody, createRect, Displayable } from './displayable';
+import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping } from 'matter-js';
 import { ElectricMotor } from './electricMotor';
 import { SceneRender } from './renderer';
 import { Timer } from './timer';
+import { Unit } from './Unit'
 
 export class Scene {
 
@@ -514,15 +515,28 @@ export class Scene {
 
     testPhysics() {
 
-        const scale = 1.0
-        const robot = Robot.default(scale)
+        // use 0.001 for EV3
+        const scale = 0.001;
+        
+        Unit.setUnitScaling({m: 1000})
+
+        // (<any>Resolver)._restingThresh = 4 * scale;
+        // (<any>Resolver)._restingThreshTangent = 6 * scale;
+        // (<any>Sleeping)._motionWakeThreshold = 0.18 * scale;
+        // (<any>Sleeping)._motionSleepThreshold = 0.08 * scale;
+        // (<any>Constraint)._minLength = 0.000001 * scale;
+
+        //this.sceneRenderer.setRenderingScaleAndOffset(1 / scale, Vector.create())
+        
+        const useEV3 = true
+        const robot = useEV3 ? Robot.EV3() : Robot.default(scale)
         this.robots.push(robot);
         
         const robotComposite = robot.physicsComposite
 
         World.add(this.engine.world, robotComposite);
 
-        Composite.translate(robotComposite, Vector.create(70 * scale, 90 * scale))
+        Composite.translate(robotComposite, Unit.getPositionVec(100 * scale, 100 * scale))
 
     
         this.engine.world.gravity.y = 0.0;
@@ -577,9 +591,10 @@ export class Scene {
             const forcePos = Vector.add(body.position, Vector.mult(vec, -40))
     
             
-            const maxForce = 100*1000*1000
-            robot.leftDrivingWheel.applyTorqueFromMotor(new ElectricMotor(2, maxForce), leftForce)
-            robot.rightDrivingWheel.applyTorqueFromMotor(new ElectricMotor(2, maxForce), rightForce)
+            const maxTorque = Unit.getTorque(100*1000*1000 * Math.pow(scale, 3.5))
+            const motor = useEV3 ? ElectricMotor.EV3() : new ElectricMotor(120, maxTorque)
+            robot.leftDrivingWheel.applyTorqueFromMotor(motor, leftForce)
+            robot.rightDrivingWheel.applyTorqueFromMotor(motor, rightForce)
 
         }
     
@@ -591,7 +606,7 @@ export class Scene {
 
         // TODO: remove
         var world = this.engine.world;
-        World.add(world, [
+        var bodies = [
             // blocks
             Bodies.rectangle(200, 100, 60, 60, { frictionAir: 0.001 }),
             Bodies.rectangle(400, 100, 60, 60, { frictionAir: 0.05 }),
@@ -602,7 +617,20 @@ export class Scene {
             Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
             Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
             Bodies.rectangle(-25, 300, 50, 600, { isStatic: true })
-        ]);
+        ]
+        bodies.forEach(body => Body.scale(body, scale, scale, Vector.create()))
+
+        bodies = [
+            createRect(400*scale, -25*scale, 800*scale, 50*scale),
+            createRect(400*scale, 600*scale, 800*scale, 50*scale),
+            createRect(800*scale, 300*scale, 50*scale, 600*scale),
+            createRect(-25*scale, 300*scale, 50*scale, 600*scale),
+        ]
+        bodies.forEach(body => Body.setStatic(body, true))
+        World.add(world, bodies);
+
+        const allBodies = Composite.allBodies(world)
+        allBodies.forEach(body => body.slop *= scale)
     }
 
 

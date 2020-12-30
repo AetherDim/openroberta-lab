@@ -1,3 +1,4 @@
+import { Unit } from "./Unit"
 
 export class ElectricMotor {
 
@@ -5,8 +6,8 @@ export class ElectricMotor {
     readonly maxAngularVelocity: number
 
     constructor(maxRPM: number, maxTorque: number) {
-        this.maxTorque = maxTorque
-        this.maxAngularVelocity = maxRPM * Math.PI * 2
+        this.maxTorque = Unit.getTorque(maxTorque)
+        this.maxAngularVelocity = Unit.getRPM(maxRPM) * Math.PI * 2 / 60
     }
 
     getMaxRPM(): number {
@@ -27,6 +28,6 @@ export class ElectricMotor {
      * The data was taken from a plot on https://www.philohome.com/motors/motorcomp.htm (EV3 Large).
      */
     static EV3() {
-        return new ElectricMotor(170, 0.43)
+        return new ElectricMotor(170, 0.43 * 0.01)
     }
 }

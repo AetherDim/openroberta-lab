@@ -127,6 +127,7 @@ require.config({
         'wheel',
         'electricMotor',
         'color',
+        'Unit',
     ]),
     shim: {
         'bootstrap': {

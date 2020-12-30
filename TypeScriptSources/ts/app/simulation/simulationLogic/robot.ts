@@ -6,6 +6,7 @@ import "./extendedMatter"
 import { MAXPOWER } from './interpreter.constants'
 import { Interpreter } from './interpreter.interpreter'
 import { RobotSimBehaviour } from './robotSimBehaviour'
+import { Unit } from './Unit'
 import { Wheel } from './wheel'
 
 export class Robot {
@@ -63,7 +64,24 @@ export class Robot {
         // set friction
         wheels.forEach(wheel => {
             wheel.frictionAir = 0.0
-            this.physicsComposite.addRigidBodyConstraints(this.body, wheel, 0.1, 0.001)
+            // const constraint1 = new CustomConstraint(
+            //     this.body, wheel,
+            //     Vector.sub(wheel.position, this.body.position), Vector.create(), {
+            //         angularFrequency: 2 * Math.PI * 0.6,
+            //         damping: 1.0,
+            //         length: 0//Vector.magnitude(Vector.sub(this.body.position, wheel.position))
+            //     })
+            // const constraint2 = new CustomConstraint(
+            //     this.body, wheel,
+            //     Vector.create(), Vector.sub(this.body.position, wheel.position), {
+            //         angularFrequency: 2 * Math.PI * 0.6,
+            //         damping: 1.0,
+            //         length: 0//Vector.magnitude(Vector.sub(this.body.position, wheel.position))
+            //     })
+            
+            // this.customConstraints.push(constraint1)
+            // this.customConstraints.push(constraint2)
+            this.physicsComposite.addRigidBodyConstraints(this.body, wheel, 0.1, 0.1)
         });
 
         this.body.frictionAir = 0.0;
@@ -129,18 +147,18 @@ export class Robot {
 
 
         // divide two times by `dt` since the simulation calculates velocity changes by adding
-        // force/mass * dt * dt (BUG??? only dt would be right)
-        Body.applyForce(wheel, wheel.position, Vector.mult(velocityChange, wheel.mass / dt / dt))
+        // force/mass * dt
+        Body.applyForce(wheel, wheel.position, Vector.mult(velocityChange, wheel.mass / dt))
     }
 
     update(dt: number) {
 
         this.time += dt
-        
+
         // update wheels velocities
         // this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
 
-        const gravitationalAcceleration = 9.81
+        const gravitationalAcceleration = Unit.getAcceleration(9.81)
         const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
         this.wheelsList.forEach(wheel => {
             wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration)
@@ -400,7 +418,7 @@ export class Robot {
         frontWheel.slideFriction = 0.1
         frontWheel.rollingFriction = 0.0
         return new Robot({
-            body: createRect(0, 0, 40, 30),
+            body: createRect(0, 0, 40*scale, 30*scale),
             leftDrivingWheel: new Wheel(-0, -22*scale, 20*scale, 10*scale),
             rightDrivingWheel: new Wheel(-0, 22*scale, 20*scale, 10*scale),
             otherWheels: [
@@ -429,15 +447,96 @@ export class Robot {
      */
     static EV3(): Robot {
         const wheel = { diameter: 0.05, width: 0.02 }
+        // TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
+        const frontWheel = new Wheel(0.10, 0, wheel.width, wheel.width, 0.30)
+        frontWheel.slideFriction = 0.0
+        const robotBody = createRect(0, 0, 0.15, 0.10)
+        Body.setMass(robotBody, Unit.getMass(0.300))
         const robot = new Robot({
-            body: createRect(0, 0, 0.15, 0.10),
-            leftDrivingWheel: new Wheel(-0.075, -0.07, wheel.diameter, wheel.width),
-            rightDrivingWheel: new Wheel(-0.075,  0.07, wheel.diameter, wheel.width),
+            body: robotBody,
+            leftDrivingWheel: new Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
+            rightDrivingWheel: new Wheel(0,  0.07, wheel.diameter, wheel.width, 0.050),
             otherWheels: [
-                new Wheel(0.13, -0.03, wheel.diameter, wheel.width),
-                new Wheel(0.13,  0.03, wheel.diameter, wheel.width)
+                frontWheel
             ]
         })
         return robot
+    }
+}
+
+/**
+ * Damped spring constriant.
+ */
+class CustomConstraint {
+
+    bodyA: Body
+    bodyB: Body
+
+    angleA: number
+    angleB: number
+
+    positionA: Vector
+    positionB: Vector
+
+    length: number
+    angularFrequency: number
+    damping: number
+
+    constructor(
+        bodyA: Body,
+         bodyB: Body,
+         positionA: Vector,
+         positionB: Vector,
+         options: {
+            length?: number,
+            angularFrequency?: number,
+            damping?: number}) {
+        this.bodyA = bodyA
+        this.bodyB = bodyB
+        this.positionA = positionA
+        this.positionB = positionB
+
+        this.angleA = bodyA.angle
+        this.angleB = bodyB.angle
+
+        this.length = options.length || 0
+
+        this.angularFrequency = options.angularFrequency || 1
+        this.damping = options.damping || 1
+    }
+
+    update() {
+
+        const rotatedPositionA = Vector.rotate(this.positionA, this.bodyA.angle - this.angleA)
+        const rotatedPositionB = Vector.rotate(this.positionB, this.bodyB.angle - this.angleB)
+
+        /** positionA in world space */
+        const pointA = Vector.add(this.bodyA.position, rotatedPositionA)
+        /** positionB in world space */
+        const pointB = Vector.add(this.bodyB.position, rotatedPositionB)
+
+        const relativePosition = Vector.sub(pointB, pointA)
+        const length = Vector.magnitude(relativePosition)
+        const unitRelativePosition = Vector.mult(relativePosition, 1 / (length > 0 ? length : 1e-10))
+        const lengthDelta = length - this.length
+        
+        /** velocity of positionA in world space */
+        const velocityA = Vector.add(this.bodyA.velocity, Vector.mult(Vector.perp(rotatedPositionA), this.bodyA.angularVelocity))
+        /** velocity of positionB in world space */
+        const velocityB = Vector.add(this.bodyB.velocity, Vector.mult(Vector.perp(rotatedPositionB), this.bodyB.angularVelocity))
+
+        const relativeVelocity = Vector.sub(velocityB, velocityA)
+        const velocity = Vector.dot(unitRelativePosition, relativeVelocity)
+
+        // see Wikipedia https://en.wikipedia.org/wiki/Harmonic_oscillator#Damped_harmonic_oscillator
+        const acceleration = -this.angularFrequency * (this.angularFrequency * lengthDelta + 2 * this.damping * velocity)
+
+        const accelerationVec = Vector.mult(unitRelativePosition, acceleration)
+
+        const mass = 1 / (this.bodyA.inverseMass + this.bodyB.inverseMass)
+        const forceVec = Vector.mult(accelerationVec, mass)
+        Body.applyForce(this.bodyA, pointA, Vector.neg(forceVec))
+        Body.applyForce(this.bodyB, pointB, forceVec)
+
     }
 }

@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./color"], function (require, exports, matter_js_1, color_1) {
+define(["require", "exports", "matter-js", "./color", "./Unit"], function (require, exports, matter_js_1, color_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createPoligon = exports.createCircle = exports.createRect = exports.createDisplayableFromBody = exports.DisplaySettings = exports.Displayable = void 0;
@@ -94,13 +94,15 @@ define(["require", "exports", "matter-js", "./color"], function (require, export
         return displayable;
     }
     exports.createDisplayableFromBody = createDisplayableFromBody;
-    function createRect(x, y, width, height, roundingAngle, settings) {
-        if (roundingAngle === void 0) { roundingAngle = 0; }
+    function createRect(x, y, width, height, roundingRadius, settings) {
+        var _a;
+        if (roundingRadius === void 0) { roundingRadius = 0; }
         if (settings === void 0) { settings = {}; }
+        _a = Unit_1.Unit.getLengths([x, y, width, height]), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
         var graphics = new PIXI.Graphics();
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
         graphics.beginFill(settings.color, settings.alpha);
-        graphics.drawRoundedRect(-width / 2, -height / 2, width, height, roundingAngle);
+        graphics.drawRoundedRect(-width / 2, -height / 2, width, height, roundingRadius);
         graphics.endFill();
         var displayable = new Displayable(graphics);
         return matter_js_1.Bodies.rectangle(x, y, width, height, { displayable: displayable });

@@ -1,7 +1,6 @@
-import { color } from "d3";
-import { contains } from "jquery";
-import { Body, Bodies, Vertices, Vector } from "matter-js";
+import { Body, Bodies, Vector } from "matter-js";
 import { ColorPalette } from "./color";
+import { Unit } from "./Unit";
 
 export class Displayable {
     displayObject: PIXI.DisplayObject = null;
@@ -124,13 +123,15 @@ export function createDisplayableFromBody(body: Body, settings?: DisplaySettings
 }
 
 
-export function createRect(x: number, y: number, width: number, height: number, roundingAngle: number = 0, settings: DisplaySettings = {}) {
+export function createRect(x: number, y: number, width: number, height: number, roundingRadius: number = 0, settings: DisplaySettings = {}) {
+
+    [x, y, width, height] = Unit.getLengths([x, y, width, height])
 
     const graphics = new PIXI.Graphics();
 
     graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
     graphics.beginFill(settings.color, settings.alpha);
-    graphics.drawRoundedRect(-width/2, -height/2, width, height, roundingAngle);
+    graphics.drawRoundedRect(-width/2, -height/2, width, height, roundingRadius);
     graphics.endFill();
 
 

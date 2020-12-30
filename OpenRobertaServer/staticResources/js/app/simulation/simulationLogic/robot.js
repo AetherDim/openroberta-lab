@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "./interpreter.constants", "./interpreter.interpreter", "./robotSimBehaviour", "./wheel", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1, electricMotor_1, interpreter_constants_1, interpreter_interpreter_1, robotSimBehaviour_1, wheel_1) {
+define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "./interpreter.constants", "./interpreter.interpreter", "./robotSimBehaviour", "./Unit", "./wheel", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1, electricMotor_1, interpreter_constants_1, interpreter_interpreter_1, robotSimBehaviour_1, Unit_1, wheel_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -33,7 +33,23 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             // set friction
             wheels.forEach(function (wheel) {
                 wheel.frictionAir = 0.0;
-                _this_1.physicsComposite.addRigidBodyConstraints(_this_1.body, wheel, 0.1, 0.001);
+                // const constraint1 = new CustomConstraint(
+                //     this.body, wheel,
+                //     Vector.sub(wheel.position, this.body.position), Vector.create(), {
+                //         angularFrequency: 2 * Math.PI * 0.6,
+                //         damping: 1.0,
+                //         length: 0//Vector.magnitude(Vector.sub(this.body.position, wheel.position))
+                //     })
+                // const constraint2 = new CustomConstraint(
+                //     this.body, wheel,
+                //     Vector.create(), Vector.sub(this.body.position, wheel.position), {
+                //         angularFrequency: 2 * Math.PI * 0.6,
+                //         damping: 1.0,
+                //         length: 0//Vector.magnitude(Vector.sub(this.body.position, wheel.position))
+                //     })
+                // this.customConstraints.push(constraint1)
+                // this.customConstraints.push(constraint2)
+                _this_1.physicsComposite.addRigidBodyConstraints(_this_1.body, wheel, 0.1, 0.1);
             });
             this.body.frictionAir = 0.0;
         };
@@ -73,14 +89,14 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             var velocityOrthBody = matter_js_1.Vector.sub(wheel.velocity, velocityAlongBody);
             var velocityChange = matter_js_1.Vector.add(matter_js_1.Vector.mult(velocityAlongBody, -this.wheelDriveFriction), matter_js_1.Vector.mult(velocityOrthBody, -this.wheelSlideFriction));
             // divide two times by `dt` since the simulation calculates velocity changes by adding
-            // force/mass * dt * dt (BUG??? only dt would be right)
-            matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.mult(velocityChange, wheel.mass / dt / dt));
+            // force/mass * dt
+            matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.mult(velocityChange, wheel.mass / dt));
         };
         Robot.prototype.update = function (dt) {
             this.time += dt;
             // update wheels velocities
             // this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
-            var gravitationalAcceleration = 9.81;
+            var gravitationalAcceleration = Unit_1.Unit.getAcceleration(9.81);
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
             this.wheelsList.forEach(function (wheel) {
                 wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration);
@@ -325,7 +341,7 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             frontWheel.slideFriction = 0.1;
             frontWheel.rollingFriction = 0.0;
             return new Robot({
-                body: displayable_1.createRect(0, 0, 40, 30),
+                body: displayable_1.createRect(0, 0, 40 * scale, 30 * scale),
                 leftDrivingWheel: new wheel_1.Wheel(-0, -22 * scale, 20 * scale, 10 * scale),
                 rightDrivingWheel: new wheel_1.Wheel(-0, 22 * scale, 20 * scale, 10 * scale),
                 otherWheels: [
@@ -352,13 +368,17 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
          */
         Robot.EV3 = function () {
             var wheel = { diameter: 0.05, width: 0.02 };
+            // TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
+            var frontWheel = new wheel_1.Wheel(0.10, 0, wheel.width, wheel.width, 0.30);
+            frontWheel.slideFriction = 0.0;
+            var robotBody = displayable_1.createRect(0, 0, 0.15, 0.10);
+            matter_js_1.Body.setMass(robotBody, Unit_1.Unit.getMass(0.300));
             var robot = new Robot({
-                body: displayable_1.createRect(0, 0, 0.15, 0.10),
-                leftDrivingWheel: new wheel_1.Wheel(-0.075, -0.07, wheel.diameter, wheel.width),
-                rightDrivingWheel: new wheel_1.Wheel(-0.075, 0.07, wheel.diameter, wheel.width),
+                body: robotBody,
+                leftDrivingWheel: new wheel_1.Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
+                rightDrivingWheel: new wheel_1.Wheel(0, 0.07, wheel.diameter, wheel.width, 0.050),
                 otherWheels: [
-                    new wheel_1.Wheel(0.13, -0.03, wheel.diameter, wheel.width),
-                    new wheel_1.Wheel(0.13, 0.03, wheel.diameter, wheel.width)
+                    frontWheel
                 ]
             });
             return robot;
@@ -366,4 +386,46 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
         return Robot;
     }());
     exports.Robot = Robot;
+    /**
+     * Damped spring constriant.
+     */
+    var CustomConstraint = /** @class */ (function () {
+        function CustomConstraint(bodyA, bodyB, positionA, positionB, options) {
+            this.bodyA = bodyA;
+            this.bodyB = bodyB;
+            this.positionA = positionA;
+            this.positionB = positionB;
+            this.angleA = bodyA.angle;
+            this.angleB = bodyB.angle;
+            this.length = options.length || 0;
+            this.angularFrequency = options.angularFrequency || 1;
+            this.damping = options.damping || 1;
+        }
+        CustomConstraint.prototype.update = function () {
+            var rotatedPositionA = matter_js_1.Vector.rotate(this.positionA, this.bodyA.angle - this.angleA);
+            var rotatedPositionB = matter_js_1.Vector.rotate(this.positionB, this.bodyB.angle - this.angleB);
+            /** positionA in world space */
+            var pointA = matter_js_1.Vector.add(this.bodyA.position, rotatedPositionA);
+            /** positionB in world space */
+            var pointB = matter_js_1.Vector.add(this.bodyB.position, rotatedPositionB);
+            var relativePosition = matter_js_1.Vector.sub(pointB, pointA);
+            var length = matter_js_1.Vector.magnitude(relativePosition);
+            var unitRelativePosition = matter_js_1.Vector.mult(relativePosition, 1 / (length > 0 ? length : 1e-10));
+            var lengthDelta = length - this.length;
+            /** velocity of positionA in world space */
+            var velocityA = matter_js_1.Vector.add(this.bodyA.velocity, matter_js_1.Vector.mult(matter_js_1.Vector.perp(rotatedPositionA), this.bodyA.angularVelocity));
+            /** velocity of positionB in world space */
+            var velocityB = matter_js_1.Vector.add(this.bodyB.velocity, matter_js_1.Vector.mult(matter_js_1.Vector.perp(rotatedPositionB), this.bodyB.angularVelocity));
+            var relativeVelocity = matter_js_1.Vector.sub(velocityB, velocityA);
+            var velocity = matter_js_1.Vector.dot(unitRelativePosition, relativeVelocity);
+            // see Wikipedia https://en.wikipedia.org/wiki/Harmonic_oscillator#Damped_harmonic_oscillator
+            var acceleration = -this.angularFrequency * (this.angularFrequency * lengthDelta + 2 * this.damping * velocity);
+            var accelerationVec = matter_js_1.Vector.mult(unitRelativePosition, acceleration);
+            var mass = 1 / (this.bodyA.inverseMass + this.bodyB.inverseMass);
+            var forceVec = matter_js_1.Vector.mult(accelerationVec, mass);
+            matter_js_1.Body.applyForce(this.bodyA, pointA, matter_js_1.Vector.neg(forceVec));
+            matter_js_1.Body.applyForce(this.bodyB, pointB, forceVec);
+        };
+        return CustomConstraint;
+    }());
 });
