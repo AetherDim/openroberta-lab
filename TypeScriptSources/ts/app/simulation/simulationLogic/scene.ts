@@ -13,6 +13,11 @@ export class Scene {
      */
     readonly robots: Array<Robot> = new Array<Robot>();
 
+
+    //
+    // #############################################################################
+    //
+
     /**
      * layer 0: ground
      */
@@ -32,33 +37,59 @@ export class Scene {
     readonly groundAnimationContainerZ = 10;
     
     /**
-     * layer 2: physics/other things <- robots
+     * layer 2: entity bottom layer (shadorws/effects/...)
+     */
+    readonly entityBottomContainer = new PIXI.Container()
+    /**
+     * z-index for PIXI, this will define the rendering layer
+     */
+    readonly entityBottomContainerZ = 20;
+
+    /**
+     * layer 3: physics/other things <- robots
      */
     readonly entityContainer = new PIXI.Container()
     /**
      * z-index for PIXI, this will define the rendering layer
      */
-    readonly entityContainerZ = 20;
+    readonly entityContainerZ = 30;
+
+    /**
+     * layer 4: for entity descriptions/effects
+     */
+    readonly entityTopContainer = new PIXI.Container()
+    /**
+     * z-index for PIXI, this will define the rendering layer
+     */
+    readonly entityTopContainerZ = 40;
     
     /**
-     * layer 3: top/text/menus
+     * layer 5: top/text/menus
      */
     readonly topContainer = new PIXI.Container()
-    readonly topContainerZ = 30;
+    readonly topContainerZ = 50;
 
     protected setupContainers() {
         this.groundContainer.zIndex = this.groundContainerZ;
         this.groundAnimationContainer.zIndex = this.groundAnimationContainerZ;
+        this.entityBottomContainer.zIndex = this.entityBottomContainerZ;
         this.entityContainer.zIndex = this.entityContainerZ;
+        this.entityTopContainer.zIndex = this.entityTopContainerZ;
         this.topContainer.zIndex = this.topContainerZ;
     }
 
     protected registerContainersToEngine() {
         this.sceneRenderer.addDiplayable(this.groundContainer);
         this.sceneRenderer.addDiplayable(this.groundAnimationContainer);
+        this.sceneRenderer.addDiplayable(this.entityBottomContainer);
         this.sceneRenderer.addDiplayable(this.entityContainer);
+        this.sceneRenderer.addDiplayable(this.entityTopContainer);
         this.sceneRenderer.addDiplayable(this.topContainer);
     }
+
+    //
+    // #############################################################################
+    //
 
     readonly loadingContainer = new PIXI.Container();
     readonly loadingContainerZ = 50;

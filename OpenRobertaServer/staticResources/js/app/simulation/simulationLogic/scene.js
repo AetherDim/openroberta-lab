@@ -8,6 +8,9 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
              * All robots within the scene
              */
             this.robots = new Array();
+            //
+            // #############################################################################
+            //
             /**
              * layer 0: ground
              */
@@ -25,18 +28,37 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
              */
             this.groundAnimationContainerZ = 10;
             /**
-             * layer 2: physics/other things <- robots
+             * layer 2: entity bottom layer (shadorws/effects/...)
+             */
+            this.entityBottomContainer = new PIXI.Container();
+            /**
+             * z-index for PIXI, this will define the rendering layer
+             */
+            this.entityBottomContainerZ = 20;
+            /**
+             * layer 3: physics/other things <- robots
              */
             this.entityContainer = new PIXI.Container();
             /**
              * z-index for PIXI, this will define the rendering layer
              */
-            this.entityContainerZ = 20;
+            this.entityContainerZ = 30;
             /**
-             * layer 3: top/text/menus
+             * layer 4: for entity descriptions/effects
+             */
+            this.entityTopContainer = new PIXI.Container();
+            /**
+             * z-index for PIXI, this will define the rendering layer
+             */
+            this.entityTopContainerZ = 40;
+            /**
+             * layer 5: top/text/menus
              */
             this.topContainer = new PIXI.Container();
-            this.topContainerZ = 30;
+            this.topContainerZ = 50;
+            //
+            // #############################################################################
+            //
             this.loadingContainer = new PIXI.Container();
             this.loadingContainerZ = 50;
             this.loadingText = null;
@@ -100,13 +122,17 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
         Scene.prototype.setupContainers = function () {
             this.groundContainer.zIndex = this.groundContainerZ;
             this.groundAnimationContainer.zIndex = this.groundAnimationContainerZ;
+            this.entityBottomContainer.zIndex = this.entityBottomContainerZ;
             this.entityContainer.zIndex = this.entityContainerZ;
+            this.entityTopContainer.zIndex = this.entityTopContainerZ;
             this.topContainer.zIndex = this.topContainerZ;
         };
         Scene.prototype.registerContainersToEngine = function () {
             this.sceneRenderer.addDiplayable(this.groundContainer);
             this.sceneRenderer.addDiplayable(this.groundAnimationContainer);
+            this.sceneRenderer.addDiplayable(this.entityBottomContainer);
             this.sceneRenderer.addDiplayable(this.entityContainer);
+            this.sceneRenderer.addDiplayable(this.entityTopContainer);
             this.sceneRenderer.addDiplayable(this.topContainer);
         };
         Scene.prototype.initLoadingContainer = function () {
