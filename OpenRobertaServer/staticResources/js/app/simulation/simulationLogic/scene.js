@@ -448,6 +448,12 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             var container = new PIXI.Container();
             container.addChild(polygonGraphics, mousePointGraphics, nearestPointGraphics);
             this.topContainer.addChild(container);
+            this.sceneRenderer.scrollView.registerListener(function (event) {
+                var mousePos = event.data.getCurrentLocalPosition();
+                mousePointGraphics.position.set(mousePos.x, mousePos.y);
+                var pos = polygon.nearestPointTo(matter_js_1.Vector.create(mousePos.x, mousePos.y));
+                nearestPointGraphics.position.set(pos.x, pos.y);
+            });
             this.engine.world.gravity.y = 0.0;
             var body = robot.body;
             var keyDownList = [];
@@ -459,12 +465,6 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             document.onkeyup = function (event) {
                 keyDownList = keyDownList.filter(function (key) { return key != event.key; });
             };
-            this.sceneRenderer.scrollView.registerListener(function (event) {
-                var mousePos = event.data.getCurrentLocalPosition();
-                mousePointGraphics.position.set(mousePos.x, mousePos.y);
-                var pos = polygon.nearestPointTo(matter_js_1.Vector.create(mousePos.x, mousePos.y));
-                nearestPointGraphics.position.set(pos.x, pos.y);
-            });
             function updateKeysActions() {
                 // $('#notConstantValue').html('');
                 // $("#notConstantValue").append('<div><label>Test</label><span>' + keyDownList + '</span></div>');    

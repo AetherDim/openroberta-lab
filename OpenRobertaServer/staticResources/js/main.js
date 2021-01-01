@@ -1,6 +1,40 @@
-function addPaths(defaultPaths, simulationNames) {
-	simulationNames.forEach(name => {
-		defaultPaths[name] = 'app/simulation/simulationLogic/'+name;
+function extendArray(array0, array1) {
+	for (var i = 0, len = array1.length; i < len; i++) {
+    	array0.push(array1[i]);
+	};
+}
+
+function convertArray(array, defaultPath) {
+	var result = []
+	array.forEach(element => {
+    	if (typeof element == "string") {
+        	result.push(defaultPath + element)
+        } else {
+        	// element is a dictionary
+        	extendArray(result, convertDictionary(element, defaultPath))
+        }
+    })
+    return result
+}
+
+function convertDictionary(dict, defaultPath) {
+	var result = []
+	for (var key in dict) {
+    	var subFiles = dict[key]
+        if (typeof subFiles == "string") {
+        	result.push(defaultPath + key + "/" + subFiles)
+        } else {
+        	// subFiles is an array
+    		extendArray(result, convertArray(dict[key], defaultPath + key + "/"))
+        }
+    }
+    return result
+}
+
+function addPaths(defaultPaths, simulationDirectoryStructure) {
+	var simulationFilePaths = convertArray(simulationDirectoryStructure, "")
+	simulationFilePaths.forEach(path => {
+		defaultPaths[path] = 'app/simulation/simulationLogic/'+path;
 	})
 	return defaultPaths;
 }
@@ -129,11 +163,13 @@ require.config({
         'color',
         'Unit',
         'ScrollView',
-        'Geometry/Line',
-        'Geometry/LineBaseClass',
-        'Geometry/LineSegment',
-        'Geometry/Ray',
-        'Geometry/Polygon',
+        { 'Geometry': [
+            'Line',
+            'LineBaseClass',
+            'LineSegment',
+            'Ray',
+            'Polygon',
+        ]},
     ]),
     shim: {
         'bootstrap': {
