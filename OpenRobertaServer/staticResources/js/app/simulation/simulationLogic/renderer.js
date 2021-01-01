@@ -1,4 +1,4 @@
-define(["require", "exports", "jquery", "matter-js", "./scene", "./color", "./pixijs"], function (require, exports, $, matter_js_1, scene_1, color_1) {
+define(["require", "exports", "jquery", "./scene", "./color", "./ScrollView", "./pixijs"], function (require, exports, $, scene_1, color_1, ScrollView_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SceneRender = void 0;
@@ -34,7 +34,7 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./color", "./pi
                 resizeTo: resizeTo,
             });
             // add mouse control
-            this.mouse = matter_js_1.Mouse.create(htmlCanvas); // call before scene switch
+            this.scrollView = new ScrollView_1.ScrollView(this.app.stage, this.app.renderer);
             // switch to scene
             if (scene) {
                 this.switchScene(scene);
@@ -68,16 +68,6 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./color", "./pi
         SceneRender.prototype.getHeight = function () {
             return this.app.view.height;
         };
-        SceneRender.prototype.setRenderingScaleAndOffset = function (scale, offset) {
-            this.app.stage.scale.x = scale;
-            this.app.stage.scale.y = scale;
-            this.app.stage.position.x = offset.x;
-            this.app.stage.position.y = offset.y;
-            this.mouse.scale.x = 1 / scale;
-            this.mouse.scale.y = 1 / scale;
-            this.mouse.offset.x = offset.x;
-            this.mouse.offset.y = offset.y;
-        };
         SceneRender.prototype.switchScene = function (scene) {
             if (!scene) {
                 scene = new scene_1.Scene();
@@ -86,21 +76,21 @@ define(["require", "exports", "jquery", "matter-js", "./scene", "./color", "./pi
                 return;
             }
             // remove all children from PIXI renderer
-            if (this.app.stage.children.length > 0) {
-                this.app.stage.removeChildren(0, this.app.stage.children.length - 1);
+            if (this.scrollView.children.length > 0) {
+                this.scrollView.removeChildren(0, this.scrollView.children.length - 1);
             }
             // reset rendering scale and offset
-            this.setRenderingScaleAndOffset(1, matter_js_1.Vector.create(0, 0));
+            //this.setRenderingScaleAndOffset(1, Vector.create(0, 0))
             this.scene = scene;
-            scene.initMouse(this.mouse);
+            //scene.initMouse(this.mouse);
             scene.setSimulationEngine(this);
             // TODO
         };
         SceneRender.prototype.addDiplayable = function (displayable) {
-            this.app.stage.addChild(displayable);
+            this.scrollView.addChild(displayable);
         };
         SceneRender.prototype.removeDisplayable = function (displayable) {
-            this.app.stage.removeChild(displayable);
+            this.scrollView.removeChild(displayable);
         };
         return SceneRender;
     }());

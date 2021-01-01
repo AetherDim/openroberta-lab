@@ -128,6 +128,7 @@ require.config({
         'electricMotor',
         'color',
         'Unit',
+        'ScrollView'
     ]),
     shim: {
         'bootstrap': {

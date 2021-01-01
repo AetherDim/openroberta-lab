@@ -3,6 +3,7 @@ import * as $ from "jquery";
 import { Mouse, Vector } from 'matter-js'
 import { Scene } from './scene';
 import { rgbToNumber } from './color'
+import { ScrollView } from './ScrollView';
 
 
 
@@ -12,7 +13,7 @@ export class SceneRender {
     readonly app: PIXI.Application; // "window"
 
     private scene: Scene;   // scene with physics and components
-    private mouse: Mouse;
+    scrollView: ScrollView;
     
 
     constructor(canvas: HTMLCanvasElement | string, autoResizeTo: HTMLElement | string = null, scene: Scene=null) {
@@ -49,7 +50,7 @@ export class SceneRender {
         );
 
         // add mouse control
-        this.mouse = Mouse.create(htmlCanvas); // call before scene switch
+        this.scrollView = new ScrollView(this.app.stage, this.app.renderer);
 
         // switch to scene
         if(scene) {
@@ -91,17 +92,7 @@ export class SceneRender {
     getHeight() {
         return this.app.view.height;
     }
-    setRenderingScaleAndOffset(scale: number, offset: Vector) {
-        this.app.stage.scale.x = scale
-        this.app.stage.scale.y = scale
-        this.app.stage.position.x = offset.x
-        this.app.stage.position.y = offset.y
 
-        this.mouse.scale.x = 1 / scale
-        this.mouse.scale.y = 1 / scale
-        this.mouse.offset.x = offset.x
-        this.mouse.offset.y = offset.y
-    }
 
     switchScene(scene: Scene) {
         if(!scene) {
@@ -113,15 +104,15 @@ export class SceneRender {
         }
 
         // remove all children from PIXI renderer
-        if(this.app.stage.children.length > 0) {
-            this.app.stage.removeChildren(0, this.app.stage.children.length-1);
+        if(this.scrollView.children.length > 0) {
+            this.scrollView.removeChildren(0, this.scrollView.children.length-1);
         }
         // reset rendering scale and offset
-        this.setRenderingScaleAndOffset(1, Vector.create(0, 0))
+        //this.setRenderingScaleAndOffset(1, Vector.create(0, 0))
 
         this.scene = scene
 
-        scene.initMouse(this.mouse);
+        //scene.initMouse(this.mouse);
         scene.setSimulationEngine(this);
         
         // TODO
@@ -129,11 +120,11 @@ export class SceneRender {
     }
 
     addDiplayable(displayable: PIXI.DisplayObject) {
-        this.app.stage.addChild(displayable);
+        this.scrollView.addChild(displayable);
     }
 
     removeDisplayable(displayable: PIXI.DisplayObject) {
-        this.app.stage.removeChild(displayable);
+        this.scrollView.removeChild(displayable);
     }
 
 }

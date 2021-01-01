@@ -629,6 +629,7 @@ export class Scene {
         bodies.forEach(body => Body.setStatic(body, true))
         World.add(world, bodies);
 
+        
         const allBodies = Composite.allBodies(world)
         allBodies.forEach(body => body.slop *= scale)
     }
