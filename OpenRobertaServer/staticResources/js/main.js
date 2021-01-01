@@ -128,7 +128,12 @@ require.config({
         'electricMotor',
         'color',
         'Unit',
-        'ScrollView'
+        'ScrollView',
+        'Geometry/Line',
+        'Geometry/LineBaseClass',
+        'Geometry/LineSegment',
+        'Geometry/Ray',
+        'Geometry/Polygon',
     ]),
     shim: {
         'bootstrap': {

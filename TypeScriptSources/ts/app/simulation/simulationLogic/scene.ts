@@ -6,6 +6,7 @@ import { ElectricMotor } from './electricMotor';
 import { SceneRender } from './renderer';
 import { Timer } from './timer';
 import { Unit } from './Unit'
+import { Polygon } from './Geometry/Polygon';
 
 export class Scene {
 
@@ -538,7 +539,43 @@ export class Scene {
 
         Composite.translate(robotComposite, Unit.getPositionVec(100 * scale, 100 * scale))
 
+        const polygon = new Polygon([
+            Vector.create(0, 0),
+            Vector.create(100, 0),
+            Vector.create(100, 50),
+            Vector.create(0, 100),
+            Vector.create(50, 50)
+        ].map(v => Unit.getPosition(Vector.mult(Vector.add(v, Vector.create(200, 200)), scale))))
     
+        const polygonGraphics = new PIXI.Graphics()
+        polygonGraphics.beginFill(0xFF0000)
+        polygonGraphics.moveTo(polygon.vertices[0].x, polygon.vertices[0].y)
+        polygon.vertices.forEach(v => polygonGraphics.lineTo(v.x, v.y))
+        polygonGraphics.closePath()
+        polygonGraphics.endFill()
+
+        const mousePointGraphics = new PIXI.Graphics()
+            .beginFill(0x00FF00)
+            .drawRect(-5, -5, 10, 10)
+            .endFill()
+
+        const nearestPointGraphics = new PIXI.Graphics()
+            .beginFill(0x0000FF)
+            .drawRect(-5, -5, 10, 10)
+            .endFill()
+
+
+        const container = new PIXI.Container()
+        container.addChild(polygonGraphics, mousePointGraphics, nearestPointGraphics)
+        this.topContainer.addChild(container)
+
+        this.sceneRenderer.scrollView.registerListener(event => {
+            const mousePos = event.data.getCurrentLocalPosition()
+            mousePointGraphics.position.set(mousePos.x, mousePos.y)
+            const pos = polygon.nearestPointTo(Vector.create(mousePos.x, mousePos.y))
+            nearestPointGraphics.position.set(pos.x, pos.y)
+        })
+
         this.engine.world.gravity.y = 0.0;
     
     
@@ -629,7 +666,6 @@ export class Scene {
         bodies.forEach(body => Body.setStatic(body, true))
         World.add(world, bodies);
 
-        
         const allBodies = Composite.allBodies(world)
         allBodies.forEach(body => body.slop *= scale)
     }

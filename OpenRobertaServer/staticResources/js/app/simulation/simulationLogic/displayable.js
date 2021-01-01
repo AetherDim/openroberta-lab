@@ -1,7 +1,7 @@
 define(["require", "exports", "matter-js", "./color", "./Unit"], function (require, exports, matter_js_1, color_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.createPoligon = exports.createCircle = exports.createRect = exports.createDisplayableFromBody = exports.DisplaySettings = exports.Displayable = void 0;
+    exports.createPolygon = exports.createCircle = exports.createRect = exports.createDisplayableFromBody = exports.DisplaySettings = exports.Displayable = void 0;
     var Displayable = /** @class */ (function () {
         function Displayable(displayObject, x, y, rotation) {
             if (x === void 0) { x = 0; }
@@ -119,7 +119,7 @@ define(["require", "exports", "matter-js", "./color", "./Unit"], function (requi
         return matter_js_1.Bodies.circle(x, y, radius, { displayable: displayable });
     }
     exports.createCircle = createCircle;
-    function createPoligon(x, y, radius, settings) {
+    function createPolygon(x, y, radius, settings) {
         if (settings === void 0) { settings = {}; }
         var graphics = new PIXI.Graphics();
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
@@ -129,5 +129,5 @@ define(["require", "exports", "matter-js", "./color", "./Unit"], function (requi
         var displayable = new Displayable(graphics);
         //return Bodies.polygon(settings.x, settings.y, width, height, {displayable: displayable});
     }
-    exports.createPoligon = createPoligon;
+    exports.createPolygon = createPolygon;
 });

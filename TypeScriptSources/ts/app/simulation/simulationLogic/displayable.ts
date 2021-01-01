@@ -154,7 +154,7 @@ export function createCircle(x: number, y: number, radius: number, settings: Dis
     return Bodies.circle(x, y, radius, {displayable: displayable});
 }
 
-export function createPoligon(x: number, y: number, radius: number, settings: DisplaySettings = {}) {
+export function createPolygon(x: number, y: number, radius: number, settings: DisplaySettings = {}) {
 
     const graphics = new PIXI.Graphics();
 

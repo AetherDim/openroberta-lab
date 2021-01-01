@@ -1,4 +1,4 @@
-define(["require", "exports", "./renderer", "./extendedMatter"], function (require, exports, renderer_1) {
+define(["require", "exports", "./renderer", "./Geometry/Ray", "matter-js", "./Geometry/LineSegment", "./extendedMatter"], function (require, exports, renderer_1, Ray_1, matter_js_1, LineSegment_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
@@ -6,6 +6,7 @@ define(["require", "exports", "./renderer", "./extendedMatter"], function (requi
     engine.getScene().setupDebugRenderer('notConstantValue');
     //engine.getScene().setupDebugRenderer('simDiv');
     engine.getScene().testPhysics();
+    new Ray_1.Ray(matter_js_1.Vector.create(-3, 4), matter_js_1.Vector.create(1, 0)).intersectionPoint(new LineSegment_1.LineSegment(matter_js_1.Vector.create(0, 0), matter_js_1.Vector.create(0, 10)));
     /**
      * @param programs
      * @param refresh `true` if "SIM" is pressed, `false` if play is pressed

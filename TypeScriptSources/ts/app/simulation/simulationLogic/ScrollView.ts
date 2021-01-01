@@ -1,6 +1,5 @@
 import { mouse } from 'd3';
 import { NONAME } from 'dns';
-import { DIRECTION_NONE } from 'hammerjs';
 import './pixijs'
 
 

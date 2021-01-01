@@ -1,4 +1,4 @@
-define(["require", "exports", "./robot", "./displayable", "matter-js", "./electricMotor", "./timer", "./Unit", "./pixijs"], function (require, exports, robot_1, displayable_1, matter_js_1, electricMotor_1, timer_1, Unit_1) {
+define(["require", "exports", "./robot", "./displayable", "matter-js", "./electricMotor", "./timer", "./Unit", "./Geometry/Polygon", "./pixijs"], function (require, exports, robot_1, displayable_1, matter_js_1, electricMotor_1, timer_1, Unit_1, Polygon_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -424,6 +424,30 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             var robotComposite = robot.physicsComposite;
             matter_js_1.World.add(this.engine.world, robotComposite);
             matter_js_1.Composite.translate(robotComposite, Unit_1.Unit.getPositionVec(100 * scale, 100 * scale));
+            var polygon = new Polygon_1.Polygon([
+                matter_js_1.Vector.create(0, 0),
+                matter_js_1.Vector.create(100, 0),
+                matter_js_1.Vector.create(100, 50),
+                matter_js_1.Vector.create(0, 100),
+                matter_js_1.Vector.create(50, 50)
+            ].map(function (v) { return Unit_1.Unit.getPosition(matter_js_1.Vector.mult(matter_js_1.Vector.add(v, matter_js_1.Vector.create(200, 200)), scale)); }));
+            var polygonGraphics = new PIXI.Graphics();
+            polygonGraphics.beginFill(0xFF0000);
+            polygonGraphics.moveTo(polygon.vertices[0].x, polygon.vertices[0].y);
+            polygon.vertices.forEach(function (v) { return polygonGraphics.lineTo(v.x, v.y); });
+            polygonGraphics.closePath();
+            polygonGraphics.endFill();
+            var mousePointGraphics = new PIXI.Graphics()
+                .beginFill(0x00FF00)
+                .drawRect(-5, -5, 10, 10)
+                .endFill();
+            var nearestPointGraphics = new PIXI.Graphics()
+                .beginFill(0x0000FF)
+                .drawRect(-5, -5, 10, 10)
+                .endFill();
+            var container = new PIXI.Container();
+            container.addChild(polygonGraphics, mousePointGraphics, nearestPointGraphics);
+            this.topContainer.addChild(container);
             this.engine.world.gravity.y = 0.0;
             var body = robot.body;
             var keyDownList = [];
@@ -435,6 +459,12 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             document.onkeyup = function (event) {
                 keyDownList = keyDownList.filter(function (key) { return key != event.key; });
             };
+            this.sceneRenderer.scrollView.registerListener(function (event) {
+                var mousePos = event.data.getCurrentLocalPosition();
+                mousePointGraphics.position.set(mousePos.x, mousePos.y);
+                var pos = polygon.nearestPointTo(matter_js_1.Vector.create(mousePos.x, mousePos.y));
+                nearestPointGraphics.position.set(pos.x, pos.y);
+            });
             function updateKeysActions() {
                 // $('#notConstantValue').html('');
                 // $("#notConstantValue").append('<div><label>Test</label><span>' + keyDownList + '</span></div>');    
