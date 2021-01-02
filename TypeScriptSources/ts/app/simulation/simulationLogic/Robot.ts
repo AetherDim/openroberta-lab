@@ -1,13 +1,13 @@
 import { Body, Vector, Composite } from 'matter-js'
-import { createRect } from './displayable'
-import { ElectricMotor } from './electricMotor'
+import { createRect } from './Displayable'
+import { ElectricMotor } from './ElectricMotor'
 
-import "./extendedMatter"
+import "./ExtendedMatter"
 import { MAXPOWER } from './interpreter.constants'
 import { Interpreter } from './interpreter.interpreter'
-import { RobotSimBehaviour } from './robotSimBehaviour'
+import { RobotSimBehaviour } from './RobotSimBehaviour'
 import { Unit } from './Unit'
-import { Wheel } from './wheel'
+import { Wheel } from './Wheel'
 
 export class Robot {
 

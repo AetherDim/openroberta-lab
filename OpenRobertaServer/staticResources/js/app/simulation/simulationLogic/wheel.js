@@ -1,4 +1,4 @@
-define(["require", "exports", "d3", "matter-js", "./displayable", "./Unit"], function (require, exports, d3_1, matter_js_1, displayable_1, Unit_1) {
+define(["require", "exports", "d3", "matter-js", "./Displayable", "./Unit"], function (require, exports, d3_1, matter_js_1, Displayable_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Wheel = void 0;
@@ -30,7 +30,7 @@ define(["require", "exports", "d3", "matter-js", "./displayable", "./Unit"], fun
             this.wheelAngle = 0;
             this.angularVelocity = 0;
             this.debugText = null;
-            this.physicsBody = displayable_1.createRect(x, y, width, height);
+            this.physicsBody = Displayable_1.createRect(x, y, width, height);
             _a = Unit_1.Unit.getLengths([x, y, width, height]), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
             var displayable = this.physicsBody.displayable;
             var container = new PIXI.Container();

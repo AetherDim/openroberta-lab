@@ -1,8 +1,8 @@
-define(["require", "exports", "./renderer", "./extendedMatter"], function (require, exports, renderer_1) {
+define(["require", "exports", "./SceneRenderer", "./ExtendedMatter"], function (require, exports, SceneRenderer_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
-    var engine = new renderer_1.SceneRender('sceneCanvas', 'simDiv');
+    var engine = new SceneRenderer_1.SceneRender('sceneCanvas', 'simDiv');
     engine.getScene().setupDebugRenderer('notConstantValue');
     //engine.getScene().setupDebugRenderer('simDiv');
     engine.getScene().testPhysics();

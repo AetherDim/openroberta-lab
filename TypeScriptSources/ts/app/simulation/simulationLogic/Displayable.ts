@@ -1,5 +1,5 @@
 import { Body, Bodies, Vector } from "matter-js";
-import { ColorPalette } from "./color";
+import { ColorPalette } from "./Color";
 import { Unit } from "./Unit";
 
 export class Displayable {

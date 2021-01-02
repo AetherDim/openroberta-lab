@@ -1,4 +1,4 @@
-define(["require", "exports", "./robot", "./displayable", "matter-js", "./electricMotor", "./timer", "./Unit", "./Geometry/Polygon", "./pixijs"], function (require, exports, robot_1, displayable_1, matter_js_1, electricMotor_1, timer_1, Unit_1, Polygon_1) {
+define(["require", "exports", "./Robot", "./Displayable", "matter-js", "./ElectricMotor", "./Timer", "./Unit", "./Geometry/Polygon", "./pixijs"], function (require, exports, Robot_1, Displayable_1, matter_js_1, ElectricMotor_1, Timer_1, Unit_1, Polygon_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -113,7 +113,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 _this.removePhysics(e.object);
             });
             this.setupContainers();
-            this.simTicker = new timer_1.Timer(this.simSleepTime, function (delta) {
+            this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
                 // delta is the time from last call
                 _this.update();
             });
@@ -259,7 +259,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                         }
                         if (this.debugPixiRendering) {
                             if (!body.debugDisplayable) {
-                                body.debugDisplayable = displayable_1.createDisplayableFromBody(body);
+                                body.debugDisplayable = Displayable_1.createDisplayableFromBody(body);
                             }
                             if (!this.debugDisplayables.includes(body.debugDisplayable)) {
                                 this.debugDisplayables.push(body.debugDisplayable);
@@ -419,7 +419,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             // (<any>Constraint)._minLength = 0.000001 * scale;
             //this.sceneRenderer.setRenderingScaleAndOffset(1 / scale, Vector.create())
             var useEV3 = true;
-            var robot = useEV3 ? robot_1.Robot.EV3() : robot_1.Robot.default(scale);
+            var robot = useEV3 ? Robot_1.Robot.EV3() : Robot_1.Robot.default(scale);
             this.robots.push(robot);
             var robotComposite = robot.physicsComposite;
             matter_js_1.World.add(this.engine.world, robotComposite);
@@ -496,7 +496,7 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
                 var normalVec = matter_js_1.Vector.mult(matter_js_1.Vector.create(-vec.y, vec.x), 10);
                 var forcePos = matter_js_1.Vector.add(body.position, matter_js_1.Vector.mult(vec, -40));
                 var maxTorque = Unit_1.Unit.getTorque(100 * 1000 * 1000 * Math.pow(scale, 3.5));
-                var motor = useEV3 ? electricMotor_1.ElectricMotor.EV3() : new electricMotor_1.ElectricMotor(120, maxTorque);
+                var motor = useEV3 ? ElectricMotor_1.ElectricMotor.EV3() : new ElectricMotor_1.ElectricMotor(120, maxTorque);
                 robot.leftDrivingWheel.applyTorqueFromMotor(motor, leftForce);
                 robot.rightDrivingWheel.applyTorqueFromMotor(motor, rightForce);
             }
@@ -518,10 +518,10 @@ define(["require", "exports", "./robot", "./displayable", "matter-js", "./electr
             ];
             bodies.forEach(function (body) { return matter_js_1.Body.scale(body, scale, scale, matter_js_1.Vector.create()); });
             bodies = [
-                displayable_1.createRect(400 * scale, -25 * scale, 800 * scale, 50 * scale),
-                displayable_1.createRect(400 * scale, 600 * scale, 800 * scale, 50 * scale),
-                displayable_1.createRect(800 * scale, 300 * scale, 50 * scale, 600 * scale),
-                displayable_1.createRect(-25 * scale, 300 * scale, 50 * scale, 600 * scale),
+                Displayable_1.createRect(400 * scale, -25 * scale, 800 * scale, 50 * scale),
+                Displayable_1.createRect(400 * scale, 600 * scale, 800 * scale, 50 * scale),
+                Displayable_1.createRect(800 * scale, 300 * scale, 50 * scale, 600 * scale),
+                Displayable_1.createRect(-25 * scale, 300 * scale, 50 * scale, 600 * scale),
             ];
             bodies.forEach(function (body) { return matter_js_1.Body.setStatic(body, true); });
             matter_js_1.World.add(world, bodies);

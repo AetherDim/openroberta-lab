@@ -1,5 +1,5 @@
-import { SceneRender } from './renderer'
-import './extendedMatter'
+import { SceneRender } from './SceneRenderer'
+import './ExtendedMatter'
 
 var engine = new SceneRender('sceneCanvas', 'simDiv');
 engine.getScene().setupDebugRenderer('notConstantValue');

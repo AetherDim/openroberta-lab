@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./color", "./Unit"], function (require, exports, matter_js_1, color_1, Unit_1) {
+define(["require", "exports", "matter-js", "./Color", "./Unit"], function (require, exports, matter_js_1, Color_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createPolygon = exports.createCircle = exports.createRect = exports.createDisplayableFromBody = exports.DisplaySettings = exports.Displayable = void 0;
@@ -56,7 +56,7 @@ define(["require", "exports", "matter-js", "./color", "./Unit"], function (requi
         return DisplaySettings;
     }());
     exports.DisplaySettings = DisplaySettings;
-    var colorPalette = new color_1.ColorPalette();
+    var colorPalette = new Color_1.ColorPalette();
     function createDisplayableFromBody(body, settings) {
         if (!settings) {
             settings = {

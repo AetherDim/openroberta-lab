@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "./interpreter.constants", "./interpreter.interpreter", "./robotSimBehaviour", "./Unit", "./wheel", "./extendedMatter"], function (require, exports, matter_js_1, displayable_1, electricMotor_1, interpreter_constants_1, interpreter_interpreter_1, robotSimBehaviour_1, Unit_1, wheel_1) {
+define(["require", "exports", "matter-js", "./Displayable", "./ElectricMotor", "./interpreter.constants", "./interpreter.interpreter", "./RobotSimBehaviour", "./Unit", "./Wheel", "./ExtendedMatter"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -74,7 +74,7 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             var _this = this;
             this.programCode = JSON.parse(program.javaScriptProgram);
             this.configuration = program.javaScriptConfiguration;
-            this.robotBehaviour = new robotSimBehaviour_1.RobotSimBehaviour();
+            this.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour();
             this.interpreter = new interpreter_interpreter_1.Interpreter(this.programCode, this.robotBehaviour, function () {
                 _this.programTermineted();
             }, breakpoints);
@@ -142,8 +142,8 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
             // this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
             // this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
             var maxForce = 1000 * 1000 * 1000;
-            this.leftDrivingWheel.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.leftForce);
-            this.rightDrivingWheel.applyTorqueFromMotor(new electricMotor_1.ElectricMotor(2, maxForce), this.rightForce);
+            this.leftDrivingWheel.applyTorqueFromMotor(new ElectricMotor_1.ElectricMotor(2, maxForce), this.leftForce);
+            this.rightDrivingWheel.applyTorqueFromMotor(new ElectricMotor_1.ElectricMotor(2, maxForce), this.rightForce);
             var leftWheelVelocity = this.velocityAlongBody(this.leftDrivingWheel.physicsBody);
             var rightWheelVelocity = this.velocityAlongBody(this.rightDrivingWheel.physicsBody);
             this.encoder.left += leftWheelVelocity * dt;
@@ -337,13 +337,13 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
          */
         Robot.default = function (scale) {
             if (scale === void 0) { scale = 1; }
-            var frontWheel = new wheel_1.Wheel(27 * scale, 0, 10 * scale, 10 * scale);
+            var frontWheel = new Wheel_1.Wheel(27 * scale, 0, 10 * scale, 10 * scale);
             frontWheel.slideFriction = 0.1;
             frontWheel.rollingFriction = 0.0;
             return new Robot({
-                body: displayable_1.createRect(0, 0, 40 * scale, 30 * scale),
-                leftDrivingWheel: new wheel_1.Wheel(-0, -22 * scale, 20 * scale, 10 * scale),
-                rightDrivingWheel: new wheel_1.Wheel(-0, 22 * scale, 20 * scale, 10 * scale),
+                body: Displayable_1.createRect(0, 0, 40 * scale, 30 * scale),
+                leftDrivingWheel: new Wheel_1.Wheel(-0, -22 * scale, 20 * scale, 10 * scale),
+                rightDrivingWheel: new Wheel_1.Wheel(-0, 22 * scale, 20 * scale, 10 * scale),
                 otherWheels: [
                     frontWheel
                 ]
@@ -354,12 +354,12 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
          */
         Robot.default2 = function () {
             return new Robot({
-                body: displayable_1.createRect(0, 0, 40, 30),
-                leftDrivingWheel: new wheel_1.Wheel(-50, -20, 20, 10),
-                rightDrivingWheel: new wheel_1.Wheel(-50, 20, 20, 10),
+                body: Displayable_1.createRect(0, 0, 40, 30),
+                leftDrivingWheel: new Wheel_1.Wheel(-50, -20, 20, 10),
+                rightDrivingWheel: new Wheel_1.Wheel(-50, 20, 20, 10),
                 otherWheels: [
-                    new wheel_1.Wheel(50, -15, 20, 10),
-                    new wheel_1.Wheel(50, 15, 20, 10)
+                    new Wheel_1.Wheel(50, -15, 20, 10),
+                    new Wheel_1.Wheel(50, 15, 20, 10)
                 ]
             });
         };
@@ -369,14 +369,14 @@ define(["require", "exports", "matter-js", "./displayable", "./electricMotor", "
         Robot.EV3 = function () {
             var wheel = { diameter: 0.05, width: 0.02 };
             // TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
-            var frontWheel = new wheel_1.Wheel(0.10, 0, wheel.width, wheel.width, 0.30);
+            var frontWheel = new Wheel_1.Wheel(0.10, 0, wheel.width, wheel.width, 0.30);
             frontWheel.slideFriction = 0.0;
-            var robotBody = displayable_1.createRect(0, 0, 0.15, 0.10);
+            var robotBody = Displayable_1.createRect(0, 0, 0.15, 0.10);
             matter_js_1.Body.setMass(robotBody, Unit_1.Unit.getMass(0.300));
             var robot = new Robot({
                 body: robotBody,
-                leftDrivingWheel: new wheel_1.Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
-                rightDrivingWheel: new wheel_1.Wheel(0, 0.07, wheel.diameter, wheel.width, 0.050),
+                leftDrivingWheel: new Wheel_1.Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
+                rightDrivingWheel: new Wheel_1.Wheel(0, 0.07, wheel.diameter, wheel.width, 0.050),
                 otherWheels: [
                     frontWheel
                 ]

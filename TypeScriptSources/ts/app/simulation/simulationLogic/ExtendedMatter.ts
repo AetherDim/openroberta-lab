@@ -1,5 +1,5 @@
 import { Composite, Constraint, Vector, Body, ICompositeDefinition, IBodyDefinition, Vertices, Axes, Bounds } from "matter-js";
-import { Displayable } from "./displayable";
+import { Displayable } from "./Displayable";
 import { Unit } from "./Unit";
 
 declare module "matter-js" {

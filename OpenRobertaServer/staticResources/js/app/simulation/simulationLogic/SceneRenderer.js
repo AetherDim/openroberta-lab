@@ -1,4 +1,4 @@
-define(["require", "exports", "jquery", "./scene", "./color", "./ScrollView", "./pixijs"], function (require, exports, $, scene_1, color_1, ScrollView_1) {
+define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", "./pixijs"], function (require, exports, $, Scene_1, Color_1, ScrollView_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SceneRender = void 0;
@@ -29,7 +29,7 @@ define(["require", "exports", "jquery", "./scene", "./color", "./ScrollView", ".
             // and the root stage PIXI.Container
             this.app = new PIXI.Application({
                 view: htmlCanvas,
-                backgroundColor: color_1.rgbToNumber(backgroundColor),
+                backgroundColor: Color_1.rgbToNumber(backgroundColor),
                 antialias: true,
                 resizeTo: resizeTo,
             });
@@ -40,7 +40,7 @@ define(["require", "exports", "jquery", "./scene", "./color", "./ScrollView", ".
                 this.switchScene(scene);
             }
             else {
-                this.switchScene(new scene_1.Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
+                this.switchScene(new Scene_1.Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
             }
             var _this = this;
             this.app.ticker.add(function (dt) {
@@ -70,7 +70,7 @@ define(["require", "exports", "jquery", "./scene", "./color", "./ScrollView", ".
         };
         SceneRender.prototype.switchScene = function (scene) {
             if (!scene) {
-                scene = new scene_1.Scene();
+                scene = new Scene_1.Scene();
             }
             if (this.scene == scene) {
                 return;

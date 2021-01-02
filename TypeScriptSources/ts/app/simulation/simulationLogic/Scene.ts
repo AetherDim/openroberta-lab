@@ -1,10 +1,10 @@
 import './pixijs'
-import { Robot } from './robot';
-import { createDisplayableFromBody, createRect, Displayable } from './displayable';
+import { Robot } from './Robot';
+import { createDisplayableFromBody, createRect, Displayable } from './Displayable';
 import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping } from 'matter-js';
-import { ElectricMotor } from './electricMotor';
-import { SceneRender } from './renderer';
-import { Timer } from './timer';
+import { ElectricMotor } from './ElectricMotor';
+import { SceneRender } from './SceneRenderer';
+import { Timer } from './Timer';
 import { Unit } from './Unit'
 import { Polygon } from './Geometry/Polygon';
 
