@@ -1,8 +1,8 @@
 import { range, time } from "d3"
 import { Body, Vector } from "matter-js"
-import { createRect } from "./Displayable"
+import { createRect } from "../Displayable"
 import { ElectricMotor } from "./ElectricMotor"
-import { Unit } from "./Unit"
+import { Unit } from "../Unit"
 
 export class Wheel {
 	

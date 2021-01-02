@@ -1,4 +1,4 @@
-define(["require", "exports", "./Unit"], function (require, exports, Unit_1) {
+define(["require", "exports", "../Unit"], function (require, exports, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ElectricMotor = void 0;

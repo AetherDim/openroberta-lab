@@ -1,4 +1,4 @@
-define(["require", "exports", "./Robot", "./Displayable", "matter-js", "./ElectricMotor", "./Timer", "./Unit", "./Geometry/Polygon", "./pixijs"], function (require, exports, Robot_1, Displayable_1, matter_js_1, ElectricMotor_1, Timer_1, Unit_1, Polygon_1) {
+define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./Robot/ElectricMotor", "./Timer", "./Unit", "./Geometry/Polygon", "./pixijs"], function (require, exports, Robot_1, Displayable_1, matter_js_1, ElectricMotor_1, Timer_1, Unit_1, Polygon_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;

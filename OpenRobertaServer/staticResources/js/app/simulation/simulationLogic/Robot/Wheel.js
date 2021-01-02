@@ -1,4 +1,4 @@
-define(["require", "exports", "d3", "matter-js", "./Displayable", "./Unit"], function (require, exports, d3_1, matter_js_1, Displayable_1, Unit_1) {
+define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], function (require, exports, d3_1, matter_js_1, Displayable_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Wheel = void 0;

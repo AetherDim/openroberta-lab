@@ -1,8 +1,8 @@
 import './pixijs'
-import { Robot } from './Robot';
+import { Robot } from './Robot/Robot';
 import { createDisplayableFromBody, createRect, Displayable } from './Displayable';
 import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping } from 'matter-js';
-import { ElectricMotor } from './ElectricMotor';
+import { ElectricMotor } from './Robot/ElectricMotor';
 import { SceneRender } from './SceneRenderer';
 import { Timer } from './Timer';
 import { Unit } from './Unit'

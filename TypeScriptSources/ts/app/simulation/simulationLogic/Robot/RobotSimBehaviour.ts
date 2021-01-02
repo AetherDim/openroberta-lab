@@ -1,7 +1,7 @@
-import { ARobotBehaviour } from "./interpreter.aRobotBehaviour";
-import { State } from "./interpreter.state";
-import * as C from "./interpreter.constants";
-import * as U from "./interpreter.util";
+import { ARobotBehaviour } from "../interpreter.aRobotBehaviour";
+import { State } from "../interpreter.state";
+import * as C from "../interpreter.constants";
+import * as U from "../interpreter.util";
 
 export class RobotSimBehaviour extends ARobotBehaviour {
 
