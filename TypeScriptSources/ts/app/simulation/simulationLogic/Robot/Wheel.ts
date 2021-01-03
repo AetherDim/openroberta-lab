@@ -131,7 +131,7 @@ export class Wheel {
 	}
 
 	
-	private customFunction(velocity: number, stepFunctionWidth: number = 1): number {
+	private customFunction(velocity: number, stepFunctionWidth: number = 10): number {
 		if (false) { 
 			return velocity/stepFunctionWidth 
 		} else {
@@ -147,13 +147,11 @@ export class Wheel {
 
 		// torque from the rolling friction
 		// rollingFriction = d/R and d * F_N = torque
-		this.applyTorque(
-			this.customFunction(-wheel.velocityAlongBody())
+		const rollingFrictionTorque = this.customFunction(-wheel.velocityAlongBody(), 100)
 				* this.rollingFriction * this.wheelRadius * this.normalForce
-		)
 
 		// TODO: already simulated by `wheelSlideFrictionForce`?
-		// const rollingFrictionForce = this.normalForce * this.rollingFriction
+		// const rollingFrictionForce = this.normalForce * this.rollingFriction * this.customFunction(-wheel.velocityAlongBody())
 
 		// torque for 
 		const wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody()
@@ -180,46 +178,68 @@ export class Wheel {
 		//   = (o0 * r - v0)/r / (-T/I)
 		var slidingFrictionTorque = -alongSlideFrictionForce * this.wheelRadius
 
-		const mass = this.normalForce / Unit.getAcceleration(9.81)
-		var timeToAdjustSpeed = wheelVelocityDifference / (alongSlideFrictionForce/mass - (slidingFrictionTorque + this.torque) / this.momentOfInertia * this.wheelRadius)
-		timeToAdjustSpeed = Math.abs(timeToAdjustSpeed)
+		let alongForce = 0
+
+		// TODO: A bot hacky to use a constant acceleration
+		const mass = this.normalForce / Unit.getAcceleration(9.81)//wheel.mass
+		const totalTorque = slidingFrictionTorque + this.torque + rollingFrictionTorque
+		/** time to adjust speed such that the wheel rotation speed matches the center of mass wheel speed */
+		const timeToAdjustSpeed = wheelVelocityDifference / (alongSlideFrictionForce / mass - totalTorque / this.momentOfInertia * this.wheelRadius)
+		// TODO: Change sign of rolling friction, if wheel.velocityAlongBody() changes sign
+		let remainingTime = dt
 		if (0 < timeToAdjustSpeed && timeToAdjustSpeed < dt) {
-			slidingFrictionTorque *= timeToAdjustSpeed / dt
-			alongSlideFrictionForce *= timeToAdjustSpeed / dt
+			this.updateWithTorque(slidingFrictionTorque + this.torque + rollingFrictionTorque, timeToAdjustSpeed)
+			remainingTime = dt - timeToAdjustSpeed
+
+			// kinetic/sliding friction
+			alongForce += alongSlideFrictionForce * timeToAdjustSpeed / dt
+			// static friction
+			alongForce += (this.torque + rollingFrictionTorque) / this.wheelRadius * remainingTime / dt
+
+			// calculate torque such that the wheel does not slip
+			const wheelVelocityChange = alongForce / mass * dt
+			const newTorque = (wheelVelocityChange / this.wheelRadius) / remainingTime * this.momentOfInertia
+			this.torque = newTorque
+		} else {
+			// torque of sliding friction
+			this.applyTorque(slidingFrictionTorque + rollingFrictionTorque)
+			alongForce += alongSlideFrictionForce
 		}
 
-		// torque of sliding friction
-		this.applyTorque(slidingFrictionTorque)
-
+		
 
 		// friction force
 
 		// friction along wheel rolling direction
-		const alongSlideFrictionForceVec = Vector.mult(vec, alongSlideFrictionForce)
+		const alongForceVec = Vector.mult(vec, alongForce)
 
 		// friction orthogonal to the wheel rolling direction
 		const orthVelocity = Vector.dot(wheel.velocity, orthVec)
 		const orthSlideFrictionForce = this.normalForce * this.slideFriction
-		 * this.customFunction(-orthVelocity)
+		 * this.customFunction(-orthVelocity, 100)
 		const orthSlideFrictionForceVec = Vector.mult(orthVec, orthSlideFrictionForce)
 
 		// apply the friction force
 		Body.applyForce(wheel, wheel.position,
-			Vector.add(alongSlideFrictionForceVec, orthSlideFrictionForceVec)
+			Vector.add(alongForceVec, orthSlideFrictionForceVec)
 		)
 
 
 		// update `wheelAngle` and `angularVelocity` using torque
 		// this.angularVelocity = (this.wheelAngle - this.prevWheelAngle) / dt
 		// this.prevWheelAngle = this.wheelAngle
-		this.angularVelocity += this.torque * dt / this.momentOfInertia
-		this.wheelAngle += this.angularVelocity * dt
+		this.updateWithTorque(this.torque, remainingTime)
 
 		// reset torque and normalForce
 		this.torque = 0.0
 		this.normalForce = 0.0
 
 		this.updateWheelProfile()
+	}
+
+	private updateWithTorque(torque: number, dt: number) {
+		this.angularVelocity += torque * dt / this.momentOfInertia
+		this.wheelAngle += this.angularVelocity * dt
 	}
 
 }

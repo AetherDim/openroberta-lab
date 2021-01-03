@@ -370,7 +370,8 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             var wheel = { diameter: 0.05, width: 0.02 };
             // TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
             var frontWheel = new Wheel_1.Wheel(0.10, 0, wheel.width, wheel.width, 0.30);
-            frontWheel.slideFriction = 0.0;
+            frontWheel.slideFriction = 0.05;
+            frontWheel.rollingFriction = 0.03;
             var robotBody = Displayable_1.createRect(0, 0, 0.15, 0.10);
             matter_js_1.Body.setMass(robotBody, Unit_1.Unit.getMass(0.300));
             var robot = new Robot({

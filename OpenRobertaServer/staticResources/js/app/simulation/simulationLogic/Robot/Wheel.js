@@ -97,7 +97,7 @@ define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], f
             // this.pixiContainer.addChild(this.wheelDebugObject)
         };
         Wheel.prototype.customFunction = function (velocity, stepFunctionWidth) {
-            if (stepFunctionWidth === void 0) { stepFunctionWidth = 1; }
+            if (stepFunctionWidth === void 0) { stepFunctionWidth = 10; }
             if (false) {
                 return velocity / stepFunctionWidth;
             }
@@ -111,10 +111,10 @@ define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], f
             var orthVec = matter_js_1.Vector.perp(vec);
             // torque from the rolling friction
             // rollingFriction = d/R and d * F_N = torque
-            this.applyTorque(this.customFunction(-wheel.velocityAlongBody())
-                * this.rollingFriction * this.wheelRadius * this.normalForce);
+            var rollingFrictionTorque = this.customFunction(-wheel.velocityAlongBody(), 100)
+                * this.rollingFriction * this.wheelRadius * this.normalForce;
             // TODO: already simulated by `wheelSlideFrictionForce`?
-            // const rollingFrictionForce = this.normalForce * this.rollingFriction
+            // const rollingFrictionForce = this.normalForce * this.rollingFriction * this.customFunction(-wheel.velocityAlongBody())
             // torque for 
             var wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody();
             var alongSlideFrictionForce = this.normalForce * this.slideFriction
@@ -138,34 +138,53 @@ define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], f
             // t = (o0 * r - v0) / (-T/I*r)
             //   = (o0 * r - v0)/r / (-T/I)
             var slidingFrictionTorque = -alongSlideFrictionForce * this.wheelRadius;
-            var mass = this.normalForce / Unit_1.Unit.getAcceleration(9.81);
-            var timeToAdjustSpeed = wheelVelocityDifference / (alongSlideFrictionForce / mass - (slidingFrictionTorque + this.torque) / this.momentOfInertia * this.wheelRadius);
-            timeToAdjustSpeed = Math.abs(timeToAdjustSpeed);
+            var alongForce = 0;
+            // TODO: A bot hacky to use a constant acceleration
+            var mass = this.normalForce / Unit_1.Unit.getAcceleration(9.81); //wheel.mass
+            var totalTorque = slidingFrictionTorque + this.torque + rollingFrictionTorque;
+            /** time to adjust speed such that the wheel rotation speed matches the center of mass wheel speed */
+            var timeToAdjustSpeed = wheelVelocityDifference / (alongSlideFrictionForce / mass - totalTorque / this.momentOfInertia * this.wheelRadius);
+            // TODO: Change sign of rolling friction, if wheel.velocityAlongBody() changes sign
+            var remainingTime = dt;
             if (0 < timeToAdjustSpeed && timeToAdjustSpeed < dt) {
-                slidingFrictionTorque *= timeToAdjustSpeed / dt;
-                alongSlideFrictionForce *= timeToAdjustSpeed / dt;
+                this.updateWithTorque(slidingFrictionTorque + this.torque + rollingFrictionTorque, timeToAdjustSpeed);
+                remainingTime = dt - timeToAdjustSpeed;
+                // kinetic/sliding friction
+                alongForce += alongSlideFrictionForce * timeToAdjustSpeed / dt;
+                // static friction
+                alongForce += (this.torque + rollingFrictionTorque) / this.wheelRadius * remainingTime / dt;
+                // calculate torque such that the wheel does not slip
+                var wheelVelocityChange = alongForce / mass * dt;
+                var newTorque = (wheelVelocityChange / this.wheelRadius) / remainingTime * this.momentOfInertia;
+                this.torque = newTorque;
             }
-            // torque of sliding friction
-            this.applyTorque(slidingFrictionTorque);
+            else {
+                // torque of sliding friction
+                this.applyTorque(slidingFrictionTorque + rollingFrictionTorque);
+                alongForce += alongSlideFrictionForce;
+            }
             // friction force
             // friction along wheel rolling direction
-            var alongSlideFrictionForceVec = matter_js_1.Vector.mult(vec, alongSlideFrictionForce);
+            var alongForceVec = matter_js_1.Vector.mult(vec, alongForce);
             // friction orthogonal to the wheel rolling direction
             var orthVelocity = matter_js_1.Vector.dot(wheel.velocity, orthVec);
             var orthSlideFrictionForce = this.normalForce * this.slideFriction
-                * this.customFunction(-orthVelocity);
+                * this.customFunction(-orthVelocity, 100);
             var orthSlideFrictionForceVec = matter_js_1.Vector.mult(orthVec, orthSlideFrictionForce);
             // apply the friction force
-            matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.add(alongSlideFrictionForceVec, orthSlideFrictionForceVec));
+            matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.add(alongForceVec, orthSlideFrictionForceVec));
             // update `wheelAngle` and `angularVelocity` using torque
             // this.angularVelocity = (this.wheelAngle - this.prevWheelAngle) / dt
             // this.prevWheelAngle = this.wheelAngle
-            this.angularVelocity += this.torque * dt / this.momentOfInertia;
-            this.wheelAngle += this.angularVelocity * dt;
+            this.updateWithTorque(this.torque, remainingTime);
             // reset torque and normalForce
             this.torque = 0.0;
             this.normalForce = 0.0;
             this.updateWheelProfile();
+        };
+        Wheel.prototype.updateWithTorque = function (torque, dt) {
+            this.angularVelocity += torque * dt / this.momentOfInertia;
+            this.wheelAngle += this.angularVelocity * dt;
         };
         return Wheel;
     }());
