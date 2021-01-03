@@ -15,7 +15,10 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScrollView = exports.EventData = exports.ScrollViewEvent = exports.cloneVector = exports.MouseButton = exports.EventType = exports.getBrowser = void 0;
-    // https://stackoverflow.com/questions/5916900/how-can-you-detect-the-version-of-a-browser
+    /**
+     * Returns browser version and name
+     * borrowed from: https://stackoverflow.com/questions/5916900/how-can-you-detect-the-version-of-a-browser
+     */
     function getBrowser() {
         var ua = navigator.userAgent, tem, M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
         if (/trident/i.test(M[1])) {
@@ -41,16 +44,43 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
     exports.getBrowser = getBrowser;
     // the following implementation borrowed some ideas from:
     // https://github.com/davidfig/pixi-viewport/blob/0aec760f1bdbcb1f9693376a61c041459322d6a0/src/input-manager.js#L168
+    /**
+     * Different type of mouse/touch events
+     */
     var EventType;
     (function (EventType) {
+        /**
+         * z-direction scroll (zoom)
+         */
         EventType[EventType["ZOOM"] = 0] = "ZOOM";
+        /**
+         * x/y-direction - not used as of now
+         */
         EventType[EventType["SCROLL"] = 1] = "SCROLL";
+        /**
+         * similar to SCROLL in x/y-direction
+         */
         EventType[EventType["MOVE"] = 2] = "MOVE";
+        /**
+         * on press event
+         */
         EventType[EventType["PRESS"] = 3] = "PRESS";
+        /**
+         * release event
+         */
         EventType[EventType["RELEASE"] = 4] = "RELEASE";
+        /**
+         * mouse drag event (x/y-direction with pressed button/touch)
+         */
         EventType[EventType["DRAG"] = 5] = "DRAG";
+        /**
+         * not used as of now
+         */
         EventType[EventType["NONE"] = 6] = "NONE";
     })(EventType = exports.EventType || (exports.EventType = {}));
+    /**
+     * All the available mouse buttons
+     */
     var MouseButton;
     (function (MouseButton) {
         MouseButton[MouseButton["LEFT"] = 0] = "LEFT";
@@ -59,6 +89,10 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         MouseButton[MouseButton["BACK"] = 3] = "BACK";
         MouseButton[MouseButton["FORWARD"] = 4] = "FORWARD";
     })(MouseButton = exports.MouseButton || (exports.MouseButton = {}));
+    /**
+     * Copy point or vector
+     * @param vec vector/point to copy
+     */
     function cloneVector(vec) {
         if (!vec) {
             return null;
@@ -66,12 +100,21 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         return { x: vec.x, y: vec.y };
     }
     exports.cloneVector = cloneVector;
+    /**
+     * Scroll view event. This event contains data and is cancelable.
+     */
     var ScrollViewEvent = /** @class */ (function () {
         function ScrollViewEvent(data, type) {
+            /**
+             * whether this event should be canceled
+             */
             this.cancelEvent = false;
             this.data = data;
             this.type = type;
         }
+        /**
+         * Disable mouse dragging/scrolling for this touch/press.
+         */
         ScrollViewEvent.prototype.cancel = function () {
             this.cancelEvent = true;
             this.data.cancelEvent = true;
@@ -79,8 +122,19 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         return ScrollViewEvent;
     }());
     exports.ScrollViewEvent = ScrollViewEvent;
+    /**
+     * Contains all data provided to listeners of the ScrollViewEvent.
+     * Listeners will get a copy of this object to prevent modification of movement control data.
+     */
     var EventData = /** @class */ (function () {
-        function EventData(scrollView, isMouse, pressed) {
+        /**
+         * Construct a new event data object.
+         * @param scrollView the corresponding scroll view
+         * @param isMouse whether the event origin is a mouse
+         * @param pressed whether any button is pressed
+         * @param position (This will clone the position to prevent shared objects)
+         */
+        function EventData(scrollView, isMouse, pressed, position) {
             /**
              * whether this is a mouse event or a touch event
              */
@@ -96,12 +150,12 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.eventFired = false;
             /**
              * Whether this event is a merge from multiple touch events.
-             * (Will only happen while dragging with more than one finger)
+             * (Will only happen while dragging with more than one finger and signals the end of one cycle)
              */
             this.isMergeTouchEvent = false;
             /**
              * currently pressed mouse button with length 5
-             * index by MouseButton enum
+             * index by using the MouseButton enum
              */
             this.buttons = [false, false, false, false, false];
             /**
@@ -109,19 +163,20 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
              */
             this.id = -1;
             /**
-             * previous position, only availible from some events (MOVE, RELEASE, DRAG)
+             * previous position, only available from some events (MOVE, RELEASE, DRAG)
+             * For all other events, this will contain old data or no data.
              */
             this.previousPosition = null;
             /**
-             * Event location
+             * Event (mouse/touch) location.
              */
             this.currentPosition = null;
             /**
-             * Contains delta information for mouse move, zoom and scroll
+             * Contains delta information for mouse move, drag and scroll
              */
             this.delta = null;
             /**
-             * Delta zoom scale
+             * Delta zoom scale (this factor should be around 1).
              */
             this.deltaZoom = 1;
             /**
@@ -131,32 +186,80 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.scrollView = scrollView;
             this.isMouse = isMouse;
             this.pressed = pressed;
+            // prevent a certain edge case on devices with touchscreen and chrome
+            if (isNaN(position.x) || isNaN(position.y)) {
+                console.error('mouse position is NaN (this can be safely ignored by users and does not break anything)');
+                position = { x: 0, y: 0 };
+            }
+            // init both positions and delta
+            // position and delta should never be null
+            this.previousPosition = cloneVector(position);
+            this.currentPosition = cloneVector(position);
+            this.updateDelta();
         }
+        /**
+         * Helper method to check whether the left mouse button is pressed.
+         */
         EventData.prototype.isLeftButtonPressed = function () {
             return this.buttons[MouseButton.LEFT];
         };
+        /**
+         * Helper method to check whether the middle mouse button is pressed.
+         */
         EventData.prototype.isMiddleButtonPressed = function () {
             return this.buttons[MouseButton.WHEEL];
         };
+        /**
+         * Helper method to check whether the right mouse button is pressed.
+         */
         EventData.prototype.isRightButtonPressed = function () {
             return this.buttons[MouseButton.RIGHT];
         };
+        /**
+         * Set the new position and copy the old one to previous position.
+         * (This will clone the position to prevent shared objects)
+         * @param position new position
+         */
         EventData.prototype.setNewPosition = function (position) {
+            if (isNaN(position.x) || isNaN(position.y)) {
+                //console.error('position cannot be NaN');
+                // this happens if the simulation is closed
+                // probably because the viewport has no dimension
+                return;
+            }
             this.previousPosition = this.currentPosition;
-            this.currentPosition = position;
+            this.currentPosition = cloneVector(position);
         };
+        /**
+         * Checks for any mouse button press. This is not necessary because
+         * this.pressed will contain this information.
+         * This function is used internally to set the pressed flag.
+         */
         EventData.prototype.isAnyButtonPressed = function () {
             return this.buttons.includes(true);
         };
+        /**
+         * Translates the current global positions to the scroll view local position.
+         */
         EventData.prototype.getCurrentLocalPosition = function () {
             return this.scrollView.toLocal(this.currentPosition);
         };
+        /**
+         * Translates the previous global positions to the scroll view local position.
+         */
         EventData.prototype.getPreviousLocalPosition = function () {
             return this.scrollView.toLocal(this.previousPosition);
         };
+        /**
+         * Translates the global delta to a local delta relative to the scroll view.
+         */
         EventData.prototype.getDeltaLocal = function () {
             return this.scrollView.toLocal(this.delta);
         };
+        /**
+         * Calculate the current delta with the current and previous position. If the previous position is not set,
+         * this will set delta to {x: 0, y: 0}.
+         */
         EventData.prototype.updateDelta = function () {
             if (this.previousPosition) {
                 this.delta = {
@@ -168,12 +271,14 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                 this.delta = { x: 0, y: 0 };
             }
         };
+        /**
+         * Clones the object. All information will be cloned except the scroll view instance.
+         */
         EventData.prototype.clone = function () {
-            var event = new EventData(this.scrollView, this.isMouse, this.pressed);
+            var event = new EventData(this.scrollView, this.isMouse, this.pressed, this.currentPosition);
             event.buttons = Object.assign([], this.buttons);
             event.id = this.id;
             event.previousPosition = cloneVector(this.previousPosition);
-            event.currentPosition = cloneVector(this.currentPosition);
             event.delta = this.delta;
             event.deltaZoom = this.deltaZoom;
             event.eventFired = this.eventFired;
@@ -184,20 +289,47 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         return EventData;
     }());
     exports.EventData = EventData;
+    /**
+     * The scroll view, controlling mouse and touch interaction.
+     */
     var ScrollView = /** @class */ (function (_super) {
         __extends(ScrollView, _super);
         function ScrollView(viewport, renderer) {
             var _this = _super.call(this) || this;
+            /**
+             * The custom hit area for the parent viewport. This will be updated to the current
+             * screen width and height to catch all mouse interactions.
+             */
             _this.customHitArea = new PIXI.Rectangle(0, 0, 0, 0);
-            _this.minimalVisibleArea = 0.2;
+            /**
+             * Contains browser information.
+             * {name:string, version:string, versionId: number}
+             */
             _this.browser = getBrowser();
+            /**
+             * Whether to fire all touch events or only fire touch events after a full cycle has been completed.
+             * Au full cycle means, each touch position has been updated.
+             */
+            _this.fireOnlyMergeTouchEvents = false;
             //
             // Event Data
             //
-            _this.mouseEventData = new EventData(_this, true, false);
+            /**
+             * All mouse data.
+             */
+            _this.mouseEventData = new EventData(_this, true, false, { x: 0, y: 0 });
+            /**
+             * Touch event data list.
+             */
             _this.touchEventDataMap = new Map();
+            /**
+             * All registered event listeners.
+             */
             _this.eventListeners = [];
-            _this.lastZoom = -1;
+            /**
+             * last touch distance between two fingers
+             */
+            _this.lastTouchDistance = -1;
             viewport.addChild(_this);
             _this.viewport = viewport;
             _this.renderer = renderer;
@@ -213,40 +345,77 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.customHitArea.width = this.renderer.screen.width;
             this.customHitArea.height = this.renderer.screen.height;
         };
+        /**
+         * Warning: this will create a new object if no object with this ID exists!!!
+         * @param id id of the touch
+         */
+        ScrollView.prototype.getTouchDataAndUpdatePosition = function (id, currentPosition) {
+            var data = this.touchEventDataMap.get(id);
+            if (!data) {
+                data = new EventData(this, false, false, currentPosition);
+                data.id = id;
+                this.touchEventDataMap.set(id, data);
+            }
+            else {
+                data.setNewPosition(currentPosition);
+            }
+            return data;
+        };
+        /**
+         * returns the pixel ratio of this device
+         */
+        ScrollView.prototype.getPixelRatio = function () {
+            return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
+        };
+        /**
+         * zoom into position
+         * @param delta zoom delta
+         * @param pos position
+         */
+        ScrollView.prototype.zoom = function (delta, pos) {
+            this.x = (this.x - pos.x) * delta + pos.x;
+            this.y = (this.y - pos.y) * delta + pos.y;
+            this.scale.x *= delta;
+            this.scale.y *= delta;
+        };
+        //
+        // Events
+        //
+        /**
+         * resize event
+         * This method will be called multiple times per second!
+         */
         ScrollView.prototype.onResize = function () {
+            //console.log('resize');
             this.updateInteractionRect();
         };
+        /**
+         * mouse press / touch down event
+         * @param ev interaction data
+         */
         ScrollView.prototype.onDown = function (ev) {
-            //console.log('down');
+            console.log('down');
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
                 data.pressed = true;
                 data.buttons[ev.data.button] = true;
+                data.setNewPosition(ev.data.global);
             }
             else {
-                data = this.getTouchData(ev.data.pointerId);
+                // creates new touch data
+                data = this.getTouchDataAndUpdatePosition(ev.data.pointerId, ev.data.global);
                 data.pressed = true;
             }
-            data.setNewPosition(ev.data.global.clone());
             var cancel = this.fireEvent(data, EventType.PRESS);
             // ignore cancel (cancelEvent ist stored within the object)
         };
         /**
-         * Warning: this will create a new object if no object with this ID exists!!!
-         * @param id id of the touch
+         * mouse release / touch up event
+         * @param ev interaction data
          */
-        ScrollView.prototype.getTouchData = function (id) {
-            var data = this.touchEventDataMap.get(id);
-            if (!data) {
-                data = new EventData(this, false, false);
-                data.id = id;
-                this.touchEventDataMap.set(id, data);
-            }
-            return data;
-        };
         ScrollView.prototype.onUp = function (ev) {
-            //console.log('up');
+            console.log('up');
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
@@ -254,143 +423,163 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                 data.pressed = data.isAnyButtonPressed();
             }
             else {
+                // find and remove touch data
                 data = this.touchEventDataMap.get(ev.data.pointerId);
                 if (data) {
                     this.touchEventDataMap.delete(ev.data.pointerId);
                 }
                 else {
                     // This should not happen
-                    console.error('touch released before press!');
-                    data = new EventData(this, false, false);
+                    //console.error('touch released before press!');
+                    // happens on surface devices
+                    data = new EventData(this, false, false, ev.data.global);
                     data.id = ev.data.pointerId;
                 }
             }
-            data.setNewPosition(ev.data.global.clone());
+            data.setNewPosition(ev.data.global);
+            // we could update the delta here
             var cancel = this.fireEvent(data, EventType.RELEASE);
             // ignore cancel (cancelEvent ist stored within the object)
-            data.cancelEvent = false; // reset cancel event flag
+            data.cancelEvent = false; // reset cancel event flag (for the mouse)
         };
+        /**
+         * mouse move/drag or touch drag event
+         * @param ev  interaction data
+         */
         ScrollView.prototype.onMove = function (ev) {
-            // console.log('move');
+            console.log('move');
+            if (isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
+                return;
+            }
+            // Fix for surface devices where touch input does not generate an up event and
+            // we cannot remove the event object
+            if (!this.renderer.screen.contains(ev.data.global.x, ev.data.global.y)) {
+                return;
+            }
             var data;
             var type;
             var cancel;
-            var noDrag = false;
+            var allEventFired = true; // for touch only
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
+                // check for mouse move or drag
                 if (data.pressed) {
                     type = EventType.DRAG;
                 }
                 else {
                     type = EventType.MOVE;
                 }
-                data.setNewPosition(ev.data.global.clone());
+                // update position and delta
+                data.setNewPosition(ev.data.global);
                 data.updateDelta();
+                // fire event
                 cancel = this.fireEvent(data, type);
             }
             else { // touch
                 //console.log("id: " + ev.data.pointerId);
-                data = this.getTouchData(ev.data.pointerId);
-                data.setNewPosition(ev.data.global.clone()); // update position
+                data = this.getTouchDataAndUpdatePosition(ev.data.pointerId, ev.data.global);
                 data.updateDelta();
                 data.eventFired = true;
                 type = EventType.DRAG; // move should be impossible (except stylus?)
-                cancel = this.fireEvent(data, type);
-                // ignore cancel for this call
-                var allEventFired_1 = true;
+                // fire only if required by settings
+                if (!this.fireOnlyMergeTouchEvents) {
+                    cancel = this.fireEvent(data, type);
+                }
                 this.touchEventDataMap.forEach(function (data, id, map) {
                     if (!data.eventFired) {
-                        allEventFired_1 = false;
+                        allEventFired = false;
                     }
                 });
-                if (allEventFired_1) {
+                if (allEventFired) {
                     var previousPosition_1 = { x: 0, y: 0 };
                     var currentPosition_1 = { x: 0, y: 0 };
-                    var oneCacelled_1 = false;
+                    var oneCancelled_1 = false;
                     this.touchEventDataMap.forEach(function (data, id, map) {
-                        if (data.previousPosition) {
-                            // ignore incomplete touch events
-                            previousPosition_1.x += data.previousPosition.x;
-                            previousPosition_1.y += data.previousPosition.y;
-                            currentPosition_1.x += data.currentPosition.x;
-                            currentPosition_1.y += data.currentPosition.y;
-                        }
+                        // ignore incomplete touch events
+                        previousPosition_1.x += data.previousPosition.x;
+                        previousPosition_1.y += data.previousPosition.y;
+                        currentPosition_1.x += data.currentPosition.x;
+                        currentPosition_1.y += data.currentPosition.y;
                         data.eventFired = false; // reset all events fired
-                        oneCacelled_1 || (oneCacelled_1 = data.cancelEvent);
+                        oneCancelled_1 || (oneCancelled_1 = data.cancelEvent);
                     });
                     var numOfTouches = this.touchEventDataMap.size;
                     previousPosition_1.x /= numOfTouches;
                     previousPosition_1.y /= numOfTouches;
                     currentPosition_1.x /= numOfTouches;
                     currentPosition_1.y /= numOfTouches;
-                    data = new EventData(this, false, true);
+                    data = new EventData(this, false, true, currentPosition_1); // this will set the current position
                     data.previousPosition = previousPosition_1;
-                    data.currentPosition = currentPosition_1;
                     data.isMergeTouchEvent = true;
-                    data.cancelEvent = oneCacelled_1; // whether this event is already cancelled
+                    data.cancelEvent = oneCancelled_1; // whether this event is already cancelled
                     data.updateDelta();
                     cancel = this.fireEvent(data, type);
-                    if (this.touchEventDataMap.size == 2) { // zoom mode
-                        var touches = this.touchEventDataMap.values();
-                        var touch1 = touches.next().value;
-                        var touch2 = touches.next().value;
-                        if (!touch1 || !touch2) {
-                            console.error('Touch is null!');
+                }
+                // here we also check if the event is cancelled before we attempt zoom
+                if (!cancel && this.touchEventDataMap.size == 2) { // zoom mode
+                    // get the touch input from the map
+                    var touches = this.touchEventDataMap.values();
+                    var touch1 = touches.next().value;
+                    var touch2 = touches.next().value;
+                    if (!touch1 || !touch2) {
+                        console.error('Touch is null!');
+                    }
+                    else {
+                        // calculate previous touch distance
+                        var pp1 = touch1.previousPosition;
+                        var pp2 = touch2.previousPosition;
+                        var previousLength = Math.sqrt(Math.pow(pp1.x - pp2.x, 2) + Math.pow(pp1.y - pp2.y, 2));
+                        // calculate current touch distance
+                        var cp1 = touch1.currentPosition;
+                        var cp2 = touch2.currentPosition;
+                        var currentLength = Math.sqrt(Math.pow(cp1.x - cp2.x, 2) + Math.pow(cp1.y - cp2.y, 2));
+                        // calculate delta zoom factor
+                        var deltaZoom = currentLength / previousLength;
+                        // this could happen and would break everything
+                        if (isNaN(deltaZoom)) {
+                            deltaZoom = 1;
                         }
-                        else {
-                            var pp1 = touch1.previousPosition;
-                            var pp2 = touch2.previousPosition;
-                            if (pp1 && pp2) {
-                                var previousLength = Math.sqrt(Math.pow(pp1.x - pp2.x, 2) + Math.pow(pp1.y - pp2.y, 2));
-                                var cp1 = touch1.currentPosition;
-                                var cp2 = touch2.currentPosition;
-                                var currentLength = Math.sqrt(Math.pow(cp1.x - cp2.x, 2) + Math.pow(cp1.y - cp2.y, 2));
-                                var deltaZoom = currentLength - previousLength;
-                                var pixelRatio = this.getPixelRatio();
-                                var zoomFactor = Math.exp(deltaZoom / pixelRatio / 150); // 150 is good feeling magic number
-                                data.deltaZoom = zoomFactor;
-                                var cancelZoom = this.fireEvent(data, EventType.ZOOM);
-                                if (!cancel && !cancelZoom) {
-                                    //console.log('zoom: ' + zoomFactor);
-                                    this.zoom(zoomFactor, data.currentPosition);
-                                }
-                            }
-                            else {
-                                console.error('previous position is null');
-                            }
+                        data.deltaZoom = deltaZoom;
+                        var cancelZoom = this.fireEvent(data, EventType.ZOOM);
+                        if (!cancelZoom) {
+                            //console.log('zoom: ' + zoomFactor);
+                            this.zoom(deltaZoom, { x: (cp1.x + cp2.x) / 2, y: (cp1.y + cp2.y) / 2 });
                         }
                     }
                 }
-                noDrag = !allEventFired_1;
             }
-            if (!cancel && type == EventType.DRAG && !noDrag) {
+            if (!cancel && type == EventType.DRAG && allEventFired) {
                 // move view to new position and check bounds
                 this.x -= data.delta.x;
                 this.y -= data.delta.y;
-                var visible = 1 - this.minimalVisibleArea;
-                var check = this.customHitArea.x - this.width * visible;
-                if (this.x < check) {
-                    this.x = check;
+                /*let visible = 1-this.minimalVisibleArea;
+                let check = this.customHitArea.x - this.width*visible
+                if(this.x < check) {
+                  this.x = check;
                 }
-                check = this.customHitArea.y - this.height * visible;
-                if (this.y < check) {
-                    this.y = check;
+          
+                check = this.customHitArea.y - this.height*visible
+                if(this.y < check) {
+                  this.y = check;
                 }
-                check = this.customHitArea.x + this.customHitArea.width - this.width * this.minimalVisibleArea;
-                if (this.x > check) {
-                    this.x = check;
+          
+                check = this.customHitArea.x + this.customHitArea.width - this.width * this.minimalVisibleArea
+                if(this.x > check) {
+                  this.x = check;
                 }
-                check = this.customHitArea.y + this.customHitArea.height - this.height * this.minimalVisibleArea;
-                if (this.y > check) {
-                    this.y = check;
-                }
+          
+                check = this.customHitArea.y + this.customHitArea.height - this.height * this.minimalVisibleArea
+                if(this.y > check) {
+                  this.y = check;
+                }*/
             }
         };
-        ScrollView.prototype.getPixelRatio = function () {
-            return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
-        };
+        /**
+         * mouse wheel event
+         * @param ev  interaction data
+         */
         ScrollView.prototype.onWheel = function (ev) {
-            //console.log('wheel');
+            console.log('wheel');
             var pixelRatio = this.getPixelRatio();
             var data;
             if (ev.type == "wheel") {
@@ -445,37 +634,47 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             }
             ev.preventDefault();
         };
-        ScrollView.prototype.zoom = function (delta, pos) {
-            this.x = (this.x - pos.x) * delta + pos.x;
-            this.y = (this.y - pos.y) * delta + pos.y;
-            this.scale.x *= delta;
-            this.scale.y *= delta;
-        };
+        /**
+         * zoom event (gesture event)
+         * @param e event data
+         */
         ScrollView.prototype.onZoom = function (e) {
             console.log('zoom');
+            // TODO: we could use this for other browsers if there is another with support
             if (this.browser.name == 'Safari') {
-                if (this.lastZoom > 0) {
+                if (this.lastTouchDistance > 0) {
                     // calculate distance change between fingers
-                    var delta = Math.pow(e.scale / this.lastZoom, 1.5); // magic 2 for better scroll feeling
+                    var delta = Math.pow(e.scale / this.lastTouchDistance, 1.5); // magic 2 for better scroll feeling
                     this.mouseEventData.delta.x = delta;
-                    this.lastZoom = e.scale;
+                    this.lastTouchDistance = e.scale;
                     var cancel = this.fireEvent(this.mouseEventData, EventType.ZOOM);
                     if (!cancel) {
+                        // here we use the old mouse position because we don't
+                        // have access to the current one but this should be very
+                        // accurate none the less
                         this.zoom(delta, this.mouseEventData.currentPosition);
                     }
                 }
-                else {
-                    console.log('Zoom from non Safari browser!');
-                }
+            }
+            else {
+                console.log('Zoom from non Safari browser!');
             }
             e.preventDefault();
         };
+        /**
+         * zoom begin event (gesture begin event)
+         * @param e event data
+         */
         ScrollView.prototype.onZoomBegin = function (e) {
-            this.lastZoom = e.scale;
+            this.lastTouchDistance = e.scale;
             e.preventDefault();
         };
+        /**
+         * zoom end event (gesture end event)
+         * @param e event data
+         */
         ScrollView.prototype.onZoomEnd = function (e) {
-            this.lastZoom = -1;
+            this.lastTouchDistance = -1;
             e.preventDefault();
         };
         ScrollView.prototype.registerEventListeners = function () {
@@ -516,6 +715,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.viewport.off('pointercancel', this.onUp, this);
             this.viewport.off('pointerout', this.onUp, this);
             // TODO: other events
+            console.error('not fully implemented function!!!');
         };
         ScrollView.prototype.destroy = function () {
             this.unregisterEventListeners();
@@ -527,7 +727,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                 event.cancel(); // cancel event
             }
             this.eventListeners.forEach(function (e) { return e(event); });
-            data.cancelEvent = event.cancelEvent; // store within event for later usage
+            data.cancelEvent = event.cancelEvent; // store within data for later usage
             return event.cancelEvent;
         };
         ScrollView.prototype.registerListener = function (func) {
