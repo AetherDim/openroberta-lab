@@ -6,6 +6,7 @@ declare module "matter-js" {
     export interface Body {
         displayable?: Displayable
         debugDisplayable?: Displayable
+        enableMouseInteraction?: boolean
 
         positionPrev: Vector
         anglePrev: number
@@ -17,6 +18,7 @@ declare module "matter-js" {
     export interface IBodyDefinition {
         displayable?: Displayable
         debugDisplayable?: Displayable
+        enableMouseInteraction?: boolean
     }
 
     export interface Composite {

@@ -1,12 +1,13 @@
 import './pixijs'
 import { Robot } from './Robot/Robot';
 import { createDisplayableFromBody, createRect, Displayable } from './Displayable';
-import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping, Bounds, Vertices } from 'matter-js';
 import { ElectricMotor } from './Robot/ElectricMotor';
 import { SceneRender } from './SceneRenderer';
 import { Timer } from './Timer';
 import { Unit } from './Unit'
 import { Polygon } from './Geometry/Polygon';
+import { EventType, ScrollViewEvent } from './ScrollView';
 
 export class Scene {
 
@@ -301,17 +302,63 @@ export class Scene {
     }
 
 
-    // TODO:
-    initMouse(mouse: Mouse) {
-        if(this.mouseConstraint) {
-            // ugly workaround for missing MouseConstraint in remove ...
-            World.remove(this.engine.world, <Constraint><any>this.mouseConstraint);
+    interactionEvent(ev: ScrollViewEvent) {
+        // TODO
+        switch (ev.type) {
+            case EventType.PRESS:
+                // get bodies
+                this.getBodiesAt(ev.data.getCurrentLocalPosition());
+
+                // TODO: disable sleeping
+                // attach constrain
+            
+                break;
+
+            case EventType.RELEASE:
+                // remove constrain
+                break;
+
+            case EventType.DRAG:
+                // move constrain
+                break;
+        
+            default:
+                break;
         }
-        // TODO: different mouse constarains?
-        this.mouseConstraint = MouseConstraint.create(this.engine, {
-            mouse: mouse
-        });
-        World.add(this.engine.world, this.mouseConstraint);
+        
+
+        this.onInteractionEvent(ev);
+    }
+
+    /**
+     * Returns all bodies containing the given point
+     * @param position position to check for bodies
+     * @param singleBody whether to return only one body
+     */
+    getBodiesAt(position: PIXI.IPointData, singleBody:boolean = false): Body[] {
+        let intersected:Body[] = []
+        let bodies: Body[] = World.allBodies(this.engine.world);
+
+        // code borrowed from Matterjs MouseConstraint
+        for (let i = 0; i < bodies.length; i++) {
+            let body = bodies[i];
+            if (Bounds.contains(body.bounds, position) && body.enableMouseInteraction) {
+                for (let j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+                    let part = body.parts[j];
+                    if (Vertices.contains(part.vertices, position)) {
+                        intersected.push(body);
+
+                        if(singleBody) {
+                            return intersected;
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        return intersected;
     }
 
     private addPhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
@@ -724,6 +771,14 @@ export class Scene {
      * called once per frame
      */
     onRenderTick(dt) {
+
+    }
+
+    /**
+     * called after a mouse/touch or scroll event
+     * @param ev event data
+     */
+    onInteractionEvent(ev: ScrollViewEvent) {
 
     }
 

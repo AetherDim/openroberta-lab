@@ -3,7 +3,7 @@ import * as $ from "jquery";
 import { Mouse, Vector } from 'matter-js'
 import { Scene } from './Scene';
 import { rgbToNumber } from './Color'
-import { ScrollView } from './ScrollView';
+import { ScrollView, ScrollViewEvent } from './ScrollView';
 
 
 
@@ -13,7 +13,7 @@ export class SceneRender {
     readonly app: PIXI.Application; // "window"
 
     private scene: Scene;   // scene with physics and components
-    scrollView: ScrollView;
+    readonly scrollView: ScrollView;
     
 
     constructor(canvas: HTMLCanvasElement | string, autoResizeTo: HTMLElement | string = null, scene: Scene=null) {
@@ -49,8 +49,13 @@ export class SceneRender {
             }
         );
 
-        // add mouse control
+        // add mouse/touch control
         this.scrollView = new ScrollView(this.app.stage, this.app.renderer);
+        this.scrollView.registerListener((ev: ScrollViewEvent) => {
+            if(this.scene) {
+                this.scene.interactionEvent(ev);
+            } 
+        });
 
         // switch to scene
         if(scene) {
@@ -59,13 +64,12 @@ export class SceneRender {
             this.switchScene(new Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
         }
 
-        const _this = this;
         this.app.ticker.add(dt => {
-            if(_this.scene) {
-                _this.scene.renderTick(dt);
-                _this.app.queueResize(); // allow autoresize
+            if(this.scene) {
+                this.scene.renderTick(dt);
+                this.app.queueResize(); // allow auto resize
             }
-        });
+        }, this);
 
     }
 
@@ -85,6 +89,7 @@ export class SceneRender {
         return this.scene;
     }
 
+    // TODO: check this size
     getWidth() {
         return this.app.view.width;
     }

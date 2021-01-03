@@ -1,4 +1,4 @@
-define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./Robot/ElectricMotor", "./Timer", "./Unit", "./Geometry/Polygon", "./pixijs"], function (require, exports, Robot_1, Displayable_1, matter_js_1, ElectricMotor_1, Timer_1, Unit_1, Polygon_1) {
+define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./Robot/ElectricMotor", "./Timer", "./Unit", "./Geometry/Polygon", "./ScrollView", "./pixijs"], function (require, exports, Robot_1, Displayable_1, matter_js_1, ElectricMotor_1, Timer_1, Unit_1, Polygon_1, ScrollView_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -231,17 +231,52 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
                 this.robots[i].setProgram(programs[i], []); // TODO: breakpoints
             }
         };
-        // TODO:
-        Scene.prototype.initMouse = function (mouse) {
-            if (this.mouseConstraint) {
-                // ugly workaround for missing MouseConstraint in remove ...
-                matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
+        Scene.prototype.interactionEvent = function (ev) {
+            // TODO
+            switch (ev.type) {
+                case ScrollView_1.EventType.PRESS:
+                    // get bodies
+                    this.getBodiesAt(ev.data.getCurrentLocalPosition());
+                    // TODO: disable sleeping
+                    // attach constrain
+                    break;
+                case ScrollView_1.EventType.RELEASE:
+                    // remove constrain
+                    break;
+                case ScrollView_1.EventType.DRAG:
+                    // move constrain
+                    break;
+                default:
+                    break;
             }
-            // TODO: different mouse constarains?
-            this.mouseConstraint = matter_js_1.MouseConstraint.create(this.engine, {
-                mouse: mouse
-            });
-            matter_js_1.World.add(this.engine.world, this.mouseConstraint);
+            this.onInteractionEvent(ev);
+        };
+        /**
+         * Returns all bodies containing the given point
+         * @param position position to check for bodies
+         * @param singleBody whether to return only one body
+         */
+        Scene.prototype.getBodiesAt = function (position, singleBody) {
+            if (singleBody === void 0) { singleBody = false; }
+            var intersected = [];
+            var bodies = matter_js_1.World.allBodies(this.engine.world);
+            // code borrowed from Matterjs MouseConstraint
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                if (matter_js_1.Bounds.contains(body.bounds, position) && body.enableMouseInteraction) {
+                    for (var j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+                        var part = body.parts[j];
+                        if (matter_js_1.Vertices.contains(part.vertices, position)) {
+                            intersected.push(body);
+                            if (singleBody) {
+                                return intersected;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            return intersected;
         };
         Scene.prototype.addPhysics = function (obj) {
             var _this_1 = this;
@@ -570,6 +605,12 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
          * called once per frame
          */
         Scene.prototype.onRenderTick = function (dt) {
+        };
+        /**
+         * called after a mouse/touch or scroll event
+         * @param ev event data
+         */
+        Scene.prototype.onInteractionEvent = function (ev) {
         };
         return Scene;
     }());

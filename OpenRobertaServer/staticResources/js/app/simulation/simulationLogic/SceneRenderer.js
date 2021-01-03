@@ -5,6 +5,7 @@ define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", ".
     // physics and graphics
     var SceneRender = /** @class */ (function () {
         function SceneRender(canvas, autoResizeTo, scene) {
+            var _this = this;
             if (autoResizeTo === void 0) { autoResizeTo = null; }
             if (scene === void 0) { scene = null; }
             var htmlCanvas = null;
@@ -33,8 +34,13 @@ define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", ".
                 antialias: true,
                 resizeTo: resizeTo,
             });
-            // add mouse control
+            // add mouse/touch control
             this.scrollView = new ScrollView_1.ScrollView(this.app.stage, this.app.renderer);
+            this.scrollView.registerListener(function (ev) {
+                if (_this.scene) {
+                    _this.scene.interactionEvent(ev);
+                }
+            });
             // switch to scene
             if (scene) {
                 this.switchScene(scene);
@@ -42,13 +48,12 @@ define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", ".
             else {
                 this.switchScene(new Scene_1.Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
             }
-            var _this = this;
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
                     _this.scene.renderTick(dt);
-                    _this.app.queueResize(); // allow autoresize
+                    _this.app.queueResize(); // allow auto resize
                 }
-            });
+            }, this);
         }
         SceneRender.prototype.setPrograms = function (programs) {
             this.scene.setPrograms(programs);
@@ -62,6 +67,7 @@ define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", ".
         SceneRender.prototype.getScene = function () {
             return this.scene;
         };
+        // TODO: check this size
         SceneRender.prototype.getWidth = function () {
             return this.app.view.width;
         };
