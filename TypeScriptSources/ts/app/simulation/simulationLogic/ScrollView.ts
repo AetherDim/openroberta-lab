@@ -458,7 +458,7 @@ export class ScrollView extends PIXI.Container {
    * @param ev interaction data
    */
   private onDown(ev: PIXI.InteractionEvent) {
-    console.log('down');
+    //console.log('down');
 
     let data: EventData;
 
@@ -485,7 +485,7 @@ export class ScrollView extends PIXI.Container {
    * @param ev interaction data
    */
   private onUp(ev: PIXI.InteractionEvent) {
-    console.log('up');
+    //console.log('up');
     
     let data: EventData;
 
@@ -522,7 +522,7 @@ export class ScrollView extends PIXI.Container {
    * @param ev  interaction data
    */
   private onMove(ev: PIXI.InteractionEvent) {
-    console.log('move');
+    //console.log('move');
 
     if(isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
       return;
@@ -689,7 +689,7 @@ export class ScrollView extends PIXI.Container {
    * @param ev  interaction data
    */
   private onWheel(ev: WheelEvent) {
-    console.log('wheel');
+    //console.log('wheel');
 
     let pixelRatio = this.getPixelRatio(); 
 
@@ -768,7 +768,7 @@ export class ScrollView extends PIXI.Container {
    * @param e event data
    */
   private onZoom(e) {
-    console.log('zoom');
+    //console.log('zoom');
 
     // TODO: we could use this for other browsers if there is another with support
     if(this.browser.name == 'Safari') {
