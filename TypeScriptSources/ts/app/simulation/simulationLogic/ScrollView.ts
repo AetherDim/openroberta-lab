@@ -1,33 +1,56 @@
 import './pixijs'
 
+export class Browser {
+
+  name: string
+  version: string
+  versionID?: number
+  hasMultiTouchInteraction: boolean
+
+  constructor(o: {name: string, version: string, versionID?: number, hasMultiTouchInteraction: boolean}) {
+    this.name = o.name
+    this.version = o.version
+    this.versionID = o.versionID
+    this.hasMultiTouchInteraction = o.hasMultiTouchInteraction
+  }
+
+  isTouchSafari(): boolean {
+    return this.hasMultiTouchInteraction && this.name == "Safari"
+  }
+}
 
 /**
  * Returns browser version and name
  * borrowed from: https://stackoverflow.com/questions/5916900/how-can-you-detect-the-version-of-a-browser
  */
-export function getBrowser() {
-  var ua = navigator.userAgent, tem, 
-        M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
-    if(/trident/i.test(M[1])){
-        tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
-        return {name:'IE',version:(tem[1] || '')};
-    }
-    if(M[1]=== 'Chrome'){
-        tem = ua.match(/\b(OPR|Edge)\/(\d+)/);
-        if(tem != null) return {name:tem[1].replace('OPR', 'Opera'),version:tem[2]};
-    }
-    M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-    if((tem = ua.match(/version\/(\d+)/i))!= null) {
-      M.splice(1, 1, tem[1]);
-    } 
-    
-    var arr = M[1].split('.', 1);
-    var id = -1;
-    if(arr.length < 0) {
-     id = Number.parseInt(arr[0]); 
-    }
-    
-    return {name:M[0], version:M[1], versionID:id};
+export function getBrowser(): Browser {
+  let ua = navigator.userAgent
+  let tem
+  let M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+  
+  // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
+  const hasMultiTouchInteraction = navigator.maxTouchPoints > 1
+
+  if(/trident/i.test(M[1])){
+      tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+      return new Browser({name:'IE',version:(tem[1] || ''), hasMultiTouchInteraction: hasMultiTouchInteraction})
+  }
+  if(M[1]=== 'Chrome'){
+      tem = ua.match(/\b(OPR|Edge)\/(\d+)/);
+      if(tem != null) return new Browser({name:tem[1].replace('OPR', 'Opera'),version:tem[2], hasMultiTouchInteraction: hasMultiTouchInteraction})
+  }
+  M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+  if((tem = ua.match(/version\/(\d+)/i))!= null) {
+    M.splice(1, 1, tem[1]);
+  } 
+  
+  var arr = M[1].split('.', 1);
+  var id = -1;
+  if(arr.length < 0) {
+    id = Number.parseInt(arr[0]); 
+  }
+  
+  return new Browser({name:M[0], version:M[1], versionID:id, hasMultiTouchInteraction: hasMultiTouchInteraction})
 }
 
 
@@ -611,7 +634,7 @@ export class ScrollView extends PIXI.Container {
       }
 
       // here we also check if the event is cancelled before we attempt zoom
-      if(!cancel && this.touchEventDataMap.size == 2) { // zoom mode
+      if(!cancel && this.touchEventDataMap.size == 2 && !this.browser.isTouchSafari()) { // zoom mode
 
         // get the touch input from the map
         let touches = this.touchEventDataMap.values();
@@ -776,7 +799,7 @@ export class ScrollView extends PIXI.Container {
       if(this.lastTouchDistance > 0) {
 
         // calculate distance change between fingers
-        var delta = Math.pow(e.scale/this.lastTouchDistance, 1.5); // magic 2 for better scroll feeling
+        var delta = e.scale / this.lastTouchDistance
         this.mouseEventData.delta.x = delta;
   
         this.lastTouchDistance = <number>e.scale;
@@ -784,10 +807,14 @@ export class ScrollView extends PIXI.Container {
         let cancel: boolean = this.fireEvent(this.mouseEventData, EventType.ZOOM);
 
         if(!cancel) {
-          // here we use the old mouse position because we don't
-          // have access to the current one but this should be very
-          // accurate none the less
-          this.zoom(delta, this.mouseEventData.currentPosition);
+          if (this.browser.isTouchSafari()) {
+            this.zoom(delta, {x: e.layerX, y: e.layerY })
+          } else {
+            // here we use the old mouse position because we don't
+            // have access to the current one but this should be very
+            // accurate none the less
+            this.zoom(delta, this.mouseEventData.currentPosition)
+          }
         }
 
       }

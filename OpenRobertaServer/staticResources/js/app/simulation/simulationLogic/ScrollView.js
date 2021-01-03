@@ -14,21 +14,38 @@ var __extends = (this && this.__extends) || (function () {
 define(["require", "exports", "./pixijs"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ScrollView = exports.EventData = exports.ScrollViewEvent = exports.cloneVector = exports.MouseButton = exports.EventType = exports.getBrowser = void 0;
+    exports.ScrollView = exports.EventData = exports.ScrollViewEvent = exports.cloneVector = exports.MouseButton = exports.EventType = exports.getBrowser = exports.Browser = void 0;
+    var Browser = /** @class */ (function () {
+        function Browser(o) {
+            this.name = o.name;
+            this.version = o.version;
+            this.versionID = o.versionID;
+            this.hasMultiTouchInteraction = o.hasMultiTouchInteraction;
+        }
+        Browser.prototype.isTouchSafari = function () {
+            return this.hasMultiTouchInteraction && this.name == "Safari";
+        };
+        return Browser;
+    }());
+    exports.Browser = Browser;
     /**
      * Returns browser version and name
      * borrowed from: https://stackoverflow.com/questions/5916900/how-can-you-detect-the-version-of-a-browser
      */
     function getBrowser() {
-        var ua = navigator.userAgent, tem, M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        var ua = navigator.userAgent;
+        var tem;
+        var M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
+        var hasMultiTouchInteraction = navigator.maxTouchPoints > 1;
         if (/trident/i.test(M[1])) {
             tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
-            return { name: 'IE', version: (tem[1] || '') };
+            return new Browser({ name: 'IE', version: (tem[1] || ''), hasMultiTouchInteraction: hasMultiTouchInteraction });
         }
         if (M[1] === 'Chrome') {
             tem = ua.match(/\b(OPR|Edge)\/(\d+)/);
             if (tem != null)
-                return { name: tem[1].replace('OPR', 'Opera'), version: tem[2] };
+                return new Browser({ name: tem[1].replace('OPR', 'Opera'), version: tem[2], hasMultiTouchInteraction: hasMultiTouchInteraction });
         }
         M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
         if ((tem = ua.match(/version\/(\d+)/i)) != null) {
@@ -39,7 +56,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         if (arr.length < 0) {
             id = Number.parseInt(arr[0]);
         }
-        return { name: M[0], version: M[1], versionID: id };
+        return new Browser({ name: M[0], version: M[1], versionID: id, hasMultiTouchInteraction: hasMultiTouchInteraction });
     }
     exports.getBrowser = getBrowser;
     // the following implementation borrowed some ideas from:
@@ -394,7 +411,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev interaction data
          */
         ScrollView.prototype.onDown = function (ev) {
-            console.log('down');
+            //console.log('down');
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
@@ -415,7 +432,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev interaction data
          */
         ScrollView.prototype.onUp = function (ev) {
-            console.log('up');
+            //console.log('up');
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
@@ -447,7 +464,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev  interaction data
          */
         ScrollView.prototype.onMove = function (ev) {
-            console.log('move');
+            //console.log('move');
             if (isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
                 return;
             }
@@ -516,7 +533,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                     cancel = this.fireEvent(data, type);
                 }
                 // here we also check if the event is cancelled before we attempt zoom
-                if (!cancel && this.touchEventDataMap.size == 2) { // zoom mode
+                if (!cancel && this.touchEventDataMap.size == 2 && !this.browser.isTouchSafari()) { // zoom mode
                     // get the touch input from the map
                     var touches = this.touchEventDataMap.values();
                     var touch1 = touches.next().value;
@@ -579,7 +596,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev  interaction data
          */
         ScrollView.prototype.onWheel = function (ev) {
-            console.log('wheel');
+            //console.log('wheel');
             var pixelRatio = this.getPixelRatio();
             var data;
             if (ev.type == "wheel") {
@@ -639,20 +656,25 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param e event data
          */
         ScrollView.prototype.onZoom = function (e) {
-            console.log('zoom');
+            //console.log('zoom');
             // TODO: we could use this for other browsers if there is another with support
             if (this.browser.name == 'Safari') {
                 if (this.lastTouchDistance > 0) {
                     // calculate distance change between fingers
-                    var delta = Math.pow(e.scale / this.lastTouchDistance, 1.5); // magic 2 for better scroll feeling
+                    var delta = e.scale / this.lastTouchDistance;
                     this.mouseEventData.delta.x = delta;
                     this.lastTouchDistance = e.scale;
                     var cancel = this.fireEvent(this.mouseEventData, EventType.ZOOM);
                     if (!cancel) {
-                        // here we use the old mouse position because we don't
-                        // have access to the current one but this should be very
-                        // accurate none the less
-                        this.zoom(delta, this.mouseEventData.currentPosition);
+                        if (this.browser.isTouchSafari()) {
+                            this.zoom(delta, { x: e.layerX, y: e.layerY });
+                        }
+                        else {
+                            // here we use the old mouse position because we don't
+                            // have access to the current one but this should be very
+                            // accurate none the less
+                            this.zoom(delta, this.mouseEventData.currentPosition);
+                        }
                     }
                 }
             }
