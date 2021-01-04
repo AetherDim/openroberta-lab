@@ -379,7 +379,7 @@ export class ScrollView extends PIXI.Container {
 
   /**
    * Whether to fire all touch events or only fire touch events after a full cycle has been completed.
-   * Au full cycle means, each touch position has been updated.
+   * A full cycle means, each touch position has been updated.
    */
   fireOnlyMergeTouchEvents = false;
 
@@ -801,20 +801,19 @@ export class ScrollView extends PIXI.Container {
         // calculate distance change between fingers
         var delta = e.scale / this.lastTouchDistance
         this.mouseEventData.delta.x = delta;
+        if (this.browser.isTouchSafari()) {
+          this.mouseEventData.setNewPosition({x: e.layerX, y: e.layerY })
+        }
   
         this.lastTouchDistance = <number>e.scale;
 
         let cancel: boolean = this.fireEvent(this.mouseEventData, EventType.ZOOM);
 
         if(!cancel) {
-          if (this.browser.isTouchSafari()) {
-            this.zoom(delta, {x: e.layerX, y: e.layerY })
-          } else {
-            // here we use the old mouse position because we don't
-            // have access to the current one but this should be very
-            // accurate none the less
-            this.zoom(delta, this.mouseEventData.currentPosition)
-          }
+          // here we use the old mouse position because we don't
+          // have access to the current one but this should be very
+          // accurate none the less
+          this.zoom(delta, this.mouseEventData.currentPosition)
         }
 
       }
