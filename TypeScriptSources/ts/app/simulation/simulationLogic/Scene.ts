@@ -1,20 +1,24 @@
 import './pixijs'
 import { Robot } from './Robot/Robot';
 import { createDisplayableFromBody, createRect, Displayable } from './Displayable';
-import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping, Bounds, Vertices } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping, Bounds, Vertices, Composites } from 'matter-js';
 import { ElectricMotor } from './Robot/ElectricMotor';
 import { SceneRender } from './SceneRenderer';
 import { Timer } from './Timer';
 import { Unit } from './Unit'
 import { Polygon } from './Geometry/Polygon';
 import { EventType, ScrollViewEvent } from './ScrollView';
+import { ProgramFlowManager } from './ProgramFlowManager';
 
 export class Scene {
 
     /**
-     * All robots within the scene
+     * All programmable robots within the scene.
+     * The program flow manager will use the robots internally.
      */
     readonly robots: Array<Robot> = new Array<Robot>();
+
+    readonly programFlowManager = new ProgramFlowManager(this);
 
 
     //
@@ -183,6 +187,18 @@ export class Scene {
         this.simTicker.sleepTime = simSleepTime;
     }
 
+    updateDebugMode(debugMode: boolean) {
+        this.programFlowManager.updateDebugMode(debugMode);
+    }
+
+    endDebugging() {
+        this.programFlowManager.endDebugging();
+    }
+
+    interpreterAddEvent(mode: any) {
+        this.programFlowManager.interpreterAddEvent(mode);
+    }
+
 
 
     /**
@@ -291,13 +307,15 @@ export class Scene {
         this.initLoadingContainer();
     }
 
-    setPrograms(programs: any[]) {
-        if(programs.length < this.robots.length) {
-            console.error("not enough programs!");
-            return;
-        }
-        for (let i = 0; i < this.robots.length; i++) {
-            this.robots[i].setProgram(programs[i], []); // TODO: breakpoints
+    setPrograms(programs: any[], refresh: boolean, robotType: string) {
+        this.programFlowManager.setPrograms(programs);
+
+        // the original simulation.js would replace all robots if refresh is true
+        // we will only change the type (The robot should manage anything type related internally)
+        if(refresh) {
+            this.robots.forEach(robot => {
+                robot.setRobotType(robotType);
+            });
         }
     }
 
@@ -337,7 +355,7 @@ export class Scene {
      */
     getBodiesAt(position: PIXI.IPointData, singleBody:boolean = false): Body[] {
         let intersected:Body[] = []
-        let bodies: Body[] = World.allBodies(this.engine.world);
+        let bodies: Body[] = Composite.allBodies(this.engine.world);
 
         // code borrowed from Matterjs MouseConstraint
         for (let i = 0; i < bodies.length; i++) {
@@ -500,6 +518,8 @@ export class Scene {
 
         this.robots.forEach((robot) => robot.update(this.dt)); // update robots
 
+        this.programFlowManager.update(); // update breakpoints, ...
+
         Engine.update(this.engine, this.dt); // update physics
 
 
@@ -521,7 +541,6 @@ export class Scene {
         }
 
         this.onUpdatePostPhysics();
-
     }
     
 

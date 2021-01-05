@@ -8,6 +8,10 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.configuration = null;
             this.programCode = null;
             this.interpreter = null;
+            /**
+             * robot type
+             */
+            this.type = 'default';
             this.leftForce = 0;
             this.rightForce = 0;
             this.encoder = {
@@ -24,6 +28,10 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels);
             this.updatePhysicsObject();
         }
+        Robot.prototype.setRobotType = function (type) {
+            this.type = type;
+            // TODO: change things
+        };
         Robot.prototype.updatePhysicsObject = function () {
             var _this_1 = this;
             this.physicsWheelsList = this.wheelsList.map(function (wheel) { return wheel.physicsBody; });
@@ -78,6 +86,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 _this.programTerminated();
             }, breakpoints);
             this.resetVariables();
+            return this.interpreter;
         };
         Robot.prototype.programTerminated = function () {
             console.log("Interpreter terminated");

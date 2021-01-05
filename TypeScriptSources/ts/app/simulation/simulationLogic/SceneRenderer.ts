@@ -4,6 +4,7 @@ import { Mouse, Vector } from 'matter-js'
 import { Scene } from './Scene';
 import { rgbToNumber } from './Color'
 import { ScrollView, ScrollViewEvent } from './ScrollView';
+import { debug } from 'console';
 
 
 
@@ -73,8 +74,20 @@ export class SceneRender {
 
     }
 
-    setPrograms(programs: any[]) {
-        this.scene.setPrograms(programs);
+    setPrograms(programs: any[], refresh: boolean, robotType: string) {
+        this.scene.setPrograms(programs, refresh, robotType);
+    }
+
+    updateDebugMode(debugMode: boolean) {
+        this.scene.updateDebugMode(debugMode);
+    }
+
+    endDebugging() {
+        this.scene.endDebugging();
+    }
+
+    interpreterAddEvent(mode: any) {
+        this.scene.interpreterAddEvent(mode);
     }
 
     startSim() {

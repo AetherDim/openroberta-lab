@@ -1,3 +1,6 @@
+
+
+
 function extendArray(array0, array1) {
 	for (var i = 0, len = array1.length; i < len; i++) {
     	array0.push(array1[i]);
@@ -6,7 +9,7 @@ function extendArray(array0, array1) {
 
 function convertArray(array, defaultPath) {
 	var result = []
-	array.forEach(element => {
+	array.forEach(function(element) {
     	if (typeof element == "string") {
         	result.push(defaultPath + element)
         } else {
@@ -33,7 +36,7 @@ function convertDictionary(dict, defaultPath) {
 
 function addPaths(defaultPaths, simulationDirectoryStructure) {
 	var simulationFilePaths = convertArray(simulationDirectoryStructure, "")
-	simulationFilePaths.forEach(path => {
+	simulationFilePaths.forEach(function(path) {
 		defaultPaths[path] = 'app/simulation/simulationLogic/'+path;
 	})
 	return defaultPaths;
@@ -105,25 +108,6 @@ require.config({
         'webview.controller': 'app/roberta/controller/webview.controller',
         'sourceCodeEditor.controller': 'app/roberta/controller/sourceCodeEditor.controller',
 
-        'simulation.constants': 'app/simulation/simulationLogic/constants',
-        'simulation.math': 'app/simulation/simulationLogic/math',
-        'simulation.robot': 'app/simulation/simulationLogic/robot',
-        'simulation.robot.draw': 'app/simulation/simulationLogic/robot.draw',
-        'simulation.robot.mbed': 'app/simulation/simulationLogic/robot.mbed',
-        'simulation.robot.calliope': 'app/simulation/simulationLogic/robot.calliope',
-        'simulation.robot.calliope2016': 'app/simulation/simulationLogic/robot.calliope2016',
-        'simulation.robot.calliope2017': 'app/simulation/simulationLogic/robot.calliope2017',
-        'simulation.robot.mbot': 'app/simulation/simulationLogic/robot.mbot',
-        'simulation.robot.microbit': 'app/simulation/simulationLogic/robot.microbit',
-        'simulation.robot.math': 'app/simulation/simulationLogic/robot.math',
-        'simulation.robot.rescue': 'app/simulation/simulationLogic/robot.rescue',
-        'simulation.robot.roberta': 'app/simulation/simulationLogic/robot.roberta',
-        'simulation.robot.simple': 'app/simulation/simulationLogic/robot.simple',
-        'simulation.robot.ev3': 'app/simulation/simulationLogic/robot.ev3',
-        'simulation.robot.nxt': 'app/simulation/simulationLogic/robot.nxt',
-        'simulation.scene': 'app/simulation/simulationLogic/scene',
-        'simulation.simulation': 'app/simulation/simulationLogic/simulation',
-
         'comm': 'helper/comm',
         'log': 'helper/log',
         'message': 'helper/msg',
@@ -149,6 +133,10 @@ require.config({
         'robotBlock': 'app/configVisualization/robotBlock',
         'wires': 'app/configVisualization/wires',
 
+
+        'simulation.constants': 'app/simulation/simulationLogic/simulation.constants',
+        'simulation.simulation': 'app/simulation/simulationLogic/simulation',
+
     },[
         'Scene',
         'SceneRenderer',
@@ -158,6 +146,7 @@ require.config({
         'Color',
         'Unit',
         'ScrollView',
+        'ProgramFlowManager',
         { 'Geometry': [
             'Line',
             'LineBaseClass',

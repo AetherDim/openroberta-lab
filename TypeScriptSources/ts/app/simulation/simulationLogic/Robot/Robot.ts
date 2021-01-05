@@ -42,7 +42,18 @@ export class Robot {
 	configuration: any = null;
 	programCode: any = null;
 
-	interpreter: Interpreter = null;
+    interpreter: Interpreter = null;
+    
+    /**
+     * robot type
+     */
+    private type: string = 'default';
+
+
+    setRobotType(type:string) {
+        this.type = type;
+        // TODO: change things
+    }
 
 
 	constructor(robot: {body: Body, leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
@@ -115,7 +126,7 @@ export class Robot {
 		right: 0
 	};
 
-	setProgram(program: any, breakpoints: any[]) {
+	setProgram(program: any, breakpoints: any[]): Interpreter {
 		const _this = this;
 		this.programCode = JSON.parse(program.javaScriptProgram);
 		this.configuration = program.javaScriptConfiguration
@@ -123,8 +134,10 @@ export class Robot {
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
 			_this.programTerminated();
 		}, breakpoints);
-		this.resetVariables()
-	}
+        this.resetVariables()
+        
+        return this.interpreter;
+    }
 
 	private programTerminated() {
 		console.log("Interpreter terminated");

@@ -1,13 +1,15 @@
-define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./Robot/ElectricMotor", "./Timer", "./Unit", "./Geometry/Polygon", "./ScrollView", "./pixijs"], function (require, exports, Robot_1, Displayable_1, matter_js_1, ElectricMotor_1, Timer_1, Unit_1, Polygon_1, ScrollView_1) {
+define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./Robot/ElectricMotor", "./Timer", "./Unit", "./Geometry/Polygon", "./ScrollView", "./ProgramFlowManager", "./pixijs"], function (require, exports, Robot_1, Displayable_1, matter_js_1, ElectricMotor_1, Timer_1, Unit_1, Polygon_1, ScrollView_1, ProgramFlowManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
     var Scene = /** @class */ (function () {
         function Scene() {
             /**
-             * All robots within the scene
+             * All programmable robots within the scene.
+             * The program flow manager will use the robots internally.
              */
             this.robots = new Array();
+            this.programFlowManager = new ProgramFlowManager_1.ProgramFlowManager(this);
             //
             // #############################################################################
             //
@@ -177,6 +179,15 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
             this.simSleepTime = simSleepTime;
             this.simTicker.sleepTime = simSleepTime;
         };
+        Scene.prototype.updateDebugMode = function (debugMode) {
+            this.programFlowManager.updateDebugMode(debugMode);
+        };
+        Scene.prototype.endDebugging = function () {
+            this.programFlowManager.endDebugging();
+        };
+        Scene.prototype.interpreterAddEvent = function (mode) {
+            this.programFlowManager.interpreterAddEvent(mode);
+        };
         Scene.prototype.setSimulationEngine = function (sceneRenderer) {
             if (sceneRenderer === void 0) { sceneRenderer = null; }
             if (sceneRenderer) {
@@ -222,13 +233,14 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
                 this.onFirstLoad();
             }
         };
-        Scene.prototype.setPrograms = function (programs) {
-            if (programs.length < this.robots.length) {
-                console.error("not enough programs!");
-                return;
-            }
-            for (var i = 0; i < this.robots.length; i++) {
-                this.robots[i].setProgram(programs[i], []); // TODO: breakpoints
+        Scene.prototype.setPrograms = function (programs, refresh, robotType) {
+            this.programFlowManager.setPrograms(programs);
+            // the original simulation.js would replace all robots if refresh is true
+            // we will only change the type (The robot should manage anything type related internally)
+            if (refresh) {
+                this.robots.forEach(function (robot) {
+                    robot.setRobotType(robotType);
+                });
             }
         };
         Scene.prototype.interactionEvent = function (ev) {
@@ -259,7 +271,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
         Scene.prototype.getBodiesAt = function (position, singleBody) {
             if (singleBody === void 0) { singleBody = false; }
             var intersected = [];
-            var bodies = matter_js_1.World.allBodies(this.engine.world);
+            var bodies = matter_js_1.Composite.allBodies(this.engine.world);
             // code borrowed from Matterjs MouseConstraint
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
@@ -393,6 +405,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
             var _this_1 = this;
             this.onUpdate();
             this.robots.forEach(function (robot) { return robot.update(_this_1.dt); }); // update robots
+            this.programFlowManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // update rendering positions
             // TODO: switch to scene internal drawable list? better performance???
