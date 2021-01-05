@@ -67,9 +67,7 @@ export class Wheel {
 		this.debugText = new PIXI.Text("")
 		this.debugText.style = new PIXI.TextStyle({fill: 0x0000})
 		this.debugText.angle = 45
-		this.debugText.scale.x = 0.001
-		this.debugText.scale.y = 0.001
-		//this.debugContainer.addChild(this.debugText)
+		// this.debugContainer.addChild(this.debugText)
 		// container.addChild(this.debugText)
 		container.addChild(this.debugContainer)
 
@@ -119,7 +117,7 @@ export class Wheel {
 			profileGraphics.scale.x = Math.sin(angle)
 		}
 
-		//this.debugText.text = "" + (this.angularVelocity * this.wheelRadius - this.physicsBody.velocityAlongBody())//(this.angularVelocity / (2 * Math.PI))
+		//this.debugText.text = "" + Unit.fromVelocity(this.angularVelocity * this.wheelRadius - this.physicsBody.velocityAlongBody())//(this.angularVelocity / (2 * Math.PI))
 		
 		// this.pixiContainer.removeChild(this.wheelDebugObject)
 		// this.wheelDebugObject.destroy()

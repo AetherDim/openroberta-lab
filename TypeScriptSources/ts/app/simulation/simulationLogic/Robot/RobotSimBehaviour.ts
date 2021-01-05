@@ -2,13 +2,42 @@ import { ARobotBehaviour } from "../interpreter.aRobotBehaviour";
 import { State } from "../interpreter.state";
 import * as C from "../interpreter.constants";
 import * as U from "../interpreter.util";
+import { Robot } from "./Robot";
+import { Unit } from "../Unit";
 
 export class RobotSimBehaviour extends ARobotBehaviour {
+
+	/**
+	 * Drive action of the robot
+	 */
+	drive?: {
+		distance?: number,
+		/** speed in the interval [-1, 1] */
+		speed?: { left: number, right: number },
+		time?: number
+	} = null
+
+	/**
+	 * Rotation action which rotates left iff `angle * speed > 0`.
+	 */
+	rotate?: {
+		/** In radians. A positive angle indicates a left rotation (right hand rule) for positive speeds. */
+		angle?: number,
+		/** always the actual rotation direction */
+		rotateLeft: boolean,
+		/** Speed in the interval [-1, 1]. The magnitude of speed might be used if `angle` is null */
+		speed: number
+	} = null
 
 	constructor() {
 		super();
 		this.hardwareState.motors = {};
 		U.loggingEnabled(false, false);
+	}
+
+	resetCommands() {
+		this.rotate = null
+		this.drive = null
 	}
 
 	private clampSpeed(speed: number): number {
@@ -232,9 +261,32 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		this.motorOnAction(name, port, 0, 0);
 	}
 
-	public driveAction(name: string, direction: string, speed: number, distance: number, time: number ): number {
+	public driveAction(name: string, direction: string, speed: number, distance: number, time: number): number {
 		speed = this.clampSpeed(speed)
-		
+
+		const t = true
+		if (t) {
+
+			// Handle direction
+			if (direction != C.FOREWARD) {
+				speed *= -1
+			}
+			// This is to handle 0 distance being passed in
+			if (distance === 0) {
+				speed = 0
+			}
+
+			this.drive = {
+				// convert distance from cm to m
+				distance: distance ? Unit.getLength(distance * 0.01) : null,
+				// convert speed from precent to fraction
+				speed: (speed ? { left: speed * 0.01, right: speed * 0.01} : null),
+				time: time ? Unit.getTime(time) : null
+			}
+
+			return 1
+		}
+	
 		const robotText = 'robot: ' + name + ', direction: ' + direction;
 		const durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
 		U.debug(robotText + ' motor speed ' + speed + durText);
@@ -272,6 +324,31 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	public curveAction(name: string, direction: string, speedL: number, speedR: number, distance: number, time: number ): number {
 		speedL = this.clampSpeed(speedL)
 		speedR = this.clampSpeed(speedR)
+
+		const t = true
+		if (t) {
+
+			// Handle direction
+			if (direction != C.FOREWARD) {
+				speedL *= -1
+				speedR *= -1
+			}
+			// This is to handle 0 distance being passed in
+			if (distance === 0) {
+				speedR = 0
+				speedL = 0
+			}
+
+			this.drive = {
+				// convert distance from cm to m
+				distance: distance ? Unit.getLength(distance * 0.01) : null,
+				// convert speedL and speedR from precent to fraction
+				speed: { left: speedL * 0.01, right: speedR * 0.01},
+				time: Unit.getTime(time) || null
+			}
+
+			return 1;
+		}
 
 		const robotText = 'robot: ' + name + ', direction: ' + direction;
 		const durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
@@ -312,6 +389,30 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 
 	public turnAction(name: string, direction: string, speed: number, angle: number, time: number ): number {
 		speed = this.clampSpeed(speed)
+
+		const t = true
+		if (t) {
+			
+			// This is to handle negative values entered in the degree parameter in the turn block
+			if (direction != C.LEFT && angle) {
+				angle *= -1
+			}
+
+			// This is to handle a speed of 0 being passed in
+			if (speed === 0) {
+				angle = 0;
+			}
+
+			this.rotate = {
+				// convert angle from degrees to radians
+				angle: angle ? angle * Math.PI / 180 : null,
+				rotateLeft: (angle ? angle > 0 : direction == C.LEFT) == (speed > 0),
+				// convert speed from precent to fraction
+				speed: speed * 0.01
+			}
+
+			return 1
+		}
 		
 		const robotText = 'robot: ' + name + ', direction: ' + direction;
 		const durText = angle === undefined ? ' w.o. duration' : (' for ' + angle + ' msec');
@@ -358,6 +459,12 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 
 	public driveStop(name: string): void {
 		U.debug('robot: ' + name + ' stop motors');
+
+		const t = true
+		if (t) {
+			this.drive = { speed: { left: 0, right: 0 }}
+			return
+		}
 		if (this.hardwareState.actions.motors == undefined) {
 			this.hardwareState.actions.motors = {};
 		}

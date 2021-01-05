@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.constants", "../interpreter.util"], function (require, exports, interpreter_aRobotBehaviour_1, C, U) {
+define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.constants", "../interpreter.util", "../Unit"], function (require, exports, interpreter_aRobotBehaviour_1, C, U, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RobotSimBehaviour = void 0;
@@ -19,10 +19,22 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
         __extends(RobotSimBehaviour, _super);
         function RobotSimBehaviour() {
             var _this = _super.call(this) || this;
+            /**
+             * Drive action of the robot
+             */
+            _this.drive = null;
+            /**
+             * Rotation action which rotates left iff `angle * speed > 0`.
+             */
+            _this.rotate = null;
             _this.hardwareState.motors = {};
             U.loggingEnabled(false, false);
             return _this;
         }
+        RobotSimBehaviour.prototype.resetCommands = function () {
+            this.rotate = null;
+            this.drive = null;
+        };
         RobotSimBehaviour.prototype.clampSpeed = function (speed) {
             return Math.min(100, Math.max(-100, speed));
         };
@@ -227,6 +239,25 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
         };
         RobotSimBehaviour.prototype.driveAction = function (name, direction, speed, distance, time) {
             speed = this.clampSpeed(speed);
+            var t = true;
+            if (t) {
+                // Handle direction
+                if (direction != C.FOREWARD) {
+                    speed *= -1;
+                }
+                // This is to handle 0 distance being passed in
+                if (distance === 0) {
+                    speed = 0;
+                }
+                this.drive = {
+                    // convert distance from cm to m
+                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : null,
+                    // convert speed from precent to fraction
+                    speed: (speed ? { left: speed * 0.01, right: speed * 0.01 } : null),
+                    time: time ? Unit_1.Unit.getTime(time) : null
+                };
+                return 1;
+            }
             var robotText = 'robot: ' + name + ', direction: ' + direction;
             var durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
             U.debug(robotText + ' motor speed ' + speed + durText);
@@ -262,6 +293,27 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
         RobotSimBehaviour.prototype.curveAction = function (name, direction, speedL, speedR, distance, time) {
             speedL = this.clampSpeed(speedL);
             speedR = this.clampSpeed(speedR);
+            var t = true;
+            if (t) {
+                // Handle direction
+                if (direction != C.FOREWARD) {
+                    speedL *= -1;
+                    speedR *= -1;
+                }
+                // This is to handle 0 distance being passed in
+                if (distance === 0) {
+                    speedR = 0;
+                    speedL = 0;
+                }
+                this.drive = {
+                    // convert distance from cm to m
+                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : null,
+                    // convert speedL and speedR from precent to fraction
+                    speed: { left: speedL * 0.01, right: speedR * 0.01 },
+                    time: Unit_1.Unit.getTime(time) || null
+                };
+                return 1;
+            }
             var robotText = 'robot: ' + name + ', direction: ' + direction;
             var durText = distance === undefined ? ' w.o. duration' : (' for ' + distance + ' msec');
             U.debug(robotText + ' left motor speed ' + speedL + ' right motor speed ' + speedR + durText);
@@ -299,6 +351,25 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
         };
         RobotSimBehaviour.prototype.turnAction = function (name, direction, speed, angle, time) {
             speed = this.clampSpeed(speed);
+            var t = true;
+            if (t) {
+                // This is to handle negative values entered in the degree parameter in the turn block
+                if (direction != C.LEFT && angle) {
+                    angle *= -1;
+                }
+                // This is to handle a speed of 0 being passed in
+                if (speed === 0) {
+                    angle = 0;
+                }
+                this.rotate = {
+                    // convert angle from degrees to radians
+                    angle: angle ? angle * Math.PI / 180 : null,
+                    rotateLeft: (angle ? angle > 0 : direction == C.LEFT) == (speed > 0),
+                    // convert speed from precent to fraction
+                    speed: speed * 0.01
+                };
+                return 1;
+            }
             var robotText = 'robot: ' + name + ', direction: ' + direction;
             var durText = angle === undefined ? ' w.o. duration' : (' for ' + angle + ' msec');
             U.debug(robotText + ' motor speed ' + speed + durText);
@@ -341,6 +412,11 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
         };
         RobotSimBehaviour.prototype.driveStop = function (name) {
             U.debug('robot: ' + name + ' stop motors');
+            var t = true;
+            if (t) {
+                this.drive = { speed: { left: 0, right: 0 } };
+                return;
+            }
             if (this.hardwareState.actions.motors == undefined) {
                 this.hardwareState.actions.motors = {};
             }

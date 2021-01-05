@@ -14,11 +14,10 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 left: 0,
                 right: 0
             };
-            // TODO: Workaround for now
-            this.time = 0;
-            this.nextTime = 0;
             this.wheelDriveFriction = 0.03;
             this.wheelSlideFriction = 0.07;
+            this.needsNewCommands = true;
+            this.endEncoder = null;
             this.body = robot.body;
             this.leftDrivingWheel = robot.leftDrivingWheel;
             this.rightDrivingWheel = robot.rightDrivingWheel;
@@ -76,10 +75,11 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.configuration = program.javaScriptConfiguration;
             this.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour();
             this.interpreter = new interpreter_interpreter_1.Interpreter(this.programCode, this.robotBehaviour, function () {
-                _this.programTermineted();
+                _this.programTerminated();
             }, breakpoints);
+            this.resetVariables();
         };
-        Robot.prototype.programTermineted = function () {
+        Robot.prototype.programTerminated = function () {
             console.log("Interpreter terminated");
         };
         // TODO: (Remove) it is an old but simpler implementation than `Wheel`
@@ -92,8 +92,11 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             // force/mass * dt
             matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.mult(velocityChange, wheel.mass / dt));
         };
+        Robot.prototype.resetVariables = function () {
+            this.needsNewCommands = true;
+            this.endEncoder = null;
+        };
         Robot.prototype.update = function (dt) {
-            this.time += dt;
             // update wheels velocities
             // this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
             var gravitationalAcceleration = Unit_1.Unit.getAcceleration(9.81);
@@ -105,19 +108,90 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             if (!this.robotBehaviour || !this.interpreter) {
                 return;
             }
-            if (!this.interpreter.isTerminated()) {
-                var delay = this.interpreter.runNOperations(3) / 1000;
-                if (delay != 0) {
-                    this.nextTime = this.time + delay;
+            if (!this.interpreter.isTerminated() && this.needsNewCommands) {
+                var delay = this.interpreter.runNOperations(1000) / 1000;
+            }
+            var speed = { left: 0, right: 0 };
+            var t = this;
+            /**
+             * Uses `encoder` to reach the values of `endEncoder` by setting the appropriate values
+             *
+             * @param speedLeft Use magnitude as maximum left speed (can be negative)
+             * @param speedRight Use magnitude as maximum right speed (can be negative)
+             */
+            function useEndEncoder(speedLeft, speedRight) {
+                var encoderDifference = {
+                    left: t.endEncoder.left - t.encoder.left,
+                    right: t.endEncoder.right - t.encoder.right
+                };
+                if (Math.abs(encoderDifference.left) < 0.1 && Math.abs(encoderDifference.right) < 0.1) {
+                    // on end
+                    t.endEncoder = null;
+                    t.robotBehaviour.resetCommands();
+                    t.needsNewCommands = true;
+                }
+                else {
+                    speed.left = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft);
+                    speed.right = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight);
                 }
             }
-            if (this.nextTime < this.time) {
-                this.robotBehaviour.setBlocking(false);
+            var driveData = this.robotBehaviour.drive;
+            if (driveData) {
+                // handle `driveAction` and `curveAction`
+                if (driveData.distance && driveData.speed) {
+                    // on start
+                    if (!this.endEncoder) {
+                        this.needsNewCommands = false;
+                        var averageSpeed = 0.5 * (Math.abs(driveData.speed.left) + Math.abs(driveData.speed.right));
+                        this.endEncoder = {
+                            left: this.encoder.left + driveData.distance / this.leftDrivingWheel.wheelRadius * driveData.speed.left / averageSpeed,
+                            right: this.encoder.right + driveData.distance / this.rightDrivingWheel.wheelRadius * driveData.speed.right / averageSpeed
+                        };
+                    }
+                    useEndEncoder(driveData.speed.left, driveData.speed.right);
+                }
+                if (driveData.speed && !driveData.distance && !driveData.distance) {
+                    speed.left = driveData.speed.left;
+                    speed.right = driveData.speed.right;
+                    this.robotBehaviour.drive = null;
+                }
             }
+            var rotateData = this.robotBehaviour.rotate;
+            if (rotateData) {
+                if (rotateData.angle) {
+                    if (!this.endEncoder) {
+                        this.needsNewCommands = false;
+                        /** also wheel distance */
+                        var axleLength = matter_js_1.Vector.magnitude(matter_js_1.Vector.sub(this.leftDrivingWheel.physicsBody.position, this.rightDrivingWheel.physicsBody.position));
+                        var wheelDrivingDistance = rotateData.angle * 0.5 * axleLength;
+                        // left rotation for `angle * speed > 0`
+                        var rotationFactor = Math.sign(rotateData.speed);
+                        this.endEncoder = {
+                            left: this.encoder.left - wheelDrivingDistance / this.leftDrivingWheel.wheelRadius * rotationFactor,
+                            right: this.encoder.right + wheelDrivingDistance / this.rightDrivingWheel.wheelRadius * rotationFactor
+                        };
+                    }
+                    useEndEncoder(rotateData.speed, rotateData.speed);
+                }
+                else {
+                    var rotationSpeed = Math.abs(rotateData.speed);
+                    if (rotateData.rotateLeft) {
+                        speed.left = -rotationSpeed;
+                        speed.right = rotationSpeed;
+                    }
+                    else {
+                        speed.left = rotationSpeed;
+                        speed.right = -rotationSpeed;
+                    }
+                    this.robotBehaviour.rotate = null;
+                }
+            }
+            this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(), speed.left);
+            this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(), speed.right);
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {
-                var maxForce_1 = true ? 0.01 : interpreter_constants_1.MAXPOWER;
+                var maxForce = true ? 0.01 : interpreter_constants_1.MAXPOWER;
                 var left = motors.c;
                 if (left !== undefined) {
                     if (left > 100) {
@@ -126,7 +200,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                     else if (left < -100) {
                         left = -100;
                     }
-                    this.leftForce = left * maxForce_1;
+                    this.leftForce = left * maxForce;
                 }
                 var right = motors.b;
                 if (right !== undefined) {
@@ -136,18 +210,17 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                     else if (right < -100) {
                         right = -100;
                     }
-                    this.rightForce = right * maxForce_1;
+                    this.rightForce = right * maxForce;
                 }
             }
             // this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
             // this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
-            var maxForce = 1000 * 1000 * 1000;
-            this.leftDrivingWheel.applyTorqueFromMotor(new ElectricMotor_1.ElectricMotor(2, maxForce), this.leftForce);
-            this.rightDrivingWheel.applyTorqueFromMotor(new ElectricMotor_1.ElectricMotor(2, maxForce), this.rightForce);
+            // this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(), this.leftForce)
+            // this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(), this.rightForce)
             var leftWheelVelocity = this.velocityAlongBody(this.leftDrivingWheel.physicsBody);
             var rightWheelVelocity = this.velocityAlongBody(this.rightDrivingWheel.physicsBody);
-            this.encoder.left += leftWheelVelocity * dt;
-            this.encoder.right += rightWheelVelocity * dt;
+            this.encoder.left = this.leftDrivingWheel.wheelAngle; //leftWheelVelocity * dt;
+            this.encoder.right = this.rightDrivingWheel.wheelAngle; //rightWheelVelocity * dt;
             var encoder = this.robotBehaviour.getActionState("encoder", true);
             if (encoder) {
                 if (encoder.leftReset) {
