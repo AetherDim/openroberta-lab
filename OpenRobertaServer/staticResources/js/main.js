@@ -138,7 +138,6 @@ require.config({
         'simulation.simulation': 'app/simulation/simulationLogic/simulation',
 
     },[
-        'Scene',
         'SceneRenderer',
         'Timer',
         'ExtendedMatter',
@@ -146,7 +145,13 @@ require.config({
         'Color',
         'Unit',
         'ScrollView',
-        'ProgramFlowManager',
+        'ProgramManager',
+        {
+            'Scene': [
+                'Scene',
+                'TestScene',
+            ]
+        },
         { 'Geometry': [
             'Line',
             'LineBaseClass',

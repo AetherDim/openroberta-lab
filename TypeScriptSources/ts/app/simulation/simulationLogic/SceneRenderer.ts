@@ -1,7 +1,7 @@
 import './pixijs'
 import * as $ from "jquery";
 import { Mouse, Vector } from 'matter-js'
-import { Scene } from './Scene';
+import { Scene } from './Scene/Scene';
 import { rgbToNumber } from './Color'
 import { ScrollView, ScrollViewEvent } from './ScrollView';
 import { debug } from 'console';
@@ -74,18 +74,6 @@ export class SceneRender {
 
     }
 
-    setPrograms(programs: any[], refresh: boolean, robotType: string) {
-        this.scene.setPrograms(programs, refresh, robotType);
-    }
-
-    startSim() {
-        this.scene.startSim();
-    }
-
-    stopSim() {
-        this.scene.stopSim();
-    }
-
     getScene() {
         return this.scene;
     }
@@ -113,23 +101,32 @@ export class SceneRender {
         if(this.scrollView.children.length > 0) {
             this.scrollView.removeChildren(0, this.scrollView.children.length-1);
         }
+
         // reset rendering scale and offset
-        //this.setRenderingScaleAndOffset(1, Vector.create(0, 0))
+        this.scrollView.reset();
 
         this.scene = scene
 
-        //scene.initMouse(this.mouse);
         scene.setSimulationEngine(this);
-        
-        // TODO
 
     }
 
-    addDiplayable(displayable: PIXI.DisplayObject) {
+
+    // TODO: remove before add? only add once?
+
+    addDisplayable(displayable: PIXI.DisplayObject) {
         this.scrollView.addChild(displayable);
     }
 
     removeDisplayable(displayable: PIXI.DisplayObject) {
+        this.scrollView.removeChild(displayable);
+    }
+
+    add(displayable: PIXI.DisplayObject) {
+        this.scrollView.addChild(displayable);
+    }
+
+    remove(displayable: PIXI.DisplayObject) {
         this.scrollView.removeChild(displayable);
     }
 

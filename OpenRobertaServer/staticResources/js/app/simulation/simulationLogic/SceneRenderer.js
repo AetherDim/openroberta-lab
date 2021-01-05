@@ -1,4 +1,4 @@
-define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", "./pixijs"], function (require, exports, $, Scene_1, Color_1, ScrollView_1) {
+define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollView", "./pixijs"], function (require, exports, $, Scene_1, Color_1, ScrollView_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SceneRender = void 0;
@@ -55,15 +55,6 @@ define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", ".
                 }
             }, this);
         }
-        SceneRender.prototype.setPrograms = function (programs, refresh, robotType) {
-            this.scene.setPrograms(programs, refresh, robotType);
-        };
-        SceneRender.prototype.startSim = function () {
-            this.scene.startSim();
-        };
-        SceneRender.prototype.stopSim = function () {
-            this.scene.stopSim();
-        };
         SceneRender.prototype.getScene = function () {
             return this.scene;
         };
@@ -86,16 +77,21 @@ define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", ".
                 this.scrollView.removeChildren(0, this.scrollView.children.length - 1);
             }
             // reset rendering scale and offset
-            //this.setRenderingScaleAndOffset(1, Vector.create(0, 0))
+            this.scrollView.reset();
             this.scene = scene;
-            //scene.initMouse(this.mouse);
             scene.setSimulationEngine(this);
-            // TODO
         };
-        SceneRender.prototype.addDiplayable = function (displayable) {
+        // TODO: remove before add? only add once?
+        SceneRender.prototype.addDisplayable = function (displayable) {
             this.scrollView.addChild(displayable);
         };
         SceneRender.prototype.removeDisplayable = function (displayable) {
+            this.scrollView.removeChild(displayable);
+        };
+        SceneRender.prototype.add = function (displayable) {
+            this.scrollView.addChild(displayable);
+        };
+        SceneRender.prototype.remove = function (displayable) {
             this.scrollView.removeChild(displayable);
         };
         return SceneRender;

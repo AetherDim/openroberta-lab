@@ -1,13 +1,15 @@
 import { SceneRender } from './SceneRenderer'
 import './ExtendedMatter'
 import { debug } from 'console';
+import { TestScene } from './Scene/TestScene';
 
-var engine = new SceneRender('sceneCanvas', 'simDiv');
+var engine = new SceneRender('sceneCanvas', 'simDiv', new TestScene());
 engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
 
-engine.getScene().testPhysics();
 
+
+// store old programs
 let storedPrograms:any[];
 let storedRobotType:string;
 
@@ -21,23 +23,19 @@ export function init(programs: any[], refresh: boolean, robotType: string) {
     storedPrograms = programs;
     storedRobotType = robotType;
 
-    //$('#blockly').openRightView("sim", 0.5);
-    console.log("init simulation");
+    //$('simScene').hide();
 
-    engine.setPrograms(programs, refresh, robotType);
-
-    // TODO: reset scene on refresh
+    engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
 }
 
 
 export function getNumRobots(): number {
-    let scene = engine.getScene();
-    return scene ? scene.robots.length : 0;
+    return engine.getScene().getNumberOfRobots();
 }
 
 
 export function setPause(pause:boolean) {
-    engine.getScene().programFlowManager.setProgramPause(pause);
+    engine.getScene().getProgramManager().setProgramPause(pause);
 }
 
 export function run(refresh:boolean, robotType: any) {
@@ -49,12 +47,11 @@ export function run(refresh:boolean, robotType: any) {
  */
 export function stopProgram() {
     // TODO: reset robot?
-    engine.getScene().programFlowManager.stopProgram();
+    engine.getScene().getProgramManager().stopProgram();
     init(storedPrograms, false, storedRobotType);
 }
 
 export function importImage() {
-    // TODO: remove
     alert('This function is not supported, sorry :(');
 }
 
@@ -67,20 +64,20 @@ export function resetPose() {
 }
 
 export function updateDebugMode(debugMode:boolean) {
-    engine.getScene().programFlowManager.updateDebugMode(debugMode);
+    engine.getScene().getProgramManager().updateDebugMode(debugMode);
 }
 
 export function endDebugging() {
-    engine.getScene().programFlowManager.endDebugging();
+    engine.getScene().getProgramManager().endDebugging();
 }
 
 export function interpreterAddEvent(event:any) {
-    engine.getScene().programFlowManager.interpreterAddEvent(event);
+    engine.getScene().getProgramManager().interpreterAddEvent(event);
 }
 
 /**
  * on simulation close
  */
 export function cancel() {
-    engine.getScene().programFlowManager.stopProgram();
+    engine.getScene().getProgramManager().stopProgram();
 }

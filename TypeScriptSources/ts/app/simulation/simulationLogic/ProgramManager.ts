@@ -2,9 +2,9 @@ import Blockly = require("blockly");
 import * as CONSTANTS from "./simulation.constants";
 import { Interpreter } from "./interpreter.interpreter";
 import { Robot } from "./Robot/Robot";
-import { Scene } from "./Scene";
+import { Scene } from "./Scene/Scene";
 
-export class ProgramFlowManager {
+export class ProgramManager {
     
     readonly scene: Scene;
     readonly robots: Robot[];
@@ -15,15 +15,20 @@ export class ProgramFlowManager {
     private breakpoints = [];
     private observers = {};
     private interpreters: Interpreter[] = [];
+    private initialized = false;
+
+    hasBeenInitialized(): boolean {
+        return this.initialized;
+    }
 
     constructor(scene: Scene) {
         this.scene = scene;
         this.robots = scene.robots;
     }
 
-    setPrograms(programs: any[]) {
+    setPrograms(programs: any[], refresh: boolean = false, robotType: string = null) {
         if(programs.length < this.robots.length) {
-            console.warn("not enough programs!");
+            console.warn("Not enough programs!");
         }
 
         this.interpreters = [];
@@ -36,7 +41,7 @@ export class ProgramFlowManager {
 
         for(let i = 0; i < programs.length; i++) {
             if(i >= this.robots.length) {
-                console.error('Not enough robots, too many programs!');
+                console.info('Not enough robots, too many programs!');
                 break;
             }
             // I think we can use a single breakpoints array for all interpreters, because 
@@ -46,6 +51,18 @@ export class ProgramFlowManager {
 
         this.updateDebugMode(this.debugMode);
         this.setSimRunButton(this.programPaused);
+
+
+        // TODO:
+        // the original simulation.js would replace all robots if refresh is true
+        // we will only change the type (The robot should manage anything type related internally)
+        if(refresh) {
+            this.robots.forEach(robot => {
+                robot.setRobotType(robotType);
+            });
+        }
+
+        this.initialized = true;
     }
 
     isProgramPaused(): boolean {
@@ -216,8 +233,11 @@ export class ProgramFlowManager {
     updateDebugMode(mode: boolean) {
         this.debugMode = mode;
 
-        for (var i = 0; i < this.robots.length; i++) {
-            this.interpreters[i].setDebugMode(mode);
+        for (var i = 0; i < this.interpreters.length; i++) {
+            // TODO: do we need this?
+            if(i < this.robots.length) {
+                this.interpreters[i].setDebugMode(mode);
+            }
         }
         this.updateBreakpointEvent();
     }
@@ -230,8 +250,11 @@ export class ProgramFlowManager {
             }
         }
         if (!(this.breakpoints.length > 0) && this.interpreters !== null) {
-            for (var i = 0; i < this.robots.length; i++) {
-                this.interpreters[i].removeEvent(CONSTANTS.DEBUG_BREAKPOINT);
+            for (var i = 0; i < this.interpreters.length; i++) {
+                // TODO: do we need this?
+                if(i < this.robots.length) {
+                    this.interpreters[i].removeEvent(CONSTANTS.DEBUG_BREAKPOINT);
+                }
             }
         }
     }
@@ -239,8 +262,9 @@ export class ProgramFlowManager {
     /** adds an event to the interpreters */
     interpreterAddEvent(mode: any) {
         this.updateBreakpointEvent();
-        if (this.interpreters !== null) {
-            for (var i = 0; i < this.robots.length; i++) {
+        for (var i = 0; i < this.interpreters.length; i++) {
+            // TODO: do we need this?
+            if(i < this.robots.length) {
                 this.interpreters[i].addEvent(mode);
             }
         }
@@ -249,9 +273,12 @@ export class ProgramFlowManager {
     /** called to signify debugging is finished in simulation */
     endDebugging() {
         if (this.interpreters !== null) {
-            for (var i = 0; i < this.robots.length; i++) {
-                this.interpreters[i].setDebugMode(false);
-                this.interpreters[i].breakpoints = [];
+            for (var i = 0; i < this.interpreters.length; i++) {
+                // TODO: do we need this?
+                if(i < this.robots.length) {
+                    this.interpreters[i].setDebugMode(false);
+                    this.interpreters[i].breakpoints = [];
+                }
             }
         }
         let _this = this;

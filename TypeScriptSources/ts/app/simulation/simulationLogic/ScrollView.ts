@@ -418,6 +418,10 @@ export class ScrollView extends PIXI.Container {
       this.registerEventListeners();
   }
 
+  reset() {
+    this.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
+  }
+
   /**
    * update hitbox for mouse interactions
    */

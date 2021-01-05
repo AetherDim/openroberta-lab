@@ -1,16 +1,19 @@
-import './pixijs'
-import { Robot } from './Robot/Robot';
-import { createDisplayableFromBody, createRect, Displayable } from './Displayable';
+import '../pixijs'
+import { Robot } from '../Robot/Robot';
+import { createDisplayableFromBody, createRect, Displayable } from '../Displayable';
 import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping, Bounds, Vertices, Composites } from 'matter-js';
-import { ElectricMotor } from './Robot/ElectricMotor';
-import { SceneRender } from './SceneRenderer';
-import { Timer } from './Timer';
-import { Unit } from './Unit'
-import { Polygon } from './Geometry/Polygon';
-import { EventType, ScrollViewEvent } from './ScrollView';
-import { ProgramFlowManager } from './ProgramFlowManager';
+import { ElectricMotor } from '../Robot/ElectricMotor';
+import { SceneRender } from '../SceneRenderer';
+import { Timer } from '../Timer';
+import { Unit } from '../Unit'
+import { Polygon } from '../Geometry/Polygon';
+import { EventType, ScrollViewEvent } from '../ScrollView';
+import { ProgramManager } from '../ProgramManager';
 
 export class Scene {
+
+
+    protected numberOfRobots = 1;
 
     /**
      * All programmable robots within the scene.
@@ -18,8 +21,19 @@ export class Scene {
      */
     readonly robots: Array<Robot> = new Array<Robot>();
 
-    readonly programFlowManager = new ProgramFlowManager(this);
+    readonly programManager = new ProgramManager(this);
 
+    getProgramManager(): ProgramManager {
+        return this.programManager;
+    }
+
+    getRobots(): Robot[] {
+        return this.robots;
+    }
+
+    getNumberOfRobots(): number {
+        return this.numberOfRobots;
+    }
 
     //
     // #############################################################################
@@ -86,12 +100,12 @@ export class Scene {
     }
 
     protected registerContainersToEngine() {
-        this.sceneRenderer.addDiplayable(this.groundContainer);
-        this.sceneRenderer.addDiplayable(this.groundAnimationContainer);
-        this.sceneRenderer.addDiplayable(this.entityBottomContainer);
-        this.sceneRenderer.addDiplayable(this.entityContainer);
-        this.sceneRenderer.addDiplayable(this.entityTopContainer);
-        this.sceneRenderer.addDiplayable(this.topContainer);
+        this.sceneRenderer.addDisplayable(this.groundContainer);
+        this.sceneRenderer.addDisplayable(this.groundAnimationContainer);
+        this.sceneRenderer.addDisplayable(this.entityBottomContainer);
+        this.sceneRenderer.addDisplayable(this.entityContainer);
+        this.sceneRenderer.addDisplayable(this.entityTopContainer);
+        this.sceneRenderer.addDisplayable(this.topContainer);
     }
 
     //
@@ -141,24 +155,60 @@ export class Scene {
         this.loadingAnimation.rotation += 0.05*dt;
     }
 
-    /**
-     * contains all currently registered displayebles
-     * scene will destroy them all if destroy() is called
-     * if a displayable is removed, it shall be destroyed
-     */
-    private readonly displayables: Array<Displayable> = new Array<Displayable>();
+    //
+    // #############################################################################
+    //
 
-    /**
-     * contains all currently registered displayebles for debugging
-     * scene will destroy them all if destroy() is called
-     * if a displayable is removed, it shall be destroyed
-     */
-    private readonly debugDisplayables: Array<Displayable> = new Array<Displayable>();
+    private hasFinishedLoading = false;
+    private startedLoading = false;
+    private needsInit = false;
+
+    finishedLoading() {
+        this.hasFinishedLoading = true;
+        this.startedLoading = true; // for safety
+
+        this.sceneRenderer.removeDisplayable(this.loadingContainer);
+        this.registerContainersToEngine(); // register rendering containers
+
+        if(this.needsInit) {
+            this.onInit();
+            this.needsInit = false;
+        }
+
+        // auto start simulation
+        this.startSim();
+        
+    }
+
+    startLoading() {
+        if(!this.startedLoading && !this.hasFinishedLoading) {
+            this.startedLoading = true;
+            this.sceneRenderer.addDisplayable(this.loadingContainer);
+            this.onFirstLoad();
+        }
+    }
+
+    //
+    // #############################################################################
+    //
 
     /**
      * Physics engine used by the scene
      */
     readonly engine: Engine = Engine.create();
+
+    /**
+     * current delta time for the physics simulation
+     */
+    private dt = 0.016;
+
+    setDT(dt: number) {
+        this.dt = dt;
+    }
+
+    //
+    // #############################################################################
+    //
 
     /**
      * sleep time before calling update
@@ -187,33 +237,15 @@ export class Scene {
         this.simTicker.sleepTime = simSleepTime;
     }
 
-    updateDebugMode(debugMode: boolean) {
-        this.programFlowManager.updateDebugMode(debugMode);
-    }
-
-    endDebugging() {
-        this.programFlowManager.endDebugging();
-    }
-
-    interpreterAddEvent(mode: any) {
-        this.programFlowManager.interpreterAddEvent(mode);
-    }
-
-    setProgramPause(pause: boolean) {
-        this.programFlowManager.setProgramPause(pause);
-    }
-
+    //
+    // #############################################################################
+    //
 
 
     /**
      * Debug renderer used by the scene for all registered physics object
      */
     private debugRenderer: Render = null;
-
-    /**
-     * current delta time for the physics simulation
-     */
-    private dt = 0.016;
 
     /**
      * whether to create debug displayables to show all physics objects
@@ -225,6 +257,10 @@ export class Scene {
      * current rendering instance
      */
     private sceneRenderer: SceneRender = null;
+
+    getRenderer(): SceneRender {
+        return this.sceneRenderer;
+    }
 
     setSimulationEngine(sceneRenderer: SceneRender = null) {
         if(sceneRenderer) {
@@ -258,36 +294,16 @@ export class Scene {
         }
     }
 
-
-
-    private hasFinishedLoading = false;
-    private startedLoading = false;
-    private needsInit = false;
-
-    finishedLoading() {
-        this.hasFinishedLoading = true;
-        this.startedLoading = true; // for savety
-
-        this.sceneRenderer.removeDisplayable(this.loadingContainer);
-        this.registerContainersToEngine(); // register rendering containers
-
-        if(this.needsInit) {
-            this.onInit();
-            this.needsInit = false;
+    renderTick(dt) {
+        if(this.startedLoading && !this.hasFinishedLoading) {
+            this.updateLoadingAnimation(dt);
         }
-
-        // auto start simulation
-        this.startSim();
-        
+        this.onRenderTick(dt);
     }
 
-    startLoading() {
-        if(!this.startedLoading && !this.hasFinishedLoading) {
-            this.startedLoading = true;
-            this.sceneRenderer.addDiplayable(this.loadingContainer);
-            this.onFirstLoad();
-        }
-    }
+    //
+    // #############################################################################
+    //
 
 
     constructor() {
@@ -310,17 +326,9 @@ export class Scene {
         this.initLoadingContainer();
     }
 
-    setPrograms(programs: any[], refresh: boolean, robotType: string) {
-        this.programFlowManager.setPrograms(programs);
-
-        // the original simulation.js would replace all robots if refresh is true
-        // we will only change the type (The robot should manage anything type related internally)
-        if(refresh) {
-            this.robots.forEach(robot => {
-                robot.setRobotType(robotType);
-            });
-        }
-    }
+    //
+    // #############################################################################
+    //
 
     private mouseConstraint?: Constraint = null
 
@@ -371,6 +379,10 @@ export class Scene {
         this.onInteractionEvent(ev);
     }
 
+    //
+    // #############################################################################
+    //
+
     /**
      * Returns all bodies containing the given point
      * @param position position to check for bodies
@@ -416,8 +428,7 @@ export class Scene {
                 case 'body':
                     var body = <Body>element;
     
-                    if(body.displayable && !this.displayables.includes(body.displayable)) {
-                        this.displayables.push(body.displayable);
+                    if(body.displayable) {
                         this.entityContainer.addChild(body.displayable.displayObject);
                     }
                     
@@ -426,11 +437,8 @@ export class Scene {
                         if(!body.debugDisplayable) {
                             body.debugDisplayable = createDisplayableFromBody(body);
                         }
-    
-                        if(!this.debugDisplayables.includes(body.debugDisplayable)) {
-                            this.debugDisplayables.push(body.debugDisplayable);
-                            this.entityContainer.addChild(body.debugDisplayable.displayObject);
-                        }
+                        
+                        this.entityContainer.addChild(body.debugDisplayable.displayObject);
                         
                     }
                     break;
@@ -474,14 +482,10 @@ export class Scene {
             switch (element.type) {
                 case 'body':
                     var body = <Body>element;
-                    if(body.displayable && this.displayables.includes(body.displayable)) {
-                        var idx = this.displayables.indexOf(body.displayable);
-                        this.displayables.splice(idx);
+                    if(body.displayable) {
                         this.entityContainer.removeChild(body.displayable.displayObject);
                     }
-                    if(body.debugDisplayable && this.displayables.includes(body.debugDisplayable)) {
-                        var idx = this.debugDisplayables.indexOf(body.debugDisplayable);
-                        this.debugDisplayables.splice(idx);
+                    if(body.debugDisplayable) {
                         this.entityContainer.removeChild(body.debugDisplayable.displayObject);
                     }
                     break;
@@ -511,20 +515,13 @@ export class Scene {
 
     }
 
+    //
+    // #############################################################################
+    //
+
     destroy() {
         this.onDestroy();
         // TODO
-    }
-
-    setDT(dt: number) {
-        this.dt = dt;
-    }
-
-    renderTick(dt) {
-        if(this.startedLoading && !this.hasFinishedLoading) {
-            this.updateLoadingAnimation(dt);
-        }
-        this.onRenderTick(dt);
     }
 
 
@@ -535,9 +532,9 @@ export class Scene {
 
         this.onUpdate();
 
-        this.robots.forEach((robot) => robot.update(this.dt, this.programFlowManager.isProgramPaused())); // update robots
+        this.robots.forEach((robot) => robot.update(this.dt, this.programManager.isProgramPaused())); // update robots
 
-        this.programFlowManager.update(); // update breakpoints, ...
+        this.programManager.update(); // update breakpoints, ...
 
         Engine.update(this.engine, this.dt); // update physics
 
@@ -550,14 +547,6 @@ export class Scene {
                 body.displayable.updateFromBody(body);
             }
         });
-
-        if(this.debugDisplayables) {
-            bodies.forEach(body => {
-                if(body.debugDisplayable) {
-                    body.debugDisplayable.updateFromBody(body);
-                }
-            });
-        }
 
         this.onUpdatePostPhysics();
     }
@@ -599,163 +588,6 @@ export class Scene {
 
     }
 
-    testPhysics() {
-
-        // use 0.001 for EV3
-        const scale = 0.001;
-        
-        Unit.setUnitScaling({m: 1000})
-
-        // (<any>Resolver)._restingThresh = 4 * scale;
-        // (<any>Resolver)._restingThreshTangent = 6 * scale;
-        // (<any>Sleeping)._motionWakeThreshold = 0.18 * scale;
-        // (<any>Sleeping)._motionSleepThreshold = 0.08 * scale;
-        // (<any>Constraint)._minLength = 0.000001 * scale;
-
-        //this.sceneRenderer.setRenderingScaleAndOffset(1 / scale, Vector.create())
-        
-        const useEV3 = true
-        const robot = useEV3 ? Robot.EV3() : Robot.default(scale)
-        this.robots.push(robot);
-        
-        const robotComposite = robot.physicsComposite
-
-        World.add(this.engine.world, robotComposite);
-
-        Composite.translate(robotComposite, Unit.getPositionVec(100 * scale, 100 * scale))
-
-        const polygon = new Polygon([
-            Vector.create(0, 0),
-            Vector.create(100, 0),
-            Vector.create(100, 50),
-            Vector.create(0, 100),
-            Vector.create(50, 50)
-        ].map(v => Unit.getPosition(Vector.mult(Vector.add(v, Vector.create(200, 200)), scale))))
-    
-        const polygonGraphics = new PIXI.Graphics()
-        polygonGraphics.beginFill(0xFF0000)
-        polygonGraphics.moveTo(polygon.vertices[0].x, polygon.vertices[0].y)
-        polygon.vertices.forEach(v => polygonGraphics.lineTo(v.x, v.y))
-        polygonGraphics.closePath()
-        polygonGraphics.endFill()
-
-        const mousePointGraphics = new PIXI.Graphics()
-            .beginFill(0x00FF00)
-            .drawRect(-5, -5, 10, 10)
-            .endFill()
-
-        const nearestPointGraphics = new PIXI.Graphics()
-            .beginFill(0x0000FF)
-            .drawRect(-5, -5, 10, 10)
-            .endFill()
-
-
-        const container = new PIXI.Container()
-        container.addChild(polygonGraphics, mousePointGraphics, nearestPointGraphics)
-        this.topContainer.addChild(container)
-
-        this.sceneRenderer.scrollView.registerListener(event => {
-            const mousePos = event.data.getCurrentLocalPosition()
-            mousePointGraphics.position.set(mousePos.x, mousePos.y)
-            const pos = polygon.nearestPointTo(Vector.create(mousePos.x, mousePos.y))
-            nearestPointGraphics.position.set(pos.x, pos.y)
-        })
-
-        this.engine.world.gravity.y = 0.0;
-    
-    
-        var body = robot.body;
-        body.enableMouseInteraction = true
-    
-        var keyDownList: Array<string> = []
-    
-        document.onkeydown = function (event) {
-            if (!keyDownList.includes(event.key)) {
-                keyDownList.push(event.key)
-            }
-        }
-        document.onkeyup = function (event) {
-            keyDownList = keyDownList.filter(key => key != event.key)
-        }
-    
-        function updateKeysActions() {
-    
-            // $('#notConstantValue').html('');
-            // $("#notConstantValue").append('<div><label>Test</label><span>' + keyDownList + '</span></div>');    
-    
-            var leftForce = 0
-            var rightForce = 0
-            const factor = keyDownList.includes("s") ? -1 : 1
-            keyDownList.forEach(key => {
-                switch (key) {
-                    case 'w':
-                        leftForce += 1
-                        rightForce += 1
-                        break
-                    case 's':
-                        leftForce += -1
-                        rightForce += -1
-                        break
-                    case 'a':
-                        leftForce += -1 * factor
-                        rightForce += 1 * factor
-                        break
-                    case 'd':
-                        leftForce += 1 * factor
-                        rightForce += -1 * factor
-                        break
-                }
-            })
-    
-            let vec = Vector.create(Math.cos(body.angle), Math.sin(body.angle))
-            const force = Vector.mult(vec, 0.0001 * 1000 * 1000 * 1000 * 1000)
-            let normalVec = Vector.mult(Vector.create(-vec.y, vec.x), 10)
-    
-            const forcePos = Vector.add(body.position, Vector.mult(vec, -40))
-    
-            
-            const maxTorque = Unit.getTorque(100*1000*1000 * Math.pow(scale, 3.5))
-            const motor = useEV3 ? ElectricMotor.EV3() : new ElectricMotor(120, maxTorque)
-            robot.leftDrivingWheel.applyTorqueFromMotor(motor, leftForce)
-            robot.rightDrivingWheel.applyTorqueFromMotor(motor, rightForce)
-
-        }
-    
-    
-        Events.on(this.engine, 'beforeUpdate', function () {
-            updateKeysActions()
-        });
-
-
-        // TODO: remove
-        var world = this.engine.world;
-        var bodies = [
-            // blocks
-            Bodies.rectangle(200, 100, 60, 60, { frictionAir: 0.001 }),
-            Bodies.rectangle(400, 100, 60, 60, { frictionAir: 0.05 }),
-            Bodies.rectangle(600, 100, 60, 60, { frictionAir: 0.1 }),
-    
-            // walls
-            Bodies.rectangle(400, -25, 800, 50, { isStatic: true }),
-            Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
-            Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-            Bodies.rectangle(-25, 300, 50, 600, { isStatic: true })
-        ]
-        bodies.forEach(body => Body.scale(body, scale, scale, Vector.create()))
-
-        bodies = [
-            createRect(400*scale, -25*scale, 800*scale, 50*scale),
-            createRect(400*scale, 600*scale, 800*scale, 50*scale),
-            createRect(800*scale, 300*scale, 50*scale, 600*scale),
-            createRect(-25*scale, 300*scale, 50*scale, 600*scale),
-        ]
-        bodies.forEach(body => Body.setStatic(body, true))
-        World.add(world, bodies);
-
-        const allBodies = Composite.allBodies(world)
-        allBodies.forEach(body => body.slop *= scale)
-    }
-
 
     //
     // User defined functions
@@ -787,6 +619,7 @@ export class Scene {
 
     /**
      * destroy this scene
+     * destroy all loaded textures
      */
     onDestroy() {
 

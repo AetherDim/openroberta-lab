@@ -355,6 +355,9 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             _this.registerEventListeners();
             return _this;
         }
+        ScrollView.prototype.reset = function () {
+            this.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
+        };
         /**
          * update hitbox for mouse interactions
          */
