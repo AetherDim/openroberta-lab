@@ -1,500 +1,498 @@
- export class CONSTANTS {
-     
-    static readonly ARG1 = "arg1";
+export const ARG1 = "arg1";
 
-    static readonly ARG2 = "arg2";
+export const ARG2 = "arg2";
 
-    static readonly EXPR = "expr";
+export const EXPR = "expr";
 
-    static readonly VALUE = "value";
+export const VALUE = "value";
 
-    static readonly OP = "op";
+export const OP = "op";
 
-    static readonly LEFT = "left";
+export const LEFT = "left";
 
-    static readonly RIGHT = "right";
+export const RIGHT = "right";
 
-    static readonly ENTER = "enter";
+export const ENTER = "enter";
 
-    static readonly DOWN = "down";
+export const DOWN = "down";
 
-    static readonly UP = "up";
+export const UP = "up";
 
-    static readonly ANY = "any";
+export const ANY = "any";
 
-    static readonly ESCAPE = "escape";
+export const ESCAPE = "escape";
 
-    static readonly SHAKE = "shake";
+export const SHAKE = "shake";
 
-    static readonly FREEFALL = "freefall";
+export const FREEFALL = "freefall";
 
-    static readonly FACE_UP = "face_up";
+export const FACE_UP = "face_up";
 
-    static readonly FACE_DOWN = "face_down";
+export const FACE_DOWN = "face_down";
 
-    static readonly BINARY = "Binary";
+export const BINARY = "Binary";
 
-    static readonly UNARY = "Unary";
+export const UNARY = "Unary";
 
-    static readonly VAR = "Var";
+export const VAR = "Var";
 
-    static readonly TYPE = "type";
+export const TYPE = "type";
 
-    static readonly NAME = "name";
+export const NAME = "name";
 
-    static readonly STMT = "stmt";
+export const STMT = "stmt";
 
-    static readonly PARAMETERS = "parameters";
+export const PARAMETERS = "parameters";
 
-    static readonly FUNCTION_DECLARATION = "functionDeclaration";
+export const FUNCTION_DECLARATION = "functionDeclaration";
 
-    static readonly VAR_DECLARATION = "VarDeclaration";
+export const VAR_DECLARATION = "VarDeclaration";
 
-    static readonly SINGLE_FUNCTION = "SingleFunction";
+export const SINGLE_FUNCTION = "SingleFunction";
 
-    static readonly MATH_RAIN_FUNCTION = "MathrainFunct";
+export const MATH_RAIN_FUNCTION = "MathrainFunct";
 
-    static readonly RANDOM_INT = "randInt";
+export const RANDOM_INT = "randInt";
 
-    static readonly RANDOM_DOUBLE = "randDouble";
+export const RANDOM_DOUBLE = "randDouble";
 
-    static readonly RANDOM = "random";
+export const RANDOM = "random";
 
-    static readonly ASSIGN_STMT = "AssignStmt";
+export const ASSIGN_STMT = "AssignStmt";
 
-    static readonly ASSIGN_METHOD_PARAMETER_STMT = "AssignMethodParameter";
+export const ASSIGN_METHOD_PARAMETER_STMT = "AssignMethodParameter";
 
-    static readonly REPEAT_STMT = "RepeatStmt";
+export const REPEAT_STMT = "RepeatStmt";
 
-    static readonly IF_STMT = "IfStatement";
+export const IF_STMT = "IfStatement";
 
-    static readonly WAIT_STMT = "WaitStmt";
+export const WAIT_STMT = "WaitStmt";
 
-    static readonly MATH_CONST = "createMathConstant";
+export const MATH_CONST = "createMathConstant";
 
-    static readonly SHOW_TEXT_ACTION = "ShowTextAction";
+export const SHOW_TEXT_ACTION = "ShowTextAction";
 
-    static readonly SHOW_PICTURE_ACTION = "ShowPictureAction";
+export const SHOW_PICTURE_ACTION = "ShowPictureAction";
 
-    static readonly DISPLAY_IMAGE_ACTION = "DisplayImageAction";
+export const DISPLAY_IMAGE_ACTION = "DisplayImageAction";
 
-    static readonly CLEAR_DISPLAY_ACTION = "ClearDisplay";
+export const CLEAR_DISPLAY_ACTION = "ClearDisplay";
 
-    static readonly CREATE_DEBUG_ACTION = "CreateDebugAction";
+export const CREATE_DEBUG_ACTION = "CreateDebugAction";
 
-    static readonly TONE_ACTION = "ToneAction";
+export const TONE_ACTION = "ToneAction";
 
-    static readonly FREQUENCY = "frequency";
+export const FREQUENCY = "frequency";
 
-    static readonly DURATION = "duration";
+export const DURATION = "duration";
 
-    static readonly GET_VOLUME = "GetVolume";
+export const GET_VOLUME = "GetVolume";
 
-    static readonly SET_VOLUME_ACTION = "SetVolumeAction";
+export const SET_VOLUME_ACTION = "SetVolumeAction";
 
-    static readonly VOLUME = "volume";
+export const VOLUME = "volume";
 
-    static readonly IMAGE = "image";
+export const IMAGE = "image";
 
-    static readonly IMAGE_SHIFT_ACTION = "ImageShiftAction";
+export const IMAGE_SHIFT_ACTION = "ImageShiftAction";
 
-    static readonly IMAGE_INVERT_ACTION = "ImageInvertAction";
+export const IMAGE_INVERT_ACTION = "ImageInvertAction";
 
-    static readonly DIRECTION = "direction";
+export const DIRECTION = "direction";
 
-    static readonly PLAY_FILE_ACTION = "PlayFileAction";
+export const PLAY_FILE_ACTION = "PlayFileAction";
 
-    static readonly SET_LANGUAGE_ACTION = "SetLanguageAction";
+export const SET_LANGUAGE_ACTION = "SetLanguageAction";
 
-    static readonly SAY_TEXT_ACTION = "SayTextAction";
+export const SAY_TEXT_ACTION = "SayTextAction";
 
-    static readonly LANGUAGE = "language";
+export const LANGUAGE = "language";
 
-    static readonly PITCH = "pitch";
+export const PITCH = "pitch";
 
-    static readonly FILE = "file";
+export const FILE = "file";
 
-    static readonly TEXT = "text";
+export const TEXT = "text";
 
-    static readonly CHARACTER = "character";
+export const CHARACTER = "character";
 
-    static readonly TEXT_APPEND = "textAppend";
+export const TEXT_APPEND = "textAppend";
 
-    static readonly PICTURE = "picture";
+export const PICTURE = "picture";
 
-    static readonly X = "x";
+export const X = "x";
 
-    static readonly Y = "y";
+export const Y = "y";
 
-    static readonly N = "n";
+export const N = "n";
 
-    static readonly MATH_PROP_FUNCT = "MathPropFunct";
+export const MATH_PROP_FUNCT = "MathPropFunct";
 
-    static readonly WAIT_TIME_STMT = "WaitTimeSTMT";
+export const WAIT_TIME_STMT = "WaitTimeSTMT";
 
-    static readonly TIME = "time";
+export const TIME = "time";
 
-    static readonly LIST = "list";
+export const LIST = "list";
 
-    static readonly STMT_LIST = "stmtList";
+export const STMT_LIST = "stmtList";
 
-    static readonly DRIVE_ACTION = "DriveAction";
+export const DRIVE_ACTION = "DriveAction";
 
-    static readonly CURVE_ACTION = "CurveAction";
+export const CURVE_ACTION = "CurveAction";
 
-    static readonly TURN_LIGHT = "turnLight";
+export const TURN_LIGHT = "turnLight";
 
-    static readonly TURN_ACTION = "TurnAction";
+export const TURN_ACTION = "TurnAction";
 
-    static readonly STOP_DRIVE = "stopDrive";
+export const STOP_DRIVE = "stopDrive";
 
-    static readonly DRIVE_DIRECTION = "driveDirection";
+export const DRIVE_DIRECTION = "driveDirection";
 
-    static readonly TURN_DIRECTION = "turnDirection";
+export const TURN_DIRECTION = "turnDirection";
 
-    static readonly SPEED = "speed";
+export const SPEED = "speed";
 
-    static readonly SPEED_L = "speedL";
+export const SPEED_L = "speedL";
 
-    static readonly SPEED_R = "speedR";
+export const SPEED_R = "speedR";
 
-    static readonly DISTANCE = "distance";
+export const DISTANCE = "distance";
 
-    static readonly PRESENCE = "presence";
+export const PRESENCE = "presence";
 
-    static readonly SEEK = "presence";
+export const SEEK = "presence";
 
-    static readonly RESET = "reset";
+export const RESET = "reset";
 
-    static readonly GET_SAMPLE = "GetSample";
+export const GET_SAMPLE = "GetSample";
 
-    static readonly SENSOR_TYPE = "sensorType";
+export const SENSOR_TYPE = "sensorType";
 
-    static readonly SENSOR_MODE = "sensorMode";
+export const SENSOR_MODE = "sensorMode";
 
-    static readonly THEN_LIST = "thenList";
+export const THEN_LIST = "thenList";
 
-    static readonly ELSE_STMTS = "elseStmts";
+export const ELSE_STMTS = "elseStmts";
 
-    static readonly EXPR_LIST = "exprList";
+export const EXPR_LIST = "exprList";
 
-    static readonly STATEMENTS = "statements";
+export const STATEMENTS = "statements";
 
-    static readonly TOUCH = "touch";
+export const TOUCH = "touch";
 
-    static readonly INFRARED = "infrared";
+export const INFRARED = "infrared";
 
-    static readonly ULTRASONIC = "ultrasonic";
+export const ULTRASONIC = "ultrasonic";
 
-    static readonly GYRO = "gyro";
+export const GYRO = "gyro";
 
-    static readonly SOUND = "sound";
+export const SOUND = "sound";
 
-    static readonly BUTTONS = "buttons";
+export const BUTTONS = "buttons";
 
-    static readonly RATE = "rate";
+export const RATE = "rate";
 
-    static readonly NUM_CONST = "NumConst";
+export const NUM_CONST = "NumConst";
 
-    static readonly BOOL_CONST = "BoolConst";
+export const BOOL_CONST = "BoolConst";
 
-    static readonly STRING_CONST = "StringConst";
+export const STRING_CONST = "StringConst";
 
-    static readonly IMAGE_CONST = "image";
+export const IMAGE_CONST = "image";
 
-    static readonly ANIMATION = "animation";
+export const ANIMATION = "animation";
 
-    static readonly STRING = "STRING";
+export const STRING = "STRING";
 
-    static readonly BOOLEAN = "BOOLEAN";
+export const BOOLEAN = "BOOLEAN";
 
-    static readonly NUMBER = "NUMBER";
+export const NUMBER = "NUMBER";
 
-    static readonly NULL_CONST = "null";
+export const NULL_CONST = "null";
 
-    static readonly LOOP_NUMBER = "loopNumber";
+export const LOOP_NUMBER = "loopNumber";
 
-    static readonly TERNARY_EXPR = "createTernaryExpr";
+export const TERNARY_EXPR = "createTernaryExpr";
 
-    static readonly NUMERIC = "Numeric";
+export const NUMERIC = "Numeric";
 
-    static readonly ARRAY_NUMBER = "Array_Number";
+export const ARRAY_NUMBER = "Array_Number";
 
-    static readonly ARRAY_STRING = "Array_String";
+export const ARRAY_STRING = "Array_String";
 
-    static readonly ARRAY_BOOLEAN = "Array_Boolean";
+export const ARRAY_BOOLEAN = "Array_Boolean";
 
-    static readonly ARRAY_COLOR = "Array_Colour";
+export const ARRAY_COLOR = "Array_Colour";
 
-    static readonly ARRAY_IMAGE = "Array_Image";
+export const ARRAY_IMAGE = "Array_Image";
 
-    static readonly CONTINUE = "continue";
+export const CONTINUE = "continue";
 
-    static readonly BREAK = "break";
+export const BREAK = "break";
 
-    static readonly FLOW_CONTROL = "flowControl";
+export const FLOW_CONTROL = "flowControl";
 
-    static readonly ADD = "ADD";
+export const ADD = "ADD";
 
-    static readonly MINUS = "MINUS";
+export const MINUS = "MINUS";
 
-    static readonly POWER = "POWER";
+export const POWER = "POWER";
 
-    static readonly DIVIDE = "DIVIDE";
+export const DIVIDE = "DIVIDE";
 
-    static readonly MULTIPLY = "MULTIPLY";
+export const MULTIPLY = "MULTIPLY";
 
-    static readonly LT = "LT";
+export const LT = "LT";
 
-    static readonly GT = "GT";
+export const GT = "GT";
 
-    static readonly EQ = "EQ";
+export const EQ = "EQ";
 
-    static readonly NEQ = "NEQ";
+export const NEQ = "NEQ";
 
-    static readonly IN = "in";
+export const IN = "in";
 
-    static readonly GTE = "GTE";
+export const GTE = "GTE";
 
-    static readonly LTE = "LTE";
+export const LTE = "LTE";
 
-    static readonly OR = "OR";
+export const OR = "OR";
 
-    static readonly AND = "AND";
+export const AND = "AND";
 
-    static readonly NEG = "NEG";
+export const NEG = "NEG";
 
-    static readonly MOD = "MOD";
+export const MOD = "MOD";
 
-    static readonly MIN = "min";
+export const MIN = "min";
 
-    static readonly MAX = "max";
+export const MAX = "max";
 
-    static readonly AVERAGE = "average";
+export const AVERAGE = "average";
 
-    static readonly MEDIAN = "median";
+export const MEDIAN = "median";
 
-    static readonly MODE = "mode";
+export const MODE = "mode";
 
-    static readonly STD_DEV = "stdDev";
+export const STD_DEV = "stdDev";
 
-    static readonly FOREWARD = "FOREWARD";
+export const FOREWARD = "FOREWARD";
 
-    static readonly BACKWARD = "BACKWARD";
+export const BACKWARD = "BACKWARD";
 
-    static readonly WHILE = "WHILE";
+export const WHILE = "WHILE";
 
-    static readonly UNTIL = "UNTIL";
+export const UNTIL = "UNTIL";
 
-    static readonly FOREVER = "FOREVER";
+export const FOREVER = "FOREVER";
 
-    static readonly FOR = "FOR";
+export const FOR = "FOR";
 
-    static readonly FOR_EACH = "forEach";
+export const FOR_EACH = "forEach";
 
-    static readonly MATH_CHANGE = "mathChange";
+export const MATH_CHANGE = "mathChange";
 
-    static readonly NOT = "NOT";
+export const NOT = "NOT";
 
-    static readonly ANGLE = "angle";
+export const ANGLE = "angle";
 
-    static readonly COLOR = "color";
+export const COLOR = "color";
 
-    static readonly COLOUR = "colorValue";
+export const COLOUR = "colorValue";
 
-    static readonly LED_COLOR_CONST = "ledColor";
+export const LED_COLOR_CONST = "ledColor";
 
-    static readonly RGB_COLOR_CONST = "rgbColor";
+export const RGB_COLOR_CONST = "rgbColor";
 
-    static readonly LED_ON_ACTION = "ledOnAction";
+export const LED_ON_ACTION = "ledOnAction";
 
-    static readonly GREEN = "GREEN";
+export const GREEN = "GREEN";
 
-    static readonly RED = "red";
+export const RED = "red";
 
-    static readonly SUM = "sum";
+export const SUM = "sum";
 
-    static readonly RGB = "rgb";
+export const RGB = "rgb";
 
-    static readonly ORANGE = "ORANGE";
+export const ORANGE = "ORANGE";
 
-    static readonly ON = "ON";
+export const ON = "ON";
 
-    static readonly OFF = "OFF";
+export const OFF = "OFF";
 
-    static readonly FLASH = "FLASH";
+export const FLASH = "FLASH";
 
-    static readonly DOUBLE_FLASH = "DOUBLE_FLASH";
+export const DOUBLE_FLASH = "DOUBLE_FLASH";
 
-    static readonly STATUS_LIGHT_ACTION = "statusLightAction";
+export const STATUS_LIGHT_ACTION = "statusLightAction";
 
-    static readonly AMBIENTLIGHT = "ambientlight";
+export const AMBIENTLIGHT = "ambientlight";
 
-    static readonly DISPLAY_TEXT_ACTION = "displayTextAction";
+export const DISPLAY_TEXT_ACTION = "displayTextAction";
 
-    static readonly BRIGHTNESS = "brightness";
+export const BRIGHTNESS = "brightness";
 
-    static readonly PIXEL = "pixel";
+export const PIXEL = "pixel";
 
-    static readonly DISPLAY_SET_BRIGHTNESS_ACTION = "displaySetBrightnessAction";
+export const DISPLAY_SET_BRIGHTNESS_ACTION = "displaySetBrightnessAction";
 
-    static readonly DISPLAY_SET_PIXEL_ACTION = "displaySetPixelAction";
+export const DISPLAY_SET_PIXEL_ACTION = "displaySetPixelAction";
 
-    static readonly DISPLAY_GET_BRIGHTNESS_ACTION = "displayGetBrightnessAction";
+export const DISPLAY_GET_BRIGHTNESS_ACTION = "displayGetBrightnessAction";
 
-    static readonly DISPLAY_GET_PIXEL_ACTION = "displayGetPixelAction";
+export const DISPLAY_GET_PIXEL_ACTION = "displayGetPixelAction";
 
-    static readonly TIMES = "TIMES";
+export const TIMES = "TIMES";
 
-    static readonly SIZE = "size";
+export const SIZE = "size";
 
-    static readonly CREATE_LIST_IS_EMPTY = "isListEmpty";
+export const CREATE_LIST_IS_EMPTY = "isListEmpty";
 
-    static readonly CREATE_LIST_LENGTH = "listLength";
+export const CREATE_LIST_LENGTH = "listLength";
 
-    static readonly CREATE_LIST_WITH_ITEM = "createCreateListWithItem";
+export const CREATE_LIST_WITH_ITEM = "createCreateListWithItem";
 
-    static readonly CREATE_LIST_FIND_ITEM = "createListFindItem";
+export const CREATE_LIST_FIND_ITEM = "createListFindItem";
 
-    static readonly COLOR_CONST = "COLOR_CONST";
+export const COLOR_CONST = "COLOR_CONST";
 
-    static readonly PILOT = "pilot";
+export const PILOT = "pilot";
 
-    static readonly MOTOR_LEFT = "C";
+export const MOTOR_LEFT = "C";
 
-    static readonly MOTOR_RIGHT = "B";
+export const MOTOR_RIGHT = "B";
 
-    static readonly MOTOR_XA = "XA";
+export const MOTOR_XA = "XA";
 
-    static readonly MOTOR_XB = "XB";
+export const MOTOR_XB = "XB";
 
-    static readonly MOTOR_XAB = "XAB";
+export const MOTOR_XAB = "XAB";
 
-    static readonly MOTOR_SIDE = "motorSide";
+export const MOTOR_SIDE = "motorSide";
 
-    static readonly MOTOR_ON_ACTION = "motorOnAction";
+export const MOTOR_ON_ACTION = "motorOnAction";
 
-    static readonly MOTOR_GET_POWER = "motorGetPowerAction";
+export const MOTOR_GET_POWER = "motorGetPowerAction";
 
-    static readonly MOTOR_SET_POWER = "motorSetPowerAction";
+export const MOTOR_SET_POWER = "motorSetPowerAction";
 
-    static readonly ENCODER_SENSOR_RESET = "encoderSensorReset";
+export const ENCODER_SENSOR_RESET = "encoderSensorReset";
 
-    static readonly ENCODER_SENSOR_SAMPLE = "encoderSensorSample";
+export const ENCODER_SENSOR_SAMPLE = "encoderSensorSample";
 
-    static readonly GET_GYRO_SENSOR_SAMPLE = "gyroSensorSample";
+export const GET_GYRO_SENSOR_SAMPLE = "gyroSensorSample";
 
-    static readonly MOTOR_STOP = "motorStop";
+export const MOTOR_STOP = "motorStop";
 
-    static readonly MOTOR_MOVE_MODE = "motorMoveMode";
+export const MOTOR_MOVE_MODE = "motorMoveMode";
 
-    static readonly MOTOR_DURATION = "motorDuration";
+export const MOTOR_DURATION = "motorDuration";
 
-    static readonly MOTOR_DURATION_VALUE = "motorDurationValue";
+export const MOTOR_DURATION_VALUE = "motorDurationValue";
 
-    static readonly ROTATIONS = "ROTATIONS";
+export const ROTATIONS = "ROTATIONS";
 
-    static readonly ROTATION = "ROTATION";
+export const ROTATION = "ROTATION";
 
-    static readonly DEGREE = "DEGREE";
+export const DEGREE = "DEGREE";
 
-    static readonly POSITION = "position";
+export const POSITION = "position";
 
-    static readonly FIRST = "first";
+export const FIRST = "first";
 
-    static readonly LAST = "last";
+export const LAST = "last";
 
-    static readonly FROM_START = "fromStart";
+export const FROM_START = "fromStart";
 
-    static readonly FROM_END = "fromEnd";
+export const FROM_END = "fromEnd";
 
-    static readonly GET = "get";
+export const GET = "get";
 
-    static readonly SET = "set";
+export const SET = "set";
 
-    static readonly REMOVE = "remove";
+export const REMOVE = "remove";
 
-    static readonly GET_REMOVE = "getRemove";
+export const GET_REMOVE = "getRemove";
 
-    static readonly ITEM = "item";
+export const ITEM = "item";
 
-    static readonly CREATE_LISTS_SET_INDEX = "createListsSetIndex";
+export const CREATE_LISTS_SET_INDEX = "createListsSetIndex";
 
-    static readonly CREATE_LISTS_GET_INDEX = "createListsGetIndex";
+export const CREATE_LISTS_GET_INDEX = "createListsGetIndex";
 
-    static readonly CREATE_LISTS_GET_INDEX_STMT = "createListsGetIndexStmt";
+export const CREATE_LISTS_GET_INDEX_STMT = "createListsGetIndexStmt";
 
-    static readonly CREATE_LISTS_GET_SUBLIST = "createGetSubList";
+export const CREATE_LISTS_GET_SUBLIST = "createGetSubList";
 
-    static readonly GYRO_SENSOR_RESET = "createResetGyroSensor";
+export const GYRO_SENSOR_RESET = "createResetGyroSensor";
 
-    static readonly TIMER_SENSOR_RESET = "createResetTimer";
+export const TIMER_SENSOR_RESET = "createResetTimer";
 
-    static readonly METHOD_VOID = "createMethodVoid";
+export const METHOD_VOID = "createMethodVoid";
 
-    static readonly METHOD_RETURN = "createMethodReturn";
+export const METHOD_RETURN = "createMethodReturn";
 
-    static readonly IF_RETURN = "createMethodIfReturn";
+export const IF_RETURN = "createMethodIfReturn";
 
-    static readonly RETURN_TYPE = "returnType";
+export const RETURN_TYPE = "returnType";
 
-    static readonly METHOD_CALL_VOID = "createMethodCallVoid";
+export const METHOD_CALL_VOID = "createMethodCallVoid";
 
-    static readonly METHOD_CALL_RETURN = "createMethodCallReturn";
+export const METHOD_CALL_RETURN = "createMethodCallReturn";
 
-    static readonly TEXT_JOIN = "createTextJoin";
+export const TEXT_JOIN = "createTextJoin";
 
-    static readonly LIGHT_ACTION = "lightSensorAction";
+export const LIGHT_ACTION = "lightSensorAction";
 
-    static readonly WHERE1 = "where1";
+export const WHERE1 = "where1";
 
-    static readonly WHERE2 = "where2";
+export const WHERE2 = "where2";
 
-    static readonly AT1 = "at1";
+export const AT1 = "at1";
 
-    static readonly AT2 = "at2";
+export const AT2 = "at2";
 
-    static readonly RETURN = "return";
+export const RETURN = "return";
 
-    static readonly VALUES = "values";
+export const VALUES = "values";
 
-    static readonly INSERT = "insert";
+export const INSERT = "insert";
 
-    static readonly LIGHT = "light";
+export const LIGHT = "light";
 
-    static readonly BUTTON_A = "A";
+export const BUTTON_A = "A";
 
-    static readonly BUTTON_B = "B";
+export const BUTTON_B = "B";
 
-    static readonly COMMENT  = "comment";
+export const COMMENT  = "comment";
 
-    static readonly COMPASS = "compass";
+export const COMPASS = "compass";
 
-    static readonly GESTURE = "gesture";
+export const GESTURE = "gesture";
 
-    static readonly TEMPERATURE = "temperature";
+export const TEMPERATURE = "temperature";
 
-    static readonly ANALOG = "analog";
+export const ANALOG = "analog";
 
-    static readonly DIGITAL = "digital";
+export const DIGITAL = "digital";
 
-    static readonly PIN_TOUCH_SENSOR = "createPinTouchSensor";
+export const PIN_TOUCH_SENSOR = "createPinTouchSensor";
 
-    static readonly PIN_GET_VALUE_SENSOR = "createPinGetValueSensor";
+export const PIN_GET_VALUE_SENSOR = "createPinGetValueSensor";
 
-    static readonly PIN_WRITE_VALUE_SENSOR = "createPinWriteValueSensor";
+export const PIN_WRITE_VALUE_SENSOR = "createPinWriteValueSensor";
 
-    static readonly NOOP_STMT = "createNoopStmt";
+export const NOOP_STMT = "createNoopStmt";
 
-    static readonly PIN = "pin";
+export const PIN = "pin";
 
-    static readonly ASSERT_STMT = "createAssertStmt";
+export const ASSERT_STMT = "createAssertStmt";
 
-    static readonly TEST = "test";
+export const TEST = "test";
 
-    static readonly CONSOLE_DEBUG = "createConsoleDebugAction";
+export const CONSOLE_DEBUG = "createConsoleDebugAction";
 
-    static readonly COLOR_ENUM = {
+export const COLOR_ENUM = {
         NONE: "NONE",
         BLACK: "BLACK",
         BLUE: "BLUE",
@@ -505,32 +503,30 @@
         BROWN: "BROWN"
     };
 
-    static readonly TIMER = "timer";
+export const TIMER = "timer";
 
-    static readonly MATH_ON_LIST = "createMathOnList";
+export const MATH_ON_LIST = "createMathOnList";
 
-    static readonly TRACKWIDTH = 40;
+export const TRACKWIDTH = 40;
 
-    static readonly TURN_RATIO = (40 / 3.) / 2.8;
+export const TURN_RATIO = (40 / 3.) / 2.8;
 
-    static readonly WHEEL_DIAMETER = 5.6;
+export const WHEEL_DIAMETER = 5.6;
 
-    static readonly MAXDIAG = 2500;
+export const MAXDIAG = 2500;
 
-    static readonly MAXPOWER = 0.351858377 * 3; // real Robot drives approx. 35 cm / 1 sec -> 105 pix/sec | 3pix  = 1cm
+export const MAXPOWER = 0.351858377 * 3; // real Robot drives approx. 35 cm / 1 sec -> 105 pix/sec | 3pix  = 1cm
 
-    static readonly ENC = 360.0 / (3.0 * Math.PI * 5.6);
+export const ENC = 360.0 / (3.0 * Math.PI * 5.6);
 
-    static readonly MAX_WIDTH = 2000;
+export const MAX_WIDTH = 2000;
 
-    static readonly MAX_HEIGHT = 820;
+export const MAX_HEIGHT = 820;
 
-    static readonly WAVE_LENGTH = 60;
+export const WAVE_LENGTH = 60;
 
-    static readonly DEBUG_BREAKPOINT = "DebugBreakpoint";
+export const DEBUG_BREAKPOINT = "DebugBreakpoint";
 
-    static readonly DEBUG_STEP_INTO = "DebugStepInto";
+export const DEBUG_STEP_INTO = "DebugStepInto";
 
-    static readonly DEBUG_STEP_OVER = "DebugStepOver"
-
-}
+export const DEBUG_STEP_OVER = "DebugStepOver"

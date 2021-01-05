@@ -78,18 +78,6 @@ export class SceneRender {
         this.scene.setPrograms(programs, refresh, robotType);
     }
 
-    updateDebugMode(debugMode: boolean) {
-        this.scene.updateDebugMode(debugMode);
-    }
-
-    endDebugging() {
-        this.scene.endDebugging();
-    }
-
-    interpreterAddEvent(mode: any) {
-        this.scene.interpreterAddEvent(mode);
-    }
-
     startSim() {
         this.scene.startSim();
     }

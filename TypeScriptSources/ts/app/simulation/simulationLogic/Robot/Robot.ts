@@ -169,7 +169,11 @@ export class Robot {
 		this.endEncoder = null
 	}
 
-	update(dt: number) {
+	reset() {
+		
+	}
+
+	update(dt: number, programPaused: boolean) {
 
 		// update wheels velocities
 		// this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
@@ -185,7 +189,7 @@ export class Robot {
 			return;
 		}
 
-		if(!this.interpreter.isTerminated() && this.needsNewCommands) {
+		if(!programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
 			const delay = this.interpreter.runNOperations(1000) / 1000;
 		}
 

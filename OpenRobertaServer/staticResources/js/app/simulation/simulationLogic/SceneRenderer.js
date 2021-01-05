@@ -58,15 +58,6 @@ define(["require", "exports", "jquery", "./Scene", "./Color", "./ScrollView", ".
         SceneRender.prototype.setPrograms = function (programs, refresh, robotType) {
             this.scene.setPrograms(programs, refresh, robotType);
         };
-        SceneRender.prototype.updateDebugMode = function (debugMode) {
-            this.scene.updateDebugMode(debugMode);
-        };
-        SceneRender.prototype.endDebugging = function () {
-            this.scene.endDebugging();
-        };
-        SceneRender.prototype.interpreterAddEvent = function (mode) {
-            this.scene.interpreterAddEvent(mode);
-        };
         SceneRender.prototype.startSim = function () {
             this.scene.startSim();
         };

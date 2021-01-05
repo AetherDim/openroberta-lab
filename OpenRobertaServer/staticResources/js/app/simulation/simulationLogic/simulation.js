@@ -28,26 +28,20 @@ define(["require", "exports", "./SceneRenderer", "./ExtendedMatter"], function (
     }
     exports.getNumRobots = getNumRobots;
     function setPause(pause) {
-        // TODO: pause/start program
-        if (pause) {
-            engine.stopSim();
-        }
-        else {
-            engine.startSim();
-        }
+        engine.getScene().programFlowManager.setProgramPause(pause);
     }
     exports.setPause = setPause;
     function run(refresh, robotType) {
         init(storedPrograms, refresh, robotType);
     }
     exports.run = run;
+    /**
+     * on stop program
+     */
     function stopProgram() {
-        engine.stopSim();
-        //TODO: reset
-        //  reloadProgram();
-        // remove debug highlights
+        // TODO: reset robot?
+        engine.getScene().programFlowManager.stopProgram();
         init(storedPrograms, false, storedRobotType);
-        alert('stop');
     }
     exports.stopProgram = stopProgram;
     function importImage() {
@@ -64,19 +58,22 @@ define(["require", "exports", "./SceneRenderer", "./ExtendedMatter"], function (
     }
     exports.resetPose = resetPose;
     function updateDebugMode(debugMode) {
-        engine.updateDebugMode(debugMode);
+        engine.getScene().programFlowManager.updateDebugMode(debugMode);
     }
     exports.updateDebugMode = updateDebugMode;
     function endDebugging() {
-        engine.endDebugging();
+        engine.getScene().programFlowManager.endDebugging();
     }
     exports.endDebugging = endDebugging;
     function interpreterAddEvent(event) {
-        engine.interpreterAddEvent(event);
+        engine.getScene().programFlowManager.interpreterAddEvent(event);
     }
     exports.interpreterAddEvent = interpreterAddEvent;
+    /**
+     * on simulation close
+     */
     function cancel() {
-        alert('cancel');
+        engine.getScene().programFlowManager.stopProgram();
     }
     exports.cancel = cancel;
 });

@@ -199,6 +199,10 @@ export class Scene {
         this.programFlowManager.interpreterAddEvent(mode);
     }
 
+    setProgramPause(pause: boolean) {
+        this.programFlowManager.setProgramPause(pause);
+    }
+
 
 
     /**
@@ -271,6 +275,9 @@ export class Scene {
             this.onInit();
             this.needsInit = false;
         }
+
+        // auto start simulation
+        this.startSim();
         
     }
 
@@ -528,7 +535,7 @@ export class Scene {
 
         this.onUpdate();
 
-        this.robots.forEach((robot) => robot.update(this.dt)); // update robots
+        this.robots.forEach((robot) => robot.update(this.dt, this.programFlowManager.isProgramPaused())); // update robots
 
         this.programFlowManager.update(); // update breakpoints, ...
 

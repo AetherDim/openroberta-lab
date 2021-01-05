@@ -105,7 +105,9 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.needsNewCommands = true;
             this.endEncoder = null;
         };
-        Robot.prototype.update = function (dt) {
+        Robot.prototype.reset = function () {
+        };
+        Robot.prototype.update = function (dt, programPaused) {
             // update wheels velocities
             // this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
             var gravitationalAcceleration = Unit_1.Unit.getAcceleration(9.81);
@@ -117,7 +119,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             if (!this.robotBehaviour || !this.interpreter) {
                 return;
             }
-            if (!this.interpreter.isTerminated() && this.needsNewCommands) {
+            if (!programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
                 var delay = this.interpreter.runNOperations(1000) / 1000;
             }
             var speed = { left: 0, right: 0 };

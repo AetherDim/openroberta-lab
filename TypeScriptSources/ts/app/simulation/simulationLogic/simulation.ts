@@ -8,8 +8,6 @@ engine.getScene().setupDebugRenderer('notConstantValue');
 
 engine.getScene().testPhysics();
 
-
-
 let storedPrograms:any[];
 let storedRobotType:string;
 
@@ -39,25 +37,20 @@ export function getNumRobots(): number {
 
 
 export function setPause(pause:boolean) {
-    // TODO: pause/start program
-    if(pause) {
-        engine.stopSim()
-    } else {
-        engine.startSim()
-    }
+    engine.getScene().programFlowManager.setProgramPause(pause);
 }
 
 export function run(refresh:boolean, robotType: any) {
     init(storedPrograms, refresh, robotType);
 }
 
+/**
+ * on stop program
+ */
 export function stopProgram() {
-    engine.stopSim();
-    //TODO: reset
-    //  reloadProgram();
-    // remove debug highlights
+    // TODO: reset robot?
+    engine.getScene().programFlowManager.stopProgram();
     init(storedPrograms, false, storedRobotType);
-    alert('stop');
 }
 
 export function importImage() {
@@ -74,17 +67,20 @@ export function resetPose() {
 }
 
 export function updateDebugMode(debugMode:boolean) {
-    engine.updateDebugMode(debugMode);
+    engine.getScene().programFlowManager.updateDebugMode(debugMode);
 }
 
 export function endDebugging() {
-    engine.endDebugging();
+    engine.getScene().programFlowManager.endDebugging();
 }
 
 export function interpreterAddEvent(event:any) {
-    engine.interpreterAddEvent(event);
+    engine.getScene().programFlowManager.interpreterAddEvent(event);
 }
 
+/**
+ * on simulation close
+ */
 export function cancel() {
-    alert('cancel');
+    engine.getScene().programFlowManager.stopProgram();
 }

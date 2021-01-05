@@ -187,6 +187,9 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
         Scene.prototype.interpreterAddEvent = function (mode) {
             this.programFlowManager.interpreterAddEvent(mode);
         };
+        Scene.prototype.setProgramPause = function (pause) {
+            this.programFlowManager.setProgramPause(pause);
+        };
         Scene.prototype.setSimulationEngine = function (sceneRenderer) {
             if (sceneRenderer === void 0) { sceneRenderer = null; }
             if (sceneRenderer) {
@@ -224,6 +227,8 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
                 this.onInit();
                 this.needsInit = false;
             }
+            // auto start simulation
+            this.startSim();
         };
         Scene.prototype.startLoading = function () {
             if (!this.startedLoading && !this.hasFinishedLoading) {
@@ -250,6 +255,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
                     var bodies = this.getBodiesAt(mousePosition);
                     if (bodies.length >= 1) {
                         var body = bodies[0];
+                        ev.cancel();
                         matter_js_1.Sleeping.set(body, false);
                         if (this.mouseConstraint) {
                             matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
@@ -419,7 +425,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
         Scene.prototype.update = function () {
             var _this_1 = this;
             this.onUpdate();
-            this.robots.forEach(function (robot) { return robot.update(_this_1.dt); }); // update robots
+            this.robots.forEach(function (robot) { return robot.update(_this_1.dt, _this_1.programFlowManager.isProgramPaused()); }); // update robots
             this.programFlowManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // update rendering positions
