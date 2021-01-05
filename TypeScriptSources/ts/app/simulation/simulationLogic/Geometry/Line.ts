@@ -3,16 +3,16 @@ import { LineBaseClass } from "./LineBaseClass";
 
 export class Line extends LineBaseClass {
 
-    checkIntersectionParameter(parameter: number): boolean {
-        return true
-    }
+	checkIntersectionParameter(parameter: number): boolean {
+		return true
+	}
 
-    nearestPointTo(point: Vector): Vector {
-        return this.getPoint(this.uncheckedNearestParameterTo(point))
-    }
+	nearestPointTo(point: Vector): Vector {
+		return this.getPoint(this.uncheckedNearestParameterTo(point))
+	}
 
-    getEndPoints(): Vector[] {
-        return []
-    }
+	getEndPoints(): Vector[] {
+		return []
+	}
 
 }
