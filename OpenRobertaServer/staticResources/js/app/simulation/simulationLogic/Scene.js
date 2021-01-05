@@ -97,8 +97,6 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
              * whether to create debug displayables to show all physics objects
              */
             this.debugPixiRendering = false;
-            // TODO: remove
-            this.mouseConstraint = null;
             /**
              * current rendering instance
              */
@@ -106,6 +104,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
             this.hasFinishedLoading = false;
             this.startedLoading = false;
             this.needsInit = false;
+            this.mouseConstraint = null;
             // register events
             var _this = this;
             matter_js_1.Events.on(this.engine.world, "beforeAdd", function (e) {
@@ -244,19 +243,39 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
             }
         };
         Scene.prototype.interactionEvent = function (ev) {
-            // TODO
             switch (ev.type) {
                 case ScrollView_1.EventType.PRESS:
                     // get bodies
-                    this.getBodiesAt(ev.data.getCurrentLocalPosition());
-                    // TODO: disable sleeping
-                    // attach constrain
+                    var mousePosition = ev.data.getCurrentLocalPosition();
+                    var bodies = this.getBodiesAt(mousePosition);
+                    if (bodies.length >= 1) {
+                        var body = bodies[0];
+                        matter_js_1.Sleeping.set(body, false);
+                        if (this.mouseConstraint) {
+                            matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
+                        }
+                        this.mouseConstraint = matter_js_1.Constraint.create({
+                            bodyA: body,
+                            pointA: matter_js_1.Vector.sub(mousePosition, body.position),
+                            pointB: mousePosition
+                        });
+                        // attach constraint
+                        matter_js_1.World.add(this.engine.world, this.mouseConstraint);
+                    }
                     break;
                 case ScrollView_1.EventType.RELEASE:
                     // remove constrain
+                    if (this.mouseConstraint) {
+                        matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
+                        this.mouseConstraint = null;
+                    }
                     break;
                 case ScrollView_1.EventType.DRAG:
                     // move constrain
+                    if (this.mouseConstraint) {
+                        this.mouseConstraint.pointB = ev.data.getCurrentLocalPosition();
+                        ev.cancel();
+                    }
                     break;
                 default:
                     break;
@@ -321,9 +340,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
                         break;
                     case "mouseConstraint":
                     case 'constraint':
-                        var constraint = element;
-                        this.addPhysics(constraint.bodyA);
-                        this.addPhysics(constraint.bodyB);
+                        // TODO: Maybe add constraint as PIXI graphics
                         break;
                     default:
                         console.error("unknown type: " + element.type);
@@ -367,9 +384,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
                         break;
                     case "mouseConstraint":
                     case 'constraint':
-                        var constraint = element;
-                        this.removePhysics(constraint.bodyA);
-                        this.removePhysics(constraint.bodyB);
+                        // TODO: Maybe remove constraint PIXI graphics
                         break;
                     default:
                         console.error("unknown type: " + element.type);
@@ -504,6 +519,7 @@ define(["require", "exports", "./Robot/Robot", "./Displayable", "matter-js", "./
             });
             this.engine.world.gravity.y = 0.0;
             var body = robot.body;
+            body.enableMouseInteraction = true;
             var keyDownList = [];
             document.onkeydown = function (event) {
                 if (!keyDownList.includes(event.key)) {

@@ -216,10 +216,6 @@ export class Scene {
      */
     private debugPixiRendering = false;
 
-
-    // TODO: remove
-    private mouseConstraint: MouseConstraint = null;
-
     
     /**
      * current rendering instance
@@ -319,25 +315,45 @@ export class Scene {
         }
     }
 
+    private mouseConstraint?: Constraint = null
 
     interactionEvent(ev: ScrollViewEvent) {
-        // TODO
         switch (ev.type) {
             case EventType.PRESS:
                 // get bodies
-                this.getBodiesAt(ev.data.getCurrentLocalPosition());
-
-                // TODO: disable sleeping
-                // attach constrain
-            
+                const mousePosition = ev.data.getCurrentLocalPosition()
+                const bodies = this.getBodiesAt(mousePosition);
+                if (bodies.length >= 1) {
+                    const body = bodies[0]
+                    ev.cancel()
+                    Sleeping.set(body, false)
+                    if (this.mouseConstraint) {
+                        World.remove(this.engine.world, this.mouseConstraint)
+                    }
+                    this.mouseConstraint = Constraint.create({
+                        bodyA: body,
+                        pointA: Vector.sub(mousePosition, body.position),
+                        pointB: mousePosition
+                    })
+                    // attach constraint
+                    World.add(this.engine.world, this.mouseConstraint)
+                }
                 break;
 
             case EventType.RELEASE:
                 // remove constrain
+                if (this.mouseConstraint) {
+                    World.remove(this.engine.world, this.mouseConstraint)
+                    this.mouseConstraint = null
+                }
                 break;
 
             case EventType.DRAG:
                 // move constrain
+                if (this.mouseConstraint) {
+                    this.mouseConstraint.pointB = ev.data.getCurrentLocalPosition()
+                    ev.cancel()
+                }
                 break;
         
             default:
@@ -420,9 +436,7 @@ export class Scene {
     
                 case "mouseConstraint":
                 case 'constraint':
-                    var constraint = <Constraint>element;
-                    this.addPhysics(constraint.bodyA);
-                    this.addPhysics(constraint.bodyB);
+                    // TODO: Maybe add constraint as PIXI graphics
                     break;
             
                 default:
@@ -473,9 +487,7 @@ export class Scene {
 
                 case "mouseConstraint":
                 case 'constraint':
-                    var constraint = <Constraint>element;
-                    this.removePhysics(constraint.bodyA);
-                    this.removePhysics(constraint.bodyB);
+                    // TODO: Maybe remove constraint PIXI graphics
                     break;
             
                 default:
@@ -646,6 +658,7 @@ export class Scene {
     
     
         var body = robot.body;
+        body.enableMouseInteraction = true
     
         var keyDownList: Array<string> = []
     
