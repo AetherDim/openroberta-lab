@@ -3,7 +3,9 @@ import { SceneRender } from './SceneRenderer'
 import './ExtendedMatter'
 import { TestScene } from './Scene/TestScene';
 
-var engine = new SceneRender('sceneCanvas', 'simDiv', new TestScene());
+import { RRCScene } from './RRC/Scene/RRCScene'
+
+var engine = new SceneRender('sceneCanvas', 'simDiv', new RRCScene());
 engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
 

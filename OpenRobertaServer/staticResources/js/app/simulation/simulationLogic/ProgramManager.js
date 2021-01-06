@@ -152,6 +152,10 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
         /** adds/removes the ability for a block to be a breakpoint to a block */
         ProgramManager.prototype.updateBreakpointEvent = function () {
             var _this = this;
+            if (!Blockly.getMainWorkspace()) {
+                // blockly workspace not initialized
+                return;
+            }
             if (this.debugMode) {
                 Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (block) {
                     if (!$(block.svgGroup_).hasClass('blocklyDisabled')) {

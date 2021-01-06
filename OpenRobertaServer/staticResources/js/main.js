@@ -63,6 +63,7 @@ require.config({
         'd3': 'libs/neuralnetwork/d3.min',
         'pixijs': 'libs/pixi.js/pixi.min', // workaround with fake module for pixi.js due to reqirejs not supporting .js within the name
         'matter-js': 'libs/matterjs/matter.min',
+        'webfontloader': 'libs/webfontloader/webfontloader',
 
         'confDelete.controller': 'app/roberta/controller/confDelete.controller',
         'configuration.controller': 'app/roberta/controller/configuration.controller',
@@ -146,6 +147,7 @@ require.config({
         'Unit',
         'ScrollView',
         'ProgramManager',
+        'SharedAssetLoader',
         { 'Scene': [
             'Scene',
             'TestScene',
@@ -165,6 +167,12 @@ require.config({
             'RobotHardwareStateSensors',
             'ColorSensor',
         ]},
+        { 'RRC': [
+            'RRAssetLoader',
+            { 'Scene':
+                'RRCScene',
+            }
+        ]}
     ]),
     shim: {
         'bootstrap': {

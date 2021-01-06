@@ -186,6 +186,11 @@ export class ProgramManager {
     updateBreakpointEvent() {
         let _this = this;
 
+        if(!Blockly.getMainWorkspace()) {
+            // blockly workspace not initialized
+            return;
+        }
+
         if (this.debugMode) {
             Blockly.getMainWorkspace().getAllBlocks(false).forEach((block: any) => {
                 if (!$(block.svgGroup_).hasClass('blocklyDisabled')) {
