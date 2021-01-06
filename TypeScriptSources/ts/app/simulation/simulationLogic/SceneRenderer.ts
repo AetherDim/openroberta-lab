@@ -85,6 +85,15 @@ export class SceneRender {
         return this.app.view.height;
     }
 
+    // TODO: check this size
+    getViewWidth() {
+        return this.scrollView.getBounds().width;
+    }
+
+    getViewHeight() {
+        return this.scrollView.getBounds().height;
+    }
+
     getCanvasFromDisplayObject(object: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement {
         return this.app.renderer.extract.canvas(object)
     }

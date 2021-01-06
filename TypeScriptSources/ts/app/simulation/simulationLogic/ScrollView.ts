@@ -1,3 +1,4 @@
+import './pixijs'
 
 export class Browser {
 

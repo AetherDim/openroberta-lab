@@ -1,4 +1,4 @@
-define(["require", "exports", "./SceneRenderer", "./Scene/TestScene", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, TestScene_1) {
+define(["require", "exports", "./SceneRenderer", "./Scene/TestScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, TestScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;

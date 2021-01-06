@@ -1,3 +1,4 @@
+import './pixijs'
 import { SceneRender } from './SceneRenderer'
 import './ExtendedMatter'
 import { TestScene } from './Scene/TestScene';

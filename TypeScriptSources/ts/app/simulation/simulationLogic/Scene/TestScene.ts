@@ -4,7 +4,7 @@ import { Polygon } from "../Geometry/Polygon";
 import { ElectricMotor } from "../Robot/ElectricMotor";
 import { Robot } from "../Robot/Robot";
 import { Unit } from "../Unit";
-import { Scene } from "./Scene";
+import { AsyncChain, Scene } from "./Scene";
 
 export class TestScene extends Scene {
 
@@ -14,10 +14,12 @@ export class TestScene extends Scene {
      * 
      * @override from Scene
      */
-    onFirstLoad() {
+    onFirstLoad(chain: AsyncChain) {
         setTimeout(() => {
-            this.finishedLoading(); // swap from loading to our test scene
-        }, 2000);
+            chain.next();
+            this.setScore(266);
+            this.showScoreScreen(10);
+        }, 4000);
     }
 
 

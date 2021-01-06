@@ -25,11 +25,13 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/Polygo
          *
          * @override from Scene
          */
-        TestScene.prototype.onFirstLoad = function () {
+        TestScene.prototype.onFirstLoad = function (chain) {
             var _this = this;
             setTimeout(function () {
-                _this.finishedLoading(); // swap from loading to our test scene
-            }, 2000);
+                chain.next();
+                _this.setScore(266);
+                _this.showScoreScreen(10);
+            }, 4000);
         };
         /**
          * called after resource loading on Init

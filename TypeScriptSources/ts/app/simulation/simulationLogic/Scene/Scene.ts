@@ -6,6 +6,43 @@ import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
 import { ProgramManager } from '../ProgramManager';
 
+export class AsyncListener {
+
+    func: (chain: AsyncChain) => void;
+    thisContext: any;
+
+}
+export class AsyncChain {
+
+    private listeners: AsyncListener[];
+    private index = 0; 
+
+    constructor(listeners: AsyncListener[]) {
+        this.listeners = listeners;
+    }
+
+    next() {
+        if(this.listeners.length <= this.index) {
+            return;
+        }
+
+        let listener = this.listeners[this.index];
+
+        this.index ++;
+
+        listener.func.call(listener.thisContext, this);
+    }
+
+    hasFinished() {
+        return this.listeners.length <= this.index;
+    }
+
+    reset() {
+        this.index = 0;
+    }
+
+}
+
 export class Scene {
 
 
@@ -96,20 +133,83 @@ export class Scene {
     }
 
     protected registerContainersToEngine() {
-        this.sceneRenderer.addDisplayable(this.groundContainer);
-        this.sceneRenderer.addDisplayable(this.groundAnimationContainer);
-        this.sceneRenderer.addDisplayable(this.entityBottomContainer);
-        this.sceneRenderer.addDisplayable(this.entityContainer);
-        this.sceneRenderer.addDisplayable(this.entityTopContainer);
-        this.sceneRenderer.addDisplayable(this.topContainer);
+        this.sceneRenderer.add(this.groundContainer);
+        this.sceneRenderer.add(this.groundAnimationContainer);
+        this.sceneRenderer.add(this.entityBottomContainer);
+        this.sceneRenderer.add(this.entityContainer);
+        this.sceneRenderer.add(this.entityTopContainer);
+        this.sceneRenderer.add(this.topContainer);
     }
 
     //
     // #############################################################################
     //
 
+    private score: number = 0;
+
+    setScore(score: number) {
+        if(score) {
+            this.score = score;
+        }
+    }
+
+    getScore(): number {
+        return this.score;
+    }
+
+    //
+    // #############################################################################
+    //
+
+    readonly scoreContainer = new PIXI.Container();
+    readonly scoreContainerZ = 60;
+
+    protected endScoreTime: number;
+    protected showScore: boolean = false;
+
+    protected scoreText: PIXI.Text;
+
+    /**
+     * Async loading function for fonts and images
+     * TODO: only start onLoad if this has succeeded
+     */
+    protected loadScoreAssets(chain: AsyncChain) {
+        chain.next();
+    }
+
+    protected initScoreContainer() {
+        this.scoreContainer.zIndex = this.scoreContainerZ;
+
+        this.scoreText = new PIXI.Text("Score: " + this.getScore(),
+        {
+            fontFamily : 'Arial',
+            fontSize: 60,
+            fill : 0x6e750e // olive
+        });
+
+        this.scoreContainer.addChild(this.scoreText);
+
+        this.scoreContainer.x = 200;
+        this.scoreContainer.y = 200;
+    }
+
+    updateScoreAnimation(dt) {
+        
+    }
+
+    showScoreScreen(seconds: number) {
+        this.endScoreTime = Date.now() + seconds*1000;
+        this.showScore = true;
+        this.sceneRenderer.add(this.scoreContainer);
+    }
+
+
+    //
+    // #############################################################################
+    //
+
     readonly loadingContainer = new PIXI.Container();
-    readonly loadingContainerZ = 50;
+    readonly loadingContainerZ = 60;
     protected loadingText: PIXI.DisplayObject = null;
     protected loadingAnimation: PIXI.DisplayObject = null;
     
@@ -143,11 +243,12 @@ export class Scene {
     }
 
     private updateLoadingAnimation(dt) {
-        this.loadingText.x = this.sceneRenderer.getWidth() * 0.1;
-        this.loadingText.y = this.sceneRenderer.getHeight() * 0.45;
+        // This calculations are relative to the viewport width and height and give an interesting bounce effect
+        this.loadingText.x = this.sceneRenderer.getViewWidth() * 0.1 + this.sceneRenderer.getWidth() * 0.2;
+        this.loadingText.y = this.sceneRenderer.getViewHeight() * 0.45 + this.sceneRenderer.getHeight() * 0.3;
 
-        this.loadingAnimation.x = this.sceneRenderer.getWidth() * 0.7;
-        this.loadingAnimation.y = this.sceneRenderer.getHeight() * 0.5;
+        this.loadingAnimation.x = this.sceneRenderer.getViewWidth() * 0.7 + this.sceneRenderer.getWidth() * 0.3;
+        this.loadingAnimation.y = this.sceneRenderer.getViewHeight() * 0.5 + this.sceneRenderer.getHeight() * 0.3;
         this.loadingAnimation.rotation += 0.05*dt;
     }
 
@@ -159,6 +260,7 @@ export class Scene {
     private startedLoading = false;
     private needsInit = false;
 
+    private assetLoadingChain: AsyncChain = null;
 
     private getColorData: (x: number, y: number, w: number, h: number) => ImageData
 
@@ -170,6 +272,12 @@ export class Scene {
     }
 
     finishedLoading() {
+        if(this.assetLoadingChain && !this.assetLoadingChain.hasFinished()) {
+            this.assetLoadingChain.next(); // continue with loading
+            return;
+        }
+
+
         this.hasFinishedLoading = true;
         this.startedLoading = true; // for safety
 
@@ -177,6 +285,7 @@ export class Scene {
         this.registerContainersToEngine(); // register rendering containers
 
         if(this.needsInit) {
+            this.initScoreContainer();
             this.onInit();
             this.updateColorDataFunction()
             this.needsInit = false;
@@ -187,11 +296,21 @@ export class Scene {
         
     }
 
+
+
     startLoading() {
         if(!this.startedLoading && !this.hasFinishedLoading) {
             this.startedLoading = true;
             this.sceneRenderer.addDisplayable(this.loadingContainer);
-            this.onFirstLoad();
+
+
+            this.assetLoadingChain = new AsyncChain([
+                {func: this.loadScoreAssets, thisContext: this},
+                {func: this.onFirstLoad, thisContext: this},
+                {func: chain => this.finishedLoading(), thisContext: this}, // swap from loading to scene
+            ]);
+
+            this.assetLoadingChain.next();
         }
     }
 
@@ -287,6 +406,7 @@ export class Scene {
 
                 // add rendering containers from this scene
                 if(this.hasFinishedLoading) {
+                    this.initScoreContainer();
                     this.onInit();
                     this.updateColorDataFunction()
                 } else {
@@ -306,6 +426,15 @@ export class Scene {
         if(this.startedLoading && !this.hasFinishedLoading) {
             this.updateLoadingAnimation(dt);
         }
+
+        if(this.showScore) {
+            this.updateScoreAnimation(dt);
+            if(Date.now() > this.endScoreTime) {
+                this.showScore = false;
+                this.sceneRenderer.remove(this.scoreContainer);
+            }
+        }
+
         this.onRenderTick(dt);
     }
 
@@ -610,13 +739,11 @@ export class Scene {
     //
 
     /**
-     * load all textures and call finishedLoading() when done
+     * load all textures and call chain.next() when done
      * please do not block within this method and use PIXI.Loader callbacks
      */
-    onFirstLoad() {
-        setTimeout(() => {
-            this.finishedLoading(); // swap from loading to scene
-        }, 2000);
+    onFirstLoad(chain: AsyncChain) {
+        chain.next();
     }
 
     /**

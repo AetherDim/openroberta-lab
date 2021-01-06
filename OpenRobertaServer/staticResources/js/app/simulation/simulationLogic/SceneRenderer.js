@@ -65,6 +65,13 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
         SceneRender.prototype.getHeight = function () {
             return this.app.view.height;
         };
+        // TODO: check this size
+        SceneRender.prototype.getViewWidth = function () {
+            return this.scrollView.getBounds().width;
+        };
+        SceneRender.prototype.getViewHeight = function () {
+            return this.scrollView.getBounds().height;
+        };
         SceneRender.prototype.getCanvasFromDisplayObject = function (object) {
             return this.app.renderer.extract.canvas(object);
         };

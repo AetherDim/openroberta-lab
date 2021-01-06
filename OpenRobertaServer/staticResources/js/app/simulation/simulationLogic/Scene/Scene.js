@@ -1,7 +1,35 @@
 define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Scene = void 0;
+    exports.Scene = exports.AsyncChain = exports.AsyncListener = void 0;
+    var AsyncListener = /** @class */ (function () {
+        function AsyncListener() {
+        }
+        return AsyncListener;
+    }());
+    exports.AsyncListener = AsyncListener;
+    var AsyncChain = /** @class */ (function () {
+        function AsyncChain(listeners) {
+            this.index = 0;
+            this.listeners = listeners;
+        }
+        AsyncChain.prototype.next = function () {
+            if (this.listeners.length <= this.index) {
+                return;
+            }
+            var listener = this.listeners[this.index];
+            this.index++;
+            listener.func.call(listener.thisContext, this);
+        };
+        AsyncChain.prototype.hasFinished = function () {
+            return this.listeners.length <= this.index;
+        };
+        AsyncChain.prototype.reset = function () {
+            this.index = 0;
+        };
+        return AsyncChain;
+    }());
+    exports.AsyncChain = AsyncChain;
     var Scene = /** @class */ (function () {
         //
         // #############################################################################
@@ -65,8 +93,18 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             //
             // #############################################################################
             //
+            this.score = 0;
+            //
+            // #############################################################################
+            //
+            this.scoreContainer = new PIXI.Container();
+            this.scoreContainerZ = 60;
+            this.showScore = false;
+            //
+            // #############################################################################
+            //
             this.loadingContainer = new PIXI.Container();
-            this.loadingContainerZ = 50;
+            this.loadingContainerZ = 60;
             this.loadingText = null;
             this.loadingAnimation = null;
             //
@@ -75,6 +113,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.hasFinishedLoading = false;
             this.startedLoading = false;
             this.needsInit = false;
+            this.assetLoadingChain = null;
             //
             // #############################################################################
             //
@@ -145,12 +184,45 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.topContainer.zIndex = this.topContainerZ;
         };
         Scene.prototype.registerContainersToEngine = function () {
-            this.sceneRenderer.addDisplayable(this.groundContainer);
-            this.sceneRenderer.addDisplayable(this.groundAnimationContainer);
-            this.sceneRenderer.addDisplayable(this.entityBottomContainer);
-            this.sceneRenderer.addDisplayable(this.entityContainer);
-            this.sceneRenderer.addDisplayable(this.entityTopContainer);
-            this.sceneRenderer.addDisplayable(this.topContainer);
+            this.sceneRenderer.add(this.groundContainer);
+            this.sceneRenderer.add(this.groundAnimationContainer);
+            this.sceneRenderer.add(this.entityBottomContainer);
+            this.sceneRenderer.add(this.entityContainer);
+            this.sceneRenderer.add(this.entityTopContainer);
+            this.sceneRenderer.add(this.topContainer);
+        };
+        Scene.prototype.setScore = function (score) {
+            if (score) {
+                this.score = score;
+            }
+        };
+        Scene.prototype.getScore = function () {
+            return this.score;
+        };
+        /**
+         * Async loading function for fonts and images
+         * TODO: only start onLoad if this has succeeded
+         */
+        Scene.prototype.loadScoreAssets = function (chain) {
+            chain.next();
+        };
+        Scene.prototype.initScoreContainer = function () {
+            this.scoreContainer.zIndex = this.scoreContainerZ;
+            this.scoreText = new PIXI.Text("Score: " + this.getScore(), {
+                fontFamily: 'Arial',
+                fontSize: 60,
+                fill: 0x6e750e // olive
+            });
+            this.scoreContainer.addChild(this.scoreText);
+            this.scoreContainer.x = 200;
+            this.scoreContainer.y = 200;
+        };
+        Scene.prototype.updateScoreAnimation = function (dt) {
+        };
+        Scene.prototype.showScoreScreen = function (seconds) {
+            this.endScoreTime = Date.now() + seconds * 1000;
+            this.showScore = true;
+            this.sceneRenderer.add(this.scoreContainer);
         };
         Scene.prototype.initLoadingContainer = function () {
             this.loadingContainer.zIndex = this.loadingContainerZ;
@@ -174,10 +246,11 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingContainer.addChild(this.loadingAnimation);
         };
         Scene.prototype.updateLoadingAnimation = function (dt) {
-            this.loadingText.x = this.sceneRenderer.getWidth() * 0.1;
-            this.loadingText.y = this.sceneRenderer.getHeight() * 0.45;
-            this.loadingAnimation.x = this.sceneRenderer.getWidth() * 0.7;
-            this.loadingAnimation.y = this.sceneRenderer.getHeight() * 0.5;
+            // This calculations are relative to the viewport width and height and give an interesting bounce effect
+            this.loadingText.x = this.sceneRenderer.getViewWidth() * 0.1 + this.sceneRenderer.getWidth() * 0.2;
+            this.loadingText.y = this.sceneRenderer.getViewHeight() * 0.45 + this.sceneRenderer.getHeight() * 0.3;
+            this.loadingAnimation.x = this.sceneRenderer.getViewWidth() * 0.7 + this.sceneRenderer.getWidth() * 0.3;
+            this.loadingAnimation.y = this.sceneRenderer.getViewHeight() * 0.5 + this.sceneRenderer.getHeight() * 0.3;
             this.loadingAnimation.rotation += 0.05 * dt;
         };
         Scene.prototype.updateColorDataFunction = function () {
@@ -187,11 +260,16 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.getColorData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
         };
         Scene.prototype.finishedLoading = function () {
+            if (this.assetLoadingChain && !this.assetLoadingChain.hasFinished()) {
+                this.assetLoadingChain.next(); // continue with loading
+                return;
+            }
             this.hasFinishedLoading = true;
             this.startedLoading = true; // for safety
             this.sceneRenderer.removeDisplayable(this.loadingContainer);
             this.registerContainersToEngine(); // register rendering containers
             if (this.needsInit) {
+                this.initScoreContainer();
                 this.onInit();
                 this.updateColorDataFunction();
                 this.needsInit = false;
@@ -200,10 +278,16 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.startSim();
         };
         Scene.prototype.startLoading = function () {
+            var _this_1 = this;
             if (!this.startedLoading && !this.hasFinishedLoading) {
                 this.startedLoading = true;
                 this.sceneRenderer.addDisplayable(this.loadingContainer);
-                this.onFirstLoad();
+                this.assetLoadingChain = new AsyncChain([
+                    { func: this.loadScoreAssets, thisContext: this },
+                    { func: this.onFirstLoad, thisContext: this },
+                    { func: function (chain) { return _this_1.finishedLoading(); }, thisContext: this },
+                ]);
+                this.assetLoadingChain.next();
             }
         };
         Scene.prototype.setDT = function (dt) {
@@ -240,6 +324,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                     }
                     // add rendering containers from this scene
                     if (this.hasFinishedLoading) {
+                        this.initScoreContainer();
                         this.onInit();
                         this.updateColorDataFunction();
                     }
@@ -258,6 +343,13 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.renderTick = function (dt) {
             if (this.startedLoading && !this.hasFinishedLoading) {
                 this.updateLoadingAnimation(dt);
+            }
+            if (this.showScore) {
+                this.updateScoreAnimation(dt);
+                if (Date.now() > this.endScoreTime) {
+                    this.showScore = false;
+                    this.sceneRenderer.remove(this.scoreContainer);
+                }
             }
             this.onRenderTick(dt);
         };
@@ -481,14 +573,11 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         // User defined functions
         //
         /**
-         * load all textures and call finishedLoading() when done
+         * load all textures and call chain.next() when done
          * please do not block within this method and use PIXI.Loader callbacks
          */
-        Scene.prototype.onFirstLoad = function () {
-            var _this_1 = this;
-            setTimeout(function () {
-                _this_1.finishedLoading(); // swap from loading to scene
-            }, 2000);
+        Scene.prototype.onFirstLoad = function (chain) {
+            chain.next();
         };
         /**
          * called on scene switch
