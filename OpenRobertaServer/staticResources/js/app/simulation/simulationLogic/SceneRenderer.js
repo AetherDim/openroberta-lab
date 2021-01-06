@@ -65,6 +65,9 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
         SceneRender.prototype.getHeight = function () {
             return this.app.view.height;
         };
+        SceneRender.prototype.getCanvasFromDisplayObject = function (object) {
+            return this.app.renderer.extract.canvas(object);
+        };
         SceneRender.prototype.switchScene = function (scene) {
             if (!scene) {
                 scene = new Scene_1.Scene();

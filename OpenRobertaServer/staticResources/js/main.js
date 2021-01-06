@@ -146,12 +146,10 @@ require.config({
         'Unit',
         'ScrollView',
         'ProgramManager',
-        {
-            'Scene': [
-                'Scene',
-                'TestScene',
-            ]
-        },
+        { 'Scene': [
+            'Scene',
+            'TestScene',
+        ]},
         { 'Geometry': [
             'Line',
             'LineBaseClass',
@@ -164,6 +162,8 @@ require.config({
             'ElectricMotor',
             'RobotSimBehaviour',
             'Wheel',
+            'RobotHardwareStateSensors',
+            'ColorSensor',
         ]},
     ]),
     shim: {

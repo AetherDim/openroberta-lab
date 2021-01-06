@@ -87,6 +87,10 @@ export class SceneRender {
         return this.app.view.height;
     }
 
+    getCanvasFromDisplayObject(object: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement {
+        return this.app.renderer.extract.canvas(object)
+    }
+
 
     switchScene(scene: Scene) {
         if(!scene) {

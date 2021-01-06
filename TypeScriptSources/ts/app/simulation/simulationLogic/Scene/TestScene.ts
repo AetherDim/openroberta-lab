@@ -41,6 +41,9 @@ export class TestScene extends Scene {
 
         //this.sceneRenderer.setRenderingScaleAndOffset(1 / scale, Vector.create())
         
+        // add some background elements
+        this.groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill())
+
         const useEV3 = true
         const robot = useEV3 ? Robot.EV3() : Robot.default(scale)
         this.robots.push(robot);

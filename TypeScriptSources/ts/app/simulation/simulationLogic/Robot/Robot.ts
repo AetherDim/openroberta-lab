@@ -8,6 +8,9 @@ import { Interpreter } from '../interpreter.interpreter'
 import { RobotSimBehaviour } from './RobotSimBehaviour'
 import { Unit } from '../Unit'
 import { Wheel } from './Wheel'
+import { ColorSensor } from './ColorSensor'
+import '../pixijs'
+import { Graphics } from 'pixi.js'
 
 export class Robot {
 
@@ -20,6 +23,7 @@ export class Robot {
 	 * The body of the robot as `Body`s
 	 */
 	body: Body
+	private bodyContainer: PIXI.Container
 
 	/**
 	 * The wheels of the robot as `Body`s
@@ -36,6 +40,12 @@ export class Robot {
 	 * The list of all wheels
 	 */
 	physicsWheelsList: Body[]
+
+	/**
+	 * Key is the port and the value is the detected color
+	 */
+	private colorSensor?: ColorSensor = null
+	private colorSensorGraphics?: PIXI.Graphics = null
 
 	robotBehaviour: RobotSimBehaviour = null;
 
@@ -61,6 +71,14 @@ export class Robot {
 		this.leftDrivingWheel = robot.leftDrivingWheel
 		this.rightDrivingWheel = robot.rightDrivingWheel
 		this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels)
+
+		// FIXME: Workaround. Change body display object to a container
+		const bodyDisplayObject = this.body.displayable.displayObject
+		this.bodyContainer = new PIXI.Container()
+		this.bodyContainer.position = bodyDisplayObject.position.clone()
+		bodyDisplayObject.position.set(0, 0)
+		this.bodyContainer.addChild(bodyDisplayObject)
+		this.body.displayable.displayObject = this.bodyContainer
 
 		this.updatePhysicsObject()
 	}
@@ -96,6 +114,51 @@ export class Robot {
 		});
 
 		this.body.frictionAir = 0.0;
+	}
+
+	/**
+	 * Returns the color sensor which can be `null`
+	 */
+	getColorSensor?(): ColorSensor {
+		return this.colorSensor
+	}
+
+	/**
+	 * Sets the color sensor at the position (x,y) in meter
+	 * @param x x position in meter
+	 * @param y y position in meter
+	 */
+	setColorSensor(x: number, y: number) {
+		if (this.colorSensorGraphics) {
+			this.colorSensorGraphics.parent.removeChild(this.colorSensorGraphics)
+			this.colorSensorGraphics.destroy()
+		}
+		this.colorSensorGraphics = new PIXI.Graphics()
+			.lineStyle(2)
+			.drawRect(-10, -10, 20, 20)
+		const [xPos, yPos] = Unit.getLengths([x, y])
+		this.colorSensorGraphics.position.set(xPos, yPos)
+		this.bodyContainer.addChild(this.colorSensorGraphics)
+		this.colorSensor = new ColorSensor(Vector.create(xPos, yPos))
+	}
+	
+	/**
+	 * Sets the color of the color sensor and `colorSensorGraphics` if they are not null.
+	 * 
+	 * @param r red color [0, 255]
+	 * @param g green color [0, 255]
+	 * @param b blue color [0, 255]
+	 */
+	private setColorOfSensorColor(r: number, g: number, b: number) {
+		if (this.colorSensorGraphics && this.colorSensor) {
+			this.colorSensorGraphics
+				.clear()
+				.beginFill((r * 256 + g) * 256 + b)
+				.lineStyle(3, 0) // black border
+				.drawCircle(0, 0, 6)
+				.endFill
+			this.colorSensor.detectedColor = { red: r, green: g, blue: b }
+		}
 	}
 
 	setWheels(wheels: {leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
@@ -173,11 +236,15 @@ export class Robot {
 		
 	}
 
-	update(dt: number, programPaused: boolean) {
+	/**
+	 * 
+	 * @param dt time step of the matter.js simulation
+	 * @param programPaused is program paused
+	 * @param getImageData get the image data of the ground layer
+	 */
+	update(dt: number, programPaused: boolean, getImageData: (x: number, y: number, w: number, h: number) => ImageData) {
 
 		// update wheels velocities
-		// this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
-
 		const gravitationalAcceleration = Unit.getAcceleration(9.81)
 		const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
 		this.wheelsList.forEach(wheel => {
@@ -188,6 +255,9 @@ export class Robot {
 		if(!this.robotBehaviour || !this.interpreter) {
 			return;
 		}
+
+		// update sensors
+		this.updateRobotBehaviourHardwareStateSensors(getImageData)
 
 		if(!programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
 			const delay = this.interpreter.runNOperations(1000) / 1000;
@@ -497,6 +567,55 @@ export class Robot {
 		// }
 	};
 
+	private getColorSensorPosition(colorSensor: ColorSensor): Vector {
+		return Vector.add(this.body.position, Vector.rotate(colorSensor.position, this.body.angle))
+	}
+
+	private updateRobotBehaviourHardwareStateSensors(getImageData: (x: number, y: number, w: number, h: number) => ImageData) {
+		const sensors = this.robotBehaviour.getHardwareStateSensors()
+		
+		// encoder
+		sensors.encoder = {
+			left: this.encoder.left,
+			right: this.encoder.right
+		}
+		
+		// gyo sensor
+		sensors.gyro = { 2: {
+			angle: this.body.angle * 180 / Math.PI,
+			rate: this.body.angularVelocity
+		}}
+
+		// color
+		if (this.colorSensor) {
+			const colorSensorPosition = this.getColorSensorPosition(this.colorSensor)
+			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
+			const color = getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
+			this.setColorOfSensorColor(color[0], color[1], color[2])
+			sensors.color = { 3: {
+				ambientlight: 0,
+				colorValue: "none",
+				colour: "none",
+				light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
+				rgb: [color[0], color[1], color[2]]
+			}}
+		}
+
+		// TODO: Implement ultrasonic sensor
+		// ultrasonic sensor
+		let ultrasonicDistance = Infinity
+		ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255)
+		sensors.ultrasonic = { 4: {
+			distance: ultrasonicDistance,
+			presence: false
+		}}
+
+		// infrared sensor (use ultrasonic distance)
+		sensors.infrared = { 4: {
+			distance: Math.min(ultrasonicDistance / 70 * 100, 100),
+			presence: false
+		}}
+	}
 
 
 	/**
@@ -539,9 +658,9 @@ export class Robot {
 	static EV3(): Robot {
 		const wheel = { diameter: 0.05, width: 0.02 }
 		// TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
-		const frontWheel = new Wheel(0.10, 0, wheel.width, wheel.width, 0.30)
-		frontWheel.slideFriction = 0.05
-		frontWheel.rollingFriction = 0.03
+		const backWheel = new Wheel(-0.09, 0, wheel.width, wheel.width, 0.30)
+		backWheel.slideFriction = 0.05
+		backWheel.rollingFriction = 0.03
 		const robotBody = createRect(0, 0, 0.15, 0.10)
 		Body.setMass(robotBody, Unit.getMass(0.300))
 		const robot = new Robot({
@@ -549,15 +668,16 @@ export class Robot {
 			leftDrivingWheel: new Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
 			rightDrivingWheel: new Wheel(0,  0.07, wheel.diameter, wheel.width, 0.050),
 			otherWheels: [
-				frontWheel
+				backWheel
 			]
 		})
+		robot.setColorSensor(0.08, 0)
 		return robot
 	}
 }
 
 /**
- * Damped spring constriant.
+ * Damped spring constraint.
  */
 class CustomConstraint {
 

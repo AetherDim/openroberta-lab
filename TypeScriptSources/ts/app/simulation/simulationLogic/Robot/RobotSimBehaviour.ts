@@ -4,6 +4,7 @@ import * as C from "../interpreter.constants";
 import * as U from "../interpreter.util";
 import { Robot } from "./Robot";
 import { Unit } from "../Unit";
+import { RobotHardwareStateSensors } from "./RobotHardwareStateSensors";
 
 export class RobotSimBehaviour extends ARobotBehaviour {
 
@@ -33,6 +34,10 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		super();
 		this.hardwareState.motors = {};
 		U.loggingEnabled(false, false);
+	}
+
+	getHardwareStateSensors(): RobotHardwareStateSensors {
+		return this.hardwareState.sensors
 	}
 
 	resetCommands() {

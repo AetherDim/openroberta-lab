@@ -46,6 +46,8 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/Polygo
             // (<any>Sleeping)._motionSleepThreshold = 0.08 * scale;
             // (<any>Constraint)._minLength = 0.000001 * scale;
             //this.sceneRenderer.setRenderingScaleAndOffset(1 / scale, Vector.create())
+            // add some background elements
+            this.groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill());
             var useEV3 = true;
             var robot = useEV3 ? Robot_1.Robot.EV3() : Robot_1.Robot.default(scale);
             this.robots.push(robot);

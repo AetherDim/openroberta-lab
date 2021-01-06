@@ -1,9 +1,14 @@
-define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "../ExtendedMatter"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1) {
+define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "../ExtendedMatter", "../pixijs"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
     var Robot = /** @class */ (function () {
         function Robot(robot) {
+            /**
+             * Key is the port and the value is the detected color
+             */
+            this.colorSensor = null;
+            this.colorSensorGraphics = null;
             this.robotBehaviour = null;
             this.configuration = null;
             this.programCode = null;
@@ -26,6 +31,13 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.leftDrivingWheel = robot.leftDrivingWheel;
             this.rightDrivingWheel = robot.rightDrivingWheel;
             this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels);
+            // FIXME: Workaround. Change body display object to a container
+            var bodyDisplayObject = this.body.displayable.displayObject;
+            this.bodyContainer = new PIXI.Container();
+            this.bodyContainer.position = bodyDisplayObject.position.clone();
+            bodyDisplayObject.position.set(0, 0);
+            this.bodyContainer.addChild(bodyDisplayObject);
+            this.body.displayable.displayObject = this.bodyContainer;
             this.updatePhysicsObject();
         }
         Robot.prototype.setRobotType = function (type) {
@@ -59,6 +71,48 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 _this_1.physicsComposite.addRigidBodyConstraints(_this_1.body, wheel, 0.1, 0.1);
             });
             this.body.frictionAir = 0.0;
+        };
+        /**
+         * Returns the color sensor which can be `null`
+         */
+        Robot.prototype.getColorSensor = function () {
+            return this.colorSensor;
+        };
+        /**
+         * Sets the color sensor at the position (x,y) in meter
+         * @param x x position in meter
+         * @param y y position in meter
+         */
+        Robot.prototype.setColorSensor = function (x, y) {
+            if (this.colorSensorGraphics) {
+                this.colorSensorGraphics.parent.removeChild(this.colorSensorGraphics);
+                this.colorSensorGraphics.destroy();
+            }
+            this.colorSensorGraphics = new PIXI.Graphics()
+                .lineStyle(2)
+                .drawRect(-10, -10, 20, 20);
+            var _a = Unit_1.Unit.getLengths([x, y]), xPos = _a[0], yPos = _a[1];
+            this.colorSensorGraphics.position.set(xPos, yPos);
+            this.bodyContainer.addChild(this.colorSensorGraphics);
+            this.colorSensor = new ColorSensor_1.ColorSensor(matter_js_1.Vector.create(xPos, yPos));
+        };
+        /**
+         * Sets the color of the color sensor and `colorSensorGraphics` if they are not null.
+         *
+         * @param r red color [0, 255]
+         * @param g green color [0, 255]
+         * @param b blue color [0, 255]
+         */
+        Robot.prototype.setColorOfSensorColor = function (r, g, b) {
+            if (this.colorSensorGraphics && this.colorSensor) {
+                this.colorSensorGraphics
+                    .clear()
+                    .beginFill((r * 256 + g) * 256 + b)
+                    .lineStyle(3, 0) // black border
+                    .drawCircle(0, 0, 6)
+                    .endFill;
+                this.colorSensor.detectedColor = { red: r, green: g, blue: b };
+            }
         };
         Robot.prototype.setWheels = function (wheels) {
             this.leftDrivingWheel = wheels.leftDrivingWheel;
@@ -107,9 +161,14 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
         };
         Robot.prototype.reset = function () {
         };
-        Robot.prototype.update = function (dt, programPaused) {
+        /**
+         *
+         * @param dt time step of the matter.js simulation
+         * @param programPaused is program paused
+         * @param getImageData get the image data of the ground layer
+         */
+        Robot.prototype.update = function (dt, programPaused, getImageData) {
             // update wheels velocities
-            // this.physicsWheelsList.forEach(wheel => this.updateWheelVelocity(wheel, dt))
             var gravitationalAcceleration = Unit_1.Unit.getAcceleration(9.81);
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
             this.wheelsList.forEach(function (wheel) {
@@ -119,6 +178,8 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             if (!this.robotBehaviour || !this.interpreter) {
                 return;
             }
+            // update sensors
+            this.updateRobotBehaviourHardwareStateSensors(getImageData);
             if (!programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
                 var delay = this.interpreter.runNOperations(1000) / 1000;
             }
@@ -414,6 +475,49 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             // }
         };
         ;
+        Robot.prototype.getColorSensorPosition = function (colorSensor) {
+            return matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(colorSensor.position, this.body.angle));
+        };
+        Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (getImageData) {
+            var sensors = this.robotBehaviour.getHardwareStateSensors();
+            // encoder
+            sensors.encoder = {
+                left: this.encoder.left,
+                right: this.encoder.right
+            };
+            // gyo sensor
+            sensors.gyro = { 2: {
+                    angle: this.body.angle * 180 / Math.PI,
+                    rate: this.body.angularVelocity
+                } };
+            // color
+            if (this.colorSensor) {
+                var colorSensorPosition = this.getColorSensorPosition(this.colorSensor);
+                // the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
+                var color = getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
+                this.setColorOfSensorColor(color[0], color[1], color[2]);
+                sensors.color = { 3: {
+                        ambientlight: 0,
+                        colorValue: "none",
+                        colour: "none",
+                        light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
+                        rgb: [color[0], color[1], color[2]]
+                    } };
+            }
+            // TODO: Implement ultrasonic sensor
+            // ultrasonic sensor
+            var ultrasonicDistance = Infinity;
+            ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255);
+            sensors.ultrasonic = { 4: {
+                    distance: ultrasonicDistance,
+                    presence: false
+                } };
+            // infrared sensor (use ultrasonic distance)
+            sensors.infrared = { 4: {
+                    distance: Math.min(ultrasonicDistance / 70 * 100, 100),
+                    presence: false
+                } };
+        };
         /**
          * LEGO EV3 like robot with 2 main wheels and one with less friction (e.g. swivel wheel)
          *
@@ -453,9 +557,9 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
         Robot.EV3 = function () {
             var wheel = { diameter: 0.05, width: 0.02 };
             // TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
-            var frontWheel = new Wheel_1.Wheel(0.10, 0, wheel.width, wheel.width, 0.30);
-            frontWheel.slideFriction = 0.05;
-            frontWheel.rollingFriction = 0.03;
+            var backWheel = new Wheel_1.Wheel(-0.09, 0, wheel.width, wheel.width, 0.30);
+            backWheel.slideFriction = 0.05;
+            backWheel.rollingFriction = 0.03;
             var robotBody = Displayable_1.createRect(0, 0, 0.15, 0.10);
             matter_js_1.Body.setMass(robotBody, Unit_1.Unit.getMass(0.300));
             var robot = new Robot({
@@ -463,16 +567,17 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 leftDrivingWheel: new Wheel_1.Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
                 rightDrivingWheel: new Wheel_1.Wheel(0, 0.07, wheel.diameter, wheel.width, 0.050),
                 otherWheels: [
-                    frontWheel
+                    backWheel
                 ]
             });
+            robot.setColorSensor(0.08, 0);
             return robot;
         };
         return Robot;
     }());
     exports.Robot = Robot;
     /**
-     * Damped spring constriant.
+     * Damped spring constraint.
      */
     var CustomConstraint = /** @class */ (function () {
         function CustomConstraint(bodyA, bodyB, positionA, positionB, options) {

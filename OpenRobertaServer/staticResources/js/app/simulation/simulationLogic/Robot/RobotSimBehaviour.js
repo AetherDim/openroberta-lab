@@ -31,6 +31,9 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
             U.loggingEnabled(false, false);
             return _this;
         }
+        RobotSimBehaviour.prototype.getHardwareStateSensors = function () {
+            return this.hardwareState.sensors;
+        };
         RobotSimBehaviour.prototype.resetCommands = function () {
             this.rotate = null;
             this.drive = null;

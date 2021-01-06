@@ -180,6 +180,12 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingAnimation.y = this.sceneRenderer.getHeight() * 0.5;
             this.loadingAnimation.rotation += 0.05 * dt;
         };
+        Scene.prototype.setColorDataFunction = function () {
+            var canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer);
+            var renderingContext = canvas.getContext("2d");
+            var bounds = this.groundContainer.getBounds();
+            this.getColorData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
+        };
         Scene.prototype.finishedLoading = function () {
             this.hasFinishedLoading = true;
             this.startedLoading = true; // for safety
@@ -187,6 +193,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.registerContainersToEngine(); // register rendering containers
             if (this.needsInit) {
                 this.onInit();
+                this.setColorDataFunction();
                 this.needsInit = false;
             }
             // auto start simulation
@@ -234,6 +241,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                     // add rendering containers from this scene
                     if (this.hasFinishedLoading) {
                         this.onInit();
+                        this.setColorDataFunction();
                     }
                     else {
                         this.needsInit = true;
@@ -420,7 +428,11 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.update = function () {
             var _this_1 = this;
             this.onUpdate();
-            this.robots.forEach(function (robot) { return robot.update(_this_1.dt, _this_1.programManager.isProgramPaused()); }); // update robots
+            // update robots
+            // update ground every tick: this.setColorDataFunction()
+            this.robots.forEach(function (robot) {
+                robot.update(_this_1.dt, _this_1.programManager.isProgramPaused(), _this_1.getColorData);
+            });
             this.programManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // update rendering positions

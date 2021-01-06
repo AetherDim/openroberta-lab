@@ -163,6 +163,16 @@ export class Scene {
     private startedLoading = false;
     private needsInit = false;
 
+
+    private getColorData: (x: number, y: number, w: number, h: number) => ImageData
+
+    private setColorDataFunction() {
+        const canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer)
+        const renderingContext = canvas.getContext("2d")
+        const bounds = this.groundContainer.getBounds()
+        this.getColorData = (x, y, w, h) => renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h)
+    }
+
     finishedLoading() {
         this.hasFinishedLoading = true;
         this.startedLoading = true; // for safety
@@ -172,6 +182,7 @@ export class Scene {
 
         if(this.needsInit) {
             this.onInit();
+            this.setColorDataFunction()
             this.needsInit = false;
         }
 
@@ -281,6 +292,7 @@ export class Scene {
                 // add rendering containers from this scene
                 if(this.hasFinishedLoading) {
                     this.onInit();
+                    this.setColorDataFunction()
                 } else {
                     this.needsInit = true;
                 }
@@ -532,7 +544,15 @@ export class Scene {
 
         this.onUpdate();
 
-        this.robots.forEach((robot) => robot.update(this.dt, this.programManager.isProgramPaused())); // update robots
+        // update robots
+        // update ground every tick: this.setColorDataFunction()
+        this.robots.forEach(robot => {
+            robot.update(
+                this.dt,
+                this.programManager.isProgramPaused(),
+                this.getColorData
+            )
+        });
 
         this.programManager.update(); // update breakpoints, ...
 
