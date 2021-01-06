@@ -200,7 +200,7 @@ export class Scene {
         this.scoreText.text = "Score: " + this.getScore();
     }
 
-    updateScoreAnimation(dt) {
+    updateScoreAnimation(dt: number) {
         
     }
 

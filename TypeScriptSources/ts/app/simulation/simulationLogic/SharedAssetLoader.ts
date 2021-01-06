@@ -77,7 +77,7 @@ export class SharedAssetLoader {
 
     private readonly loader = new PIXI.Loader(); // you can also create your own if you want
 
-    get(asset: Asset) {
+    get(asset: Asset): PIXI.LoaderResource {
         return this.loader.resources[asset.name];
     }
 
