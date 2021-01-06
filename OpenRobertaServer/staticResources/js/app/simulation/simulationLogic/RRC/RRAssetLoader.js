@@ -21,7 +21,7 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
 define(["require", "exports", "../SharedAssetLoader"], function (require, exports, SharedAssetLoader_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RAINBOW_BACKGROUND_HS_SPACE_INVADERS = exports.RAINBOW_BACKGROUND_MS_SPACE_INVADERS = exports.RAINBOW_BACKGROUND_MS_DINO = exports.RAINBOW_BACKGROUND_ES = exports.RAINBOW_BACKGROUND_ES_DINO = exports.LINE_FOLLOWING_BACKGROUND_HS = exports.LINE_FOLLOWING_BACKGROUND_MS = exports.LINE_FOLLOWING_BACKGROUND_ES = exports.LABYRINTH_BLANK_BACKGROUND_HS = exports.LABYRINTH_BLANK_BACKGROUND_MS = exports.LABYRINTH_BLANK_BACKGROUND_ES = exports.PROGGY_TINY_FONT = exports.BLANK_BACKGROUND = exports.loader = exports.RRC_ASSET_PATH = void 0;
+    exports.RAINBOW_BACKGROUND_HS_SPACE_INVADERS = exports.RAINBOW_BACKGROUND_MS_SPACE_INVADERS = exports.RAINBOW_BACKGROUND_MS_DINO = exports.RAINBOW_BACKGROUND_ES = exports.RAINBOW_BACKGROUND_ES_DINO = exports.LINE_FOLLOWING_BACKGROUND_HS = exports.LINE_FOLLOWING_BACKGROUND_MS = exports.LINE_FOLLOWING_BACKGROUND_ES = exports.LABYRINTH_BLANK_BACKGROUND_HS = exports.LABYRINTH_BLANK_BACKGROUND_MS = exports.LABYRINTH_BLANK_BACKGROUND_ES = exports.PROGGY_TINY_FONT = exports.GOAL_BACKGROUND = exports.BLANK_BACKGROUND = exports.loader = exports.RRC_ASSET_PATH = void 0;
     exports.RRC_ASSET_PATH = 'assets/roborave/';
     var RRCAsset = /** @class */ (function (_super) {
         __extends(RRCAsset, _super);
@@ -52,6 +52,7 @@ define(["require", "exports", "../SharedAssetLoader"], function (require, export
     }(SharedAssetLoader_1.MultiAsset));
     exports.loader = new SharedAssetLoader_1.SharedAssetLoader();
     exports.BLANK_BACKGROUND = new RRCAsset('blank.svg');
+    exports.GOAL_BACKGROUND = new RRCAsset('goal.svg');
     exports.PROGGY_TINY_FONT = new RRCFontAsset('fonts/ProggyTiny.css', 'ProggyTiny');
     // Labyrinth
     exports.LABYRINTH_BLANK_BACKGROUND_ES = new RRCAsset('labyrinth/es/labyrinth.svg');

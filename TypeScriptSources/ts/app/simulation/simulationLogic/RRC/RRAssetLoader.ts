@@ -24,6 +24,7 @@ class RRCMultiAsset extends MultiAsset {
 export const loader = new SharedAssetLoader();
 
 export const BLANK_BACKGROUND = new RRCAsset('blank.svg');
+export const GOAL_BACKGROUND = new RRCAsset('goal.svg');
 
 export const PROGGY_TINY_FONT = new RRCFontAsset('fonts/ProggyTiny.css', 'ProggyTiny');
 

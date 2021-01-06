@@ -23,8 +23,7 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader"], function
         RRCScene.prototype.loadScoreAssets = function (chain) {
             RRC.loader.load(function () {
                 chain.next();
-                console.log('loaded');
-            }, RRC.PROGGY_TINY_FONT);
+            }, RRC.PROGGY_TINY_FONT, RRC.GOAL_BACKGROUND);
         };
         RRCScene.prototype.initScoreContainer = function () {
             this.scoreContainer.zIndex = this.scoreContainerZ;

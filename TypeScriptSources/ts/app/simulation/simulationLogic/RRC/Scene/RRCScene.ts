@@ -6,10 +6,9 @@ export class RRCScene extends Scene {
     loadScoreAssets(chain: AsyncChain) {
         RRC.loader.load(() => {
             chain.next();
-            console.log('loaded');
         },
-        RRC.PROGGY_TINY_FONT
-        
+        RRC.PROGGY_TINY_FONT,
+        RRC.GOAL_BACKGROUND
         );
     }
 

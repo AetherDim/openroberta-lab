@@ -101,7 +101,8 @@ define(["require", "exports", "webfontloader"], function (require, exports, WebF
             assetsToLoad = assetsToLoad.filter(function (asset) {
                 return asset != null;
             });
-            var countToLoad = assetsToLoad.length + fontsToLoad.length;
+            var countToLoad = 1 + fontsToLoad.length;
+            // TODO: threadless, lock?
             fontsToLoad.forEach(function (font) {
                 WebFont.load({
                     inactive: function () {

@@ -150,6 +150,7 @@ export class Scene {
     setScore(score: number) {
         if(score) {
             this.score = score;
+            this.updateScoreText();
         }
     }
 
@@ -180,7 +181,7 @@ export class Scene {
     protected initScoreContainer() {
         this.scoreContainer.zIndex = this.scoreContainerZ;
 
-        this.scoreText = new PIXI.Text("Score: " + this.getScore(),
+        this.scoreText = new PIXI.Text("",
         {
             fontFamily : 'Arial',
             fontSize: 60,
@@ -191,6 +192,12 @@ export class Scene {
 
         this.scoreContainer.x = 200;
         this.scoreContainer.y = 200;
+
+        this.updateScoreText();
+    }
+
+    updateScoreText() {
+        this.scoreText.text = "Score: " + this.getScore();
     }
 
     updateScoreAnimation(dt) {

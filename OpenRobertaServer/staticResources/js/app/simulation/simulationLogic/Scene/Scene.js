@@ -194,6 +194,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.setScore = function (score) {
             if (score) {
                 this.score = score;
+                this.updateScoreText();
             }
         };
         Scene.prototype.getScore = function () {
@@ -208,7 +209,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         };
         Scene.prototype.initScoreContainer = function () {
             this.scoreContainer.zIndex = this.scoreContainerZ;
-            this.scoreText = new PIXI.Text("Score: " + this.getScore(), {
+            this.scoreText = new PIXI.Text("", {
                 fontFamily: 'Arial',
                 fontSize: 60,
                 fill: 0x6e750e // olive
@@ -216,6 +217,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.scoreContainer.addChild(this.scoreText);
             this.scoreContainer.x = 200;
             this.scoreContainer.y = 200;
+            this.updateScoreText();
+        };
+        Scene.prototype.updateScoreText = function () {
+            this.scoreText.text = "Score: " + this.getScore();
         };
         Scene.prototype.updateScoreAnimation = function (dt) {
         };

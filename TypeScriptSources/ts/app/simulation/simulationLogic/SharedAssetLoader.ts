@@ -108,9 +108,10 @@ export class SharedAssetLoader {
             return asset != null;
         });
 
-        let countToLoad = assetsToLoad.length + fontsToLoad.length;
+        let countToLoad = 1 + fontsToLoad.length;
 
 
+        // TODO: threadless, lock?
         fontsToLoad.forEach(font => {
             WebFont.load({
                 inactive: () => {
