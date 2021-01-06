@@ -166,6 +166,8 @@ require.config({
             'Wheel',
             'RobotHardwareStateSensors',
             'ColorSensor',
+            'RobotUpdateOptions',
+            'UltrasonicSensor',
         ]},
         { 'RRC': [
             'RRAssetLoader',

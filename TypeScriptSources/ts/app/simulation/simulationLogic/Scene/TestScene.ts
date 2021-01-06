@@ -1,8 +1,10 @@
 import { Bodies, Body, Composite, Events, Vector, World } from "matter-js";
 import { createRect } from "../Displayable";
+import { LineSegment } from "../Geometry/LineSegment";
 import { Polygon } from "../Geometry/Polygon";
 import { ElectricMotor } from "../Robot/ElectricMotor";
 import { Robot } from "../Robot/Robot";
+import { EventType, ScrollViewEvent } from "../ScrollView";
 import { Unit } from "../Unit";
 import { AsyncChain, Scene } from "./Scene";
 
@@ -19,10 +21,17 @@ export class TestScene extends Scene {
             chain.next();
             this.setScore(266);
             this.showScoreScreen(10);
-        }, 4000);
+        }, 0);
     }
 
+    private interactionEventHandlers: ((ev: ScrollViewEvent) => void)[] = []
 
+    onInteractionEvent(ev: ScrollViewEvent) {
+        this.interactionEventHandlers.forEach(handler => {
+            handler(ev)
+        });
+    }
+    
     /**
      * called after resource loading on Init
      * 
@@ -71,27 +80,59 @@ export class TestScene extends Scene {
         polygonGraphics.closePath()
         polygonGraphics.endFill()
 
-        const mousePointGraphics = new PIXI.Graphics()
-            .beginFill(0x00FF00)
-            .drawRect(-5, -5, 10, 10)
-            .endFill()
+        function makePoint(color: number): PIXI.Graphics {
+            return setToPoint(new PIXI.Graphics(), color)
+        }
 
-        const nearestPointGraphics = new PIXI.Graphics()
-            .beginFill(0x0000FF)
-            .drawRect(-5, -5, 10, 10)
-            .endFill()
-
+        function setToPoint(graphics: PIXI.Graphics, color: number): PIXI.Graphics {
+            return graphics
+                .clear()
+                .beginFill(color)
+                .drawRect(-5, -5, 10, 10)
+                .endFill()
+        }
+        const mousePointGraphics = makePoint(0x00FF00)
+        const nearestPointGraphics = makePoint(0x0000FF)
+        
+        const lineSegmentGraphics = new PIXI.Graphics()
+            .lineStyle(2)
+            .moveTo(0, 0)
+            .lineTo(20, 100)
+        let intersectionPointGraphics: PIXI.Graphics[] = []
 
         const container = new PIXI.Container()
-        container.addChild(polygonGraphics, mousePointGraphics, nearestPointGraphics)
+        container.addChild(polygonGraphics, nearestPointGraphics, mousePointGraphics, lineSegmentGraphics)
         this.topContainer.addChild(container)
 
-        /*this.sceneRenderer.scrollView.registerListener(event => {
-            const mousePos = event.data.getCurrentLocalPosition()
+        this.interactionEventHandlers.push(event => {
+            const mousePosData = event.data.getCurrentLocalPosition()
+            const mousePos = Vector.create(mousePosData.x, mousePosData.y)
             mousePointGraphics.position.set(mousePos.x, mousePos.y)
-            const pos = polygon.nearestPointTo(Vector.create(mousePos.x, mousePos.y))
+            const pos = polygon.nearestPointTo(mousePos)
             nearestPointGraphics.position.set(pos.x, pos.y)
-        })*/
+
+            if (polygon.containsPoint(mousePos)) {
+                setToPoint(mousePointGraphics, 0x0044FF)
+            } else {
+                setToPoint(mousePointGraphics, 0x00FF00)
+            }
+
+            if (event.type == EventType.DRAG) {
+                const ls = new LineSegment(mousePos, Vector.add(mousePos, Vector.create(20, 100)))
+                lineSegmentGraphics.position.set(mousePos.x, mousePos.y)
+                const intersectionPoints = polygon.intersectionPointsWithLine(ls)
+                intersectionPointGraphics.forEach(g => {
+                    container.removeChild(g)
+                    g.destroy()
+                })
+                intersectionPointGraphics = intersectionPoints.map(p => {
+                    const graphics = makePoint(0x00FF00)
+                    graphics.position.set(p.x, p.y)
+                    container.addChild(graphics)
+                    return graphics
+                })
+            }
+        })
 
         this.engine.world.gravity.y = 0.0;
     

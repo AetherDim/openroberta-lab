@@ -11,14 +11,16 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "matter-js", "../Displayable", "../Geometry/Polygon", "../Robot/ElectricMotor", "../Robot/Robot", "../Unit", "./Scene"], function (require, exports, matter_js_1, Displayable_1, Polygon_1, ElectricMotor_1, Robot_1, Unit_1, Scene_1) {
+define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSegment", "../Geometry/Polygon", "../Robot/ElectricMotor", "../Robot/Robot", "../ScrollView", "../Unit", "./Scene"], function (require, exports, matter_js_1, Displayable_1, LineSegment_1, Polygon_1, ElectricMotor_1, Robot_1, ScrollView_1, Unit_1, Scene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TestScene = void 0;
     var TestScene = /** @class */ (function (_super) {
         __extends(TestScene, _super);
         function TestScene() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.interactionEventHandlers = [];
+            return _this;
         }
         /**
          * called to load resources
@@ -31,7 +33,12 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/Polygo
                 chain.next();
                 _this.setScore(266);
                 _this.showScoreScreen(10);
-            }, 4000);
+            }, 0);
+        };
+        TestScene.prototype.onInteractionEvent = function (ev) {
+            this.interactionEventHandlers.forEach(function (handler) {
+                handler(ev);
+            });
         };
         /**
          * called after resource loading on Init
@@ -69,23 +76,54 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/Polygo
             polygon.vertices.forEach(function (v) { return polygonGraphics.lineTo(v.x, v.y); });
             polygonGraphics.closePath();
             polygonGraphics.endFill();
-            var mousePointGraphics = new PIXI.Graphics()
-                .beginFill(0x00FF00)
-                .drawRect(-5, -5, 10, 10)
-                .endFill();
-            var nearestPointGraphics = new PIXI.Graphics()
-                .beginFill(0x0000FF)
-                .drawRect(-5, -5, 10, 10)
-                .endFill();
+            function makePoint(color) {
+                return setToPoint(new PIXI.Graphics(), color);
+            }
+            function setToPoint(graphics, color) {
+                return graphics
+                    .clear()
+                    .beginFill(color)
+                    .drawRect(-5, -5, 10, 10)
+                    .endFill();
+            }
+            var mousePointGraphics = makePoint(0x00FF00);
+            var nearestPointGraphics = makePoint(0x0000FF);
+            var lineSegmentGraphics = new PIXI.Graphics()
+                .lineStyle(2)
+                .moveTo(0, 0)
+                .lineTo(20, 100);
+            var intersectionPointGraphics = [];
             var container = new PIXI.Container();
-            container.addChild(polygonGraphics, mousePointGraphics, nearestPointGraphics);
+            container.addChild(polygonGraphics, nearestPointGraphics, mousePointGraphics, lineSegmentGraphics);
             this.topContainer.addChild(container);
-            /*this.sceneRenderer.scrollView.registerListener(event => {
-                const mousePos = event.data.getCurrentLocalPosition()
-                mousePointGraphics.position.set(mousePos.x, mousePos.y)
-                const pos = polygon.nearestPointTo(Vector.create(mousePos.x, mousePos.y))
-                nearestPointGraphics.position.set(pos.x, pos.y)
-            })*/
+            this.interactionEventHandlers.push(function (event) {
+                var mousePosData = event.data.getCurrentLocalPosition();
+                var mousePos = matter_js_1.Vector.create(mousePosData.x, mousePosData.y);
+                mousePointGraphics.position.set(mousePos.x, mousePos.y);
+                var pos = polygon.nearestPointTo(mousePos);
+                nearestPointGraphics.position.set(pos.x, pos.y);
+                if (polygon.containsPoint(mousePos)) {
+                    setToPoint(mousePointGraphics, 0x0044FF);
+                }
+                else {
+                    setToPoint(mousePointGraphics, 0x00FF00);
+                }
+                if (event.type == ScrollView_1.EventType.DRAG) {
+                    var ls = new LineSegment_1.LineSegment(mousePos, matter_js_1.Vector.add(mousePos, matter_js_1.Vector.create(20, 100)));
+                    lineSegmentGraphics.position.set(mousePos.x, mousePos.y);
+                    var intersectionPoints = polygon.intersectionPointsWithLine(ls);
+                    intersectionPointGraphics.forEach(function (g) {
+                        container.removeChild(g);
+                        g.destroy();
+                    });
+                    intersectionPointGraphics = intersectionPoints.map(function (p) {
+                        var graphics = makePoint(0x00FF00);
+                        graphics.position.set(p.x, p.y);
+                        container.addChild(graphics);
+                        return graphics;
+                    });
+                }
+            });
             this.engine.world.gravity.y = 0.0;
             var body = robot.body;
             body.enableMouseInteraction = true;

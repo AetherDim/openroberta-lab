@@ -1,4 +1,4 @@
-define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1) {
+define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = exports.AsyncChain = exports.AsyncListener = void 0;
@@ -258,11 +258,11 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingAnimation.y = this.sceneRenderer.getViewHeight() * 0.5 + this.sceneRenderer.getHeight() * 0.3;
             this.loadingAnimation.rotation += 0.05 * dt;
         };
-        Scene.prototype.updateColorDataFunction = function () {
+        Scene.prototype.updateImageDataFunction = function () {
             var canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer);
             var renderingContext = canvas.getContext("2d");
             var bounds = this.groundContainer.getBounds();
-            this.getColorData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
+            this.getImageData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
         };
         Scene.prototype.finishedLoading = function () {
             if (this.assetLoadingChain && !this.assetLoadingChain.hasFinished()) {
@@ -276,7 +276,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             if (this.needsInit) {
                 this.initScoreContainer();
                 this.onInit();
-                this.updateColorDataFunction();
+                this.updateImageDataFunction();
                 this.needsInit = false;
             }
             // auto start simulation
@@ -331,7 +331,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                     if (this.hasFinishedLoading) {
                         this.initScoreContainer();
                         this.onInit();
-                        this.updateColorDataFunction();
+                        this.updateImageDataFunction();
                     }
                     else {
                         this.needsInit = true;
@@ -519,6 +519,43 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.onDestroy();
             // TODO
         };
+        Scene.prototype.forEachBodyPartVertices = function (code) {
+            var bodies = matter_js_1.Composite.allBodies(this.engine.world);
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                // TODO: Use body.bounds for faster execution
+                for (var j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+                    var part = body.parts[j];
+                    code(part.vertices);
+                }
+            }
+        };
+        Scene.prototype.getNearestPoint = function (point, includePoint) {
+            var nearestPoint;
+            var minDistanceSquared = Infinity;
+            this.forEachBodyPartVertices(function (vertices) {
+                var nearestBodyPoint = new Polygon_1.Polygon(vertices).nearestPointTo(point, includePoint);
+                if (nearestBodyPoint) {
+                    var distanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(point, nearestBodyPoint));
+                    if (distanceSquared < minDistanceSquared) {
+                        minDistanceSquared = distanceSquared;
+                        nearestPoint = nearestBodyPoint;
+                    }
+                }
+            });
+            return nearestPoint;
+        };
+        Scene.prototype.intersectionPointsWithLine = function (line) {
+            var result = [];
+            this.forEachBodyPartVertices(function (vertices) {
+                var newIntersectionPoints = new Polygon_1.Polygon(vertices).intersectionPointsWithLine(line);
+                for (var _i = 0, newIntersectionPoints_1 = newIntersectionPoints; _i < newIntersectionPoints_1.length; _i++) {
+                    var point = newIntersectionPoints_1[_i];
+                    result.push(point);
+                }
+            });
+            return result;
+        };
         /**
          * update physics and robots
          */
@@ -527,8 +564,15 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.onUpdate();
             // update robots
             // update ground every tick: this.updateColorDataFunction()
+            var _this = this;
             this.robots.forEach(function (robot) {
-                robot.update(_this_1.dt, _this_1.programManager.isProgramPaused(), _this_1.getColorData);
+                robot.update(new RobotUpdateOptions_1.RobotUpdateOptions({
+                    dt: _this_1.dt,
+                    programPaused: _this_1.programManager.isProgramPaused(),
+                    getImageData: _this_1.getImageData,
+                    getNearestPointTo: function (point, includePoint) { return _this.getNearestPoint(point, includePoint); },
+                    intersectionPointsWithLine: function (line) { return _this.intersectionPointsWithLine(line); }
+                }));
             });
             this.programManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics

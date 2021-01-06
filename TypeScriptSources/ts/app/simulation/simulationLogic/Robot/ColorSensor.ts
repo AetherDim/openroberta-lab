@@ -1,9 +1,10 @@
 import { Vector } from "matter-js";
+import { Unit } from "../Unit";
 
 export class ColorSensor {
 
     /**
-     * Position relative to the robot position
+     * Position relative to the robot position in matter coordinates
      */
     position: Vector
 
@@ -15,9 +16,9 @@ export class ColorSensor {
     /**
      * Creates a new color sensor.
      * 
-     * @param position Position relative to the robot position
+     * @param position Position relative to the robot position in meter
      */
     constructor(position: Vector) {
-        this.position = position
+        this.position = Unit.getPosition(position)
     }
 }

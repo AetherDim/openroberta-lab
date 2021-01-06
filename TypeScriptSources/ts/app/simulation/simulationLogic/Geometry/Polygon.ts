@@ -1,4 +1,6 @@
 import { Vector } from "matter-js";
+import { Line } from "./Line";
+import { LineBaseClass } from "./LineBaseClass";
 import { LineSegment } from "./LineSegment";
 
 
@@ -139,42 +141,107 @@ export class Polygon {
 		return Vector.magnitude(this.nearestPointTo(point))
 	}
 
-	nearestPointTo(point: Vector): Vector {
+	/**
+	 * Returns the nearest point on the polygon to `point` for which `includePoint(point)` is `true`.
+	 * If no point is found since `includePoint` excludes all points, `null` is returned.
+	 * 
+	 * @param point The point to which the nearest one is searched
+	 * @param includePoint Function which returns `true` iff the point can be included in the result (default: _ => true)
+	 */
+	nearestPointTo(point: Vector, includePoint: (point: Vector) => boolean = (_ => true)): Vector | null {
 
-		var minDistanceSquared = Infinity
-		var minDistancePoint = Vector.create()
-
-		const newVertices = this.vertices.map(p => Vector.sub(p, point))
-
-		const zeroVector = Vector.create()
+		let minDistanceSquared = Infinity
+		let minDistancePoint: Vector | null = null
 
 		function updateWithVertices(vertex0: Vector, vertex1: Vector) {
-			const lineSegment = new LineSegment(vertex0, vertex1)
-			const parameter = lineSegment.uncheckedNearestParameterTo(zeroVector)
+			const line = new Line(vertex0, Vector.sub(vertex1, vertex0))
+			const parameter = line.uncheckedNearestParameterTo(point)
 			
-			var newMinPoint: Vector
+			let newMinPoint: Vector
 			if (parameter <= 0) {
 				newMinPoint = vertex0
 			} else if (parameter >= 1) {
 				newMinPoint = vertex1
 			} else {
-				newMinPoint = lineSegment.getPoint(parameter)
+				newMinPoint = line.getPoint(parameter)
 			}
 
-			const newMinDistanceSquared = Vector.magnitudeSquared(newMinPoint)
-			if (newMinDistanceSquared < minDistanceSquared) {
+			const newMinDistanceSquared = Vector.magnitudeSquared(Vector.sub(newMinPoint, point))
+			if (newMinDistanceSquared < minDistanceSquared && includePoint(newMinPoint)) {
 				minDistancePoint = newMinPoint
 				minDistanceSquared = newMinDistanceSquared
 			}
 		}
 
-		for (let i = 1; i < newVertices.length; i++) {
-			updateWithVertices(newVertices[i-1], newVertices[i])
+		for (let i = 1; i < this.vertices.length; i++) {
+			updateWithVertices(this.vertices[i-1], this.vertices[i])
 		}
 
-		updateWithVertices(newVertices[newVertices.length - 1], newVertices[0])
+		updateWithVertices(this.vertices[this.vertices.length - 1], this.vertices[0])
 
-		return Vector.add(minDistancePoint, point)
+		return minDistancePoint
+	}
+
+	/**
+	 * Returns an array of points which are on the polygon border and `line`.
+	 * 
+	 * @param line A `LineBaseClass` which may intersect the polygon border
+	 */
+	intersectionPointsWithLine(line: LineBaseClass): Vector[] {
+		const result: Vector[] = []
+		
+		function updateWithVertices(vertex0: Vector, vertex1: Vector) {
+			const lineSegment = new LineSegment(vertex0, vertex1)
+			
+			const point = lineSegment.intersectionPoint(line)
+			if (point) {
+				result.push(point)
+			}
+		}
+
+		for (let i = 1; i < this.vertices.length; i++) {
+			updateWithVertices(this.vertices[i-1], this.vertices[i])
+		}
+
+		updateWithVertices(this.vertices[this.vertices.length - 1], this.vertices[0])
+
+		return result
+	}
+
+	/**
+	 * Returns `true` iff the polygon contains the `point`.
+	 * 
+	 * @param point point which is checked
+	 * @param includeBoundary if `true`, checks if `point` is also on the boundary of the polygon
+	 */
+	containsPoint(point: Vector, includeBoundary: boolean = true): boolean {
+
+		let containsPoint = false
+		let lastVertex = this.vertices[this.vertices.length - 1]
+		let lastPointIsAbove = point.y > lastVertex.y
+		for (let i = 0; i < this.vertices.length; i++) {
+			const vertex = this.vertices[i];
+			const currentPointIsAbove = vertex.y < point.y
+			if (currentPointIsAbove != lastPointIsAbove) {
+				// point above has changed
+
+				// intersection at y = point.y
+				// lastVertex + t * (vertex - lastVertex) = (x, point.y)
+				const t = (point.y - lastVertex.y) / (vertex.y - lastVertex.y)
+				const x = lastVertex.x + t * (vertex.x - lastVertex.x)
+				if (x >= point.x) {
+					containsPoint = !containsPoint
+					if (includeBoundary && x == point.x) {
+						// point is on boundary
+						return true
+					}
+				}
+			}
+			lastVertex = vertex
+			lastPointIsAbove = currentPointIsAbove
+		}
+
+		return containsPoint
 	}
 
 }

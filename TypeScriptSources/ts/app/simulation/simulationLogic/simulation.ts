@@ -2,13 +2,11 @@ import './pixijs'
 import { SceneRender } from './SceneRenderer'
 import './ExtendedMatter'
 import { TestScene } from './Scene/TestScene';
-
 import { RRCScene } from './RRC/Scene/RRCScene'
 
-var engine = new SceneRender('sceneCanvas', 'simDiv', new RRCScene());
+var engine = new SceneRender('sceneCanvas', 'simDiv', new TestScene());
 engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
-
 
 
 // store old programs

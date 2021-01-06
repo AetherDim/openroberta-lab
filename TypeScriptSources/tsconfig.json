@@ -8,8 +8,8 @@
         "module": "amd",
         "moduleResolution": "node",
         "noUnusedLocals": false,
-		    "noUnusedParameters": false,
-		    "allowJs": true
+        "noUnusedParameters": false,
+        "allowJs": true,
     },
     "include": ["ts/**/*"],
     "exclude": [

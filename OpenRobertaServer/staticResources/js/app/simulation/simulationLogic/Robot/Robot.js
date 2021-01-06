@@ -1,14 +1,20 @@
-define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "../ExtendedMatter"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1) {
+define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "../ExtendedMatter"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
     var Robot = /** @class */ (function () {
         function Robot(robot) {
+            this.updateSensorGraphics = true;
             /**
-             * Key is the port and the value is the detected color
+             * The color sensor of the robot
              */
             this.colorSensor = null;
             this.colorSensorGraphics = null;
+            /**
+             * The ultrasonic sensor of the robot
+             */
+            this.ultrasonicSensor = null;
+            this.ultrasonicSensorGraphics = null;
             this.robotBehaviour = null;
             this.configuration = null;
             this.programCode = null;
@@ -17,6 +23,8 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
              * robot type
              */
             this.type = 'default';
+            // TODO: Remove this line
+            this.debugGraphics = null;
             this.leftForce = 0;
             this.rightForce = 0;
             this.encoder = {
@@ -94,7 +102,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             var _a = Unit_1.Unit.getLengths([x, y]), xPos = _a[0], yPos = _a[1];
             this.colorSensorGraphics.position.set(xPos, yPos);
             this.bodyContainer.addChild(this.colorSensorGraphics);
-            this.colorSensor = new ColorSensor_1.ColorSensor(matter_js_1.Vector.create(xPos, yPos));
+            this.colorSensor = new ColorSensor_1.ColorSensor(matter_js_1.Vector.create(x, y));
         };
         /**
          * Sets the color of the color sensor and `colorSensorGraphics` if they are not null.
@@ -103,7 +111,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
          * @param g green color [0, 255]
          * @param b blue color [0, 255]
          */
-        Robot.prototype.setColorOfSensorColor = function (r, g, b) {
+        Robot.prototype.setColorOfColorSensor = function (r, g, b) {
             if (this.colorSensorGraphics && this.colorSensor) {
                 this.colorSensorGraphics
                     .clear()
@@ -112,6 +120,47 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                     .drawCircle(0, 0, 6)
                     .endFill;
                 this.colorSensor.detectedColor = { red: r, green: g, blue: b };
+            }
+        };
+        Robot.prototype.getUltrasonicSensor = function () {
+            return this.ultrasonicSensor;
+        };
+        Robot.prototype.setUltrasonicSensor = function (ultrasonicSensor) {
+            if (this.ultrasonicSensorGraphics) {
+                this.ultrasonicSensorGraphics.parent.removeChild(this.ultrasonicSensorGraphics);
+                this.ultrasonicSensorGraphics.destroy();
+            }
+            this.ultrasonicSensorGraphics = new PIXI.Graphics();
+            this.ultrasonicSensorGraphics.position.set(ultrasonicSensor.position.x, ultrasonicSensor.position.y);
+            this.bodyContainer.addChild(this.ultrasonicSensorGraphics);
+            this.ultrasonicSensor = ultrasonicSensor;
+            this.setDistanceOfUltrasonicSensor(Infinity);
+        };
+        Robot.prototype.setDistanceOfUltrasonicSensor = function (distance, point) {
+            if (this.ultrasonicSensorGraphics && this.ultrasonicSensor) {
+                if (point) {
+                    if (!this.debugGraphics) {
+                        this.debugGraphics = new PIXI.Graphics()
+                            .beginFill(0xFF0000)
+                            .drawRect(-5, -5, 10, 10)
+                            .endFill();
+                        this.bodyContainer.parent.addChild(this.debugGraphics);
+                    }
+                    this.debugGraphics.position.set(point.x, point.y);
+                }
+                var graphicsDistance = Math.min(500, distance);
+                var vector = matter_js_1.Vector.create(graphicsDistance, 0);
+                var halfAngle = this.ultrasonicSensor.angularRange / 2;
+                var leftVector = matter_js_1.Vector.rotate(vector, halfAngle);
+                var rightVector = matter_js_1.Vector.rotate(vector, -halfAngle);
+                this.ultrasonicSensorGraphics
+                    .clear()
+                    .lineStyle(2)
+                    .moveTo(leftVector.x, leftVector.y)
+                    .lineTo(0, 0)
+                    .lineTo(rightVector.x, rightVector.y)
+                    .arc(0, 0, graphicsDistance, -halfAngle, halfAngle);
+                this.ultrasonicSensor.measuredDistance = distance;
             }
         };
         Robot.prototype.setWheels = function (wheels) {
@@ -167,7 +216,8 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
          * @param programPaused is program paused
          * @param getImageData get the image data of the ground layer
          */
-        Robot.prototype.update = function (dt, programPaused, getImageData) {
+        Robot.prototype.update = function (updateOptions) {
+            var dt = updateOptions.dt;
             // update wheels velocities
             var gravitationalAcceleration = Unit_1.Unit.getAcceleration(9.81);
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
@@ -179,8 +229,8 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 return;
             }
             // update sensors
-            this.updateRobotBehaviourHardwareStateSensors(getImageData);
-            if (!programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
+            this.updateRobotBehaviourHardwareStateSensors(updateOptions.getImageData, updateOptions.getNearestPointTo, updateOptions.intersectionPointsWithLine);
+            if (!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
                 var delay = this.interpreter.runNOperations(1000) / 1000;
             }
             var speed = { left: 0, right: 0 };
@@ -475,10 +525,13 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             // }
         };
         ;
-        Robot.prototype.getColorSensorPosition = function (colorSensor) {
-            return matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(colorSensor.position, this.body.angle));
+        /**
+         * Returns the absolute position relative to `this.body`
+         */
+        Robot.prototype.getAbsolutePosition = function (relativePosition) {
+            return matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
         };
-        Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (getImageData) {
+        Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (getImageData, getNearestPointTo, intersectionPointsWithLine) {
             var sensors = this.robotBehaviour.getHardwareStateSensors();
             // encoder
             sensors.encoder = {
@@ -492,10 +545,12 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 } };
             // color
             if (this.colorSensor) {
-                var colorSensorPosition = this.getColorSensorPosition(this.colorSensor);
+                var colorSensorPosition = this.getAbsolutePosition(this.colorSensor.position);
                 // the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
                 var color = getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
-                this.setColorOfSensorColor(color[0], color[1], color[2]);
+                if (this.updateSensorGraphics) {
+                    this.setColorOfColorSensor(color[0], color[1], color[2]);
+                }
                 sensors.color = { 3: {
                         ambientlight: 0,
                         colorValue: "none",
@@ -504,19 +559,46 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                         rgb: [color[0], color[1], color[2]]
                     } };
             }
-            // TODO: Implement ultrasonic sensor
             // ultrasonic sensor
-            var ultrasonicDistance = Infinity;
-            ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255);
-            sensors.ultrasonic = { 4: {
-                    distance: ultrasonicDistance,
-                    presence: false
-                } };
-            // infrared sensor (use ultrasonic distance)
-            sensors.infrared = { 4: {
-                    distance: Math.min(ultrasonicDistance / 70 * 100, 100),
-                    presence: false
-                } };
+            if (this.ultrasonicSensor) {
+                var sensorPosition_1 = this.getAbsolutePosition(this.ultrasonicSensor.position);
+                var halfAngle = this.ultrasonicSensor.angularRange / 2;
+                var rays = [
+                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), halfAngle + this.body.angle),
+                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), -halfAngle + this.body.angle)
+                ]
+                    .map(function (v) { return new Ray_1.Ray(sensorPosition_1, v); });
+                // (point - sensorPos) * vec > 0
+                var vectors_1 = rays.map(function (r) { return matter_js_1.Vector.perp(r.directionVector); });
+                var dotProducts_1 = vectors_1.map(function (v) { return matter_js_1.Vector.dot(v, sensorPosition_1); });
+                var nearestPoint_1 = getNearestPointTo(sensorPosition_1, function (point) {
+                    return matter_js_1.Vector.dot(point, vectors_1[0]) < dotProducts_1[0]
+                        && matter_js_1.Vector.dot(point, vectors_1[1]) > dotProducts_1[1];
+                });
+                var minDistanceSquared_1 = nearestPoint_1 ? matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(nearestPoint_1, sensorPosition_1)) : Infinity;
+                var intersectionPoints = intersectionPointsWithLine(rays[0]).concat(intersectionPointsWithLine(rays[1]));
+                intersectionPoints.forEach(function (intersectionPoint) {
+                    var distanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(intersectionPoint, sensorPosition_1));
+                    if (distanceSquared < minDistanceSquared_1) {
+                        minDistanceSquared_1 = distanceSquared;
+                        nearestPoint_1 = intersectionPoint;
+                    }
+                });
+                var ultrasonicDistance = nearestPoint_1 ? matter_js_1.Vector.magnitude(matter_js_1.Vector.sub(nearestPoint_1, sensorPosition_1)) : Infinity;
+                if (this.updateSensorGraphics) {
+                    this.setDistanceOfUltrasonicSensor(ultrasonicDistance, nearestPoint_1);
+                }
+                ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255);
+                sensors.ultrasonic = { 4: {
+                        distance: ultrasonicDistance,
+                        presence: false
+                    } };
+                // infrared sensor (use ultrasonic distance)
+                sensors.infrared = { 4: {
+                        distance: Math.min(ultrasonicDistance / 70 * 100, 100),
+                        presence: false
+                    } };
+            }
         };
         /**
          * LEGO EV3 like robot with 2 main wheels and one with less friction (e.g. swivel wheel)
@@ -571,6 +653,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 ]
             });
             robot.setColorSensor(0.08, 0);
+            robot.setUltrasonicSensor(new UltrasonicSensor_1.UltrasonicSensor(matter_js_1.Vector.create(0.12, 0), 90 * 2 * Math.PI / 360));
             return robot;
         };
         return Robot;

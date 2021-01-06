@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./LineSegment"], function (require, exports, matter_js_1, LineSegment_1) {
+define(["require", "exports", "matter-js", "./Line", "./LineSegment"], function (require, exports, matter_js_1, Line_1, LineSegment_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Polygon = void 0;
@@ -116,14 +116,20 @@ define(["require", "exports", "matter-js", "./LineSegment"], function (require, 
         Polygon.prototype.distanceTo3 = function (point) {
             return matter_js_1.Vector.magnitude(this.nearestPointTo(point));
         };
-        Polygon.prototype.nearestPointTo = function (point) {
+        /**
+         * Returns the nearest point on the polygon to `point` for which `includePoint(point)` is `true`.
+         * If no point is found since `includePoint` excludes all points, `null` is returned.
+         *
+         * @param point The point to which the nearest one is searched
+         * @param includePoint Function which returns `true` iff the point can be included in the result (default: _ => true)
+         */
+        Polygon.prototype.nearestPointTo = function (point, includePoint) {
+            if (includePoint === void 0) { includePoint = (function (_) { return true; }); }
             var minDistanceSquared = Infinity;
-            var minDistancePoint = matter_js_1.Vector.create();
-            var newVertices = this.vertices.map(function (p) { return matter_js_1.Vector.sub(p, point); });
-            var zeroVector = matter_js_1.Vector.create();
+            var minDistancePoint = null;
             function updateWithVertices(vertex0, vertex1) {
-                var lineSegment = new LineSegment_1.LineSegment(vertex0, vertex1);
-                var parameter = lineSegment.uncheckedNearestParameterTo(zeroVector);
+                var line = new Line_1.Line(vertex0, matter_js_1.Vector.sub(vertex1, vertex0));
+                var parameter = line.uncheckedNearestParameterTo(point);
                 var newMinPoint;
                 if (parameter <= 0) {
                     newMinPoint = vertex0;
@@ -132,19 +138,72 @@ define(["require", "exports", "matter-js", "./LineSegment"], function (require, 
                     newMinPoint = vertex1;
                 }
                 else {
-                    newMinPoint = lineSegment.getPoint(parameter);
+                    newMinPoint = line.getPoint(parameter);
                 }
-                var newMinDistanceSquared = matter_js_1.Vector.magnitudeSquared(newMinPoint);
-                if (newMinDistanceSquared < minDistanceSquared) {
+                var newMinDistanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(newMinPoint, point));
+                if (newMinDistanceSquared < minDistanceSquared && includePoint(newMinPoint)) {
                     minDistancePoint = newMinPoint;
                     minDistanceSquared = newMinDistanceSquared;
                 }
             }
-            for (var i = 1; i < newVertices.length; i++) {
-                updateWithVertices(newVertices[i - 1], newVertices[i]);
+            for (var i = 1; i < this.vertices.length; i++) {
+                updateWithVertices(this.vertices[i - 1], this.vertices[i]);
             }
-            updateWithVertices(newVertices[newVertices.length - 1], newVertices[0]);
-            return matter_js_1.Vector.add(minDistancePoint, point);
+            updateWithVertices(this.vertices[this.vertices.length - 1], this.vertices[0]);
+            return minDistancePoint;
+        };
+        /**
+         * Returns an array of points which are on the polygon border and `line`.
+         *
+         * @param line A `LineBaseClass` which may intersect the polygon border
+         */
+        Polygon.prototype.intersectionPointsWithLine = function (line) {
+            var result = [];
+            function updateWithVertices(vertex0, vertex1) {
+                var lineSegment = new LineSegment_1.LineSegment(vertex0, vertex1);
+                var point = lineSegment.intersectionPoint(line);
+                if (point) {
+                    result.push(point);
+                }
+            }
+            for (var i = 1; i < this.vertices.length; i++) {
+                updateWithVertices(this.vertices[i - 1], this.vertices[i]);
+            }
+            updateWithVertices(this.vertices[this.vertices.length - 1], this.vertices[0]);
+            return result;
+        };
+        /**
+         * Returns `true` iff the polygon contains the `point`.
+         *
+         * @param point point which is checked
+         * @param includeBoundary if `true`, checks if `point` is also on the boundary of the polygon
+         */
+        Polygon.prototype.containsPoint = function (point, includeBoundary) {
+            if (includeBoundary === void 0) { includeBoundary = true; }
+            var containsPoint = false;
+            var lastVertex = this.vertices[this.vertices.length - 1];
+            var lastPointIsAbove = point.y > lastVertex.y;
+            for (var i = 0; i < this.vertices.length; i++) {
+                var vertex = this.vertices[i];
+                var currentPointIsAbove = vertex.y < point.y;
+                if (currentPointIsAbove != lastPointIsAbove) {
+                    // point above has changed
+                    // intersection at y = point.y
+                    // lastVertex + t * (vertex - lastVertex) = (x, point.y)
+                    var t = (point.y - lastVertex.y) / (vertex.y - lastVertex.y);
+                    var x = lastVertex.x + t * (vertex.x - lastVertex.x);
+                    if (x >= point.x) {
+                        containsPoint = !containsPoint;
+                        if (includeBoundary && x == point.x) {
+                            // point is on boundary
+                            return true;
+                        }
+                    }
+                }
+                lastVertex = vertex;
+                lastPointIsAbove = currentPointIsAbove;
+            }
+            return containsPoint;
         };
         return Polygon;
     }());

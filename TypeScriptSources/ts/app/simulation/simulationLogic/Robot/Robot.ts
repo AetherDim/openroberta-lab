@@ -9,6 +9,10 @@ import { RobotSimBehaviour } from './RobotSimBehaviour'
 import { Unit } from '../Unit'
 import { Wheel } from './Wheel'
 import { ColorSensor } from './ColorSensor'
+import { RobotUpdateOptions } from './RobotUpdateOptions'
+import { LineBaseClass } from '../Geometry/LineBaseClass'
+import { UltrasonicSensor } from './UltrasonicSensor'
+import { Ray } from '../Geometry/Ray'
 
 export class Robot {
 
@@ -39,11 +43,19 @@ export class Robot {
 	 */
 	physicsWheelsList: Body[]
 
+	updateSensorGraphics = true
+
 	/**
-	 * Key is the port and the value is the detected color
+	 * The color sensor of the robot
 	 */
 	private colorSensor?: ColorSensor = null
 	private colorSensorGraphics?: PIXI.Graphics = null
+
+	/**
+	 * The ultrasonic sensor of the robot
+	 */
+	private ultrasonicSensor?: UltrasonicSensor = null
+	private ultrasonicSensorGraphics?: PIXI.Graphics = null
 
 	robotBehaviour?: RobotSimBehaviour = null;
 
@@ -117,7 +129,7 @@ export class Robot {
 	/**
 	 * Returns the color sensor which can be `null`
 	 */
-	getColorSensor?(): ColorSensor {
+	getColorSensor(): ColorSensor | null {
 		return this.colorSensor
 	}
 
@@ -137,7 +149,7 @@ export class Robot {
 		const [xPos, yPos] = Unit.getLengths([x, y])
 		this.colorSensorGraphics.position.set(xPos, yPos)
 		this.bodyContainer.addChild(this.colorSensorGraphics)
-		this.colorSensor = new ColorSensor(Vector.create(xPos, yPos))
+		this.colorSensor = new ColorSensor(Vector.create(x, y))
 	}
 	
 	/**
@@ -147,7 +159,7 @@ export class Robot {
 	 * @param g green color [0, 255]
 	 * @param b blue color [0, 255]
 	 */
-	private setColorOfSensorColor(r: number, g: number, b: number) {
+	private setColorOfColorSensor(r: number, g: number, b: number) {
 		if (this.colorSensorGraphics && this.colorSensor) {
 			this.colorSensorGraphics
 				.clear()
@@ -156,6 +168,54 @@ export class Robot {
 				.drawCircle(0, 0, 6)
 				.endFill
 			this.colorSensor.detectedColor = { red: r, green: g, blue: b }
+		}
+	}
+
+	getUltrasonicSensor(): UltrasonicSensor | null {
+		return this.ultrasonicSensor
+	}
+
+	setUltrasonicSensor(ultrasonicSensor: UltrasonicSensor) {
+		if (this.ultrasonicSensorGraphics) {
+			this.ultrasonicSensorGraphics.parent.removeChild(this.ultrasonicSensorGraphics)
+			this.ultrasonicSensorGraphics.destroy()
+		}
+		this.ultrasonicSensorGraphics = new PIXI.Graphics()
+		this.ultrasonicSensorGraphics.position.set(ultrasonicSensor.position.x, ultrasonicSensor.position.y)
+		this.bodyContainer.addChild(this.ultrasonicSensorGraphics)
+		this.ultrasonicSensor = ultrasonicSensor
+
+		this.setDistanceOfUltrasonicSensor(Infinity)
+	}
+
+	// TODO: Remove this line
+	private debugGraphics: PIXI.Graphics = null
+	
+	private setDistanceOfUltrasonicSensor(distance: number, point?: Vector) {
+		if (this.ultrasonicSensorGraphics && this.ultrasonicSensor) {
+			if (point) {
+				if (!this.debugGraphics) {
+					this.debugGraphics = new PIXI.Graphics()
+						.beginFill(0xFF0000)
+						.drawRect(-5, -5, 10, 10)
+						.endFill()
+					this.bodyContainer.parent.addChild(this.debugGraphics)
+				}
+				this.debugGraphics.position.set(point.x, point.y)
+			}
+			const graphicsDistance = Math.min(500, distance)
+			const vector = Vector.create(graphicsDistance, 0)
+			const halfAngle = this.ultrasonicSensor.angularRange/2
+			const leftVector = Vector.rotate(vector, halfAngle)
+			const rightVector = Vector.rotate(vector, -halfAngle)
+			this.ultrasonicSensorGraphics
+				.clear()
+				.lineStyle(2)
+				.moveTo(leftVector.x, leftVector.y)
+				.lineTo(0, 0)
+				.lineTo(rightVector.x, rightVector.y)
+				.arc(0, 0, graphicsDistance, -halfAngle, halfAngle)
+			this.ultrasonicSensor.measuredDistance = distance
 		}
 	}
 
@@ -240,7 +300,9 @@ export class Robot {
 	 * @param programPaused is program paused
 	 * @param getImageData get the image data of the ground layer
 	 */
-	update(dt: number, programPaused: boolean, getImageData: (x: number, y: number, w: number, h: number) => ImageData) {
+	update(updateOptions: RobotUpdateOptions) {
+
+		const dt = updateOptions.dt
 
 		// update wheels velocities
 		const gravitationalAcceleration = Unit.getAcceleration(9.81)
@@ -255,9 +317,13 @@ export class Robot {
 		}
 
 		// update sensors
-		this.updateRobotBehaviourHardwareStateSensors(getImageData)
+		this.updateRobotBehaviourHardwareStateSensors(
+			updateOptions.getImageData,
+			updateOptions.getNearestPointTo,
+			updateOptions.intersectionPointsWithLine
+		)
 
-		if(!programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
+		if(!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
 			const delay = this.interpreter.runNOperations(1000) / 1000;
 		}
 
@@ -565,11 +631,18 @@ export class Robot {
 		// }
 	};
 
-	private getColorSensorPosition(colorSensor: ColorSensor): Vector {
-		return Vector.add(this.body.position, Vector.rotate(colorSensor.position, this.body.angle))
+	/**
+	 * Returns the absolute position relative to `this.body`
+	 */
+	private getAbsolutePosition(relativePosition: Vector): Vector {
+		return Vector.add(this.body.position, Vector.rotate(relativePosition, this.body.angle))
 	}
 
-	private updateRobotBehaviourHardwareStateSensors(getImageData: (x: number, y: number, w: number, h: number) => ImageData) {
+	private updateRobotBehaviourHardwareStateSensors(
+		getImageData: (x: number, y: number, w: number, h: number) => ImageData,
+		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | null,
+		intersectionPointsWithLine: (line: LineBaseClass) => Vector[]
+		) {
 		const sensors = this.robotBehaviour.getHardwareStateSensors()
 		
 		// encoder
@@ -586,10 +659,12 @@ export class Robot {
 
 		// color
 		if (this.colorSensor) {
-			const colorSensorPosition = this.getColorSensorPosition(this.colorSensor)
+			const colorSensorPosition = this.getAbsolutePosition(this.colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
 			const color = getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
-			this.setColorOfSensorColor(color[0], color[1], color[2])
+			if (this.updateSensorGraphics) {
+				this.setColorOfColorSensor(color[0], color[1], color[2])
+			}
 			sensors.color = { 3: {
 				ambientlight: 0,
 				colorValue: "none",
@@ -599,20 +674,49 @@ export class Robot {
 			}}
 		}
 
-		// TODO: Implement ultrasonic sensor
 		// ultrasonic sensor
-		let ultrasonicDistance = Infinity
-		ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255)
-		sensors.ultrasonic = { 4: {
-			distance: ultrasonicDistance,
-			presence: false
-		}}
+		if (this.ultrasonicSensor) {
 
-		// infrared sensor (use ultrasonic distance)
-		sensors.infrared = { 4: {
-			distance: Math.min(ultrasonicDistance / 70 * 100, 100),
-			presence: false
-		}}
+			
+			const sensorPosition = this.getAbsolutePosition(this.ultrasonicSensor.position)
+			const halfAngle = this.ultrasonicSensor.angularRange / 2
+			const rays = [
+				Vector.rotate(Vector.create(1, 0), halfAngle + this.body.angle),
+				Vector.rotate(Vector.create(1, 0), -halfAngle + this.body.angle)]
+				.map(v => new Ray(sensorPosition, v))
+			// (point - sensorPos) * vec > 0
+			const vectors = rays.map(r => Vector.perp(r.directionVector))
+			const dotProducts = vectors.map(v => Vector.dot(v, sensorPosition))
+			let nearestPoint = getNearestPointTo(sensorPosition, point => {
+				return Vector.dot(point, vectors[0]) < dotProducts[0]
+					&& Vector.dot(point, vectors[1]) > dotProducts[1]
+			})
+			let minDistanceSquared = nearestPoint ? Vector.magnitudeSquared(Vector.sub(nearestPoint, sensorPosition)) : Infinity
+			const intersectionPoints = intersectionPointsWithLine(rays[0]).concat(intersectionPointsWithLine(rays[1]))
+			intersectionPoints.forEach(intersectionPoint => {
+				const distanceSquared = Vector.magnitudeSquared(Vector.sub(intersectionPoint, sensorPosition))
+				if (distanceSquared < minDistanceSquared) {
+					minDistanceSquared = distanceSquared
+					nearestPoint = intersectionPoint
+				}
+			})
+
+			let ultrasonicDistance = nearestPoint ? Vector.magnitude(Vector.sub(nearestPoint, sensorPosition)) : Infinity
+			if (this.updateSensorGraphics) {
+				this.setDistanceOfUltrasonicSensor(ultrasonicDistance, nearestPoint)
+			}
+			ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255)
+			sensors.ultrasonic = { 4: {
+				distance: ultrasonicDistance,
+				presence: false
+			}}
+
+			// infrared sensor (use ultrasonic distance)
+			sensors.infrared = { 4: {
+				distance: Math.min(ultrasonicDistance / 70 * 100, 100),
+				presence: false
+			}}
+		}
 	}
 
 
@@ -670,6 +774,7 @@ export class Robot {
 			]
 		})
 		robot.setColorSensor(0.08, 0)
+		robot.setUltrasonicSensor(new UltrasonicSensor(Vector.create(0.12, 0), 90 * 2 * Math.PI / 360))
 		return robot
 	}
 }

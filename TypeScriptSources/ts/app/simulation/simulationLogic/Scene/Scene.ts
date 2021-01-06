@@ -5,6 +5,9 @@ import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
 import { ProgramManager } from '../ProgramManager';
+import { Polygon } from '../Geometry/Polygon';
+import { LineBaseClass } from '../Geometry/LineBaseClass';
+import { RobotUpdateOptions } from '../Robot/RobotUpdateOptions';
 
 export class AsyncListener {
 
@@ -269,13 +272,13 @@ export class Scene {
 
     private assetLoadingChain: AsyncChain = null;
 
-    private getColorData: (x: number, y: number, w: number, h: number) => ImageData
+    private getImageData: (x: number, y: number, w: number, h: number) => ImageData
 
-    private updateColorDataFunction() {
+    private updateImageDataFunction() {
         const canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer)
         const renderingContext = canvas.getContext("2d")
         const bounds = this.groundContainer.getBounds()
-        this.getColorData = (x, y, w, h) => renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h)
+        this.getImageData = (x, y, w, h) => renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h)
     }
 
     finishedLoading() {
@@ -294,7 +297,7 @@ export class Scene {
         if(this.needsInit) {
             this.initScoreContainer();
             this.onInit();
-            this.updateColorDataFunction()
+            this.updateImageDataFunction()
             this.needsInit = false;
         }
 
@@ -415,7 +418,7 @@ export class Scene {
                 if(this.hasFinishedLoading) {
                     this.initScoreContainer();
                     this.onInit();
-                    this.updateColorDataFunction()
+                    this.updateImageDataFunction()
                 } else {
                     this.needsInit = true;
                 }
@@ -668,6 +671,48 @@ export class Scene {
         // TODO
     }
 
+    private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
+        const bodies: Body[] = Composite.allBodies(this.engine.world)
+
+        for (let i = 0; i < bodies.length; i++) {
+            const body = bodies[i];
+            // TODO: Use body.bounds for faster execution
+            for (let j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+                const part = body.parts[j];
+                code(part.vertices)
+            }
+        }
+    }
+
+    private getNearestPoint(point: Vector, includePoint: (point: Vector) => boolean): Vector | null {
+        let nearestPoint: Vector | null
+        let minDistanceSquared = Infinity
+
+        this.forEachBodyPartVertices(vertices => {
+            const nearestBodyPoint = new Polygon(vertices).nearestPointTo(point, includePoint)
+            if (nearestBodyPoint) {
+                const distanceSquared = Vector.magnitudeSquared(Vector.sub(point, nearestBodyPoint))
+                if (distanceSquared < minDistanceSquared) {
+                    minDistanceSquared = distanceSquared
+                    nearestPoint = nearestBodyPoint
+                }
+            }
+        })
+
+        return nearestPoint;
+    }
+
+    private intersectionPointsWithLine(line: LineBaseClass): Vector[] {
+        const result: Vector[] = []
+        this.forEachBodyPartVertices(vertices => {
+            const newIntersectionPoints = new Polygon(vertices).intersectionPointsWithLine(line)
+            for (const point of newIntersectionPoints) {
+                result.push(point)
+            }
+        })
+        return result
+	}
+
 
     /**
      * update physics and robots
@@ -678,12 +723,15 @@ export class Scene {
 
         // update robots
         // update ground every tick: this.updateColorDataFunction()
+        const _this = this
         this.robots.forEach(robot => {
-            robot.update(
-                this.dt,
-                this.programManager.isProgramPaused(),
-                this.getColorData
-            )
+            robot.update(new RobotUpdateOptions({
+                dt: this.dt,
+                programPaused: this.programManager.isProgramPaused(),
+                getImageData: this.getImageData,
+                getNearestPointTo: (point, includePoint) => _this.getNearestPoint(point, includePoint),
+                intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line)
+            }))
         });
 
         this.programManager.update(); // update breakpoints, ...
