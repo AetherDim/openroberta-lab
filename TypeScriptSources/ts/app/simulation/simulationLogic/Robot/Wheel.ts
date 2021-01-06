@@ -1,4 +1,4 @@
-import { range, time } from "d3"
+import { range } from "d3"
 import { Body, Vector } from "matter-js"
 import { createRect } from "../Displayable"
 import { ElectricMotor } from "./ElectricMotor"

@@ -1,6 +1,4 @@
 import { Vector } from "matter-js";
-import { Color } from "../Color";
-import { COLOR_ENUM } from "../simulation.constants";
 
 export class ColorSensor {
 

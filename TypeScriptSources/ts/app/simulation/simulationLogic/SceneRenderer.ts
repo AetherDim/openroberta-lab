@@ -1,10 +1,8 @@
 import './pixijs'
 import * as $ from "jquery";
-import { Mouse, Vector } from 'matter-js'
 import { Scene } from './Scene/Scene';
 import { rgbToNumber } from './Color'
 import { ScrollView, ScrollViewEvent } from './ScrollView';
-import { debug } from 'console';
 
 
 

@@ -9,8 +9,6 @@ import { RobotSimBehaviour } from './RobotSimBehaviour'
 import { Unit } from '../Unit'
 import { Wheel } from './Wheel'
 import { ColorSensor } from './ColorSensor'
-import '../pixijs'
-import { Graphics } from 'pixi.js'
 
 export class Robot {
 
@@ -47,7 +45,7 @@ export class Robot {
 	private colorSensor?: ColorSensor = null
 	private colorSensorGraphics?: PIXI.Graphics = null
 
-	robotBehaviour: RobotSimBehaviour = null;
+	robotBehaviour?: RobotSimBehaviour = null;
 
 	configuration: any = null;
 	programCode: any = null;

@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "../ExtendedMatter", "../pixijs"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1) {
+define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "../ExtendedMatter"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;

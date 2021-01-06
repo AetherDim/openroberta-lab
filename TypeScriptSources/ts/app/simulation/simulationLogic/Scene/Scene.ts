@@ -1,12 +1,8 @@
-import '../pixijs'
 import { Robot } from '../Robot/Robot';
-import { createDisplayableFromBody, createRect, Displayable } from '../Displayable';
-import { Engine, Mouse, World, Render, MouseConstraint, Bodies, Composite, Vector, Events, Body, Constraint, IEventComposite, Resolver, Sleeping, Bounds, Vertices, Composites } from 'matter-js';
-import { ElectricMotor } from '../Robot/ElectricMotor';
+import { createDisplayableFromBody } from '../Displayable';
+import { Engine, Mouse, World, Render, MouseConstraint, Composite, Vector, Events, Body, Constraint, IEventComposite, Sleeping, Bounds, Vertices } from 'matter-js';
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
-import { Unit } from '../Unit'
-import { Polygon } from '../Geometry/Polygon';
 import { EventType, ScrollViewEvent } from '../ScrollView';
 import { ProgramManager } from '../ProgramManager';
 
@@ -166,7 +162,7 @@ export class Scene {
 
     private getColorData: (x: number, y: number, w: number, h: number) => ImageData
 
-    private setColorDataFunction() {
+    private updateColorDataFunction() {
         const canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer)
         const renderingContext = canvas.getContext("2d")
         const bounds = this.groundContainer.getBounds()
@@ -182,7 +178,7 @@ export class Scene {
 
         if(this.needsInit) {
             this.onInit();
-            this.setColorDataFunction()
+            this.updateColorDataFunction()
             this.needsInit = false;
         }
 
@@ -292,7 +288,7 @@ export class Scene {
                 // add rendering containers from this scene
                 if(this.hasFinishedLoading) {
                     this.onInit();
-                    this.setColorDataFunction()
+                    this.updateColorDataFunction()
                 } else {
                     this.needsInit = true;
                 }
@@ -545,7 +541,7 @@ export class Scene {
         this.onUpdate();
 
         // update robots
-        // update ground every tick: this.setColorDataFunction()
+        // update ground every tick: this.updateColorDataFunction()
         this.robots.forEach(robot => {
             robot.update(
                 this.dt,

@@ -1,6 +1,5 @@
 import { SceneRender } from './SceneRenderer'
 import './ExtendedMatter'
-import { debug } from 'console';
 import { TestScene } from './Scene/TestScene';
 
 var engine = new SceneRender('sceneCanvas', 'simDiv', new TestScene());

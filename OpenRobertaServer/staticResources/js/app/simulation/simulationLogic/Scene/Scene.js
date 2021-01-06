@@ -1,4 +1,4 @@
-define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../pixijs"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1) {
+define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -180,7 +180,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingAnimation.y = this.sceneRenderer.getHeight() * 0.5;
             this.loadingAnimation.rotation += 0.05 * dt;
         };
-        Scene.prototype.setColorDataFunction = function () {
+        Scene.prototype.updateColorDataFunction = function () {
             var canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer);
             var renderingContext = canvas.getContext("2d");
             var bounds = this.groundContainer.getBounds();
@@ -193,7 +193,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.registerContainersToEngine(); // register rendering containers
             if (this.needsInit) {
                 this.onInit();
-                this.setColorDataFunction();
+                this.updateColorDataFunction();
                 this.needsInit = false;
             }
             // auto start simulation
@@ -241,7 +241,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                     // add rendering containers from this scene
                     if (this.hasFinishedLoading) {
                         this.onInit();
-                        this.setColorDataFunction();
+                        this.updateColorDataFunction();
                     }
                     else {
                         this.needsInit = true;
@@ -429,7 +429,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             var _this_1 = this;
             this.onUpdate();
             // update robots
-            // update ground every tick: this.setColorDataFunction()
+            // update ground every tick: this.updateColorDataFunction()
             this.robots.forEach(function (robot) {
                 robot.update(_this_1.dt, _this_1.programManager.isProgramPaused(), _this_1.getColorData);
             });

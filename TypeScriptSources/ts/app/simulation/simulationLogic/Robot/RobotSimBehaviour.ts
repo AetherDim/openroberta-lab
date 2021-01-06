@@ -2,7 +2,6 @@ import { ARobotBehaviour } from "../interpreter.aRobotBehaviour";
 import { State } from "../interpreter.state";
 import * as C from "../interpreter.constants";
 import * as U from "../interpreter.util";
-import { Robot } from "./Robot";
 import { Unit } from "../Unit";
 import { RobotHardwareStateSensors } from "./RobotHardwareStateSensors";
 
