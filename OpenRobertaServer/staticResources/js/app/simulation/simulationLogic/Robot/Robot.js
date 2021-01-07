@@ -220,7 +220,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 return;
             }
             // update sensors
-            this.updateRobotBehaviourHardwareStateSensors(updateOptions.getImageData, updateOptions.getNearestPointTo, updateOptions.intersectionPointsWithLine);
+            this.updateRobotBehaviourHardwareStateSensors(dt, updateOptions.getImageData, updateOptions.getNearestPointTo, updateOptions.intersectionPointsWithLine);
             if (!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
                 var delay = this.interpreter.runNOperations(1000) / 1000;
             }
@@ -526,7 +526,8 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
         Robot.prototype.getAbsolutePosition = function (relativePosition) {
             return matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
         };
-        Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (getImageData, getNearestPointTo, intersectionPointsWithLine) {
+        Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (dt, getImageData, getNearestPointTo, intersectionPointsWithLine) {
+            var _a;
             if (!this.robotBehaviour) {
                 return;
             }
@@ -537,9 +538,13 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 right: this.encoder.right
             };
             // gyo sensor
+            // Note: OpenRoberta has a bug for the gyro.rate where they calculate it by
+            // angleDifference * timeDifference but it should be angleDifference / timeDifference
+            var gyroRate = this.body.angularVelocity * 180 / Math.PI;
+            var oldAngle = (_a = sensors.gyro) === null || _a === void 0 ? void 0 : _a[2].angle;
             sensors.gyro = { 2: {
-                    angle: this.body.angle * 180 / Math.PI,
-                    rate: this.body.angularVelocity
+                    angle: oldAngle ? oldAngle + gyroRate * dt : this.body.angle * 180 / Math.PI,
+                    rate: gyroRate
                 } };
             // color
             if (this.colorSensor) {
@@ -586,14 +591,16 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 if (this.updateSensorGraphics) {
                     this.setDistanceOfUltrasonicSensor(ultrasonicDistance, nearestPoint_1);
                 }
-                ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255);
+                ultrasonicDistance = Unit_1.Unit.fromLength(ultrasonicDistance);
                 sensors.ultrasonic = { 4: {
-                        distance: ultrasonicDistance,
+                        // `distance` is in cm
+                        distance: Math.min(ultrasonicDistance, this.ultrasonicSensor.maximumMeasurableDistance) * 100,
                         presence: false
                     } };
                 // infrared sensor (use ultrasonic distance)
                 sensors.infrared = { 4: {
-                        distance: Math.min(ultrasonicDistance / 70 * 100, 100),
+                        // `distance` is in cm and at maximum 70cm
+                        distance: Math.min(ultrasonicDistance, 0.7) * 100,
                         presence: false
                     } };
             }

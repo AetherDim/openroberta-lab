@@ -5,9 +5,13 @@ define(["require", "exports", "../Unit"], function (require, exports, Unit_1) {
     var UltrasonicSensor = /** @class */ (function () {
         function UltrasonicSensor(position, angularRange) {
             /**
-             * The measured distance
+             * The measured distance in matter units
              */
             this.measuredDistance = Infinity;
+            /**
+             * The maximum distance which can be measured by the ultrasonic sensor in meters
+             */
+            this.maximumMeasurableDistance = 2.5;
             this.position = Unit_1.Unit.getPosition(position);
             this.angularRange = angularRange;
         }

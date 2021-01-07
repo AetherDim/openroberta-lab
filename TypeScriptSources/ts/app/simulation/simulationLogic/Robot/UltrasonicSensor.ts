@@ -9,9 +9,14 @@ export class UltrasonicSensor {
 	position: Vector
 
 	/**
-	 * The measured distance
+	 * The measured distance in matter units
 	 */
 	measuredDistance = Infinity
+
+	/**
+	 * The maximum distance which can be measured by the ultrasonic sensor in meters
+	 */
+	maximumMeasurableDistance = 2.5
 
 	/**
 	 * Angular range in radians

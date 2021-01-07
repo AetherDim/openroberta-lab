@@ -323,6 +323,7 @@ export class Robot {
 
 		// update sensors
 		this.updateRobotBehaviourHardwareStateSensors(
+			dt,
 			updateOptions.getImageData,
 			updateOptions.getNearestPointTo,
 			updateOptions.intersectionPointsWithLine
@@ -647,6 +648,7 @@ export class Robot {
 	}
 
 	private updateRobotBehaviourHardwareStateSensors(
+		dt: number,
 		getImageData: (x: number, y: number, w: number, h: number) => ImageData,
 		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | undefined,
 		intersectionPointsWithLine: (line: LineBaseClass) => Vector[]
@@ -663,9 +665,13 @@ export class Robot {
 		}
 		
 		// gyo sensor
+		// Note: OpenRoberta has a bug for the gyro.rate where they calculate it by
+		// angleDifference * timeDifference but it should be angleDifference / timeDifference
+		const gyroRate = this.body.angularVelocity * 180 / Math.PI
+		const oldAngle = sensors.gyro?.[2].angle;
 		sensors.gyro = { 2: {
-			angle: this.body.angle * 180 / Math.PI,
-			rate: this.body.angularVelocity
+			angle: oldAngle ? oldAngle + gyroRate * dt : this.body.angle * 180 / Math.PI,
+			rate: gyroRate
 		}}
 
 		// color
@@ -687,8 +693,6 @@ export class Robot {
 
 		// ultrasonic sensor
 		if (this.ultrasonicSensor) {
-
-			
 			const sensorPosition = this.getAbsolutePosition(this.ultrasonicSensor.position)
 			const halfAngle = this.ultrasonicSensor.angularRange / 2
 			const rays = [
@@ -716,15 +720,17 @@ export class Robot {
 			if (this.updateSensorGraphics) {
 				this.setDistanceOfUltrasonicSensor(ultrasonicDistance, nearestPoint)
 			}
-			ultrasonicDistance = Math.min(ultrasonicDistance / 3.0, 255)
+			ultrasonicDistance = Unit.fromLength(ultrasonicDistance)
 			sensors.ultrasonic = { 4: {
-				distance: ultrasonicDistance,
+				// `distance` is in cm
+				distance: Math.min(ultrasonicDistance, this.ultrasonicSensor.maximumMeasurableDistance) * 100,
 				presence: false
 			}}
 
 			// infrared sensor (use ultrasonic distance)
 			sensors.infrared = { 4: {
-				distance: Math.min(ultrasonicDistance / 70 * 100, 100),
+				// `distance` is in cm and at maximum 70cm
+				distance: Math.min(ultrasonicDistance, 0.7) * 100,
 				presence: false
 			}}
 		}

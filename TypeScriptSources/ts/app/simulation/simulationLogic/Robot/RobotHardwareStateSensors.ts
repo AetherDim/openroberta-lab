@@ -5,8 +5,9 @@ export interface RobotHardwareStateSensors {
         ambientlight: number,
         colorValue: string,
         colour: string,
-        /** brightness */
+        /** brightness in precent from 0 to 100 */
         light: number,
+        /** array of [red, green, blue] values in the range 0 to 255 */
         rgb: number[]
     }}
 
@@ -19,11 +20,13 @@ export interface RobotHardwareStateSensors {
     }}
 
     ultrasonic?: { 4: {
+        /** distance in cm */
         distance: number,
         presence: boolean
     }}
 
     infrared?: { 4: {
+        /** distance in cm */
         distance: number,
         presence: boolean
     }}
