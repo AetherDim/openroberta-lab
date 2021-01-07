@@ -3,7 +3,7 @@ import { SharedAssetLoader, Asset, MultiAsset, FontAsset } from '../SharedAssetL
 export const RRC_ASSET_PATH = 'assets/roborave/';
 
 class RRCAsset extends Asset {
-    constructor(path: string, name: string = null) {
+    constructor(path: string, name?: string) {
         super(RRC_ASSET_PATH + path, name);
     }
 }
@@ -15,7 +15,7 @@ class RRCFontAsset extends FontAsset {
 }
 
 class RRCMultiAsset extends MultiAsset {
-    constructor(prefix: string, postfix: string, idStart: number, idEnd:number, name: string = null) {
+    constructor(prefix: string, postfix: string, idStart: number, idEnd:number, name?: string) {
         super(RRC_ASSET_PATH + prefix, postfix, idStart, idEnd, name);
     }
 }

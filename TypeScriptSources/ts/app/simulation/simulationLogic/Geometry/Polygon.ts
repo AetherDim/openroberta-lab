@@ -138,20 +138,40 @@ export class Polygon {
 	}
 
 	distanceTo3(point: Vector): number {
-		return Vector.magnitude(this.nearestPointTo(point))
+		return Vector.magnitude(<Vector>this.nearestPointTo(point))
 	}
 
 	/**
-	 * Returns the nearest point on the polygon to `point` for which `includePoint(point)` is `true`.
-	 * If no point is found since `includePoint` excludes all points, `null` is returned.
+	 * Returns the nearest point on the polygon boundary to `point`.
+	 * 
+	 * @param point The point to which the nearest one is searched
+	 */
+	nearestPointTo(point: Vector): Vector {
+		return <Vector>this._nearestPointTo(point, _ => true)
+	}
+
+	/**
+	 * Returns the nearest point on the polygon boundary to `point` for which `includePoint(point)` is `true`.
+	 * If no point is found since `includePoint` excludes all points, `undefined` is returned.
 	 * 
 	 * @param point The point to which the nearest one is searched
 	 * @param includePoint Function which returns `true` iff the point can be included in the result (default: _ => true)
 	 */
-	nearestPointTo(point: Vector, includePoint: (point: Vector) => boolean = (_ => true)): Vector | null {
+	nearestPointToPoint(point: Vector, includePoint: (point: Vector) => boolean): Vector | undefined {
+		return this._nearestPointTo(point, includePoint)
+	}
+
+	/**
+	 * Returns the nearest point on the polygon boundary to `point` for which `includePoint(point)` is `true`.
+	 * If no point is found since `includePoint` excludes all points, `undefined` is returned.
+	 * 
+	 * @param point The point to which the nearest one is searched
+	 * @param includePoint Function which returns `true` iff the point can be included in the result (default: _ => true)
+	 */
+	private _nearestPointTo(point: Vector, includePoint: (point: Vector) => boolean): Vector | undefined {
 
 		let minDistanceSquared = Infinity
-		let minDistancePoint: Vector | null = null
+		let minDistancePoint: Vector | undefined
 
 		function updateWithVertices(vertex0: Vector, vertex1: Vector) {
 			const line = new Line(vertex0, Vector.sub(vertex1, vertex0))

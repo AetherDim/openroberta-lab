@@ -1,3 +1,4 @@
+"use strict";
 import { Bodies, Body, Composite, Events, Vector, World } from "matter-js";
 import { createRect } from "../Displayable";
 import { LineSegment } from "../Geometry/LineSegment";
@@ -41,6 +42,10 @@ export class TestScene extends Scene {
 
         // use 0.001 for EV3
         const scale = 0.001;
+
+        const grid = this.engine.broadphase
+        grid.bucketHeight = 300
+        grid.bucketWidth = 300
         
         Unit.setUnitScaling({m: 1000})
 
@@ -109,7 +114,9 @@ export class TestScene extends Scene {
             const mousePos = Vector.create(mousePosData.x, mousePosData.y)
             mousePointGraphics.position.set(mousePos.x, mousePos.y)
             const pos = polygon.nearestPointTo(mousePos)
-            nearestPointGraphics.position.set(pos.x, pos.y)
+            if (pos) {
+                nearestPointGraphics.position.set(pos.x, pos.y)
+            }
 
             if (polygon.containsPoint(mousePos)) {
                 setToPoint(mousePointGraphics, 0x0044FF)

@@ -15,7 +15,7 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		/** speed in the interval [-1, 1] */
 		speed?: { left: number, right: number },
 		time?: number
-	} = null
+	}
 
 	/**
 	 * Rotation action which rotates left iff `angle * speed > 0`.
@@ -27,7 +27,7 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		rotateLeft: boolean,
 		/** Speed in the interval [-1, 1]. The magnitude of speed might be used if `angle` is null */
 		speed: number
-	} = null
+	}
 
 	constructor() {
 		super();
@@ -40,8 +40,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 	}
 
 	resetCommands() {
-		this.rotate = null
-		this.drive = null
+		this.rotate = undefined
+		this.drive = undefined
 	}
 
 	private clampSpeed(speed: number): number {
@@ -100,10 +100,10 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		if (sensor === undefined) {
 			return "undefined";
 		}
-		var v: string;
+		var v: string | undefined;
 		if (mode != undefined) {
 			if (port != undefined) {
-				v = sensor[port][mode];
+				v = <string>sensor[port][mode];
 				if (sensorName === 'gyro' && mode === 'angle') {
 					var reset = this.hardwareState['angleReset'];
 					if (reset != undefined) {
@@ -211,7 +211,9 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 				return 700;
 			case '4':
 				return 500;
-
+			default:
+				console.error("Play file action: Unhandled file")
+				return 0;
 		}
 	}
 
@@ -282,10 +284,10 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 
 			this.drive = {
 				// convert distance from cm to m
-				distance: distance ? Unit.getLength(distance * 0.01) : null,
+				distance: distance ? Unit.getLength(distance * 0.01) : undefined,
 				// convert speed from precent to fraction
-				speed: (speed ? { left: speed * 0.01, right: speed * 0.01} : null),
-				time: time ? Unit.getTime(time) : null
+				speed: (speed ? { left: speed * 0.01, right: speed * 0.01} : undefined),
+				time: time ? Unit.getTime(time) : undefined
 			}
 
 			return 1
@@ -345,10 +347,10 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 
 			this.drive = {
 				// convert distance from cm to m
-				distance: distance ? Unit.getLength(distance * 0.01) : null,
+				distance: distance ? Unit.getLength(distance * 0.01) : undefined,
 				// convert speedL and speedR from precent to fraction
 				speed: { left: speedL * 0.01, right: speedR * 0.01},
-				time: Unit.getTime(time) || null
+				time: Unit.getTime(time) || undefined
 			}
 
 			return 1;
@@ -409,7 +411,7 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 
 			this.rotate = {
 				// convert angle from degrees to radians
-				angle: angle ? angle * Math.PI / 180 : null,
+				angle: angle ? angle * Math.PI / 180 : undefined,
 				rotateLeft: (angle ? angle > 0 : direction == C.LEFT) == (speed > 0),
 				// convert speed from precent to fraction
 				speed: speed * 0.01

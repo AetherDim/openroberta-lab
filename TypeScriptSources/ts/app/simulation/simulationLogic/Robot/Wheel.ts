@@ -32,9 +32,9 @@ export class Wheel {
 	wheelAngle = 0
 	angularVelocity = 0
 
-	private wheelProfile: PIXI.Graphics[]
+	private readonly wheelProfile: PIXI.Graphics[] = []
 
-	private debugContainer: PIXI.Container
+	private readonly debugContainer = new PIXI.Container()
 
 	/**
 	 * Creates a top down wheel at position `(x, y)` and `(width, height)`.
@@ -46,32 +46,33 @@ export class Wheel {
 	 * @param height 
 	 * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
 	 */
-	constructor(x: number, y: number, width: number, height: number, mass: number = null) {
+	constructor(x: number, y: number, width: number, height: number, mass?: number) {
 		this.physicsBody = createRect(x, y, width, height);
 		[x, y, width, height] = Unit.getLengths([x, y, width, height])
 
 		const displayable = this.physicsBody.displayable
-		const container = new PIXI.Container()
-		container.addChild(displayable.displayObject)
+		if (displayable) {
+			const container = new PIXI.Container()
+			container.addChild(displayable.displayObject)
 
-		this.wheelProfile = range(4).map(() => {
-			const graphics = new PIXI.Graphics()
-			graphics.beginFill(0xFF0000)
-			graphics.drawRect(0, -height/2, width * 0.1, height)
-			graphics.endFill()
-			container.addChild(graphics)
-			return graphics
-		})
+			this.wheelProfile = range(4).map(() => {
+				const graphics = new PIXI.Graphics()
+				graphics.beginFill(0xFF0000)
+				graphics.drawRect(0, -height/2, width * 0.1, height)
+				graphics.endFill()
+				container.addChild(graphics)
+				return graphics
+			})
 
-		this.debugContainer = new PIXI.Container()
-		this.debugText = new PIXI.Text("")
-		this.debugText.style = new PIXI.TextStyle({fill: 0x0000})
-		this.debugText.angle = 45
-		// this.debugContainer.addChild(this.debugText)
-		// container.addChild(this.debugText)
-		container.addChild(this.debugContainer)
+			this.debugText = new PIXI.Text("")
+			this.debugText.style = new PIXI.TextStyle({fill: 0x0000})
+			this.debugText.angle = 45
+			// this.debugContainer.addChild(this.debugText)
+			// container.addChild(this.debugText)
+			container.addChild(this.debugContainer)
 
-		this.physicsBody.displayable.displayObject = container
+			displayable.displayObject = container
+		}
 
 		if (mass) {
 			Body.setMass(this.physicsBody, Unit.getMass(mass))
@@ -105,7 +106,7 @@ export class Wheel {
 		return x / width
 	}
 
-	private debugText: PIXI.Text = null
+	private debugText?: PIXI.Text
 
 	updateWheelProfile() {
 		for(var i = 0; i < this.wheelProfile.length; i++) {

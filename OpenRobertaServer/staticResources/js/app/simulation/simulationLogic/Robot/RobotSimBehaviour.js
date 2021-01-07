@@ -19,14 +19,6 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
         __extends(RobotSimBehaviour, _super);
         function RobotSimBehaviour() {
             var _this = _super.call(this) || this;
-            /**
-             * Drive action of the robot
-             */
-            _this.drive = null;
-            /**
-             * Rotation action which rotates left iff `angle * speed > 0`.
-             */
-            _this.rotate = null;
             _this.hardwareState.motors = {};
             U.loggingEnabled(false, false);
             return _this;
@@ -35,8 +27,8 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
             return this.hardwareState.sensors;
         };
         RobotSimBehaviour.prototype.resetCommands = function () {
-            this.rotate = null;
-            this.drive = null;
+            this.rotate = undefined;
+            this.drive = undefined;
         };
         RobotSimBehaviour.prototype.clampSpeed = function (speed) {
             return Math.min(100, Math.max(-100, speed));
@@ -197,6 +189,9 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
                     return 700;
                 case '4':
                     return 500;
+                default:
+                    console.error("Play file action: Unhandled file");
+                    return 0;
             }
         };
         RobotSimBehaviour.prototype.setVolumeAction = function (volume) {
@@ -254,10 +249,10 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
                 }
                 this.drive = {
                     // convert distance from cm to m
-                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : null,
+                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : undefined,
                     // convert speed from precent to fraction
-                    speed: (speed ? { left: speed * 0.01, right: speed * 0.01 } : null),
-                    time: time ? Unit_1.Unit.getTime(time) : null
+                    speed: (speed ? { left: speed * 0.01, right: speed * 0.01 } : undefined),
+                    time: time ? Unit_1.Unit.getTime(time) : undefined
                 };
                 return 1;
             }
@@ -310,10 +305,10 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
                 }
                 this.drive = {
                     // convert distance from cm to m
-                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : null,
+                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : undefined,
                     // convert speedL and speedR from precent to fraction
                     speed: { left: speedL * 0.01, right: speedR * 0.01 },
-                    time: Unit_1.Unit.getTime(time) || null
+                    time: Unit_1.Unit.getTime(time) || undefined
                 };
                 return 1;
             }
@@ -366,7 +361,7 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
                 }
                 this.rotate = {
                     // convert angle from degrees to radians
-                    angle: angle ? angle * Math.PI / 180 : null,
+                    angle: angle ? angle * Math.PI / 180 : undefined,
                     rotateLeft: (angle ? angle > 0 : direction == C.LEFT) == (speed > 0),
                     // convert speed from precent to fraction
                     speed: speed * 0.01

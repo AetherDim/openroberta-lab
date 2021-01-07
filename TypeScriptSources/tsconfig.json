@@ -10,6 +10,7 @@
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "allowJs": true,
+        "strict": true
     },
     "include": ["ts/**/*"],
     "exclude": [

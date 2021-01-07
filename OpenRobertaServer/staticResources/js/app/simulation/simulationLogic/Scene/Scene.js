@@ -3,7 +3,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = exports.AsyncChain = exports.AsyncListener = void 0;
     var AsyncListener = /** @class */ (function () {
-        function AsyncListener() {
+        function AsyncListener(func, thisContext) {
+            this.func = func;
+            this.thisContext = thisContext;
         }
         return AsyncListener;
     }());
@@ -99,21 +101,20 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             //
             this.scoreContainer = new PIXI.Container();
             this.scoreContainerZ = 60;
+            this.endScoreTime = Date.now();
             this.showScore = false;
+            this.scoreText = new PIXI.Text("");
             //
             // #############################################################################
             //
             this.loadingContainer = new PIXI.Container();
             this.loadingContainerZ = 60;
-            this.loadingText = null;
-            this.loadingAnimation = null;
             //
             // #############################################################################
             //
             this.hasFinishedLoading = false;
             this.startedLoading = false;
             this.needsInit = false;
-            this.assetLoadingChain = null;
             //
             // #############################################################################
             //
@@ -132,25 +133,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
              * sleep time before calling update
              */
             this.simSleepTime = 1 / 60;
-            //
-            // #############################################################################
-            //
-            /**
-             * Debug renderer used by the scene for all registered physics object
-             */
-            this.debugRenderer = null;
             /**
              * whether to create debug displayables to show all physics objects
              */
             this.debugPixiRendering = false;
-            /**
-             * current rendering instance
-             */
-            this.sceneRenderer = null;
-            //
-            // #############################################################################
-            //
-            this.mouseConstraint = null;
             // register events
             var _this = this;
             matter_js_1.Events.on(this.engine.world, "beforeAdd", function (e) {
@@ -184,6 +170,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.topContainer.zIndex = this.topContainerZ;
         };
         Scene.prototype.registerContainersToEngine = function () {
+            if (!this.sceneRenderer) {
+                return;
+            }
             this.sceneRenderer.add(this.groundContainer);
             this.sceneRenderer.add(this.groundAnimationContainer);
             this.sceneRenderer.add(this.entityBottomContainer);
@@ -209,7 +198,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         };
         Scene.prototype.initScoreContainer = function () {
             this.scoreContainer.zIndex = this.scoreContainerZ;
-            this.scoreText = new PIXI.Text("", {
+            this.scoreText.style = new PIXI.TextStyle({
                 fontFamily: 'Arial',
                 fontSize: 60,
                 fill: 0x6e750e // olive
@@ -225,9 +214,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.updateScoreAnimation = function (dt) {
         };
         Scene.prototype.showScoreScreen = function (seconds) {
+            var _a;
             this.endScoreTime = Date.now() + seconds * 1000;
             this.showScore = true;
-            this.sceneRenderer.add(this.scoreContainer);
+            (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.add(this.scoreContainer);
         };
         Scene.prototype.initLoadingContainer = function () {
             this.loadingContainer.zIndex = this.loadingContainerZ;
@@ -251,6 +241,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingContainer.addChild(this.loadingAnimation);
         };
         Scene.prototype.updateLoadingAnimation = function (dt) {
+            if (!this.loadingText || !this.sceneRenderer || !this.loadingAnimation) {
+                return;
+            }
             // This calculations are relative to the viewport width and height and give an interesting bounce effect
             this.loadingText.x = this.sceneRenderer.getViewWidth() * 0.1 + this.sceneRenderer.getWidth() * 0.2;
             this.loadingText.y = this.sceneRenderer.getViewHeight() * 0.45 + this.sceneRenderer.getHeight() * 0.3;
@@ -259,19 +252,23 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingAnimation.rotation += 0.05 * dt;
         };
         Scene.prototype.updateImageDataFunction = function () {
-            var canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer);
-            var renderingContext = canvas.getContext("2d");
+            var _a;
+            var canvas = (_a = this.getRenderer()) === null || _a === void 0 ? void 0 : _a.getCanvasFromDisplayObject(this.groundContainer);
+            var renderingContext = canvas === null || canvas === void 0 ? void 0 : canvas.getContext("2d");
             var bounds = this.groundContainer.getBounds();
-            this.getImageData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
+            if (renderingContext) {
+                this.getImageData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
+            }
         };
         Scene.prototype.finishedLoading = function () {
+            var _a;
             if (this.assetLoadingChain && !this.assetLoadingChain.hasFinished()) {
                 this.assetLoadingChain.next(); // continue with loading
                 return;
             }
             this.hasFinishedLoading = true;
             this.startedLoading = true; // for safety
-            this.sceneRenderer.removeDisplayable(this.loadingContainer);
+            (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.removeDisplayable(this.loadingContainer);
             this.registerContainersToEngine(); // register rendering containers
             if (this.needsInit) {
                 this.initScoreContainer();
@@ -284,9 +281,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         };
         Scene.prototype.startLoading = function () {
             var _this_1 = this;
+            var _a;
             if (!this.startedLoading && !this.hasFinishedLoading) {
                 this.startedLoading = true;
-                this.sceneRenderer.addDisplayable(this.loadingContainer);
+                (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.addDisplayable(this.loadingContainer);
                 this.assetLoadingChain = new AsyncChain([
                     { func: this.loadScoreAssets, thisContext: this },
                     { func: this.onFirstLoad, thisContext: this },
@@ -316,7 +314,6 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             return this.sceneRenderer;
         };
         Scene.prototype.setSimulationEngine = function (sceneRenderer) {
-            if (sceneRenderer === void 0) { sceneRenderer = null; }
             if (sceneRenderer) {
                 if (sceneRenderer != this.sceneRenderer) {
                     if (this.hasFinishedLoading) {
@@ -342,10 +339,11 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 if (this.hasFinishedLoading) {
                     this.onDeInit();
                 }
-                this.sceneRenderer = null;
+                this.sceneRenderer = undefined;
             }
         };
         Scene.prototype.renderTick = function (dt) {
+            var _a;
             if (this.startedLoading && !this.hasFinishedLoading) {
                 this.updateLoadingAnimation(dt);
             }
@@ -353,7 +351,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 this.updateScoreAnimation(dt);
                 if (Date.now() > this.endScoreTime) {
                     this.showScore = false;
-                    this.sceneRenderer.remove(this.scoreContainer);
+                    (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.remove(this.scoreContainer);
                 }
             }
             this.onRenderTick(dt);
@@ -384,7 +382,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                     // remove constrain
                     if (this.mouseConstraint) {
                         matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
-                        this.mouseConstraint = null;
+                        this.mouseConstraint = undefined;
                     }
                     break;
                 case ScrollView_1.EventType.DRAG:
@@ -534,7 +532,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             var nearestPoint;
             var minDistanceSquared = Infinity;
             this.forEachBodyPartVertices(function (vertices) {
-                var nearestBodyPoint = new Polygon_1.Polygon(vertices).nearestPointTo(point, includePoint);
+                var nearestBodyPoint = new Polygon_1.Polygon(vertices).nearestPointToPoint(point, includePoint);
                 if (nearestBodyPoint) {
                     var distanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(point, nearestBodyPoint));
                     if (distanceSquared < minDistanceSquared) {
@@ -565,15 +563,19 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             // update robots
             // update ground every tick: this.updateColorDataFunction()
             var _this = this;
-            this.robots.forEach(function (robot) {
-                robot.update(new RobotUpdateOptions_1.RobotUpdateOptions({
-                    dt: _this_1.dt,
-                    programPaused: _this_1.programManager.isProgramPaused(),
-                    getImageData: _this_1.getImageData,
-                    getNearestPointTo: function (point, includePoint) { return _this.getNearestPoint(point, includePoint); },
-                    intersectionPointsWithLine: function (line) { return _this.intersectionPointsWithLine(line); }
-                }));
-            });
+            // FIXME: What to do with undefined 'getImageData'?
+            var getImageData = this.getImageData;
+            if (getImageData) {
+                this.robots.forEach(function (robot) {
+                    robot.update(new RobotUpdateOptions_1.RobotUpdateOptions({
+                        dt: _this_1.dt,
+                        programPaused: _this_1.programManager.isProgramPaused(),
+                        getImageData: getImageData,
+                        getNearestPointTo: function (point, includePoint) { return _this.getNearestPoint(point, includePoint); },
+                        intersectionPointsWithLine: function (line) { return _this.intersectionPointsWithLine(line); }
+                    }));
+                });
+            }
             this.programManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // update rendering positions
@@ -602,14 +604,15 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 htmlCanvas = document.getElementById(canvas);
             }
             this.debugRenderer = matter_js_1.Render.create({
-                element: htmlCanvas,
+                element: htmlCanvas ? htmlCanvas : undefined,
                 engine: this.engine,
                 options: { wireframes: wireframes }
             });
-            // scaling the context for closeup rendering
+            // scaling the context for close up rendering
             //this.debugRenderer.context.scale(10, 10)
             matter_js_1.Render.run(this.debugRenderer);
-            if (enableMouse) {
+            // TODO: Remove this if since there is an implementation in 'interactionEvent'?
+            if (enableMouse && htmlCanvas) {
                 var mouse = matter_js_1.Mouse.create(htmlCanvas); // call before scene switch
                 // TODO: different mouse constarains?
                 var mouseConstraint = matter_js_1.MouseConstraint.create(this.engine, {

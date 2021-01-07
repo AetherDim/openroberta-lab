@@ -6,14 +6,14 @@ export class RobotUpdateOptions {
 	dt: number
 	programPaused: boolean
 	getImageData: (x: number, y: number, w: number, h: number) => ImageData
-	getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector
+	getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | undefined
 	intersectionPointsWithLine: (line: LineBaseClass) => Vector[]
 	
 	constructor(o: {
 		dt: number,
 		programPaused: boolean,
 		getImageData: (x: number, y: number, w: number, h: number) => ImageData,
-		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector,
+		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | undefined,
 		intersectionPointsWithLine: (line: LineBaseClass) => Vector[]
 	}) {
 		this.dt = o.dt

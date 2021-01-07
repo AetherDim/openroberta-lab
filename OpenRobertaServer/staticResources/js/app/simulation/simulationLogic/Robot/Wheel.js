@@ -15,7 +15,6 @@ define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], f
          */
         function Wheel(x, y, width, height, mass) {
             var _a;
-            if (mass === void 0) { mass = null; }
             this.rollingFriction = 0.03;
             this.slideFriction = 0.3;
             /**
@@ -29,28 +28,30 @@ define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], f
             this.prevWheelAngle = 0;
             this.wheelAngle = 0;
             this.angularVelocity = 0;
-            this.debugText = null;
+            this.wheelProfile = [];
+            this.debugContainer = new PIXI.Container();
             this.physicsBody = Displayable_1.createRect(x, y, width, height);
             _a = Unit_1.Unit.getLengths([x, y, width, height]), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
             var displayable = this.physicsBody.displayable;
-            var container = new PIXI.Container();
-            container.addChild(displayable.displayObject);
-            this.wheelProfile = d3_1.range(4).map(function () {
-                var graphics = new PIXI.Graphics();
-                graphics.beginFill(0xFF0000);
-                graphics.drawRect(0, -height / 2, width * 0.1, height);
-                graphics.endFill();
-                container.addChild(graphics);
-                return graphics;
-            });
-            this.debugContainer = new PIXI.Container();
-            this.debugText = new PIXI.Text("");
-            this.debugText.style = new PIXI.TextStyle({ fill: 0x0000 });
-            this.debugText.angle = 45;
-            // this.debugContainer.addChild(this.debugText)
-            // container.addChild(this.debugText)
-            container.addChild(this.debugContainer);
-            this.physicsBody.displayable.displayObject = container;
+            if (displayable) {
+                var container_1 = new PIXI.Container();
+                container_1.addChild(displayable.displayObject);
+                this.wheelProfile = d3_1.range(4).map(function () {
+                    var graphics = new PIXI.Graphics();
+                    graphics.beginFill(0xFF0000);
+                    graphics.drawRect(0, -height / 2, width * 0.1, height);
+                    graphics.endFill();
+                    container_1.addChild(graphics);
+                    return graphics;
+                });
+                this.debugText = new PIXI.Text("");
+                this.debugText.style = new PIXI.TextStyle({ fill: 0x0000 });
+                this.debugText.angle = 45;
+                // this.debugContainer.addChild(this.debugText)
+                // container.addChild(this.debugText)
+                container_1.addChild(this.debugContainer);
+                displayable.displayObject = container_1;
+            }
             if (mass) {
                 matter_js_1.Body.setMass(this.physicsBody, Unit_1.Unit.getMass(mass));
             }

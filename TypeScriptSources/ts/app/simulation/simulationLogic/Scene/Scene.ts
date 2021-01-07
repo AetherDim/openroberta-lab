@@ -14,6 +14,11 @@ export class AsyncListener {
     func: (chain: AsyncChain) => void;
     thisContext: any;
 
+    constructor(func: (chain: AsyncChain) => void, thisContext: any) {
+        this.func = func
+        this.thisContext = thisContext
+    }
+
 }
 export class AsyncChain {
 
@@ -136,6 +141,9 @@ export class Scene {
     }
 
     protected registerContainersToEngine() {
+        if (!this.sceneRenderer) {
+            return
+        }
         this.sceneRenderer.add(this.groundContainer);
         this.sceneRenderer.add(this.groundAnimationContainer);
         this.sceneRenderer.add(this.entityBottomContainer);
@@ -168,10 +176,10 @@ export class Scene {
     readonly scoreContainer = new PIXI.Container();
     readonly scoreContainerZ = 60;
 
-    protected endScoreTime: number;
+    protected endScoreTime: number = Date.now();
     protected showScore: boolean = false;
 
-    protected scoreText: PIXI.Text;
+    protected readonly scoreText = new PIXI.Text("");
 
     /**
      * Async loading function for fonts and images
@@ -184,8 +192,7 @@ export class Scene {
     protected initScoreContainer() {
         this.scoreContainer.zIndex = this.scoreContainerZ;
 
-        this.scoreText = new PIXI.Text("",
-        {
+        this.scoreText.style = new PIXI.TextStyle({
             fontFamily : 'Arial',
             fontSize: 60,
             fill : 0x6e750e // olive
@@ -210,7 +217,7 @@ export class Scene {
     showScoreScreen(seconds: number) {
         this.endScoreTime = Date.now() + seconds*1000;
         this.showScore = true;
-        this.sceneRenderer.add(this.scoreContainer);
+        this.sceneRenderer?.add(this.scoreContainer);
     }
 
 
@@ -220,8 +227,8 @@ export class Scene {
 
     readonly loadingContainer = new PIXI.Container();
     readonly loadingContainerZ = 60;
-    protected loadingText: PIXI.DisplayObject = null;
-    protected loadingAnimation: PIXI.DisplayObject = null;
+    protected loadingText?: PIXI.DisplayObject;
+    protected loadingAnimation?: PIXI.DisplayObject;
     
     protected initLoadingContainer() {
         this.loadingContainer.zIndex = this.loadingContainerZ;
@@ -252,7 +259,10 @@ export class Scene {
         this.loadingContainer.addChild(this.loadingAnimation);
     }
 
-    private updateLoadingAnimation(dt) {
+    private updateLoadingAnimation(dt: number) {
+        if (!this.loadingText || !this.sceneRenderer || !this.loadingAnimation) {
+            return
+        }
         // This calculations are relative to the viewport width and height and give an interesting bounce effect
         this.loadingText.x = this.sceneRenderer.getViewWidth() * 0.1 + this.sceneRenderer.getWidth() * 0.2;
         this.loadingText.y = this.sceneRenderer.getViewHeight() * 0.45 + this.sceneRenderer.getHeight() * 0.3;
@@ -270,15 +280,17 @@ export class Scene {
     private startedLoading = false;
     private needsInit = false;
 
-    private assetLoadingChain: AsyncChain = null;
+    private assetLoadingChain?: AsyncChain;
 
-    private getImageData: (x: number, y: number, w: number, h: number) => ImageData
+    private getImageData?: (x: number, y: number, w: number, h: number) => ImageData
 
     private updateImageDataFunction() {
-        const canvas = this.getRenderer().getCanvasFromDisplayObject(this.groundContainer)
-        const renderingContext = canvas.getContext("2d")
+        const canvas = this.getRenderer()?.getCanvasFromDisplayObject(this.groundContainer)
+        const renderingContext = canvas?.getContext("2d")
         const bounds = this.groundContainer.getBounds()
-        this.getImageData = (x, y, w, h) => renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h)
+        if (renderingContext) {
+            this.getImageData = (x, y, w, h) => renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h)
+        }
     }
 
     finishedLoading() {
@@ -291,7 +303,7 @@ export class Scene {
         this.hasFinishedLoading = true;
         this.startedLoading = true; // for safety
 
-        this.sceneRenderer.removeDisplayable(this.loadingContainer);
+        this.sceneRenderer?.removeDisplayable(this.loadingContainer);
         this.registerContainersToEngine(); // register rendering containers
 
         if(this.needsInit) {
@@ -311,7 +323,7 @@ export class Scene {
     startLoading() {
         if(!this.startedLoading && !this.hasFinishedLoading) {
             this.startedLoading = true;
-            this.sceneRenderer.addDisplayable(this.loadingContainer);
+            this.sceneRenderer?.addDisplayable(this.loadingContainer);
 
 
             this.assetLoadingChain = new AsyncChain([
@@ -381,7 +393,7 @@ export class Scene {
     /**
      * Debug renderer used by the scene for all registered physics object
      */
-    private debugRenderer: Render = null;
+    private debugRenderer?: Render;
 
     /**
      * whether to create debug displayables to show all physics objects
@@ -392,13 +404,13 @@ export class Scene {
     /**
      * current rendering instance
      */
-    private sceneRenderer: SceneRender = null;
+    private sceneRenderer?: SceneRender;
 
-    getRenderer(): SceneRender {
+    getRenderer(): SceneRender | undefined {
         return this.sceneRenderer;
     }
 
-    setSimulationEngine(sceneRenderer: SceneRender = null) {
+    setSimulationEngine(sceneRenderer?: SceneRender) {
         if(sceneRenderer) {
             if(sceneRenderer != this.sceneRenderer) {
                 
@@ -428,11 +440,11 @@ export class Scene {
             if(this.hasFinishedLoading) {
                 this.onDeInit();
             }
-            this.sceneRenderer = null;
+            this.sceneRenderer = undefined;
         }
     }
 
-    renderTick(dt) {
+    renderTick(dt: number) {
         if(this.startedLoading && !this.hasFinishedLoading) {
             this.updateLoadingAnimation(dt);
         }
@@ -441,7 +453,7 @@ export class Scene {
             this.updateScoreAnimation(dt);
             if(Date.now() > this.endScoreTime) {
                 this.showScore = false;
-                this.sceneRenderer.remove(this.scoreContainer);
+                this.sceneRenderer?.remove(this.scoreContainer);
             }
         }
 
@@ -477,7 +489,7 @@ export class Scene {
     // #############################################################################
     //
 
-    private mouseConstraint?: Constraint = null
+    private mouseConstraint?: Constraint
 
     interactionEvent(ev: ScrollViewEvent) {
         switch (ev.type) {
@@ -506,7 +518,7 @@ export class Scene {
                 // remove constrain
                 if (this.mouseConstraint) {
                     World.remove(this.engine.world, this.mouseConstraint)
-                    this.mouseConstraint = null
+                    this.mouseConstraint = undefined
                 }
                 break;
 
@@ -609,7 +621,7 @@ export class Scene {
         } else if(Array.isArray(obj)) {
             const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
             const _this = this;
-            array.forEach(e => _this.addPhysics(e));
+            array.forEach((e: Body | Composite | Constraint) => _this.addPhysics(e));
         } else {
             console.error('unknown type: ' + obj);
         }
@@ -655,7 +667,7 @@ export class Scene {
         } else if(Array.isArray(obj)) {
             const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
             const _this = this;
-            array.forEach(e => _this.removePhysics(e));
+            array.forEach((e: Body | Composite | Constraint) => _this.removePhysics(e));
         } else {
             console.error('unknown type: ' + obj);
         }
@@ -684,12 +696,12 @@ export class Scene {
         }
     }
 
-    private getNearestPoint(point: Vector, includePoint: (point: Vector) => boolean): Vector | null {
-        let nearestPoint: Vector | null
+    private getNearestPoint(point: Vector, includePoint: (point: Vector) => boolean): Vector | undefined {
+        let nearestPoint: Vector | undefined
         let minDistanceSquared = Infinity
 
         this.forEachBodyPartVertices(vertices => {
-            const nearestBodyPoint = new Polygon(vertices).nearestPointTo(point, includePoint)
+            const nearestBodyPoint = new Polygon(vertices).nearestPointToPoint(point, includePoint)
             if (nearestBodyPoint) {
                 const distanceSquared = Vector.magnitudeSquared(Vector.sub(point, nearestBodyPoint))
                 if (distanceSquared < minDistanceSquared) {
@@ -724,15 +736,19 @@ export class Scene {
         // update robots
         // update ground every tick: this.updateColorDataFunction()
         const _this = this
-        this.robots.forEach(robot => {
-            robot.update(new RobotUpdateOptions({
-                dt: this.dt,
-                programPaused: this.programManager.isProgramPaused(),
-                getImageData: this.getImageData,
-                getNearestPointTo: (point, includePoint) => _this.getNearestPoint(point, includePoint),
-                intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line)
-            }))
-        });
+        // FIXME: What to do with undefined 'getImageData'?
+        const getImageData = this.getImageData
+        if (getImageData) {
+            this.robots.forEach(robot => {
+                robot.update(new RobotUpdateOptions({
+                    dt: this.dt,
+                    programPaused: this.programManager.isProgramPaused(),
+                    getImageData: getImageData,
+                    getNearestPointTo: (point, includePoint) => _this.getNearestPoint(point, includePoint),
+                    intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line)
+                }))
+            })
+        }
 
         this.programManager.update(); // update breakpoints, ...
 
@@ -760,7 +776,7 @@ export class Scene {
             return;
         }
 
-        var htmlCanvas = null;
+        let htmlCanvas = null;
 
         if(canvas instanceof HTMLElement) {
             htmlCanvas = canvas;
@@ -769,15 +785,16 @@ export class Scene {
         }
 
         this.debugRenderer = Render.create({
-            element: htmlCanvas,
+            element: htmlCanvas ? htmlCanvas : undefined,
             engine: this.engine,
             options: {wireframes:wireframes}
         });
-        // scaling the context for closeup rendering
+        // scaling the context for close up rendering
         //this.debugRenderer.context.scale(10, 10)
         Render.run(this.debugRenderer);
 
-        if(enableMouse) {
+        // TODO: Remove this if since there is an implementation in 'interactionEvent'?
+        if(enableMouse && htmlCanvas) {
             var mouse = Mouse.create(htmlCanvas); // call before scene switch
             // TODO: different mouse constarains?
             var mouseConstraint = MouseConstraint.create(this.engine, {
@@ -840,7 +857,7 @@ export class Scene {
     /**
      * called once per frame
      */
-    onRenderTick(dt) {
+    onRenderTick(dt: number) {
 
     }
 

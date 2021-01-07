@@ -117,16 +117,33 @@ define(["require", "exports", "matter-js", "./Line", "./LineSegment"], function 
             return matter_js_1.Vector.magnitude(this.nearestPointTo(point));
         };
         /**
-         * Returns the nearest point on the polygon to `point` for which `includePoint(point)` is `true`.
-         * If no point is found since `includePoint` excludes all points, `null` is returned.
+         * Returns the nearest point on the polygon boundary to `point`.
+         *
+         * @param point The point to which the nearest one is searched
+         */
+        Polygon.prototype.nearestPointTo = function (point) {
+            return this._nearestPointTo(point, function (_) { return true; });
+        };
+        /**
+         * Returns the nearest point on the polygon boundary to `point` for which `includePoint(point)` is `true`.
+         * If no point is found since `includePoint` excludes all points, `undefined` is returned.
          *
          * @param point The point to which the nearest one is searched
          * @param includePoint Function which returns `true` iff the point can be included in the result (default: _ => true)
          */
-        Polygon.prototype.nearestPointTo = function (point, includePoint) {
-            if (includePoint === void 0) { includePoint = (function (_) { return true; }); }
+        Polygon.prototype.nearestPointToPoint = function (point, includePoint) {
+            return this._nearestPointTo(point, includePoint);
+        };
+        /**
+         * Returns the nearest point on the polygon boundary to `point` for which `includePoint(point)` is `true`.
+         * If no point is found since `includePoint` excludes all points, `undefined` is returned.
+         *
+         * @param point The point to which the nearest one is searched
+         * @param includePoint Function which returns `true` iff the point can be included in the result (default: _ => true)
+         */
+        Polygon.prototype._nearestPointTo = function (point, includePoint) {
             var minDistanceSquared = Infinity;
-            var minDistancePoint = null;
+            var minDistancePoint;
             function updateWithVertices(vertex0, vertex1) {
                 var line = new Line_1.Line(vertex0, matter_js_1.Vector.sub(vertex1, vertex0));
                 var parameter = line.uncheckedNearestParameterTo(point);

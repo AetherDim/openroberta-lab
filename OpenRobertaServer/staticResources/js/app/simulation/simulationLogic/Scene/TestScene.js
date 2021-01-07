@@ -48,6 +48,9 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
         TestScene.prototype.onInit = function () {
             // use 0.001 for EV3
             var scale = 0.001;
+            var grid = this.engine.broadphase;
+            grid.bucketHeight = 300;
+            grid.bucketWidth = 300;
             Unit_1.Unit.setUnitScaling({ m: 1000 });
             // (<any>Resolver)._restingThresh = 4 * scale;
             // (<any>Resolver)._restingThreshTangent = 6 * scale;
@@ -101,7 +104,9 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
                 var mousePos = matter_js_1.Vector.create(mousePosData.x, mousePosData.y);
                 mousePointGraphics.position.set(mousePos.x, mousePos.y);
                 var pos = polygon.nearestPointTo(mousePos);
-                nearestPointGraphics.position.set(pos.x, pos.y);
+                if (pos) {
+                    nearestPointGraphics.position.set(pos.x, pos.y);
+                }
                 if (polygon.containsPoint(mousePos)) {
                     setToPoint(mousePointGraphics, 0x0044FF);
                 }

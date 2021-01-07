@@ -26,7 +26,6 @@ define(["require", "exports", "../SharedAssetLoader"], function (require, export
     var RRCAsset = /** @class */ (function (_super) {
         __extends(RRCAsset, _super);
         function RRCAsset(path, name) {
-            if (name === void 0) { name = null; }
             return _super.call(this, exports.RRC_ASSET_PATH + path, name) || this;
         }
         return RRCAsset;
@@ -45,7 +44,6 @@ define(["require", "exports", "../SharedAssetLoader"], function (require, export
     var RRCMultiAsset = /** @class */ (function (_super) {
         __extends(RRCMultiAsset, _super);
         function RRCMultiAsset(prefix, postfix, idStart, idEnd, name) {
-            if (name === void 0) { name = null; }
             return _super.call(this, exports.RRC_ASSET_PATH + prefix, postfix, idStart, idEnd, name) || this;
         }
         return RRCMultiAsset;

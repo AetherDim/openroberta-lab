@@ -5,26 +5,12 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
     var Robot = /** @class */ (function () {
         function Robot(robot) {
             this.updateSensorGraphics = true;
-            /**
-             * The color sensor of the robot
-             */
-            this.colorSensor = null;
-            this.colorSensorGraphics = null;
-            /**
-             * The ultrasonic sensor of the robot
-             */
-            this.ultrasonicSensor = null;
-            this.ultrasonicSensorGraphics = null;
-            this.robotBehaviour = null;
             this.configuration = null;
             this.programCode = null;
-            this.interpreter = null;
             /**
              * robot type
              */
             this.type = 'default';
-            // TODO: Remove this line
-            this.debugGraphics = null;
             this.leftForce = 0;
             this.rightForce = 0;
             this.encoder = {
@@ -40,12 +26,17 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.rightDrivingWheel = robot.rightDrivingWheel;
             this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels);
             // FIXME: Workaround. Change body display object to a container
-            var bodyDisplayObject = this.body.displayable.displayObject;
+            var displayable = this.body.displayable;
             this.bodyContainer = new PIXI.Container();
-            this.bodyContainer.position = bodyDisplayObject.position.clone();
-            bodyDisplayObject.position.set(0, 0);
-            this.bodyContainer.addChild(bodyDisplayObject);
-            this.body.displayable.displayObject = this.bodyContainer;
+            if (displayable) {
+                var bodyDisplayObject = displayable.displayObject;
+                this.bodyContainer.position = bodyDisplayObject.position.clone();
+                bodyDisplayObject.position.set(0, 0);
+                this.bodyContainer.addChild(bodyDisplayObject);
+                displayable.displayObject = this.bodyContainer;
+            }
+            this.physicsWheelsList = [];
+            this.physicsComposite = matter_js_1.Composite.create();
             this.updatePhysicsObject();
         }
         Robot.prototype.setRobotType = function (type) {
@@ -81,7 +72,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.body.frictionAir = 0.0;
         };
         /**
-         * Returns the color sensor which can be `null`
+         * Returns the color sensor which can be `undefined`
          */
         Robot.prototype.getColorSensor = function () {
             return this.colorSensor;
@@ -242,6 +233,10 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
              * @param speedRight Use magnitude as maximum right speed (can be negative)
              */
             function useEndEncoder(speedLeft, speedRight) {
+                var _a;
+                if (!t.endEncoder) {
+                    return;
+                }
                 var encoderDifference = {
                     left: t.endEncoder.left - t.encoder.left,
                     right: t.endEncoder.right - t.encoder.right
@@ -249,7 +244,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 if (Math.abs(encoderDifference.left) < 0.1 && Math.abs(encoderDifference.right) < 0.1) {
                     // on end
                     t.endEncoder = null;
-                    t.robotBehaviour.resetCommands();
+                    (_a = t.robotBehaviour) === null || _a === void 0 ? void 0 : _a.resetCommands();
                     t.needsNewCommands = true;
                 }
                 else {
@@ -275,7 +270,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 if (driveData.speed && !driveData.distance && !driveData.distance) {
                     speed.left = driveData.speed.left;
                     speed.right = driveData.speed.right;
-                    this.robotBehaviour.drive = null;
+                    this.robotBehaviour.drive = undefined;
                 }
             }
             var rotateData = this.robotBehaviour.rotate;
@@ -305,7 +300,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                         speed.left = rotationSpeed;
                         speed.right = -rotationSpeed;
                     }
-                    this.robotBehaviour.rotate = null;
+                    this.robotBehaviour.rotate = undefined;
                 }
             }
             this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(), speed.left);
@@ -532,6 +527,9 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             return matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
         };
         Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (getImageData, getNearestPointTo, intersectionPointsWithLine) {
+            if (!this.robotBehaviour) {
+                return;
+            }
             var sensors = this.robotBehaviour.getHardwareStateSensors();
             // encoder
             sensors.encoder = {

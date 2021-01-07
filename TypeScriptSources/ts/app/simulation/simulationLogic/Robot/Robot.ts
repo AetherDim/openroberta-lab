@@ -48,21 +48,21 @@ export class Robot {
 	/**
 	 * The color sensor of the robot
 	 */
-	private colorSensor?: ColorSensor = null
-	private colorSensorGraphics?: PIXI.Graphics = null
+	private colorSensor?: ColorSensor
+	private colorSensorGraphics?: PIXI.Graphics
 
 	/**
 	 * The ultrasonic sensor of the robot
 	 */
-	private ultrasonicSensor?: UltrasonicSensor = null
-	private ultrasonicSensorGraphics?: PIXI.Graphics = null
+	private ultrasonicSensor?: UltrasonicSensor
+	private ultrasonicSensorGraphics?: PIXI.Graphics
 
-	robotBehaviour?: RobotSimBehaviour = null;
+	robotBehaviour?: RobotSimBehaviour
 
 	configuration: any = null;
 	programCode: any = null;
 
-    interpreter: Interpreter = null;
+    interpreter?: Interpreter
     
     /**
      * robot type
@@ -83,18 +83,23 @@ export class Robot {
 		this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels)
 
 		// FIXME: Workaround. Change body display object to a container
-		const bodyDisplayObject = this.body.displayable.displayObject
+		const displayable = this.body.displayable
 		this.bodyContainer = new PIXI.Container()
-		this.bodyContainer.position = bodyDisplayObject.position.clone()
-		bodyDisplayObject.position.set(0, 0)
-		this.bodyContainer.addChild(bodyDisplayObject)
-		this.body.displayable.displayObject = this.bodyContainer
+		if (displayable) {
+			const bodyDisplayObject = displayable.displayObject
+			this.bodyContainer.position = bodyDisplayObject.position.clone()
+			bodyDisplayObject.position.set(0, 0)
+			this.bodyContainer.addChild(bodyDisplayObject)
+			displayable.displayObject = this.bodyContainer
+		}
 
+		this.physicsWheelsList = []
+		this.physicsComposite = Composite.create()
 		this.updatePhysicsObject()
 	}
 
 	private updatePhysicsObject() {
-		
+
 		this.physicsWheelsList = this.wheelsList.map(wheel => wheel.physicsBody)
 		const wheels = this.physicsWheelsList
 
@@ -127,9 +132,9 @@ export class Robot {
 	}
 
 	/**
-	 * Returns the color sensor which can be `null`
+	 * Returns the color sensor which can be `undefined`
 	 */
-	getColorSensor(): ColorSensor | null {
+	getColorSensor(): ColorSensor | undefined {
 		return this.colorSensor
 	}
 
@@ -171,7 +176,7 @@ export class Robot {
 		}
 	}
 
-	getUltrasonicSensor(): UltrasonicSensor | null {
+	getUltrasonicSensor(): UltrasonicSensor | undefined {
 		return this.ultrasonicSensor
 	}
 
@@ -189,7 +194,7 @@ export class Robot {
 	}
 
 	// TODO: Remove this line
-	private debugGraphics: PIXI.Graphics = null
+	private debugGraphics?: PIXI.Graphics
 	
 	private setDistanceOfUltrasonicSensor(distance: number, point?: Vector) {
 		if (this.ultrasonicSensorGraphics && this.ultrasonicSensor) {
@@ -283,7 +288,7 @@ export class Robot {
 	}
 
 	private needsNewCommands = true
-	private endEncoder?: { left: number, right: number } = null
+	private endEncoder: { left: number, right: number } | null = null
 
 	private resetVariables() {
 		this.needsNewCommands = true
@@ -337,6 +342,9 @@ export class Robot {
 		 * @param speedRight Use magnitude as maximum right speed (can be negative)
 		 */
 		function useEndEncoder(speedLeft: number, speedRight: number) {
+			if (!t.endEncoder) {
+				return
+			}
 			const encoderDifference = {
 				left: t.endEncoder.left - t.encoder.left,
 				right: t.endEncoder.right - t.encoder.right
@@ -344,7 +352,7 @@ export class Robot {
 			if (Math.abs(encoderDifference.left) < 0.1 && Math.abs(encoderDifference.right) < 0.1) {
 				// on end
 				t.endEncoder = null
-				t.robotBehaviour.resetCommands()
+				t.robotBehaviour?.resetCommands()
 				t.needsNewCommands = true
 			} else {
 				speed.left = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft)
@@ -370,7 +378,7 @@ export class Robot {
 			if (driveData.speed && !driveData.distance && !driveData.distance) {
 				speed.left = driveData.speed.left
 				speed.right = driveData.speed.right
-				this.robotBehaviour.drive = null
+				this.robotBehaviour.drive = undefined
 			}
 		}
 
@@ -399,7 +407,7 @@ export class Robot {
 					speed.left = rotationSpeed
 					speed.right = -rotationSpeed
 				}
-				this.robotBehaviour.rotate = null
+				this.robotBehaviour.rotate = undefined
 			}
 		}
 
@@ -640,9 +648,12 @@ export class Robot {
 
 	private updateRobotBehaviourHardwareStateSensors(
 		getImageData: (x: number, y: number, w: number, h: number) => ImageData,
-		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | null,
+		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | undefined,
 		intersectionPointsWithLine: (line: LineBaseClass) => Vector[]
 		) {
+		if (!this.robotBehaviour) {
+			return
+		}
 		const sensors = this.robotBehaviour.getHardwareStateSensors()
 		
 		// encoder
