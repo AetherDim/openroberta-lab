@@ -17,7 +17,7 @@ export class TestScene extends Scene {
      * 
      * @override from Scene
      */
-    onFirstLoad(chain: AsyncChain) {
+    onLoad(chain: AsyncChain) {
         setTimeout(() => {
             chain.next();
             this.setScore(266);

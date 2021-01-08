@@ -1,4 +1,5 @@
 import * as WebFont from 'webfontloader'
+import Texture = PIXI.Texture;
 
 export class Asset {
 
@@ -73,6 +74,8 @@ export class MultiAsset {
 
 }
 
+
+
 export class SharedAssetLoader {
 
     private readonly loader = new PIXI.Loader(); // you can also create your own if you want
@@ -81,17 +84,15 @@ export class SharedAssetLoader {
         return this.loader.resources[asset.name];
     }
 
-    load(callback:() => void, ...assets: (Asset|MultiAsset|FontAsset)[]) {
+    load(callback:() => void, ...assets: (Asset|FontAsset)[]) {
         var fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
             return (asset instanceof FontAsset);
         });
 
-        var assetsToLoad: Asset[] = assets.map(asset => {
+        let assetsToLoad: Asset[] = assets.map(asset => {
 
             var assetToLoad: Asset = null;
-            if(asset instanceof MultiAsset) {
-                assetToLoad = asset.getRandomAsset();
-            } else if(asset instanceof FontAsset) {
+            if(asset instanceof FontAsset) {
                 return null;
             } else {
                 assetToLoad = asset;
@@ -143,6 +144,5 @@ export class SharedAssetLoader {
             }
         });
     }
-
 
 }

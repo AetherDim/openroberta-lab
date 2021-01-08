@@ -1,10 +1,10 @@
 import './pixijs'
-import { SceneRender } from './SceneRenderer'
+import {SceneRender} from './SceneRenderer'
 import './ExtendedMatter'
-import { TestScene } from './Scene/TestScene';
-import { RRCScene } from './RRC/Scene/RRCScene'
+import {AgeGroup} from "./RRC/AgeGroup";
+import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
 
-var engine = new SceneRender('sceneCanvas', 'simDiv', new TestScene());
+var engine = new SceneRender('sceneCanvas', 'simDiv', new RRCLineFollowingScene(AgeGroup.HS));
 engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
 

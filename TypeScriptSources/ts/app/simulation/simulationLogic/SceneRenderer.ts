@@ -45,6 +45,7 @@ export class SceneRender {
                 backgroundColor: rgbToNumber(backgroundColor),
                 antialias: true,
                 resizeTo: resizeTo,
+                resolution: window.devicePixelRatio || 1,
             }
         );
 

@@ -179,7 +179,7 @@ export class Scene {
     protected endScoreTime: number = Date.now();
     protected showScore: boolean = false;
 
-    protected readonly scoreText = new PIXI.Text("");
+    protected scoreText = new PIXI.Text("");
 
     /**
      * Async loading function for fonts and images
@@ -328,7 +328,7 @@ export class Scene {
 
             this.assetLoadingChain = new AsyncChain([
                 {func: this.loadScoreAssets, thisContext: this},
-                {func: this.onFirstLoad, thisContext: this},
+                {func: this.onLoad, thisContext: this},
                 {func: chain => this.finishedLoading(), thisContext: this}, // swap from loading to scene
             ]);
 
@@ -814,7 +814,7 @@ export class Scene {
      * load all textures and call chain.next() when done
      * please do not block within this method and use PIXI.Loader callbacks
      */
-    onFirstLoad(chain: AsyncChain) {
+    onLoad(chain: AsyncChain) {
         chain.next();
     }
 

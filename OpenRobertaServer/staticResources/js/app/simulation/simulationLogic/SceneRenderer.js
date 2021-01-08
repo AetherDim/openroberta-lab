@@ -33,6 +33,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 backgroundColor: Color_1.rgbToNumber(backgroundColor),
                 antialias: true,
                 resizeTo: resizeTo,
+                resolution: window.devicePixelRatio || 1,
             });
             // add mouse/touch control
             this.scrollView = new ScrollView_1.ScrollView(this.app.stage, this.app.renderer);

@@ -17,9 +17,10 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader"], function
     exports.RRCScene = void 0;
     var RRCScene = /** @class */ (function (_super) {
         __extends(RRCScene, _super);
-        function RRCScene() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
+        function RRCScene(ageGroup) {
+            var _this = _super.call(this) || this;
             _this.scoreTextContainer = new PIXI.Container();
+            _this.ageGroup = ageGroup;
             return _this;
         }
         RRCScene.prototype.loadScoreAssets = function (chain) {

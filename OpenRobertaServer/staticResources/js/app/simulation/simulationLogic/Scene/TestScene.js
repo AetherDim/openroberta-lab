@@ -27,7 +27,7 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
          *
          * @override from Scene
          */
-        TestScene.prototype.onFirstLoad = function (chain) {
+        TestScene.prototype.onLoad = function (chain) {
             var _this = this;
             setTimeout(function () {
                 chain.next();

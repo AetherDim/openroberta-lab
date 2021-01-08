@@ -1,7 +1,17 @@
 import { AsyncChain, Scene } from "../../Scene/Scene";
 import * as RRC from '../RRAssetLoader'
+import {AgeGroup} from "../AgeGroup";
 
 export class RRCScene extends Scene {
+
+    readonly ageGroup: AgeGroup;
+
+    constructor(ageGroup: AgeGroup) {
+        super();
+
+        this.ageGroup = ageGroup;
+    }
+
 
     loadScoreAssets(chain: AsyncChain) {
         RRC.loader.load(() => {

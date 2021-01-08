@@ -1,8 +1,8 @@
-define(["require", "exports", "./SceneRenderer", "./Scene/TestScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, TestScene_1) {
+define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
-    var engine = new SceneRenderer_1.SceneRender('sceneCanvas', 'simDiv', new TestScene_1.TestScene());
+    var engine = new SceneRenderer_1.SceneRender('sceneCanvas', 'simDiv', new RRCLineFollowingScene_1.RRCLineFollowingScene(AgeGroup_1.AgeGroup.HS));
     engine.getScene().setupDebugRenderer('notConstantValue');
     //engine.getScene().setupDebugRenderer('simDiv');
     // store old programs

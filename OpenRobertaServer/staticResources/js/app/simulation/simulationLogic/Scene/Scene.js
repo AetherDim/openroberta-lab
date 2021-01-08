@@ -287,7 +287,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.addDisplayable(this.loadingContainer);
                 this.assetLoadingChain = new AsyncChain([
                     { func: this.loadScoreAssets, thisContext: this },
-                    { func: this.onFirstLoad, thisContext: this },
+                    { func: this.onLoad, thisContext: this },
                     { func: function (chain) { return _this_1.finishedLoading(); }, thisContext: this },
                 ]);
                 this.assetLoadingChain.next();
@@ -628,7 +628,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
          * load all textures and call chain.next() when done
          * please do not block within this method and use PIXI.Loader callbacks
          */
-        Scene.prototype.onFirstLoad = function (chain) {
+        Scene.prototype.onLoad = function (chain) {
             chain.next();
         };
         /**

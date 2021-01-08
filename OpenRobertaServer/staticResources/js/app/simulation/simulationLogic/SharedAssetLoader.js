@@ -82,10 +82,7 @@ define(["require", "exports", "webfontloader"], function (require, exports, WebF
             });
             var assetsToLoad = assets.map(function (asset) {
                 var assetToLoad = null;
-                if (asset instanceof MultiAsset) {
-                    assetToLoad = asset.getRandomAsset();
-                }
-                else if (asset instanceof FontAsset) {
+                if (asset instanceof FontAsset) {
                     return null;
                 }
                 else {

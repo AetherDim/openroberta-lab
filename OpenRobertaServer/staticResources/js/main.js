@@ -171,9 +171,11 @@ require.config({
         ]},
         { 'RRC': [
             'RRAssetLoader',
-            { 'Scene':
+            'AgeGroup',
+            { 'Scene':[
                 'RRCScene',
-            }
+                'RRCLineFollowingScene',
+            ]}
         ]}
     ]),
     shim: {
