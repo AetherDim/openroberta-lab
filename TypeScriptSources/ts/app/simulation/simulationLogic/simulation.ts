@@ -68,22 +68,25 @@ export class SceneManager {
             return this.getScene(this.currentID);
         }
 
-        let keyFound = false;
-        for(let key in this.sceneHandleMap) {
-            if(keyFound) {
-                this.currentID = key;
-                break;
-            } else {
-                keyFound = (key == this.currentID);
-            }
-        }
+        const keys = Array.from(this.sceneHandleMap.keys());
+        var idx = keys.indexOf(this.currentID);
 
-        if(!keyFound) {
+        if(idx >= 0) {
+            idx ++;
+            if(idx >= keys.length) {
+                idx = 0;
+            }
+            this.currentID = keys[idx];
+        } else  {
             // one loop around
             this.currentID = Array.from(this.sceneHandleMap.keys())[0];
         }
 
         return this.getScene(this.currentID);
+    }
+
+    getCurrentHandle(): SceneHandle {
+        return this.sceneHandleMap.get(this.currentID);
     }
 }
 
@@ -284,10 +287,11 @@ export function selectScene(ID: string) {
     }
 }
 
-export function nextScene() {
+export function nextScene(): SceneHandle {
     const scene = sceneManager.getNextScene();
     if(scene) {
         scene.fullReset(); // will load the scene
         engine.switchScene(scene, true);
     }
+    return sceneManager.getCurrentHandle();
 }

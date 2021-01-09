@@ -57,21 +57,23 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
                 this.currentID = Array.from(this.sceneHandleMap.keys())[0];
                 return this.getScene(this.currentID);
             }
-            var keyFound = false;
-            for (var key in this.sceneHandleMap) {
-                if (keyFound) {
-                    this.currentID = key;
-                    break;
+            var keys = Array.from(this.sceneHandleMap.keys());
+            var idx = keys.indexOf(this.currentID);
+            if (idx >= 0) {
+                idx++;
+                if (idx >= keys.length) {
+                    idx = 0;
                 }
-                else {
-                    keyFound = (key == this.currentID);
-                }
+                this.currentID = keys[idx];
             }
-            if (!keyFound) {
+            else {
                 // one loop around
                 this.currentID = Array.from(this.sceneHandleMap.keys())[0];
             }
             return this.getScene(this.currentID);
+        };
+        SceneManager.prototype.getCurrentHandle = function () {
+            return this.sceneHandleMap.get(this.currentID);
         };
         return SceneManager;
     }());
@@ -193,6 +195,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
             scene.fullReset(); // will load the scene
             engine.switchScene(scene, true);
         }
+        return sceneManager.getCurrentHandle();
     }
     exports.nextScene = nextScene;
 });

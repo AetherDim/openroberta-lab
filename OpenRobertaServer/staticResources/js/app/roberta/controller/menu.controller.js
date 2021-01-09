@@ -545,6 +545,7 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
             $("#simButtonsCollapse").collapse('hide'); //so I extracted them here
 
             SIM.selectScene(event.target.id);
+            $('#'+event.target.id).parent().addClass('disabled');
 
         }, 'sim clicked');
 
@@ -556,6 +557,9 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
         for (i = 0; i < scenes.length; i++) {
             const scene = scenes[i];
             $('#simSelectionMenuContent').append('<li><a href="#" id="' + scene.ID + '" class="menuSim typcn typcn-image " title="' + scene.description + '">' + scene.name + '</a></li>');
+            if(i === 0) {
+                $('#'+scene.ID).parent().addClass('disabled');
+            }
         }
 
 
@@ -605,31 +609,21 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
         }, 'head navigation menu item clicked');
 
         $('.simScene').onWrap('click', function(event) {
-            SIM.setBackground(-1, SIM.setBackground);
             var scene = $("#simButtonsCollapse").collapse('hide');
             $('.menuSim').parent().removeClass('disabled');
-            switch (scene) {
-            case 2:
-                $('.simSimple').parent().addClass('disabled');
-                break;
-            case 3:
-                $('.simDraw').parent().addClass('disabled');
-                break;
-            case 4:
-                $('.simRoberta').parent().addClass('disabled');
-                break;
-            case 5:
-                $('.simRescue').parent().addClass('disabled');
-                break;
-            case 6:
-                $('.simWRO').parent().addClass('disabled');
-                break;
-            case 7:
-                $('.simMath').parent().addClass('disabled');
-                break;
-            default:
-                break;
+
+
+            console.log('scene switch');
+
+            const handle = SIM.nextScene();
+
+
+            console.log(handle)
+
+            if(handle) {
+                $('#'+handle.ID).parent().addClass('disabled');
             }
+
         }, 'simScene clicked');
 
         $('#startPopupBack').on('click', function(event) {
