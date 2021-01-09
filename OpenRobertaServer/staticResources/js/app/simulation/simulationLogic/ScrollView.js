@@ -353,10 +353,12 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             _this.viewport.hitArea = _this.customHitArea;
             _this.updateInteractionRect();
             _this.registerEventListeners();
+            _this.reset();
             return _this;
         }
         ScrollView.prototype.reset = function () {
-            this.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
+            var initialZoom = 1 / this.getPixelRatio();
+            this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
         };
         /**
          * update hitbox for mouse interactions
@@ -607,7 +609,10 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                 data = this.mouseEventData;
                 // calculate mouse position
                 var rect = this.renderer.view.getBoundingClientRect();
-                data.setNewPosition({ x: ev.clientX - rect.x, y: ev.clientY - rect.y });
+                data.setNewPosition({
+                    x: (ev.clientX - rect.x) / pixelRatio,
+                    y: (ev.clientY - rect.y) / pixelRatio
+                });
                 // this should not work with safari mobile
                 /*if(ev.ctrlKey) {
                   // x/y-scrolling

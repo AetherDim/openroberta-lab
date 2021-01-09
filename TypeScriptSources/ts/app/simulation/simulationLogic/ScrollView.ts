@@ -416,10 +416,13 @@ export class ScrollView extends PIXI.Container {
 
       this.updateInteractionRect();
       this.registerEventListeners();
+
+      this.reset()
   }
 
   reset() {
-    this.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
+    const initialZoom = 1 / this.getPixelRatio()
+    this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
   }
 
   /**
@@ -730,7 +733,10 @@ export class ScrollView extends PIXI.Container {
 
       // calculate mouse position
       let rect = this.renderer.view.getBoundingClientRect();
-      data.setNewPosition({x: ev.clientX - rect.x, y: ev.clientY - rect.y});
+      data.setNewPosition({
+        x: (ev.clientX - rect.x) / pixelRatio,
+        y: (ev.clientY - rect.y) / pixelRatio
+      });
     
       // this should not work with safari mobile
       /*if(ev.ctrlKey) {
