@@ -1,7 +1,7 @@
 define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCRainbowScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCRainbowScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
+    exports.selectScene = exports.getScenes = exports.SceneDescription = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
     var engine = new SceneRenderer_1.SceneRender('sceneCanvas', 'simDiv', new RRCRainbowScene_1.RRCRainbowScene(AgeGroup_1.AgeGroup.MS));
     engine.getScene().setupDebugRenderer('notConstantValue');
     //engine.getScene().setupDebugRenderer('simDiv');
@@ -72,4 +72,29 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
         engine.getScene().getProgramManager().stopProgram();
     }
     exports.cancel = cancel;
+    var SceneDescription = /** @class */ (function () {
+        function SceneDescription(name, description, ID) {
+            if (ID === void 0) { ID = null; }
+            this.name = name;
+            this.description = description;
+            if (ID) {
+                this.ID = ID;
+            }
+            else {
+                this.ID = name;
+            }
+        }
+        return SceneDescription;
+    }());
+    exports.SceneDescription = SceneDescription;
+    function getScenes() {
+        return [
+            new SceneDescription('Test Scene', 'Test scene with multiple test implementations')
+        ];
+    }
+    exports.getScenes = getScenes;
+    function selectScene(ID) {
+        console.log("selected new scene: " + ID);
+    }
+    exports.selectScene = selectScene;
 });

@@ -82,3 +82,31 @@ export function interpreterAddEvent(event:any) {
 export function cancel() {
     engine.getScene().getProgramManager().stopProgram();
 }
+
+
+export class SceneDescription {
+    readonly name: string;
+    readonly description: string;
+    readonly ID: string;
+
+    constructor(name: string, description: string, ID: string = null) {
+        this.name = name;
+        this.description = description;
+        if(ID) {
+            this.ID = ID;
+        } else {
+            this.ID = name;
+        }
+    }
+
+}
+
+export function getScenes(): SceneDescription[] {
+    return [
+        new SceneDescription('Test Scene', 'Test scene with multiple test implementations')
+    ];
+}
+
+export function selectScene(ID: string) {
+    console.log("selected new scene: " + ID);
+}

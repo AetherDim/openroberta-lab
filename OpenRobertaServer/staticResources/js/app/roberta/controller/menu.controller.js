@@ -289,7 +289,8 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
      * Initialize the navigation bar in the head of the page
      */
     function initMenuEvents() {
-        // TODO check if this prevents iPads and iPhones to only react on double clicks
+        let i;
+// TODO check if this prevents iPads and iPhones to only react on double clicks
         if (!navigator.userAgent.match(/iPad/i) && !(navigator.userAgent.match(/iPhone/i))) {
             $('[rel="tooltip"]').not('.rightMenuButton').tooltip({
                 container : 'body',
@@ -542,35 +543,22 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
             $('.modal').modal('hide'); // head-navigation-sim-control
             $('.menuSim').parent().removeClass('disabled'); //these two were in all cases
             $("#simButtonsCollapse").collapse('hide'); //so I extracted them here
-            switch (event.target.id) {
-            case 'menuSimSimple':
-                $('.simSimple').parent().addClass('disabled');
-                SIM.setBackground(2, SIM.setBackground);
-                break;
-            case 'menuSimDraw':
-                $('.simDraw').parent().addClass('disabled');
-                SIM.setBackground(3, SIM.setBackground);
-                break;
-            case 'menuSimRoberta':
-                $('.simRoberta').parent().addClass('disabled');
-                SIM.setBackground(4, SIM.setBackground);
-                break;
-            case 'menuSimRescue':
-                $('.simRescue').parent().addClass('disabled');
-                SIM.setBackground(5, SIM.setBackground);
-                break;
-            case 'menuSimWRO':
-                $('.simWRO').parent().addClass('disabled');
-                SIM.setBackground(6, SIM.setBackground);
-                break;
-            case 'menuSimMath':
-                $('.simMath').parent().addClass('disabled');
-                SIM.setBackground(7, SIM.setBackground);
-                break;
-            default:
-                break;
-            }
+
+            SIM.selectScene(event.target.id);
+
         }, 'sim clicked');
+
+
+        // TODO: clear #simSelectionMenuContent??
+        // seems to work without clear
+        const scenes = SIM.getScenes();
+
+        for (i = 0; i < scenes.length; i++) {
+            const scene = scenes[i];
+            $('#simSelectionMenuContent').append('<li><a href="#" id="' + scene.ID + '" class="menuSim typcn typcn-image " title="' + scene.description + '">' + scene.name + '</a></li>');
+        }
+
+
 
         $('#menuTabProgram').onWrap('click', '', function(event) {
             if ($('#tabSimulation').hasClass('tabClicked')) {
