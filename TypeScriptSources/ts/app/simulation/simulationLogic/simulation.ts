@@ -3,11 +3,176 @@ import {SceneRender} from './SceneRenderer'
 import './ExtendedMatter'
 import {AgeGroup} from "./RRC/AgeGroup";
 import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
+import {Scene} from "./Scene/Scene";
+import {TestScene} from "./Scene/TestScene";
 import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 
-var engine = new SceneRender('sceneCanvas', 'simDiv', new RRCRainbowScene(AgeGroup.MS));
+
+// TODO: check whether this has to be defined in here
+// probably not
+export class SceneHandle {
+    readonly name: string;
+    readonly description: string;
+    readonly ID: string;
+    readonly creteScene: () => Scene;
+
+    constructor(name: string, ID: string, description: string, creteScene: () => Scene) {
+        this.name = name;
+        this.description = description;
+        this.ID = ID;
+        this.creteScene = creteScene;
+    }
+
+}
+
+export class SceneManager {
+    private readonly sceneHandleMap = new Map<string, SceneHandle>();
+    private readonly sceneMap = new Map<string, Scene>();
+    private currentID: string = null;
+
+    getScene(ID: string) {
+        let scene = this.sceneMap.get(ID);
+        if(!scene) {
+            const sceneHandle = this.sceneHandleMap.get(ID);
+            if(sceneHandle) {
+                scene = sceneHandle.creteScene();
+                this.sceneMap.set(ID, scene);
+            }
+        }
+        return scene;
+    }
+
+    registerScene(...sceneHandles: SceneHandle[]) {
+        sceneHandles.forEach(handle => {
+            if(this.sceneHandleMap.get(handle.ID)) {
+                console.error('Scene with ID: ' + handle.ID + ' already registered!!!');
+                return;
+            }
+            this.sceneHandleMap.set(handle.ID, handle);
+        });
+    }
+
+    getSceneHandleList(): SceneHandle[] {
+        return Array.from(this.sceneHandleMap.values());
+    }
+
+    getNextScene(): Scene {
+        if(this.sceneHandleMap.size < 1) {
+            console.error('No scenes registered!!!');
+            return null;
+        }
+
+        if(!this.currentID) {
+            this.currentID = Array.from(this.sceneHandleMap.keys())[0];
+            return this.getScene(this.currentID);
+        }
+
+        let keyFound = false;
+        for(let key in this.sceneHandleMap) {
+            if(keyFound) {
+                this.currentID = key;
+                break;
+            } else {
+                keyFound = (key == this.currentID);
+            }
+        }
+
+        if(!keyFound) {
+            // one loop around
+            this.currentID = Array.from(this.sceneHandleMap.keys())[0];
+        }
+
+        return this.getScene(this.currentID);
+    }
+}
+
+
+const sceneManager = new SceneManager();
+
+
+//
+// register scenes
+//
+
+sceneManager.registerScene(
+    new SceneHandle(
+    'Test Scene',
+    'TestScene',
+    'Test scene with all sim features',
+    () => {
+        return new TestScene();
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Line Following - ES',
+        'RRCLineFollowingES',
+        'Roborave Cyberspace line following ES',
+        () => {
+            return new RRCLineFollowingScene(AgeGroup.ES);
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Line Following - MS',
+        'RRCLineFollowingMS',
+        'Roborave Cyberspace line following MS',
+        () => {
+            return new RRCLineFollowingScene(AgeGroup.MS);
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Line Following - HS',
+        'RRCLineFollowingHS',
+        'Roborave Cyberspace line following HS',
+        () => {
+            return new RRCLineFollowingScene(AgeGroup.HS);
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Rainbow - ES',
+        'RRCRainbowES',
+        'Roborave Cyberspace Rainbow ES',
+        () => {
+            return new RRCRainbowScene(AgeGroup.ES);
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Rainbow - MS',
+        'RRCRainbowMS',
+        'Roborave Cyberspace Rainbow MS',
+        () => {
+            return new RRCRainbowScene(AgeGroup.MS);
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Rainbow - HS',
+        'RRCRainbowHS',
+        'Roborave Cyberspace Rainbow HS',
+        () => {
+            return new RRCRainbowScene(AgeGroup.HS);
+        }
+    ),
+
+
+);
+
+
+
+
+
+//
+// create engine
+//
+var engine = new SceneRender('sceneCanvas', 'simDiv', sceneManager.getNextScene());
 engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
+
+
 
 
 // store old programs
@@ -84,29 +249,18 @@ export function cancel() {
 }
 
 
-export class SceneDescription {
-    readonly name: string;
-    readonly description: string;
-    readonly ID: string;
+//
+// Scene selection functions
+//
 
-    constructor(name: string, description: string, ID: string = null) {
-        this.name = name;
-        this.description = description;
-        if(ID) {
-            this.ID = ID;
-        } else {
-            this.ID = name;
-        }
-    }
-
-}
-
-export function getScenes(): SceneDescription[] {
-    return [
-        new SceneDescription('Test Scene', 'Test scene with multiple test implementations')
-    ];
+export function getScenes(): SceneHandle[] {
+    return sceneManager.getSceneHandleList();
 }
 
 export function selectScene(ID: string) {
-    console.log("selected new scene: " + ID);
+    engine.switchScene(sceneManager.getScene(ID));
+}
+
+export function nextScene() {
+    engine.switchScene(sceneManager.getNextScene());
 }
