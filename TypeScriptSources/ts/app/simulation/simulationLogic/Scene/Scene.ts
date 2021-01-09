@@ -842,6 +842,18 @@ export class Scene {
         Engine.update(this.engine, this.dt); // update physics
 
 
+        // FIX Grid bucket memory consumption
+        // Remove empty buckets
+        const grid = this.engine.broadphase
+        grid.bucketHeight = 10000
+        grid.bucketWidth = 10000
+        const anyGrid = <any>grid
+        for (const key in anyGrid.buckets) {
+            if (anyGrid.buckets[key].length == 0) {
+                delete anyGrid.buckets[key]
+            }
+        }
+
         // update rendering positions
         // TODO: switch to scene internal drawable list? better performance???
         var bodies = Composite.allBodies(this.engine.world);

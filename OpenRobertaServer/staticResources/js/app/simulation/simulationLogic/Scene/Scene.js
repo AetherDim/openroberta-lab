@@ -637,6 +637,17 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             }
             this.programManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics
+            // FIX Grid bucket memory consumption
+            // Remove empty buckets
+            var grid = this.engine.broadphase;
+            grid.bucketHeight = 10000;
+            grid.bucketWidth = 10000;
+            var anyGrid = grid;
+            for (var key in anyGrid.buckets) {
+                if (anyGrid.buckets[key].length == 0) {
+                    delete anyGrid.buckets[key];
+                }
+            }
             // update rendering positions
             // TODO: switch to scene internal drawable list? better performance???
             var bodies = matter_js_1.Composite.allBodies(this.engine.world);
