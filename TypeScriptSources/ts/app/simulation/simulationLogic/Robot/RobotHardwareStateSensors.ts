@@ -14,8 +14,9 @@ export interface RobotHardwareStateSensors {
     encoder?: {left: number, right: number}
 
     gyro?: { 2: {
+        /** angle in degrees */
         angle: number,
-        /** angular velocity? in degrees? */
+        /** angular velocity? in degrees/second */
         rate: number
     }}
 

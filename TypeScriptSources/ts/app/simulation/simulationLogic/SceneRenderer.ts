@@ -45,7 +45,7 @@ export class SceneRender {
                 backgroundColor: rgbToNumber(backgroundColor),
                 antialias: true,
                 resizeTo: resizeTo,
-                resolution: window.devicePixelRatio || 1,
+                resolution: window.devicePixelRatio || 0.75, // same as ScrollView.getPixelRatio()
             }
         );
 
