@@ -1,3 +1,14 @@
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 define(["require", "exports", "./interpreter.constants"], function (require, exports, C) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -49,22 +60,32 @@ define(["require", "exports", "./interpreter.constants"], function (require, exp
      * . @param pc the program counter
      */
     function opLog(msg, operations, pc) {
+        var e_1, _a;
         if (!opLogEnabled) {
             return;
         }
         var opl = '';
         var counter = 0;
-        for (var _i = 0, operations_1 = operations; _i < operations_1.length; _i++) {
-            var op = operations_1[_i];
-            var opc = op[C.OPCODE];
-            if (op[C.OPCODE] === C.EXPR) {
-                opc = opc + '[' + op[C.EXPR];
-                if (op[C.EXPR] === C.BINARY) {
-                    opc = opc + '-' + op[C.OP];
+        try {
+            for (var operations_1 = __values(operations), operations_1_1 = operations_1.next(); !operations_1_1.done; operations_1_1 = operations_1.next()) {
+                var op = operations_1_1.value;
+                var opc = op[C.OPCODE];
+                if (op[C.OPCODE] === C.EXPR) {
+                    opc = opc + '[' + op[C.EXPR];
+                    if (op[C.EXPR] === C.BINARY) {
+                        opc = opc + '-' + op[C.OP];
+                    }
+                    opc = opc + ']';
                 }
-                opc = opc + ']';
+                opl = opl + (counter++ == pc ? '*' : '') + opc + ' ';
             }
-            opl = opl + (counter++ == pc ? '*' : '') + opc + ' ';
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (operations_1_1 && !operations_1_1.done && (_a = operations_1.return)) _a.call(operations_1);
+            }
+            finally { if (e_1) throw e_1.error; }
         }
         debug(msg + ' pc:' + pc + ' ' + opl);
     }

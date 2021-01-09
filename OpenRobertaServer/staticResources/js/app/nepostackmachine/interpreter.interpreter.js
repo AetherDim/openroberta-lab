@@ -1,3 +1,30 @@
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 define(["require", "exports", "./interpreter.state", "./interpreter.constants", "./interpreter.util", "./neuralnetwork.playground"], function (require, exports, interpreter_state_1, C, U, PG) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -262,6 +289,7 @@ define(["require", "exports", "./interpreter.state", "./interpreter.constants", 
          * @returns [result,stop] result will be time required till next instruction and stop indicates if evalOperation should return result or not.
          */
         Interpreter.prototype.evalSingleOperation = function (s, n, stmt) {
+            var e_1, _a;
             s.opLog('actual ops: ');
             s.processBlock(stmt);
             if (stmt === undefined) {
@@ -327,9 +355,18 @@ define(["require", "exports", "./interpreter.state", "./interpreter.constants", 
                     }
                     case C.METHOD_CALL_VOID:
                     case C.METHOD_CALL_RETURN: {
-                        for (var _i = 0, _a = stmt[C.NAMES]; _i < _a.length; _i++) {
-                            var parameterName = _a[_i];
-                            s.bindVar(parameterName, s.pop());
+                        try {
+                            for (var _b = __values(stmt[C.NAMES]), _c = _b.next(); !_c.done; _c = _b.next()) {
+                                var parameterName = _c.value;
+                                s.bindVar(parameterName, s.pop());
+                            }
+                        }
+                        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                        finally {
+                            try {
+                                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                            }
+                            finally { if (e_1) throw e_1.error; }
                         }
                         var body = s.getFunction(stmt[C.NAME])[C.STATEMENTS];
                         s.processBlock(body[body.length - 1]);
@@ -844,7 +881,7 @@ define(["require", "exports", "./interpreter.state", "./interpreter.constants", 
                     var max = s.pop();
                     var min = s.pop();
                     if (min > max) {
-                        _a = [max, min], min = _a[0], max = _a[1];
+                        _a = __read([max, min], 2), min = _a[0], max = _a[1];
                     }
                     s.push(Math.floor(Math.random() * (max - min + 1) + min));
                     break;

@@ -1,3 +1,14 @@
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -394,6 +405,12 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             var renderingContext = canvas === null || canvas === void 0 ? void 0 : canvas.getContext("2d");
             var bounds = this.groundContainer.getBounds();
             if (renderingContext) {
+                var scaleX = 1 / this.groundContainer.parent.scale.x;
+                var scaleY = 1 / this.groundContainer.parent.scale.y;
+                bounds.x *= scaleX;
+                bounds.y *= scaleY;
+                bounds.width *= scaleX;
+                bounds.height *= scaleY;
                 this.getImageData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
             }
         };
@@ -637,10 +654,20 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.intersectionPointsWithLine = function (line) {
             var result = [];
             this.forEachBodyPartVertices(function (vertices) {
+                var e_1, _a;
                 var newIntersectionPoints = new Polygon_1.Polygon(vertices).intersectionPointsWithLine(line);
-                for (var _i = 0, newIntersectionPoints_1 = newIntersectionPoints; _i < newIntersectionPoints_1.length; _i++) {
-                    var point = newIntersectionPoints_1[_i];
-                    result.push(point);
+                try {
+                    for (var newIntersectionPoints_1 = __values(newIntersectionPoints), newIntersectionPoints_1_1 = newIntersectionPoints_1.next(); !newIntersectionPoints_1_1.done; newIntersectionPoints_1_1 = newIntersectionPoints_1.next()) {
+                        var point = newIntersectionPoints_1_1.value;
+                        result.push(point);
+                    }
+                }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (newIntersectionPoints_1_1 && !newIntersectionPoints_1_1.done && (_a = newIntersectionPoints_1.return)) _a.call(newIntersectionPoints_1);
+                    }
+                    finally { if (e_1) throw e_1.error; }
                 }
             });
             return result;

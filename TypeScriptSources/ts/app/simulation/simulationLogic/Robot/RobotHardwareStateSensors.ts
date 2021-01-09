@@ -1,7 +1,7 @@
 
 export interface RobotHardwareStateSensors {
 
-    color?: { 3: {
+    color?: { [port: string]: {
         ambientlight: number,
         colorValue: string,
         colour: string,
@@ -20,13 +20,13 @@ export interface RobotHardwareStateSensors {
         rate: number
     }}
 
-    ultrasonic?: { 4: {
+    ultrasonic?: { [port: string]: {
         /** distance in cm */
         distance: number,
         presence: boolean
     }}
 
-    infrared?: { 4: {
+    infrared?: { [port: string]: {
         /** distance in cm */
         distance: number,
         presence: boolean

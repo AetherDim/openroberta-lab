@@ -11,7 +11,8 @@
         "noUnusedParameters": false,
         "allowJs": true,
         "strict": false,
-        "strictNullChecks": false
+        "strictNullChecks": false,
+        "downlevelIteration": true, // iterator iteration with 'for of' loop
     },
     "include": ["ts/**/*"],
     "exclude": [

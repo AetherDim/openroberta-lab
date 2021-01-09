@@ -55,7 +55,7 @@ declare module "matter-js" {
             scaleX: number,
             scaleY: number,
             point: Vector,
-            recursive?: boolean)
+            recursive?: boolean): void
     }
 
     export class Resolver {
@@ -92,7 +92,8 @@ function addRigidBodyConstraints(
 
 
 function scale(this: Composite, scaleX: number, scaleY: number, point: Vector, recursive: boolean = true) {
-    const constraints = recursive ? Composite.allConstraints(this) : this.constraints
+    // TODO: Wrong return type of 'allConstraints' in 'index.d.ts'
+    const constraints = recursive ? <Constraint[]><unknown>Composite.allConstraints(this) : this.constraints
     constraints.forEach(constraint => {
         if (constraint.bodyA) {
             constraint.pointA.x = point.x + (constraint.pointA.x - point.x) * scaleX

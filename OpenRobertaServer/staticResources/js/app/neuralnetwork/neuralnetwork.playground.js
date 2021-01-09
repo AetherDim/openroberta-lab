@@ -3,6 +3,17 @@
  * Our work is heavily based on the tensorflow playground, see https://github.com/tensorflow/playground.
  * The Open Roberta Lab is open source and uses the Apache 2.0 License, see https://www.apache.org/licenses/LICENSE-2.0
  */
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3"], function (require, exports, nn, neuralnetwork_state_1, d3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -455,21 +466,49 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
     }
     ;
     function extractWeights(network) {
+        var e_1, _a, e_2, _b, e_3, _c;
         var weightsAllLayers = [];
         if (network != null && network.length > 0) {
-            for (var _i = 0, network_1 = network; _i < network_1.length; _i++) {
-                var layer = network_1[_i];
-                var weightsOneLayer = [];
-                for (var _a = 0, layer_1 = layer; _a < layer_1.length; _a++) {
-                    var node = layer_1[_a];
-                    var weightsOneNode = [];
-                    for (var _b = 0, _c = node.outputs; _b < _c.length; _b++) {
-                        var link = _c[_b];
-                        weightsOneNode.push(link.weight);
+            try {
+                for (var network_1 = __values(network), network_1_1 = network_1.next(); !network_1_1.done; network_1_1 = network_1.next()) {
+                    var layer = network_1_1.value;
+                    var weightsOneLayer = [];
+                    try {
+                        for (var layer_1 = (e_2 = void 0, __values(layer)), layer_1_1 = layer_1.next(); !layer_1_1.done; layer_1_1 = layer_1.next()) {
+                            var node = layer_1_1.value;
+                            var weightsOneNode = [];
+                            try {
+                                for (var _d = (e_3 = void 0, __values(node.outputs)), _e = _d.next(); !_e.done; _e = _d.next()) {
+                                    var link = _e.value;
+                                    weightsOneNode.push(link.weight);
+                                }
+                            }
+                            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+                            finally {
+                                try {
+                                    if (_e && !_e.done && (_c = _d.return)) _c.call(_d);
+                                }
+                                finally { if (e_3) throw e_3.error; }
+                            }
+                            weightsOneLayer.push(weightsOneNode);
+                        }
                     }
-                    weightsOneLayer.push(weightsOneNode);
+                    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                    finally {
+                        try {
+                            if (layer_1_1 && !layer_1_1.done && (_b = layer_1.return)) _b.call(layer_1);
+                        }
+                        finally { if (e_2) throw e_2.error; }
+                    }
+                    weightsAllLayers.push(weightsOneLayer);
                 }
-                weightsAllLayers.push(weightsOneLayer);
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (network_1_1 && !network_1_1.done && (_a = network_1.return)) _a.call(network_1);
+                }
+                finally { if (e_1) throw e_1.error; }
             }
         }
         return weightsAllLayers;

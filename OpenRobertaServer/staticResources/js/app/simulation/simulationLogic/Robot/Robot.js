@@ -5,6 +5,14 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
     var Robot = /** @class */ (function () {
         function Robot(robot) {
             this.updateSensorGraphics = true;
+            /**
+             * The color sensor of the robot
+             */
+            this.colorSensors = {};
+            /**
+             * The ultrasonic sensor of the robot
+             */
+            this.ultrasonicSensors = {};
             this.configuration = null;
             this.programCode = null;
             /**
@@ -74,85 +82,36 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
         /**
          * Returns the color sensor which can be `undefined`
          */
-        Robot.prototype.getColorSensor = function () {
-            return this.colorSensor;
+        Robot.prototype.getColorSensors = function () {
+            return Object.values(this.colorSensors);
         };
         /**
          * Sets the color sensor at the position (x,y) in meter
-         * @param x x position in meter
-         * @param y y position in meter
-         */
-        Robot.prototype.setColorSensor = function (x, y) {
-            if (this.colorSensorGraphics) {
-                this.colorSensorGraphics.parent.removeChild(this.colorSensorGraphics);
-                this.colorSensorGraphics.destroy();
-            }
-            this.colorSensorGraphics = new PIXI.Graphics()
-                .lineStyle(2)
-                .drawRect(-10, -10, 20, 20);
-            var _a = Unit_1.Unit.getLengths([x, y]), xPos = _a[0], yPos = _a[1];
-            this.colorSensorGraphics.position.set(xPos, yPos);
-            this.bodyContainer.addChild(this.colorSensorGraphics);
-            this.colorSensor = new ColorSensor_1.ColorSensor(matter_js_1.Vector.create(x, y));
-        };
-        /**
-         * Sets the color of the color sensor and `colorSensorGraphics` if they are not null.
          *
-         * @param r red color [0, 255]
-         * @param g green color [0, 255]
-         * @param b blue color [0, 255]
+         * @param port the port of the sensor
+         * @param x x position of the sensor in meters
+         * @param y y position of the sensor in meters
+         * @returns false if a color sensor at `port` already exists and a new color sesor was not added
          */
-        Robot.prototype.setColorOfColorSensor = function (r, g, b) {
-            if (this.colorSensorGraphics && this.colorSensor) {
-                this.colorSensorGraphics
-                    .clear()
-                    .beginFill((r * 256 + g) * 256 + b)
-                    .lineStyle(3, 0) // black border
-                    .drawCircle(0, 0, 6)
-                    .endFill;
-                this.colorSensor.detectedColor = { red: r, green: g, blue: b };
+        Robot.prototype.addColorSensor = function (port, x, y) {
+            if (this.colorSensors[port]) {
+                return false;
             }
+            var colorSensor = new ColorSensor_1.ColorSensor(matter_js_1.Vector.create(x, y));
+            this.colorSensors[port] = colorSensor;
+            this.bodyContainer.addChild(colorSensor.graphics);
+            return true;
         };
-        Robot.prototype.getUltrasonicSensor = function () {
-            return this.ultrasonicSensor;
+        Robot.prototype.getUltrasonicSensors = function () {
+            return Object.values(this.ultrasonicSensors);
         };
-        Robot.prototype.setUltrasonicSensor = function (ultrasonicSensor) {
-            if (this.ultrasonicSensorGraphics) {
-                this.ultrasonicSensorGraphics.parent.removeChild(this.ultrasonicSensorGraphics);
-                this.ultrasonicSensorGraphics.destroy();
+        Robot.prototype.addUltrasonicSensor = function (port, ultrasonicSensor) {
+            if (this.ultrasonicSensors[port]) {
+                return false;
             }
-            this.ultrasonicSensorGraphics = new PIXI.Graphics();
-            this.ultrasonicSensorGraphics.position.set(ultrasonicSensor.position.x, ultrasonicSensor.position.y);
-            this.bodyContainer.addChild(this.ultrasonicSensorGraphics);
-            this.ultrasonicSensor = ultrasonicSensor;
-            this.setDistanceOfUltrasonicSensor(Infinity);
-        };
-        Robot.prototype.setDistanceOfUltrasonicSensor = function (distance, point) {
-            if (this.ultrasonicSensorGraphics && this.ultrasonicSensor) {
-                if (point) {
-                    if (!this.debugGraphics) {
-                        this.debugGraphics = new PIXI.Graphics()
-                            .beginFill(0xFF0000)
-                            .drawRect(-5, -5, 10, 10)
-                            .endFill();
-                        this.bodyContainer.parent.addChild(this.debugGraphics);
-                    }
-                    this.debugGraphics.position.set(point.x, point.y);
-                }
-                var graphicsDistance = Math.min(500, distance);
-                var vector = matter_js_1.Vector.create(graphicsDistance, 0);
-                var halfAngle = this.ultrasonicSensor.angularRange / 2;
-                var leftVector = matter_js_1.Vector.rotate(vector, halfAngle);
-                var rightVector = matter_js_1.Vector.rotate(vector, -halfAngle);
-                this.ultrasonicSensorGraphics
-                    .clear()
-                    .lineStyle(2)
-                    .moveTo(leftVector.x, leftVector.y)
-                    .lineTo(0, 0)
-                    .lineTo(rightVector.x, rightVector.y)
-                    .arc(0, 0, graphicsDistance, -halfAngle, halfAngle);
-                this.ultrasonicSensor.measuredDistance = distance;
-            }
+            this.ultrasonicSensors[port] = ultrasonicSensor;
+            this.bodyContainer.addChild(ultrasonicSensor.graphics);
+            return true;
         };
         Robot.prototype.setWheels = function (wheels) {
             this.leftDrivingWheel = wheels.leftDrivingWheel;
@@ -547,62 +506,86 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                     rate: gyroRate
                 } };
             // color
-            if (this.colorSensor) {
-                var colorSensorPosition = this.getAbsolutePosition(this.colorSensor.position);
+            for (var port in this.colorSensors) {
+                var colorSensor = this.colorSensors[port];
+                var colorSensorPosition = this.getAbsolutePosition(colorSensor.position);
                 // the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
                 var color = getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
-                if (this.updateSensorGraphics) {
-                    this.setColorOfColorSensor(color[0], color[1], color[2]);
+                colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics);
+                if (!sensors.color) {
+                    sensors.color = {};
                 }
-                sensors.color = { 3: {
-                        ambientlight: 0,
-                        colorValue: "none",
-                        colour: "none",
-                        light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
-                        rgb: [color[0], color[1], color[2]]
-                    } };
+                sensors.color[port] = {
+                    ambientlight: 0,
+                    colorValue: "none",
+                    colour: "none",
+                    light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
+                    rgb: [color[0], color[1], color[2]]
+                };
             }
-            // ultrasonic sensor
-            if (this.ultrasonicSensor) {
-                var sensorPosition_1 = this.getAbsolutePosition(this.ultrasonicSensor.position);
-                var halfAngle = this.ultrasonicSensor.angularRange / 2;
+            var _loop_1 = function (port) {
+                var ultrasonicSensor = this_1.ultrasonicSensors[port];
+                var sensorPosition = this_1.getAbsolutePosition(ultrasonicSensor.position);
+                var halfAngle = ultrasonicSensor.angularRange / 2;
                 var rays = [
-                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), halfAngle + this.body.angle),
-                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), -halfAngle + this.body.angle)
+                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), halfAngle + this_1.body.angle),
+                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), -halfAngle + this_1.body.angle)
                 ]
-                    .map(function (v) { return new Ray_1.Ray(sensorPosition_1, v); });
+                    .map(function (v) { return new Ray_1.Ray(sensorPosition, v); });
                 // (point - sensorPos) * vec > 0
-                var vectors_1 = rays.map(function (r) { return matter_js_1.Vector.perp(r.directionVector); });
-                var dotProducts_1 = vectors_1.map(function (v) { return matter_js_1.Vector.dot(v, sensorPosition_1); });
-                var nearestPoint_1 = getNearestPointTo(sensorPosition_1, function (point) {
-                    return matter_js_1.Vector.dot(point, vectors_1[0]) < dotProducts_1[0]
-                        && matter_js_1.Vector.dot(point, vectors_1[1]) > dotProducts_1[1];
+                var vectors = rays.map(function (r) { return matter_js_1.Vector.perp(r.directionVector); });
+                var dotProducts = vectors.map(function (v) { return matter_js_1.Vector.dot(v, sensorPosition); });
+                var nearestPoint = getNearestPointTo(sensorPosition, function (point) {
+                    return matter_js_1.Vector.dot(point, vectors[0]) < dotProducts[0]
+                        && matter_js_1.Vector.dot(point, vectors[1]) > dotProducts[1];
                 });
-                var minDistanceSquared_1 = nearestPoint_1 ? matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(nearestPoint_1, sensorPosition_1)) : Infinity;
+                var minDistanceSquared = nearestPoint ? matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(nearestPoint, sensorPosition)) : Infinity;
                 var intersectionPoints = intersectionPointsWithLine(rays[0]).concat(intersectionPointsWithLine(rays[1]));
                 intersectionPoints.forEach(function (intersectionPoint) {
-                    var distanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(intersectionPoint, sensorPosition_1));
-                    if (distanceSquared < minDistanceSquared_1) {
-                        minDistanceSquared_1 = distanceSquared;
-                        nearestPoint_1 = intersectionPoint;
+                    var distanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(intersectionPoint, sensorPosition));
+                    if (distanceSquared < minDistanceSquared) {
+                        minDistanceSquared = distanceSquared;
+                        nearestPoint = intersectionPoint;
                     }
                 });
-                var ultrasonicDistance = nearestPoint_1 ? matter_js_1.Vector.magnitude(matter_js_1.Vector.sub(nearestPoint_1, sensorPosition_1)) : Infinity;
-                if (this.updateSensorGraphics) {
-                    this.setDistanceOfUltrasonicSensor(ultrasonicDistance, nearestPoint_1);
+                var ultrasonicDistance = nearestPoint ? matter_js_1.Vector.magnitude(matter_js_1.Vector.sub(nearestPoint, sensorPosition)) : Infinity;
+                ultrasonicSensor.setMeasuredDistance(ultrasonicDistance, this_1.updateSensorGraphics);
+                if (this_1.updateSensorGraphics) {
+                    // update nearestPoint
+                    if (nearestPoint) {
+                        if (!this_1.debugGraphics) {
+                            this_1.debugGraphics = new PIXI.Graphics()
+                                .beginFill(0xFF0000)
+                                .drawRect(-5, -5, 10, 10)
+                                .endFill();
+                            this_1.bodyContainer.parent.addChild(this_1.debugGraphics);
+                        }
+                        this_1.debugGraphics.position.set(nearestPoint.x, nearestPoint.y);
+                    }
                 }
                 ultrasonicDistance = Unit_1.Unit.fromLength(ultrasonicDistance);
-                sensors.ultrasonic = { 4: {
-                        // `distance` is in cm
-                        distance: Math.min(ultrasonicDistance, this.ultrasonicSensor.maximumMeasurableDistance) * 100,
-                        presence: false
-                    } };
+                if (!sensors.ultrasonic) {
+                    sensors.ultrasonic = {};
+                }
+                sensors.ultrasonic[port] = {
+                    // `distance` is in cm
+                    distance: Math.min(ultrasonicDistance, ultrasonicSensor.maximumMeasurableDistance) * 100,
+                    presence: false
+                };
                 // infrared sensor (use ultrasonic distance)
-                sensors.infrared = { 4: {
-                        // `distance` is in cm and at maximum 70cm
-                        distance: Math.min(ultrasonicDistance, 0.7) * 100,
-                        presence: false
-                    } };
+                if (!sensors.infrared) {
+                    sensors.infrared = {};
+                }
+                sensors.infrared[port] = {
+                    // `distance` is in cm and at maximum 70cm
+                    distance: Math.min(ultrasonicDistance, 0.7) * 100,
+                    presence: false
+                };
+            };
+            var this_1 = this;
+            // ultrasonic sensor
+            for (var port in this.ultrasonicSensors) {
+                _loop_1(port);
             }
         };
         /**
@@ -657,8 +640,8 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                     backWheel
                 ]
             });
-            robot.setColorSensor(0.08, 0);
-            robot.setUltrasonicSensor(new UltrasonicSensor_1.UltrasonicSensor(matter_js_1.Vector.create(0.12, 0), 90 * 2 * Math.PI / 360));
+            robot.addColorSensor("3", 0.08, 0);
+            robot.addUltrasonicSensor("4", new UltrasonicSensor_1.UltrasonicSensor(matter_js_1.Vector.create(0.12, 0), 90 * 2 * Math.PI / 360));
             return robot;
         };
         return Robot;

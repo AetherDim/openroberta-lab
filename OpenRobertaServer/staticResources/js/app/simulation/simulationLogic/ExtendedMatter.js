@@ -35,6 +35,7 @@ define(["require", "exports", "matter-js", "./Unit"], function (require, exports
     }
     function scale(scaleX, scaleY, point, recursive) {
         if (recursive === void 0) { recursive = true; }
+        // TODO: Wrong return type of 'allConstraints' in 'index.d.ts'
         var constraints = recursive ? matter_js_1.Composite.allConstraints(this) : this.constraints;
         constraints.forEach(function (constraint) {
             if (constraint.bodyA) {

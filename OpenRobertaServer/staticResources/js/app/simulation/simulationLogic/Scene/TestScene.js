@@ -48,9 +48,6 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
         TestScene.prototype.onInit = function (chain) {
             // use 0.001 for EV3
             var scale = 0.001;
-            var grid = this.engine.broadphase;
-            grid.bucketHeight = 300;
-            grid.bucketWidth = 300;
             Unit_1.Unit.setUnitScaling({ m: 1000 });
             // (<any>Resolver)._restingThresh = 4 * scale;
             // (<any>Resolver)._restingThreshTangent = 6 * scale;

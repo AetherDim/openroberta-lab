@@ -42,10 +42,6 @@ export class TestScene extends Scene {
 
         // use 0.001 for EV3
         const scale = 0.001;
-
-        const grid = this.engine.broadphase
-        grid.bucketHeight = 300
-        grid.bucketWidth = 300
         
         Unit.setUnitScaling({m: 1000})
 

@@ -1,3 +1,14 @@
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 define(["require", "exports", "matter-js"], function (require, exports, matter_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -63,6 +74,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             return matter_js_1.Vector.dot(this.directionVector, matter_js_1.Vector.sub(point, this.startPoint)) / matter_js_1.Vector.magnitudeSquared(this.directionVector);
         };
         LineBaseClass.prototype.nearestPointToLineBase = function (lineBase) {
+            var e_1, _a, e_2, _b;
             var intersectionPoint = this.intersectionPoint(lineBase);
             if (intersectionPoint) {
                 return intersectionPoint;
@@ -71,21 +83,39 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             var otherEndPoints = lineBase.getEndPoints();
             var minDistance = Infinity;
             var nearestPoint = null;
-            for (var _i = 0, endPoints_1 = endPoints; _i < endPoints_1.length; _i++) {
-                var p = endPoints_1[_i];
-                var squaredLength = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(lineBase.nearestPointTo(p), p));
-                if (squaredLength < minDistance) {
-                    minDistance = squaredLength;
-                    nearestPoint = p;
+            try {
+                for (var endPoints_1 = __values(endPoints), endPoints_1_1 = endPoints_1.next(); !endPoints_1_1.done; endPoints_1_1 = endPoints_1.next()) {
+                    var p = endPoints_1_1.value;
+                    var squaredLength = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(lineBase.nearestPointTo(p), p));
+                    if (squaredLength < minDistance) {
+                        minDistance = squaredLength;
+                        nearestPoint = p;
+                    }
                 }
             }
-            for (var _a = 0, otherEndPoints_1 = otherEndPoints; _a < otherEndPoints_1.length; _a++) {
-                var p = otherEndPoints_1[_a];
-                var squaredLength = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(this.nearestPointTo(p), p));
-                if (squaredLength < minDistance) {
-                    minDistance = squaredLength;
-                    nearestPoint = p;
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (endPoints_1_1 && !endPoints_1_1.done && (_a = endPoints_1.return)) _a.call(endPoints_1);
                 }
+                finally { if (e_1) throw e_1.error; }
+            }
+            try {
+                for (var otherEndPoints_1 = __values(otherEndPoints), otherEndPoints_1_1 = otherEndPoints_1.next(); !otherEndPoints_1_1.done; otherEndPoints_1_1 = otherEndPoints_1.next()) {
+                    var p = otherEndPoints_1_1.value;
+                    var squaredLength = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(this.nearestPointTo(p), p));
+                    if (squaredLength < minDistance) {
+                        minDistance = squaredLength;
+                        nearestPoint = p;
+                    }
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (otherEndPoints_1_1 && !otherEndPoints_1_1.done && (_b = otherEndPoints_1.return)) _b.call(otherEndPoints_1);
+                }
+                finally { if (e_2) throw e_2.error; }
             }
             return nearestPoint;
         };

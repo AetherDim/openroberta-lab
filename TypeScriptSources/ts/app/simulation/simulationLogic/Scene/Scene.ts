@@ -463,7 +463,15 @@ export class Scene {
         const renderingContext = canvas?.getContext("2d")
         const bounds = this.groundContainer.getBounds()
         if (renderingContext) {
-            this.getImageData = (x, y, w, h) => renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h)
+            const scaleX = 1 / this.groundContainer.parent.scale.x
+            const scaleY = 1 / this.groundContainer.parent.scale.y
+            bounds.x *= scaleX
+            bounds.y *= scaleY
+            bounds.width *= scaleX
+            bounds.height *= scaleY
+            this.getImageData = (x, y, w, h) => renderingContext.getImageData(
+                x - bounds.x,
+                y - bounds.y, w, h)
         }
     }
 

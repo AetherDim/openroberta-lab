@@ -13,7 +13,10 @@ import { RobotUpdateOptions } from './RobotUpdateOptions'
 import { LineBaseClass } from '../Geometry/LineBaseClass'
 import { UltrasonicSensor } from './UltrasonicSensor'
 import { Ray } from '../Geometry/Ray'
+import { Color } from '../Color'
 
+type StringMap<V> = { [key: string]: V }
+type NumberMap<V> = { [key: number]: V }
 export class Robot {
 
 	/**
@@ -48,14 +51,12 @@ export class Robot {
 	/**
 	 * The color sensor of the robot
 	 */
-	private colorSensor?: ColorSensor
-	private colorSensorGraphics?: PIXI.Graphics
+	private colorSensors: StringMap<ColorSensor> = {}
 
 	/**
 	 * The ultrasonic sensor of the robot
 	 */
-	private ultrasonicSensor?: UltrasonicSensor
-	private ultrasonicSensorGraphics?: PIXI.Graphics
+	private ultrasonicSensors: StringMap<UltrasonicSensor> = {}
 
 	robotBehaviour?: RobotSimBehaviour
 
@@ -134,95 +135,43 @@ export class Robot {
 	/**
 	 * Returns the color sensor which can be `undefined`
 	 */
-	getColorSensor(): ColorSensor | undefined {
-		return this.colorSensor
+	getColorSensors(): ColorSensor[] {
+		return Object.values(this.colorSensors)
 	}
 
 	/**
 	 * Sets the color sensor at the position (x,y) in meter
-	 * @param x x position in meter
-	 * @param y y position in meter
+	 * 
+	 * @param port the port of the sensor
+	 * @param x x position of the sensor in meters
+	 * @param y y position of the sensor in meters
+	 * @returns false if a color sensor at `port` already exists and a new color sesor was not added
 	 */
-	setColorSensor(x: number, y: number) {
-		if (this.colorSensorGraphics) {
-			this.colorSensorGraphics.parent.removeChild(this.colorSensorGraphics)
-			this.colorSensorGraphics.destroy()
+	addColorSensor(port: string, x: number, y: number): boolean {
+		if (this.colorSensors[port]) {
+			return false
 		}
-		this.colorSensorGraphics = new PIXI.Graphics()
-			.lineStyle(2)
-			.drawRect(-10, -10, 20, 20)
-		const [xPos, yPos] = Unit.getLengths([x, y])
-		this.colorSensorGraphics.position.set(xPos, yPos)
-		this.bodyContainer.addChild(this.colorSensorGraphics)
-		this.colorSensor = new ColorSensor(Vector.create(x, y))
+		const colorSensor = new ColorSensor(Vector.create(x, y))
+		this.colorSensors[port] = colorSensor
+		this.bodyContainer.addChild(colorSensor.graphics)
+		return true
 	}
 	
-	/**
-	 * Sets the color of the color sensor and `colorSensorGraphics` if they are not null.
-	 * 
-	 * @param r red color [0, 255]
-	 * @param g green color [0, 255]
-	 * @param b blue color [0, 255]
-	 */
-	private setColorOfColorSensor(r: number, g: number, b: number) {
-		if (this.colorSensorGraphics && this.colorSensor) {
-			this.colorSensorGraphics
-				.clear()
-				.beginFill((r * 256 + g) * 256 + b)
-				.lineStyle(3, 0) // black border
-				.drawCircle(0, 0, 6)
-				.endFill
-			this.colorSensor.detectedColor = { red: r, green: g, blue: b }
-		}
+	getUltrasonicSensors(): UltrasonicSensor[] {
+		return Object.values(this.ultrasonicSensors)
 	}
 
-	getUltrasonicSensor(): UltrasonicSensor | undefined {
-		return this.ultrasonicSensor
-	}
-
-	setUltrasonicSensor(ultrasonicSensor: UltrasonicSensor) {
-		if (this.ultrasonicSensorGraphics) {
-			this.ultrasonicSensorGraphics.parent.removeChild(this.ultrasonicSensorGraphics)
-			this.ultrasonicSensorGraphics.destroy()
+	addUltrasonicSensor(port: string, ultrasonicSensor: UltrasonicSensor): boolean {
+		if (this.ultrasonicSensors[port]) {
+			return false
 		}
-		this.ultrasonicSensorGraphics = new PIXI.Graphics()
-		this.ultrasonicSensorGraphics.position.set(ultrasonicSensor.position.x, ultrasonicSensor.position.y)
-		this.bodyContainer.addChild(this.ultrasonicSensorGraphics)
-		this.ultrasonicSensor = ultrasonicSensor
-
-		this.setDistanceOfUltrasonicSensor(Infinity)
+		this.ultrasonicSensors[port] = ultrasonicSensor
+		this.bodyContainer.addChild(ultrasonicSensor.graphics)
+		return true
 	}
 
 	// TODO: Remove this line
 	private debugGraphics?: PIXI.Graphics
-	
-	private setDistanceOfUltrasonicSensor(distance: number, point?: Vector) {
-		if (this.ultrasonicSensorGraphics && this.ultrasonicSensor) {
-			if (point) {
-				if (!this.debugGraphics) {
-					this.debugGraphics = new PIXI.Graphics()
-						.beginFill(0xFF0000)
-						.drawRect(-5, -5, 10, 10)
-						.endFill()
-					this.bodyContainer.parent.addChild(this.debugGraphics)
-				}
-				this.debugGraphics.position.set(point.x, point.y)
-			}
-			const graphicsDistance = Math.min(500, distance)
-			const vector = Vector.create(graphicsDistance, 0)
-			const halfAngle = this.ultrasonicSensor.angularRange/2
-			const leftVector = Vector.rotate(vector, halfAngle)
-			const rightVector = Vector.rotate(vector, -halfAngle)
-			this.ultrasonicSensorGraphics
-				.clear()
-				.lineStyle(2)
-				.moveTo(leftVector.x, leftVector.y)
-				.lineTo(0, 0)
-				.lineTo(rightVector.x, rightVector.y)
-				.arc(0, 0, graphicsDistance, -halfAngle, halfAngle)
-			this.ultrasonicSensor.measuredDistance = distance
-		}
-	}
 
 	setWheels(wheels: {leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
 		this.leftDrivingWheel = wheels.leftDrivingWheel
@@ -675,26 +624,29 @@ export class Robot {
 		}}
 
 		// color
-		if (this.colorSensor) {
-			const colorSensorPosition = this.getAbsolutePosition(this.colorSensor.position)
+		for (const port in this.colorSensors) {
+			const colorSensor = this.colorSensors[port]
+			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
 			const color = getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
-			if (this.updateSensorGraphics) {
-				this.setColorOfColorSensor(color[0], color[1], color[2])
+			colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics)
+			if (!sensors.color) {
+				sensors.color = {}
 			}
-			sensors.color = { 3: {
+			sensors.color[port] = {
 				ambientlight: 0,
 				colorValue: "none",
 				colour: "none",
 				light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
 				rgb: [color[0], color[1], color[2]]
-			}}
+			}
 		}
 
 		// ultrasonic sensor
-		if (this.ultrasonicSensor) {
-			const sensorPosition = this.getAbsolutePosition(this.ultrasonicSensor.position)
-			const halfAngle = this.ultrasonicSensor.angularRange / 2
+		for (const port in this.ultrasonicSensors) {
+			const ultrasonicSensor = this.ultrasonicSensors[port]
+			const sensorPosition = this.getAbsolutePosition(ultrasonicSensor.position)
+			const halfAngle = ultrasonicSensor.angularRange / 2
 			const rays = [
 				Vector.rotate(Vector.create(1, 0), halfAngle + this.body.angle),
 				Vector.rotate(Vector.create(1, 0), -halfAngle + this.body.angle)]
@@ -717,22 +669,39 @@ export class Robot {
 			})
 
 			let ultrasonicDistance = nearestPoint ? Vector.magnitude(Vector.sub(nearestPoint, sensorPosition)) : Infinity
+			ultrasonicSensor.setMeasuredDistance(ultrasonicDistance, this.updateSensorGraphics)
 			if (this.updateSensorGraphics) {
-				this.setDistanceOfUltrasonicSensor(ultrasonicDistance, nearestPoint)
+				// update nearestPoint
+				if (nearestPoint) {
+					if (!this.debugGraphics) {
+						this.debugGraphics = new PIXI.Graphics()
+							.beginFill(0xFF0000)
+							.drawRect(-5, -5, 10, 10)
+							.endFill()
+						this.bodyContainer.parent.addChild(this.debugGraphics)
+					}
+					this.debugGraphics.position.set(nearestPoint.x, nearestPoint.y)
+				}
 			}
 			ultrasonicDistance = Unit.fromLength(ultrasonicDistance)
-			sensors.ultrasonic = { 4: {
+			if (!sensors.ultrasonic) {
+				sensors.ultrasonic = {}
+			}
+			sensors.ultrasonic[port] = {
 				// `distance` is in cm
-				distance: Math.min(ultrasonicDistance, this.ultrasonicSensor.maximumMeasurableDistance) * 100,
+				distance: Math.min(ultrasonicDistance, ultrasonicSensor.maximumMeasurableDistance) * 100,
 				presence: false
-			}}
+			}
 
 			// infrared sensor (use ultrasonic distance)
-			sensors.infrared = { 4: {
+			if (!sensors.infrared) {
+				sensors.infrared = {}
+			}
+			sensors.infrared[port] = {
 				// `distance` is in cm and at maximum 70cm
 				distance: Math.min(ultrasonicDistance, 0.7) * 100,
 				presence: false
-			}}
+			}
 		}
 	}
 
@@ -790,8 +759,8 @@ export class Robot {
 				backWheel
 			]
 		})
-		robot.setColorSensor(0.08, 0)
-		robot.setUltrasonicSensor(new UltrasonicSensor(Vector.create(0.12, 0), 90 * 2 * Math.PI / 360))
+		robot.addColorSensor("3", 0.08, 0)
+		robot.addUltrasonicSensor("4" , new UltrasonicSensor(Vector.create(0.12, 0), 90 * 2 * Math.PI / 360))
 		return robot
 	}
 }

@@ -1,3 +1,19 @@
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 define(["require", "exports", "matter-js", "./Color", "./Unit"], function (require, exports, matter_js_1, Color_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -98,7 +114,7 @@ define(["require", "exports", "matter-js", "./Color", "./Unit"], function (requi
         var _a;
         if (roundingRadius === void 0) { roundingRadius = 0; }
         if (settings === void 0) { settings = {}; }
-        _a = Unit_1.Unit.getLengths([x, y, width, height]), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
+        _a = __read(Unit_1.Unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
         var graphics = new PIXI.Graphics();
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
         graphics.beginFill(settings.color, settings.alpha);
