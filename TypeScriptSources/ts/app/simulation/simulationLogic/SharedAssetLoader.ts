@@ -104,8 +104,10 @@ export class SharedAssetLoader {
             }
 
             if(this.get(assetToLoad)) {
+                console.log('asset found!');
                 return null;
             } else {
+                console.log('asset not found, loading ...');
                 return assetToLoad;
             }
         });

@@ -279,11 +279,15 @@ export function getScenes(): SceneHandle[] {
 export function selectScene(ID: string) {
     const scene = sceneManager.getScene(ID);
     if(scene) {
-        scene.reset();
-        engine.switchScene(scene);
+        scene.fullReset(); // will load the scene
+        engine.switchScene(scene, true);
     }
 }
 
 export function nextScene() {
-    engine.switchScene(sceneManager.getNextScene());
+    const scene = sceneManager.getNextScene();
+    if(scene) {
+        scene.fullReset(); // will load the scene
+        engine.switchScene(scene, true);
+    }
 }

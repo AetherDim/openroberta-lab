@@ -35,7 +35,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             }
             var listener = this.listeners[this.index];
             this.index++;
-            console.log('Chain Index: ' + this.index);
+            //console.log('Chain Index: ' + this.index);
             listener.func.call(listener.thisContext, this);
         };
         AsyncChain.prototype.hasFinished = function () {
@@ -115,6 +115,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
              */
             this.topContainer = new PIXI.Container();
             this.topContainerZ = 50;
+            this.removeTexturesOnUnload = true;
+            this.removeBaseTexturesOnUnload = true;
             //
             // #############################################################################
             //
@@ -207,6 +209,25 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.sceneRenderer.add(this.entityContainer);
             this.sceneRenderer.add(this.entityTopContainer);
             this.sceneRenderer.add(this.topContainer);
+        };
+        Scene.prototype.clearContainer = function (container) {
+            container.children.forEach(function (child) {
+                child.destroy();
+            });
+            container.removeChildren(0, container.children.length);
+            /*container.destroy({
+                children: true,
+                texture: this.removeTexturesOnUnload,
+                baseTexture: this.removeBaseTexturesOnUnload
+            });*/
+        };
+        Scene.prototype.clearAllContainers = function () {
+            this.clearContainer(this.groundContainer);
+            this.clearContainer(this.groundAnimationContainer);
+            this.clearContainer(this.entityBottomContainer);
+            this.clearContainer(this.entityContainer);
+            this.clearContainer(this.entityTopContainer);
+            this.clearContainer(this.topContainer);
         };
         Scene.prototype.setScore = function (score) {
             if (score) {
@@ -305,6 +326,20 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.reset = function () {
             this.load();
         };
+        Scene.prototype.unload = function (chain) {
+            // we could do this again if we need to
+            if (this.simTicker.running) {
+                console.warn('sim timer is still running!!!');
+                this.simTicker.waitForStop();
+            }
+            // remove robots
+            this.robots.splice(0, this.robots.length);
+            // remove all physic bodies
+            matter_js_1.Composite.clear(this.engine.world, false, true);
+            // remove all drawables from the containers
+            this.clearAllContainers();
+            chain.next();
+        };
         /**
          * load or reload this scene
          * @param forceLoadAssets
@@ -340,8 +375,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             }
             if (this.hasBeenInitialized) {
                 // unload old things
-                this.loadingChain.push(
-                // TODO: ???
+                this.loadingChain.push({ func: this.unload, thisContext: this }, // unload scene (pixi/robots/matterjs)
                 { func: this.onDeInit, thisContext: this }, // deinit scene
                 { func: function (chain) { _this_1.hasBeenInitialized = false; chain.next(); }, thisContext: this });
             }
@@ -383,8 +417,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;
         };
-        Scene.prototype.setSceneRenderer = function (sceneRenderer) {
-            if (sceneRenderer && !this.hasFinishedLoading) {
+        Scene.prototype.setSceneRenderer = function (sceneRenderer, doNotLoad) {
+            if (doNotLoad === void 0) { doNotLoad = false; }
+            if (sceneRenderer && !this.hasFinishedLoading && !doNotLoad) {
                 this.load();
             }
             if (sceneRenderer != this.sceneRenderer) {

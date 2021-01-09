@@ -92,9 +92,11 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
                     assetToLoad = asset;
                 }
                 if (_this.get(assetToLoad)) {
+                    console.log('asset found!');
                     return null;
                 }
                 else {
+                    console.log('asset not found, loading ...');
                     return assetToLoad;
                 }
             });

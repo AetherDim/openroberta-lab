@@ -44,7 +44,7 @@ export class AsyncChain {
 
         this.index ++;
 
-        console.log('Chain Index: ' + this.index);
+        //console.log('Chain Index: ' + this.index);
 
         listener.func.call(listener.thisContext, this);
     }
@@ -170,6 +170,33 @@ export class Scene {
         this.sceneRenderer.add(this.entityContainer);
         this.sceneRenderer.add(this.entityTopContainer);
         this.sceneRenderer.add(this.topContainer);
+    }
+
+
+    protected removeTexturesOnUnload = true;
+    protected removeBaseTexturesOnUnload = true;
+
+    private clearContainer(container: PIXI.Container) {
+        container.children.forEach(child => {
+            child.destroy();
+        });
+
+        container.removeChildren(0, container.children.length);
+
+        /*container.destroy({
+            children: true,
+            texture: this.removeTexturesOnUnload,
+            baseTexture: this.removeBaseTexturesOnUnload
+        });*/
+    }
+
+    private clearAllContainers() {
+        this.clearContainer(this.groundContainer);
+        this.clearContainer(this.groundAnimationContainer);
+        this.clearContainer(this.entityBottomContainer);
+        this.clearContainer(this.entityContainer);
+        this.clearContainer(this.entityTopContainer);
+        this.clearContainer(this.topContainer);
     }
 
     //
@@ -338,6 +365,26 @@ export class Scene {
         this.load();
     }
 
+    private unload(chain: AsyncChain) {
+
+        // we could do this again if we need to
+        if(this.simTicker.running) {
+            console.warn('sim timer is still running!!!');
+            this.simTicker.waitForStop();
+        }
+
+        // remove robots
+        this.robots.splice(0, this.robots.length);
+
+        // remove all physic bodies
+        Composite.clear(this.engine.world, false, true);
+
+        // remove all drawables from the containers
+        this.clearAllContainers();
+
+        chain.next();
+    }
+
     /**
      * load or reload this scene
      * @param forceLoadAssets
@@ -385,7 +432,7 @@ export class Scene {
         if(this.hasBeenInitialized) {
             // unload old things
             this.loadingChain.push(
-                // TODO: ???
+                {func: this.unload, thisContext: this}, // unload scene (pixi/robots/matterjs)
                 {func: this.onDeInit, thisContext: this}, // deinit scene
                 {func: chain => {this.hasBeenInitialized = false; chain.next()}, thisContext: this}, // reset flag
             );
@@ -496,9 +543,9 @@ export class Scene {
         return this.sceneRenderer;
     }
 
-    setSceneRenderer(sceneRenderer?: SceneRender) {
+    setSceneRenderer(sceneRenderer?: SceneRender, doNotLoad: boolean = false) {
 
-        if(sceneRenderer && !this.hasFinishedLoading) {
+        if(sceneRenderer && !this.hasFinishedLoading && !doNotLoad) {
             this.load();
         }
 

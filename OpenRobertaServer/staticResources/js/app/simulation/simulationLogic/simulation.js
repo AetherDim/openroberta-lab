@@ -182,13 +182,17 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     function selectScene(ID) {
         var scene = sceneManager.getScene(ID);
         if (scene) {
-            scene.reset();
-            engine.switchScene(scene);
+            scene.fullReset(); // will load the scene
+            engine.switchScene(scene, true);
         }
     }
     exports.selectScene = selectScene;
     function nextScene() {
-        engine.switchScene(sceneManager.getNextScene());
+        var scene = sceneManager.getNextScene();
+        if (scene) {
+            scene.fullReset(); // will load the scene
+            engine.switchScene(scene, true);
+        }
     }
     exports.nextScene = nextScene;
 });

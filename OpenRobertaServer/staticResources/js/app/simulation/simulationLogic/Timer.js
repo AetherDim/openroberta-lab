@@ -33,6 +33,13 @@ define(["require", "exports"], function (require, exports) {
         Timer.prototype.stop = function () {
             this.shallStop = true;
         };
+        Timer.prototype.waitForStop = function () {
+            if (this.running) {
+                stop();
+                var _this = this;
+                setTimeout(_this.waitForStop, 200);
+            }
+        };
         Timer.prototype.callUserFunction = function () {
             var now = Date.now();
             try {

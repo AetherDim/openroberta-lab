@@ -44,6 +44,14 @@ export class Timer {
         this.shallStop = true;
     }
 
+    waitForStop() {
+        if(this.running) {
+            stop();
+            const _this = this;
+            setTimeout(_this.waitForStop, 200)
+        }
+    }
+
     private callUserFunction(): boolean {
         var now = Date.now();
 
