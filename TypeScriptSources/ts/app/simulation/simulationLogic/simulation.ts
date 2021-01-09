@@ -3,8 +3,9 @@ import {SceneRender} from './SceneRenderer'
 import './ExtendedMatter'
 import {AgeGroup} from "./RRC/AgeGroup";
 import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
+import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 
-var engine = new SceneRender('sceneCanvas', 'simDiv', new RRCLineFollowingScene(AgeGroup.HS));
+var engine = new SceneRender('sceneCanvas', 'simDiv', new RRCRainbowScene(AgeGroup.MS));
 engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
 

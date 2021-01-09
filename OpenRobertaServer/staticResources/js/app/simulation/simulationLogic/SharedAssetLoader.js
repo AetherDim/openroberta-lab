@@ -1,4 +1,4 @@
-define(["require", "exports", "webfontloader"], function (require, exports, WebFont) {
+define(["require", "exports", "webfontloader", "./Random"], function (require, exports, WebFont, Random_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SharedAssetLoader = exports.MultiAsset = exports.FontAsset = exports.Asset = void 0;
@@ -59,7 +59,10 @@ define(["require", "exports", "webfontloader"], function (require, exports, WebF
             return this.getAsset(this.getRandomAssetID());
         };
         MultiAsset.prototype.getRandomAssetID = function () {
-            return Math.floor(Math.random() * Math.floor(this.idEnd + 1)) + this.idStart;
+            return Random_1.randomIntBetween(this.idStart, this.idEnd);
+        };
+        MultiAsset.prototype.getNumberOfIDs = function () {
+            return this.idEnd - this.idStart + 1;
         };
         return MultiAsset;
     }());

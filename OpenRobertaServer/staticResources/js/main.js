@@ -148,6 +148,7 @@ require.config({
         'ScrollView',
         'ProgramManager',
         'SharedAssetLoader',
+        'Random',
         { 'Scene': [
             'Scene',
             'TestScene',
@@ -175,6 +176,7 @@ require.config({
             { 'Scene':[
                 'RRCScene',
                 'RRCLineFollowingScene',
+                'RRCRainbowScene'
             ]}
         ]}
     ]),

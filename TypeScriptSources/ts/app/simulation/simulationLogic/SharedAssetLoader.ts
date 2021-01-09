@@ -1,5 +1,6 @@
 import * as WebFont from 'webfontloader'
 import Texture = PIXI.Texture;
+import {randomIntBetween} from "./Random";
 
 export class Asset {
 
@@ -68,8 +69,12 @@ export class MultiAsset {
         return this.getAsset(this.getRandomAssetID());
     }
 
-    getRandomAssetID() {
-        return Math.floor(Math.random() * Math.floor(this.idEnd+1)) + this.idStart;
+    getRandomAssetID(): number {
+        return randomIntBetween(this.idStart, this.idEnd);
+    }
+
+    getNumberOfIDs() {
+        return this.idEnd - this.idStart + 1;
     }
 
 }
