@@ -76,9 +76,9 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
         SceneRender.prototype.getCanvasFromDisplayObject = function (object) {
             return this.app.renderer.extract.canvas(object);
         };
-        SceneRender.prototype.switchScene = function (scene, doNotLoad) {
+        SceneRender.prototype.switchScene = function (scene, forceFullReload) {
             var _a;
-            if (doNotLoad === void 0) { doNotLoad = false; }
+            if (forceFullReload === void 0) { forceFullReload = false; }
             if (!scene) {
                 console.log('undefined scene!');
                 scene = new Scene_1.Scene();
@@ -95,7 +95,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             // reset rendering scale and offset
             this.scrollView.reset();
             this.scene = scene;
-            scene.setSceneRenderer(this, doNotLoad);
+            scene.setSceneRenderer(this, forceFullReload);
         };
         // TODO: remove before add? only add once?
         SceneRender.prototype.addDisplayable = function (displayable) {

@@ -612,13 +612,7 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
             var scene = $("#simButtonsCollapse").collapse('hide');
             $('.menuSim').parent().removeClass('disabled');
 
-
-            console.log('scene switch');
-
             const handle = SIM.nextScene();
-
-
-            console.log(handle)
 
             if(handle) {
                 $('#'+handle.ID).parent().addClass('disabled');

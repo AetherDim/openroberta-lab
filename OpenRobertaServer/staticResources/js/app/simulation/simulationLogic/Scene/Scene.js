@@ -360,6 +360,12 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.addDisplayable(this.loadingContainer);
             // build new async chain
             this.loadingChain = new AsyncChain();
+            if (this.hasBeenInitialized) {
+                // unload old things
+                this.loadingChain.push({ func: this.unload, thisContext: this }, // unload scene (pixi/robots/matterjs)
+                { func: this.onDeInit, thisContext: this }, // deinit scene
+                { func: function (chain) { _this_1.hasBeenInitialized = false; chain.next(); }, thisContext: this });
+            }
             if (!this.resourcesLoaded || forceLoadAssets) {
                 if (this.resourcesLoaded) {
                     // unload resources
@@ -372,12 +378,6 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 { func: this.onLoadAssets, thisContext: this }, // load user assets
                 // set resource loaded flag
                 { func: function (chain) { _this_1.resourcesLoaded = true; chain.next(); }, thisContext: this });
-            }
-            if (this.hasBeenInitialized) {
-                // unload old things
-                this.loadingChain.push({ func: this.unload, thisContext: this }, // unload scene (pixi/robots/matterjs)
-                { func: this.onDeInit, thisContext: this }, // deinit scene
-                { func: function (chain) { _this_1.hasBeenInitialized = false; chain.next(); }, thisContext: this });
             }
             // finish loading
             this.loadingChain.push({ func: this.initScoreContainer, thisContext: this }, // init score container
@@ -417,17 +417,17 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;
         };
-        Scene.prototype.setSceneRenderer = function (sceneRenderer, doNotLoad) {
-            if (doNotLoad === void 0) { doNotLoad = false; }
-            if (sceneRenderer && !this.hasFinishedLoading && !doNotLoad) {
-                this.load();
-            }
+        Scene.prototype.setSceneRenderer = function (sceneRenderer, forceLoadAssets) {
+            if (forceLoadAssets === void 0) { forceLoadAssets = false; }
             if (sceneRenderer != this.sceneRenderer) {
                 this.sceneRenderer = sceneRenderer;
                 if (sceneRenderer) {
                     sceneRenderer.switchScene(this); // this will remove all registered rendering containers
                     this.registerContainersToEngine(); // register rendering containers
                 }
+            }
+            if (sceneRenderer && !this.hasFinishedLoading) {
+                this.load(forceLoadAssets);
             }
         };
         Scene.prototype.renderTick = function (dt) {

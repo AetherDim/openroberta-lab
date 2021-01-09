@@ -409,6 +409,15 @@ export class Scene {
         this.loadingChain = new AsyncChain();
 
 
+        if(this.hasBeenInitialized) {
+            // unload old things
+            this.loadingChain.push(
+                {func: this.unload, thisContext: this}, // unload scene (pixi/robots/matterjs)
+                {func: this.onDeInit, thisContext: this}, // deinit scene
+                {func: chain => {this.hasBeenInitialized = false; chain.next()}, thisContext: this}, // reset flag
+            );
+        }
+
         if(!this.resourcesLoaded || forceLoadAssets) {
 
             if(this.resourcesLoaded) {
@@ -426,15 +435,6 @@ export class Scene {
                 {func: this.onLoadAssets, thisContext: this}, // load user assets
                 // set resource loaded flag
                 {func: chain => {this.resourcesLoaded = true; chain.next();}, thisContext: this},
-            );
-        }
-
-        if(this.hasBeenInitialized) {
-            // unload old things
-            this.loadingChain.push(
-                {func: this.unload, thisContext: this}, // unload scene (pixi/robots/matterjs)
-                {func: this.onDeInit, thisContext: this}, // deinit scene
-                {func: chain => {this.hasBeenInitialized = false; chain.next()}, thisContext: this}, // reset flag
             );
         }
 
@@ -543,11 +543,7 @@ export class Scene {
         return this.sceneRenderer;
     }
 
-    setSceneRenderer(sceneRenderer?: SceneRender, doNotLoad: boolean = false) {
-
-        if(sceneRenderer && !this.hasFinishedLoading && !doNotLoad) {
-            this.load();
-        }
+    setSceneRenderer(sceneRenderer?: SceneRender, forceLoadAssets: boolean = false) {
 
         if(sceneRenderer != this.sceneRenderer) {
             this.sceneRenderer = sceneRenderer;
@@ -558,6 +554,10 @@ export class Scene {
                 this.registerContainersToEngine(); // register rendering containers
             }
 
+        }
+
+        if(sceneRenderer && !this.hasFinishedLoading) {
+            this.load(forceLoadAssets);
         }
     }
 

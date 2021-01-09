@@ -248,7 +248,7 @@ export function setInfo() {
 }
 
 export function resetPose() {
-    alert('reset pose');
+    engine.getScene()?.reset();
 }
 
 export function updateDebugMode(debugMode:boolean) {
@@ -281,17 +281,11 @@ export function getScenes(): SceneHandle[] {
 
 export function selectScene(ID: string) {
     const scene = sceneManager.getScene(ID);
-    if(scene) {
-        scene.fullReset(); // will load the scene
-        engine.switchScene(scene, true);
-    }
+    engine.switchScene(scene, true);
 }
 
 export function nextScene(): SceneHandle {
     const scene = sceneManager.getNextScene();
-    if(scene) {
-        scene.fullReset(); // will load the scene
-        engine.switchScene(scene, true);
-    }
+    engine.switchScene(scene, true);
     return sceneManager.getCurrentHandle();
 }

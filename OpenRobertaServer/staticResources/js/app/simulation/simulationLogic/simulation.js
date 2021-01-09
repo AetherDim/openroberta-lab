@@ -152,7 +152,8 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     }
     exports.setInfo = setInfo;
     function resetPose() {
-        alert('reset pose');
+        var _a;
+        (_a = engine.getScene()) === null || _a === void 0 ? void 0 : _a.reset();
     }
     exports.resetPose = resetPose;
     function updateDebugMode(debugMode) {
@@ -183,18 +184,12 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     exports.getScenes = getScenes;
     function selectScene(ID) {
         var scene = sceneManager.getScene(ID);
-        if (scene) {
-            scene.fullReset(); // will load the scene
-            engine.switchScene(scene, true);
-        }
+        engine.switchScene(scene, true);
     }
     exports.selectScene = selectScene;
     function nextScene() {
         var scene = sceneManager.getNextScene();
-        if (scene) {
-            scene.fullReset(); // will load the scene
-            engine.switchScene(scene, true);
-        }
+        engine.switchScene(scene, true);
         return sceneManager.getCurrentHandle();
     }
     exports.nextScene = nextScene;
