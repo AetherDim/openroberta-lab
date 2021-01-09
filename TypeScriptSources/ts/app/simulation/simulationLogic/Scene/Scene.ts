@@ -22,11 +22,17 @@ export class AsyncListener {
 }
 export class AsyncChain {
 
-    private listeners: AsyncListener[];
+    private readonly listeners: AsyncListener[];
     private index = 0; 
 
-    constructor(listeners: AsyncListener[]) {
+    constructor(...listeners: AsyncListener[]) {
         this.listeners = listeners;
+    }
+
+    push(...listeners: AsyncListener[]) {
+        listeners.forEach(listener => {
+            this.listeners.push(listener);
+        });
     }
 
     next() {
@@ -37,6 +43,8 @@ export class AsyncChain {
         let listener = this.listeners[this.index];
 
         this.index ++;
+
+        console.log('Chain Index: ' + this.index);
 
         listener.func.call(listener.thisContext, this);
     }
@@ -49,11 +57,22 @@ export class AsyncChain {
         this.index = 0;
     }
 
+    length() {
+        return this.listeners.length;
+    }
+
 }
+
+
 
 export class Scene {
 
 
+    /**
+     * Represents the nuber of robots after this scene has been initialized.
+     * The GUI needs this information before the scene has finished loading.
+     * @protected
+     */
     protected numberOfRobots = 1;
 
     /**
@@ -142,6 +161,7 @@ export class Scene {
 
     protected registerContainersToEngine() {
         if (!this.sceneRenderer) {
+            console.warn('No renderer to register containers to!');
             return
         }
         this.sceneRenderer.add(this.groundContainer);
@@ -189,7 +209,11 @@ export class Scene {
         chain.next();
     }
 
-    protected initScoreContainer() {
+    protected unloadScoreAssets(chain: AsyncChain) {
+        chain.next();
+    }
+
+    protected initScoreContainer(chain: AsyncChain) {
         this.scoreContainer.zIndex = this.scoreContainerZ;
 
         this.scoreText.style = new PIXI.TextStyle({
@@ -204,6 +228,8 @@ export class Scene {
         this.scoreContainer.y = 200;
 
         this.updateScoreText();
+
+        chain.next();
     }
 
     updateScoreText() {
@@ -276,11 +302,112 @@ export class Scene {
     // #############################################################################
     //
 
+    private currentlyLoading = false;
+    private resourcesLoaded = false;
+    private hasBeenInitialized = false;
     private hasFinishedLoading = false;
-    private startedLoading = false;
-    private needsInit = false;
 
-    private assetLoadingChain?: AsyncChain;
+    private loadingChain?: AsyncChain;
+
+    private finishedLoading(chain: AsyncChain) {
+        this.currentlyLoading = false;
+        this.hasFinishedLoading = true;
+        this.hasBeenInitialized = true;
+
+        // remove loading animation
+        this.sceneRenderer?.remove(this.loadingContainer);
+
+        // update image for rgb sensor
+        this.updateImageDataFunction();
+
+        if(this.autostartSim) {
+            // auto start simulation
+            this.startSim();
+        }
+
+        console.log('Finished loading!');
+
+        chain.next(); // technically we don't need this
+    }
+
+    fullReset() {
+        this.load(true);
+    }
+
+    reset() {
+        this.load();
+    }
+
+    /**
+     * load or reload this scene
+     * @param forceLoadAssets
+     */
+    load(forceLoadAssets: boolean = false) {
+        if(this.currentlyLoading) {
+            console.warn('Already loading scene... !');
+            return;
+        }
+
+        this.currentlyLoading = true; // this flag will start loading animation update
+        this.hasFinishedLoading = false;
+
+        // should not run while loading running
+        this.stopSim();
+
+        // start loading animation
+        this.sceneRenderer?.addDisplayable(this.loadingContainer);
+
+
+        // build new async chain
+        this.loadingChain = new AsyncChain();
+
+
+        if(!this.resourcesLoaded || forceLoadAssets) {
+
+            if(this.resourcesLoaded) {
+                // unload resources
+                this.loadingChain.push(
+                    {func: this.unloadScoreAssets, thisContext: this}, // unload score assets
+                    {func: this.onUnloadAssets, thisContext: this}, // unload user assets
+                    {func: chain => {this.resourcesLoaded = false; chain.next()}, thisContext: this}, // reset flag
+                )
+            }
+
+            // load resources
+            this.loadingChain.push(
+                {func: this.loadScoreAssets, thisContext: this}, // load score assets for this scene
+                {func: this.onLoadAssets, thisContext: this}, // load user assets
+                // set resource loaded flag
+                {func: chain => {this.resourcesLoaded = true; chain.next();}, thisContext: this},
+            );
+        }
+
+        if(this.hasBeenInitialized) {
+            // unload old things
+            this.loadingChain.push(
+                // TODO: ???
+                {func: this.onDeInit, thisContext: this}, // deinit scene
+                {func: chain => {this.hasBeenInitialized = false; chain.next()}, thisContext: this}, // reset flag
+            );
+        }
+
+        // finish loading
+        this.loadingChain.push(
+            {func: this.initScoreContainer, thisContext: this}, // init score container
+            {func: this.onInit, thisContext: this}, // init scene
+            // swap from loading to scene, remove loading animation, cleanup, ...
+            {func: this.finishedLoading, thisContext: this},
+        );
+
+        console.log('starting to load scene!');
+        console.log('Loading stages: ' + this.loadingChain.length());
+
+        this.loadingChain.next();
+    }
+
+    //
+    // #############################################################################
+    //
 
     private getImageData?: (x: number, y: number, w: number, h: number) => ImageData
 
@@ -290,49 +417,6 @@ export class Scene {
         const bounds = this.groundContainer.getBounds()
         if (renderingContext) {
             this.getImageData = (x, y, w, h) => renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h)
-        }
-    }
-
-    finishedLoading() {
-        if(this.assetLoadingChain && !this.assetLoadingChain.hasFinished()) {
-            this.assetLoadingChain.next(); // continue with loading
-            return;
-        }
-
-
-        this.hasFinishedLoading = true;
-        this.startedLoading = true; // for safety
-
-        this.sceneRenderer?.removeDisplayable(this.loadingContainer);
-        this.registerContainersToEngine(); // register rendering containers
-
-        if(this.needsInit) {
-            this.initScoreContainer();
-            this.onInit();
-            this.updateImageDataFunction()
-            this.needsInit = false;
-        }
-
-        // auto start simulation
-        this.startSim();
-        
-    }
-
-
-
-    startLoading() {
-        if(!this.startedLoading && !this.hasFinishedLoading) {
-            this.startedLoading = true;
-            this.sceneRenderer?.addDisplayable(this.loadingContainer);
-
-
-            this.assetLoadingChain = new AsyncChain([
-                {func: this.loadScoreAssets, thisContext: this},
-                {func: this.onLoad, thisContext: this},
-                {func: chain => this.finishedLoading(), thisContext: this}, // swap from loading to scene
-            ]);
-
-            this.assetLoadingChain.next();
         }
     }
 
@@ -353,6 +437,8 @@ export class Scene {
     setDT(dt: number) {
         this.dt = dt;
     }
+
+    autostartSim = true;
 
     //
     // #############################################################################
@@ -410,42 +496,26 @@ export class Scene {
         return this.sceneRenderer;
     }
 
-    setSimulationEngine(sceneRenderer?: SceneRender) {
-        if(sceneRenderer) {
-            if(sceneRenderer != this.sceneRenderer) {
-                
-                if(this.hasFinishedLoading) {
-                    this.onDeInit();
-                }
+    setSceneRenderer(sceneRenderer?: SceneRender) {
 
-                this.sceneRenderer = sceneRenderer; // code order!!!
-                
+        if(sceneRenderer && !this.hasFinishedLoading) {
+            this.load();
+        }
+
+        if(sceneRenderer != this.sceneRenderer) {
+            this.sceneRenderer = sceneRenderer;
+
+            if(sceneRenderer) {
                 sceneRenderer.switchScene(this); // this will remove all registered rendering containers
 
-                if(!this.startedLoading) {
-                    this.startLoading();
-                }
-
-                // add rendering containers from this scene
-                if(this.hasFinishedLoading) {
-                    this.initScoreContainer();
-                    this.onInit();
-                    this.updateImageDataFunction()
-                } else {
-                    this.needsInit = true;
-                }
-
+                this.registerContainersToEngine(); // register rendering containers
             }
-        } else {
-            if(this.hasFinishedLoading) {
-                this.onDeInit();
-            }
-            this.sceneRenderer = undefined;
+
         }
     }
 
     renderTick(dt: number) {
-        if(this.startedLoading && !this.hasFinishedLoading) {
+        if(this.currentlyLoading) {
             this.updateLoadingAnimation(dt);
         }
 
@@ -466,6 +536,13 @@ export class Scene {
 
 
     constructor() {
+
+        // setup graphic containers
+        this.setupContainers();
+
+        // setup container for loading animation
+        this.initLoadingContainer();
+
         // register events
         const _this = this;
         Events.on(this.engine.world, "beforeAdd", (e: IEventComposite<Composite>) => {
@@ -475,15 +552,15 @@ export class Scene {
         Events.on(this.engine.world, "afterRemove", (e: IEventComposite<Composite>) => {
             _this.removePhysics(e.object);
         });
-        this.setupContainers();
+
 
         this.simTicker = new Timer(this.simSleepTime, (delta) => {
-            // delta is the time from last call
+            // delta is the time from last render call
             _this.update();
         });
-
-        this.initLoadingContainer();
     }
+
+
 
     //
     // #############################################################################
@@ -683,6 +760,11 @@ export class Scene {
         // TODO
     }
 
+    //
+    // #############################################################################
+    //
+
+
     private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
         const bodies: Body[] = Composite.allBodies(this.engine.world)
 
@@ -724,6 +806,11 @@ export class Scene {
         })
         return result
 	}
+
+
+    //
+    // #############################################################################
+    //
 
 
     /**
@@ -810,26 +897,65 @@ export class Scene {
     // User defined functions
     //
 
+
     /**
-     * load all textures and call chain.next() when done
-     * please do not block within this method and use PIXI.Loader callbacks
+     * Loading of a scene:
+     *
+     * if this is a reset: call deInit
+     * (scene has to be initialized)
+     *
+     * Do after full reset or first time load:
+     * ---> loading animation
+     *  1. Load resources for internal things
+     *  2. call onLoad
+     *
+     * Do after position/scene reset:
+     * ---> loading animation
+     *
+     *  3. Init internal things
+     *      - score screen
+     *      - ???
+     *  4. call onInit
+     *
+     * ---> remove/disable loading animation
      */
-    onLoad(chain: AsyncChain) {
+
+
+    /**
+     * unload all assets
+     */
+    onUnloadAssets(chain: AsyncChain) {
+        console.log('on asset unload');
+        chain.next();
+    }
+
+    /**
+     * load all textures/resources and call chain.next() when done
+     * please do not block within this method and use the PIXI.Loader callbacks
+     */
+    onLoadAssets(chain: AsyncChain) {
+        console.log('on asset load');
         chain.next();
     }
 
     /**
      * called on scene switch
+     *
+     * create Robot, physics and other scene elements
+     *
+     * intit is included in the loading process
      */
-    onInit() {
-
+    onInit(chain: AsyncChain) {
+        console.log('on init');
+        chain.next();
     }
 
     /**
-     * called on scene switch to null scene
+     * called on scene reset/unload
      */
-    onDeInit() {
-
+    onDeInit(chain: AsyncChain) {
+        console.log('on deinit/unload');
+        chain.next();
     }
 
     /**
@@ -837,7 +963,7 @@ export class Scene {
      * destroy all loaded textures
      */
     onDestroy() {
-
+        console.log('on destroy');
     }
 
     /**
@@ -848,7 +974,8 @@ export class Scene {
     }
 
     /**
-     * called after all updates
+     * called after all physics updates
+     * probably use onUpdate instead
      */
     onUpdatePostPhysics() {
 

@@ -7,7 +7,7 @@ import {Asset} from "../../SharedAssetLoader";
 
 export class RRCRainbowScene extends RRCScene {
 
-    getLineFollowingAsset() {
+    getAsset() {
         switch (this.ageGroup) {
             case AgeGroup.ES:
                 if(randomBool()) {
@@ -30,8 +30,8 @@ export class RRCRainbowScene extends RRCScene {
 
     backgroundAsset: Asset = null;
 
-    onLoad(chain: AsyncChain) {
-        this.backgroundAsset = this.getLineFollowingAsset();
+    onLoadAssets(chain: AsyncChain) {
+        this.backgroundAsset = this.getAsset();
         RRC.loader.load(() => {
                 chain.next();
             },
@@ -39,11 +39,12 @@ export class RRCRainbowScene extends RRCScene {
         );
     }
 
-    onInit() {
+    onInit(chain: AsyncChain) {
         let goal = RRC.loader.get(this.backgroundAsset).texture;
         this.goalSprite = new PIXI.Sprite(goal);
 
         this.groundContainer.addChild(this.goalSprite);
+        chain.next();
     }
 
 

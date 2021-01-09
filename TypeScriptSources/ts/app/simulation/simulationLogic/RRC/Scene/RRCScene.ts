@@ -28,7 +28,7 @@ export class RRCScene extends Scene {
     scoreText3: PIXI.Text;
     scoreTextContainer: PIXI.Container = new PIXI.Container();
 
-    initScoreContainer() {
+    initScoreContainer(chain: AsyncChain) {
         this.scoreContainer.zIndex = this.scoreContainerZ;
 
         let goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
@@ -63,6 +63,8 @@ export class RRCScene extends Scene {
         this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText);
 
         this.scoreContainer.addChild(this.scoreTextContainer);
+
+        chain.next();
     }
 
     updateScoreAnimation(dt: number) {
@@ -83,11 +85,12 @@ export class RRCScene extends Scene {
         this.scoreText3.text = text;
         this.scoreText3.position.set(-this.scoreText.width/2+3, -this.scoreText.height/2);
     }
-    
 
-    onInit() {
+
+    onInit(chain: AsyncChain) {
         this.setScore(266);
         this.showScoreScreen(100);
+        chain.next();
     }
 
 

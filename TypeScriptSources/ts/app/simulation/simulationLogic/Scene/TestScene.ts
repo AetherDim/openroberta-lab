@@ -17,11 +17,11 @@ export class TestScene extends Scene {
      * 
      * @override from Scene
      */
-    onLoad(chain: AsyncChain) {
+    onLoadAssets(chain: AsyncChain) {
         setTimeout(() => {
-            chain.next();
             this.setScore(266);
             this.showScoreScreen(10);
+            chain.next();
         }, 0);
     }
 
@@ -38,7 +38,7 @@ export class TestScene extends Scene {
      * 
      * @override from Scene
      */
-    onInit() {
+    onInit(chain: AsyncChain) {
 
         // use 0.001 for EV3
         const scale = 0.001;
@@ -234,6 +234,9 @@ export class TestScene extends Scene {
 
         const allBodies = Composite.allBodies(world)
         allBodies.forEach(body => body.slop *= scale)
+
+
+        chain.next();
     }
 
 }

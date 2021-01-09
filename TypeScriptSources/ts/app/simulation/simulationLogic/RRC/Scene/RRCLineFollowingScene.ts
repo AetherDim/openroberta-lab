@@ -19,7 +19,7 @@ export class RRCLineFollowingScene extends RRCScene {
         }
     }
 
-    onLoad(chain: AsyncChain) {
+    onLoadAssets(chain: AsyncChain) {
         RRC.loader.load(() => {
             chain.next();
         },
@@ -27,11 +27,13 @@ export class RRCLineFollowingScene extends RRCScene {
         );
     }
 
-    onInit() {
+    onInit(chain: AsyncChain) {
         let goal = RRC.loader.get(this.getLineFollowingAsset()).texture;
         this.goalSprite = new PIXI.Sprite(goal);
 
         this.groundContainer.addChild(this.goalSprite);
+
+        chain.next();
     }
 
 

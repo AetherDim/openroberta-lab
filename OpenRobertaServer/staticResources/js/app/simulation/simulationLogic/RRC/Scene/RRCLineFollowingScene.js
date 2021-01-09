@@ -30,15 +30,16 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup"], 
                     return RRC.LINE_FOLLOWING_BACKGROUND_HS;
             }
         };
-        RRCLineFollowingScene.prototype.onLoad = function (chain) {
+        RRCLineFollowingScene.prototype.onLoadAssets = function (chain) {
             RRC.loader.load(function () {
                 chain.next();
             }, this.getLineFollowingAsset());
         };
-        RRCLineFollowingScene.prototype.onInit = function () {
+        RRCLineFollowingScene.prototype.onInit = function (chain) {
             var goal = RRC.loader.get(this.getLineFollowingAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);
+            chain.next();
         };
         return RRCLineFollowingScene;
     }(RRCScene_1.RRCScene));

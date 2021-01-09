@@ -11,16 +11,31 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
     }());
     exports.AsyncListener = AsyncListener;
     var AsyncChain = /** @class */ (function () {
-        function AsyncChain(listeners) {
+        function AsyncChain() {
+            var listeners = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                listeners[_i] = arguments[_i];
+            }
             this.index = 0;
             this.listeners = listeners;
         }
+        AsyncChain.prototype.push = function () {
+            var _this_1 = this;
+            var listeners = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                listeners[_i] = arguments[_i];
+            }
+            listeners.forEach(function (listener) {
+                _this_1.listeners.push(listener);
+            });
+        };
         AsyncChain.prototype.next = function () {
             if (this.listeners.length <= this.index) {
                 return;
             }
             var listener = this.listeners[this.index];
             this.index++;
+            console.log('Chain Index: ' + this.index);
             listener.func.call(listener.thisContext, this);
         };
         AsyncChain.prototype.hasFinished = function () {
@@ -28,6 +43,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         };
         AsyncChain.prototype.reset = function () {
             this.index = 0;
+        };
+        AsyncChain.prototype.length = function () {
+            return this.listeners.length;
         };
         return AsyncChain;
     }());
@@ -37,6 +55,11 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         // #############################################################################
         //
         function Scene() {
+            /**
+             * Represents the nuber of robots after this scene has been initialized.
+             * The GUI needs this information before the scene has finished loading.
+             * @protected
+             */
             this.numberOfRobots = 1;
             /**
              * All programmable robots within the scene.
@@ -112,9 +135,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             //
             // #############################################################################
             //
+            this.currentlyLoading = false;
+            this.resourcesLoaded = false;
+            this.hasBeenInitialized = false;
             this.hasFinishedLoading = false;
-            this.startedLoading = false;
-            this.needsInit = false;
             //
             // #############################################################################
             //
@@ -126,6 +150,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
              * current delta time for the physics simulation
              */
             this.dt = 0.016;
+            this.autostartSim = true;
             //
             // #############################################################################
             //
@@ -137,6 +162,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
              * whether to create debug displayables to show all physics objects
              */
             this.debugPixiRendering = false;
+            // setup graphic containers
+            this.setupContainers();
+            // setup container for loading animation
+            this.initLoadingContainer();
             // register events
             var _this = this;
             matter_js_1.Events.on(this.engine.world, "beforeAdd", function (e) {
@@ -145,12 +174,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             matter_js_1.Events.on(this.engine.world, "afterRemove", function (e) {
                 _this.removePhysics(e.object);
             });
-            this.setupContainers();
             this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
-                // delta is the time from last call
+                // delta is the time from last render call
                 _this.update();
             });
-            this.initLoadingContainer();
         }
         Scene.prototype.getProgramManager = function () {
             return this.programManager;
@@ -171,6 +198,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         };
         Scene.prototype.registerContainersToEngine = function () {
             if (!this.sceneRenderer) {
+                console.warn('No renderer to register containers to!');
                 return;
             }
             this.sceneRenderer.add(this.groundContainer);
@@ -196,7 +224,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.loadScoreAssets = function (chain) {
             chain.next();
         };
-        Scene.prototype.initScoreContainer = function () {
+        Scene.prototype.unloadScoreAssets = function (chain) {
+            chain.next();
+        };
+        Scene.prototype.initScoreContainer = function (chain) {
             this.scoreContainer.zIndex = this.scoreContainerZ;
             this.scoreText.style = new PIXI.TextStyle({
                 fontFamily: 'Arial',
@@ -207,6 +238,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.scoreContainer.x = 200;
             this.scoreContainer.y = 200;
             this.updateScoreText();
+            chain.next();
         };
         Scene.prototype.updateScoreText = function () {
             this.scoreText.text = "Score: " + this.getScore();
@@ -251,6 +283,77 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingAnimation.y = this.sceneRenderer.getViewHeight() * 0.5 + this.sceneRenderer.getHeight() * 0.3;
             this.loadingAnimation.rotation += 0.05 * dt;
         };
+        Scene.prototype.finishedLoading = function (chain) {
+            var _a;
+            this.currentlyLoading = false;
+            this.hasFinishedLoading = true;
+            this.hasBeenInitialized = true;
+            // remove loading animation
+            (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.remove(this.loadingContainer);
+            // update image for rgb sensor
+            this.updateImageDataFunction();
+            if (this.autostartSim) {
+                // auto start simulation
+                this.startSim();
+            }
+            console.log('Finished loading!');
+            chain.next(); // technically we don't need this
+        };
+        Scene.prototype.fullReset = function () {
+            this.load(true);
+        };
+        Scene.prototype.reset = function () {
+            this.load();
+        };
+        /**
+         * load or reload this scene
+         * @param forceLoadAssets
+         */
+        Scene.prototype.load = function (forceLoadAssets) {
+            var _this_1 = this;
+            var _a;
+            if (forceLoadAssets === void 0) { forceLoadAssets = false; }
+            if (this.currentlyLoading) {
+                console.warn('Already loading scene... !');
+                return;
+            }
+            this.currentlyLoading = true; // this flag will start loading animation update
+            this.hasFinishedLoading = false;
+            // should not run while loading running
+            this.stopSim();
+            // start loading animation
+            (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.addDisplayable(this.loadingContainer);
+            // build new async chain
+            this.loadingChain = new AsyncChain();
+            if (!this.resourcesLoaded || forceLoadAssets) {
+                if (this.resourcesLoaded) {
+                    // unload resources
+                    this.loadingChain.push({ func: this.unloadScoreAssets, thisContext: this }, // unload score assets
+                    { func: this.onUnloadAssets, thisContext: this }, // unload user assets
+                    { func: function (chain) { _this_1.resourcesLoaded = false; chain.next(); }, thisContext: this });
+                }
+                // load resources
+                this.loadingChain.push({ func: this.loadScoreAssets, thisContext: this }, // load score assets for this scene
+                { func: this.onLoadAssets, thisContext: this }, // load user assets
+                // set resource loaded flag
+                { func: function (chain) { _this_1.resourcesLoaded = true; chain.next(); }, thisContext: this });
+            }
+            if (this.hasBeenInitialized) {
+                // unload old things
+                this.loadingChain.push(
+                // TODO: ???
+                { func: this.onDeInit, thisContext: this }, // deinit scene
+                { func: function (chain) { _this_1.hasBeenInitialized = false; chain.next(); }, thisContext: this });
+            }
+            // finish loading
+            this.loadingChain.push({ func: this.initScoreContainer, thisContext: this }, // init score container
+            { func: this.onInit, thisContext: this }, // init scene
+            // swap from loading to scene, remove loading animation, cleanup, ...
+            { func: this.finishedLoading, thisContext: this });
+            console.log('starting to load scene!');
+            console.log('Loading stages: ' + this.loadingChain.length());
+            this.loadingChain.next();
+        };
         Scene.prototype.updateImageDataFunction = function () {
             var _a;
             var canvas = (_a = this.getRenderer()) === null || _a === void 0 ? void 0 : _a.getCanvasFromDisplayObject(this.groundContainer);
@@ -258,39 +361,6 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             var bounds = this.groundContainer.getBounds();
             if (renderingContext) {
                 this.getImageData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
-            }
-        };
-        Scene.prototype.finishedLoading = function () {
-            var _a;
-            if (this.assetLoadingChain && !this.assetLoadingChain.hasFinished()) {
-                this.assetLoadingChain.next(); // continue with loading
-                return;
-            }
-            this.hasFinishedLoading = true;
-            this.startedLoading = true; // for safety
-            (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.removeDisplayable(this.loadingContainer);
-            this.registerContainersToEngine(); // register rendering containers
-            if (this.needsInit) {
-                this.initScoreContainer();
-                this.onInit();
-                this.updateImageDataFunction();
-                this.needsInit = false;
-            }
-            // auto start simulation
-            this.startSim();
-        };
-        Scene.prototype.startLoading = function () {
-            var _this_1 = this;
-            var _a;
-            if (!this.startedLoading && !this.hasFinishedLoading) {
-                this.startedLoading = true;
-                (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.addDisplayable(this.loadingContainer);
-                this.assetLoadingChain = new AsyncChain([
-                    { func: this.loadScoreAssets, thisContext: this },
-                    { func: this.onLoad, thisContext: this },
-                    { func: function (chain) { return _this_1.finishedLoading(); }, thisContext: this },
-                ]);
-                this.assetLoadingChain.next();
             }
         };
         Scene.prototype.setDT = function (dt) {
@@ -313,38 +383,21 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;
         };
-        Scene.prototype.setSimulationEngine = function (sceneRenderer) {
-            if (sceneRenderer) {
-                if (sceneRenderer != this.sceneRenderer) {
-                    if (this.hasFinishedLoading) {
-                        this.onDeInit();
-                    }
-                    this.sceneRenderer = sceneRenderer; // code order!!!
-                    sceneRenderer.switchScene(this); // this will remove all registered rendering containers
-                    if (!this.startedLoading) {
-                        this.startLoading();
-                    }
-                    // add rendering containers from this scene
-                    if (this.hasFinishedLoading) {
-                        this.initScoreContainer();
-                        this.onInit();
-                        this.updateImageDataFunction();
-                    }
-                    else {
-                        this.needsInit = true;
-                    }
-                }
+        Scene.prototype.setSceneRenderer = function (sceneRenderer) {
+            if (sceneRenderer && !this.hasFinishedLoading) {
+                this.load();
             }
-            else {
-                if (this.hasFinishedLoading) {
-                    this.onDeInit();
+            if (sceneRenderer != this.sceneRenderer) {
+                this.sceneRenderer = sceneRenderer;
+                if (sceneRenderer) {
+                    sceneRenderer.switchScene(this); // this will remove all registered rendering containers
+                    this.registerContainersToEngine(); // register rendering containers
                 }
-                this.sceneRenderer = undefined;
             }
         };
         Scene.prototype.renderTick = function (dt) {
             var _a;
-            if (this.startedLoading && !this.hasFinishedLoading) {
+            if (this.currentlyLoading) {
                 this.updateLoadingAnimation(dt);
             }
             if (this.showScore) {
@@ -517,6 +570,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.onDestroy();
             // TODO
         };
+        //
+        // #############################################################################
+        //
         Scene.prototype.forEachBodyPartVertices = function (code) {
             var bodies = matter_js_1.Composite.allBodies(this.engine.world);
             for (var i = 0; i < bodies.length; i++) {
@@ -554,6 +610,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             });
             return result;
         };
+        //
+        // #############################################################################
+        //
         /**
          * update physics and robots
          */
@@ -625,27 +684,65 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         // User defined functions
         //
         /**
-         * load all textures and call chain.next() when done
-         * please do not block within this method and use PIXI.Loader callbacks
+         * Loading of a scene:
+         *
+         * if this is a reset: call deInit
+         * (scene has to be initialized)
+         *
+         * Do after full reset or first time load:
+         * ---> loading animation
+         *  1. Load resources for internal things
+         *  2. call onLoad
+         *
+         * Do after position/scene reset:
+         * ---> loading animation
+         *
+         *  3. Init internal things
+         *      - score screen
+         *      - ???
+         *  4. call onInit
+         *
+         * ---> remove/disable loading animation
          */
-        Scene.prototype.onLoad = function (chain) {
+        /**
+         * unload all assets
+         */
+        Scene.prototype.onUnloadAssets = function (chain) {
+            console.log('on asset unload');
+            chain.next();
+        };
+        /**
+         * load all textures/resources and call chain.next() when done
+         * please do not block within this method and use the PIXI.Loader callbacks
+         */
+        Scene.prototype.onLoadAssets = function (chain) {
+            console.log('on asset load');
             chain.next();
         };
         /**
          * called on scene switch
+         *
+         * create Robot, physics and other scene elements
+         *
+         * intit is included in the loading process
          */
-        Scene.prototype.onInit = function () {
+        Scene.prototype.onInit = function (chain) {
+            console.log('on init');
+            chain.next();
         };
         /**
-         * called on scene switch to null scene
+         * called on scene reset/unload
          */
-        Scene.prototype.onDeInit = function () {
+        Scene.prototype.onDeInit = function (chain) {
+            console.log('on deinit/unload');
+            chain.next();
         };
         /**
          * destroy this scene
          * destroy all loaded textures
          */
         Scene.prototype.onDestroy = function () {
+            console.log('on destroy');
         };
         /**
          * called before updating physics and robots
@@ -653,7 +750,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.onUpdate = function () {
         };
         /**
-         * called after all updates
+         * called after all physics updates
+         * probably use onUpdate instead
          */
         Scene.prototype.onUpdatePostPhysics = function () {
         };

@@ -22,7 +22,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             _this.backgroundAsset = null;
             return _this;
         }
-        RRCRainbowScene.prototype.getLineFollowingAsset = function () {
+        RRCRainbowScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
                 case AgeGroup_1.AgeGroup.ES:
                     if (Random_1.randomBool()) {
@@ -42,16 +42,17 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                     return RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getRandomAsset();
             }
         };
-        RRCRainbowScene.prototype.onLoad = function (chain) {
-            this.backgroundAsset = this.getLineFollowingAsset();
+        RRCRainbowScene.prototype.onLoadAssets = function (chain) {
+            this.backgroundAsset = this.getAsset();
             RRC.loader.load(function () {
                 chain.next();
             }, this.backgroundAsset);
         };
-        RRCRainbowScene.prototype.onInit = function () {
+        RRCRainbowScene.prototype.onInit = function (chain) {
             var goal = RRC.loader.get(this.backgroundAsset).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);
+            chain.next();
         };
         return RRCRainbowScene;
     }(RRCScene_1.RRCScene));

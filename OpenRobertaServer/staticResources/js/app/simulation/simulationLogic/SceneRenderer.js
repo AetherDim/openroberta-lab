@@ -77,20 +77,24 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             return this.app.renderer.extract.canvas(object);
         };
         SceneRender.prototype.switchScene = function (scene) {
+            var _a;
             if (!scene) {
+                console.log('undefined scene!');
                 scene = new Scene_1.Scene();
             }
             if (this.scene == scene) {
                 return;
             }
+            (_a = this.scene) === null || _a === void 0 ? void 0 : _a.setSceneRenderer(null); // unregister this renderer
             // remove all children from PIXI renderer
             if (this.scrollView.children.length > 0) {
-                this.scrollView.removeChildren(0, this.scrollView.children.length - 1);
+                //console.log('Number of children: ' + this.scrollView.children.length);
+                this.scrollView.removeChildren(0, this.scrollView.children.length);
             }
             // reset rendering scale and offset
             this.scrollView.reset();
             this.scene = scene;
-            scene.setSimulationEngine(this);
+            scene.setSceneRenderer(this);
         };
         // TODO: remove before add? only add once?
         SceneRender.prototype.addDisplayable = function (displayable) {

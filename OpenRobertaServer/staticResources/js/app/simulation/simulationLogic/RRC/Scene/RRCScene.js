@@ -28,7 +28,7 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader"], function
                 chain.next();
             }, RRC.PROGGY_TINY_FONT, RRC.GOAL_BACKGROUND);
         };
-        RRCScene.prototype.initScoreContainer = function () {
+        RRCScene.prototype.initScoreContainer = function (chain) {
             this.scoreContainer.zIndex = this.scoreContainerZ;
             var goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
             this.goalSprite = new PIXI.Sprite(goal);
@@ -51,6 +51,7 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader"], function
             });
             this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText);
             this.scoreContainer.addChild(this.scoreTextContainer);
+            chain.next();
         };
         RRCScene.prototype.updateScoreAnimation = function (dt) {
             this.scoreTextContainer.x = this.goalSprite.width / 2;
@@ -66,9 +67,10 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader"], function
             this.scoreText3.text = text;
             this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);
         };
-        RRCScene.prototype.onInit = function () {
+        RRCScene.prototype.onInit = function (chain) {
             this.setScore(266);
             this.showScoreScreen(100);
+            chain.next();
         };
         return RRCScene;
     }(Scene_1.Scene));

@@ -100,8 +100,9 @@ export class SceneRender {
     }
 
 
-    switchScene(scene: Scene) {
+    switchScene(scene?: Scene) {
         if(!scene) {
+            console.log('undefined scene!')
             scene = new Scene();
         }
 
@@ -109,9 +110,12 @@ export class SceneRender {
             return;
         }
 
+        this.scene?.setSceneRenderer(null); // unregister this renderer
+
         // remove all children from PIXI renderer
         if(this.scrollView.children.length > 0) {
-            this.scrollView.removeChildren(0, this.scrollView.children.length-1);
+            //console.log('Number of children: ' + this.scrollView.children.length);
+            this.scrollView.removeChildren(0, this.scrollView.children.length);
         }
 
         // reset rendering scale and offset
@@ -119,7 +123,7 @@ export class SceneRender {
 
         this.scene = scene
 
-        scene.setSimulationEngine(this);
+        scene.setSceneRenderer(this);
 
     }
 

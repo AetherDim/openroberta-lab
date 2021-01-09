@@ -27,12 +27,12 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
          *
          * @override from Scene
          */
-        TestScene.prototype.onLoad = function (chain) {
+        TestScene.prototype.onLoadAssets = function (chain) {
             var _this = this;
             setTimeout(function () {
-                chain.next();
                 _this.setScore(266);
                 _this.showScoreScreen(10);
+                chain.next();
             }, 0);
         };
         TestScene.prototype.onInteractionEvent = function (ev) {
@@ -45,7 +45,7 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
          *
          * @override from Scene
          */
-        TestScene.prototype.onInit = function () {
+        TestScene.prototype.onInit = function (chain) {
             // use 0.001 for EV3
             var scale = 0.001;
             var grid = this.engine.broadphase;
@@ -203,6 +203,7 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
             matter_js_1.World.add(world, bodies);
             var allBodies = matter_js_1.Composite.allBodies(world);
             allBodies.forEach(function (body) { return body.slop *= scale; });
+            chain.next();
         };
         return TestScene;
     }(Scene_1.Scene));

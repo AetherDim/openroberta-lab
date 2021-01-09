@@ -6,6 +6,7 @@ import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
 import {Scene} from "./Scene/Scene";
 import {TestScene} from "./Scene/TestScene";
 import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
+import {RRCScene} from "./RRC/Scene/RRCScene";
 
 
 // TODO: check whether this has to be defined in here
@@ -100,7 +101,25 @@ sceneManager.registerScene(
     'TestScene',
     'Test scene with all sim features',
     () => {
-        return new TestScene();
+            return new TestScene();
+        }
+    ),
+
+    new SceneHandle(
+        'Empty Scene',
+        'EmptyScene',
+        'Empty Scene',
+        () => {
+            return new Scene();
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Test Scene',
+        'RRCTest',
+        'Roborave Cyberspace Test',
+        () => {
+            return new RRCScene(AgeGroup.ES);
         }
     ),
 
@@ -258,7 +277,11 @@ export function getScenes(): SceneHandle[] {
 }
 
 export function selectScene(ID: string) {
-    engine.switchScene(sceneManager.getScene(ID));
+    const scene = sceneManager.getScene(ID);
+    if(scene) {
+        scene.reset();
+        engine.switchScene(scene);
+    }
 }
 
 export function nextScene() {
