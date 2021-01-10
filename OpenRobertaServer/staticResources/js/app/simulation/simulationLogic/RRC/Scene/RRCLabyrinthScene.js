@@ -16,7 +16,13 @@ define(["require", "exports", "matter-js", "../../Displayable", "../../Unit", ".
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCLabyrinthScene = void 0;
     var LabyrinthRect = /** @class */ (function () {
-        function LabyrinthRect() {
+        function LabyrinthRect(labyrinthRect) {
+            this.x = labyrinthRect.x;
+            this.y = labyrinthRect.y;
+            this.w = labyrinthRect.w;
+            this.h = labyrinthRect.h;
+            this.rotation = labyrinthRect.rotation;
+            this.color = labyrinthRect.color;
         }
         return LabyrinthRect;
     }());
@@ -274,9 +280,9 @@ define(["require", "exports", "matter-js", "../../Displayable", "../../Unit", ".
                 var y = Unit_1.Unit.fromLength(rect.y);
                 var w = Unit_1.Unit.fromLength(rect.w);
                 var h = Unit_1.Unit.fromLength(rect.h);
-                var body = Displayable_1.createRect(x, y, w, h, 0, { color: rect.color, strokeColor: rect.color });
+                var body = Displayable_1.createRect(x + w / 2, y + h / 2, w, h, 0, { color: rect.color, strokeColor: rect.color });
                 body.displayable.rotation = rect.rotation;
-                //Body.setStatic(body, true);
+                matter_js_1.Body.setStatic(body, true);
                 body.enableMouseInteraction = true;
                 matter_js_1.World.add(_this.engine.world, body);
             });

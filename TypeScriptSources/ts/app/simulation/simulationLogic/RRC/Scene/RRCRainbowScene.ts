@@ -28,7 +28,7 @@ export class RRCRainbowScene extends RRCScene {
         }
     }
 
-    backgroundAsset: Asset = null;
+    backgroundAsset?: Asset;
 
     onLoadAssets(chain: AsyncChain) {
         this.backgroundAsset = this.getAsset();
@@ -42,10 +42,12 @@ export class RRCRainbowScene extends RRCScene {
     onInit(chain: AsyncChain) {
         this.initRobot();
 
-        let goal = RRC.loader.get(this.backgroundAsset).texture;
-        this.goalSprite = new PIXI.Sprite(goal);
+        if (this.backgroundAsset) {
+            let goal = RRC.loader.get(this.backgroundAsset).texture;
+            this.goalSprite = new PIXI.Sprite(goal);
 
-        this.groundContainer.addChild(this.goalSprite);
+            this.groundContainer.addChild(this.goalSprite);
+        }
         chain.next();
     }
 

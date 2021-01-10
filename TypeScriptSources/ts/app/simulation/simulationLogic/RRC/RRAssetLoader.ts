@@ -9,7 +9,7 @@ class RRCAsset extends Asset {
 }
 
 class RRCFontAsset extends FontAsset {
-    constructor(css: string, families: string[], name: string = null) {
+    constructor(css: string, families: string[], name?: string) {
         super(RRC_ASSET_PATH + css, families, name);
     }
 }
