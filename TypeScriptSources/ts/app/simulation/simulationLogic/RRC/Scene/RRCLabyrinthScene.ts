@@ -270,7 +270,8 @@ export class RRCLabyrinthScene extends RRCScene {
             const h = Unit.fromLength(rect.h);
             const body: Body = createRect(x, y, w, h, 0, {color: rect.color, strokeColor: rect.color});
             body.displayable.rotation = rect.rotation;
-            Body.setStatic(body, true);
+            //Body.setStatic(body, true);
+            body.enableMouseInteraction = true;
             World.add(this.engine.world, body);
         });
     }
@@ -297,6 +298,8 @@ export class RRCLabyrinthScene extends RRCScene {
     }
 
     onInit(chain: AsyncChain) {
+
+        this.initRobot();
 
         let goal = RRC.loader.get(this.getAsset()).texture;
         this.goalSprite = new PIXI.Sprite(goal);

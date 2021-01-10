@@ -28,6 +28,8 @@ export class RRCLineFollowingScene extends RRCScene {
     }
 
     onInit(chain: AsyncChain) {
+        this.initRobot();
+
         let goal = RRC.loader.get(this.getAsset()).texture;
         this.goalSprite = new PIXI.Sprite(goal);
 

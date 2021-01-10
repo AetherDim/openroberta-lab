@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader"], function (require, exports, Scene_1, RRC) {
+define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Robot/Robot", "matter-js"], function (require, exports, Scene_1, RRC, Robot_1, matter_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -68,9 +68,15 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader"], function
             this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);
         };
         RRCScene.prototype.onInit = function (chain) {
+            this.initRobot();
             this.setScore(266);
             this.showScoreScreen(100);
             chain.next();
+        };
+        RRCScene.prototype.initRobot = function () {
+            var robot = Robot_1.Robot.EV3();
+            robot.body.enableMouseInteraction = true;
+            matter_js_1.World.add(this.world, robot.physicsComposite);
         };
         return RRCScene;
     }(Scene_1.Scene));

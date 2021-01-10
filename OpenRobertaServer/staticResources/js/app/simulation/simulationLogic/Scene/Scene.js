@@ -169,6 +169,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
              * Physics engine used by the scene
              */
             this.engine = matter_js_1.Engine.create();
+            this.world = this.engine.world;
             /**
              * current delta time for the physics simulation
              */
@@ -191,10 +192,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.initLoadingContainer();
             // register events
             var _this = this;
-            matter_js_1.Events.on(this.engine.world, "beforeAdd", function (e) {
+            matter_js_1.Events.on(this.world, "beforeAdd", function (e) {
                 _this.addPhysics(e.object);
             });
-            matter_js_1.Events.on(this.engine.world, "afterRemove", function (e) {
+            matter_js_1.Events.on(this.world, "afterRemove", function (e) {
                 _this.removePhysics(e.object);
             });
             this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
@@ -370,7 +371,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             // remove robots
             this.robots.splice(0, this.robots.length);
             // remove all physic bodies
-            matter_js_1.Composite.clear(this.engine.world, false, true);
+            matter_js_1.Composite.clear(this.world, false, true);
             // remove all drawables from the containers
             this.clearAllContainers();
             chain.next();
@@ -442,6 +443,12 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 this.getImageData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
             }
         };
+        Scene.prototype.getEngine = function () {
+            return this.engine;
+        };
+        Scene.prototype.getWorld = function () {
+            return this.world;
+        };
         Scene.prototype.setDT = function (dt) {
             this.dt = dt;
         };
@@ -500,7 +507,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                         ev.cancel();
                         matter_js_1.Sleeping.set(body, false);
                         if (this.mouseConstraint) {
-                            matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
+                            matter_js_1.World.remove(this.world, this.mouseConstraint);
                         }
                         this.mouseConstraint = matter_js_1.Constraint.create({
                             bodyA: body,
@@ -508,13 +515,13 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                             pointB: mousePosition
                         });
                         // attach constraint
-                        matter_js_1.World.add(this.engine.world, this.mouseConstraint);
+                        matter_js_1.World.add(this.world, this.mouseConstraint);
                     }
                     break;
                 case ScrollView_1.EventType.RELEASE:
                     // remove constrain
                     if (this.mouseConstraint) {
-                        matter_js_1.World.remove(this.engine.world, this.mouseConstraint);
+                        matter_js_1.World.remove(this.world, this.mouseConstraint);
                         this.mouseConstraint = undefined;
                     }
                     break;
@@ -541,7 +548,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.getBodiesAt = function (position, singleBody) {
             if (singleBody === void 0) { singleBody = false; }
             var intersected = [];
-            var bodies = matter_js_1.Composite.allBodies(this.engine.world);
+            var bodies = matter_js_1.Composite.allBodies(this.world);
             // code borrowed from Matterjs MouseConstraint
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
@@ -654,7 +661,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         // #############################################################################
         //
         Scene.prototype.forEachBodyPartVertices = function (code) {
-            var bodies = matter_js_1.Composite.allBodies(this.engine.world);
+            var bodies = matter_js_1.Composite.allBodies(this.world);
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
                 // TODO: Use body.bounds for faster execution
@@ -740,7 +747,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             }
             // update rendering positions
             // TODO: switch to scene internal drawable list? better performance???
-            var bodies = matter_js_1.Composite.allBodies(this.engine.world);
+            var bodies = matter_js_1.Composite.allBodies(this.world);
             bodies.forEach(function (body) {
                 if (body.displayable) {
                     body.displayable.updateFromBody(body);
@@ -778,7 +785,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 var mouseConstraint = matter_js_1.MouseConstraint.create(this.engine, {
                     mouse: mouse
                 });
-                matter_js_1.World.add(this.engine.world, mouseConstraint);
+                matter_js_1.World.add(this.world, mouseConstraint);
             }
         };
         //

@@ -36,6 +36,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup"], 
             }, this.getAsset());
         };
         RRCLineFollowingScene.prototype.onInit = function (chain) {
+            this.initRobot();
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);

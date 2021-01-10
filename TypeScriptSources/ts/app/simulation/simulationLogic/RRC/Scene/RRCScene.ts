@@ -1,6 +1,8 @@
 import { AsyncChain, Scene } from "../../Scene/Scene";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
+import {Robot} from "../../Robot/Robot";
+import {World} from "matter-js";
 
 export class RRCScene extends Scene {
 
@@ -88,9 +90,16 @@ export class RRCScene extends Scene {
 
 
     onInit(chain: AsyncChain) {
+        this.initRobot();
         this.setScore(266);
         this.showScoreScreen(100);
         chain.next();
+    }
+
+    initRobot() {
+        let robot = Robot.EV3();
+        robot.body.enableMouseInteraction = true;
+        World.add(this.world, robot.physicsComposite);
     }
 
 

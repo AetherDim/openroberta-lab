@@ -40,6 +40,8 @@ export class RRCRainbowScene extends RRCScene {
     }
 
     onInit(chain: AsyncChain) {
+        this.initRobot();
+
         let goal = RRC.loader.get(this.backgroundAsset).texture;
         this.goalSprite = new PIXI.Sprite(goal);
 

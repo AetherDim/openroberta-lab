@@ -405,7 +405,7 @@ export class Scene {
         this.robots.splice(0, this.robots.length);
 
         // remove all physic bodies
-        Composite.clear(this.engine.world, false, true);
+        Composite.clear(this.world, false, true);
 
         // remove all drawables from the containers
         this.clearAllContainers();
@@ -517,6 +517,15 @@ export class Scene {
      * Physics engine used by the scene
      */
     readonly engine: Engine = Engine.create();
+    readonly world: World = this.engine.world;
+
+    getEngine(): Engine {
+        return this.engine;
+    }
+
+    getWorld(): World {
+        return this.world;
+    }
 
     /**
      * current delta time for the physics simulation
@@ -634,11 +643,11 @@ export class Scene {
 
         // register events
         const _this = this;
-        Events.on(this.engine.world, "beforeAdd", (e: IEventComposite<Composite>) => {
+        Events.on(this.world, "beforeAdd", (e: IEventComposite<Composite>) => {
             _this.addPhysics(e.object);
         });
 
-        Events.on(this.engine.world, "afterRemove", (e: IEventComposite<Composite>) => {
+        Events.on(this.world, "afterRemove", (e: IEventComposite<Composite>) => {
             _this.removePhysics(e.object);
         });
 
@@ -668,7 +677,7 @@ export class Scene {
                     ev.cancel()
                     Sleeping.set(body, false)
                     if (this.mouseConstraint) {
-                        World.remove(this.engine.world, this.mouseConstraint)
+                        World.remove(this.world, this.mouseConstraint)
                     }
                     this.mouseConstraint = Constraint.create({
                         bodyA: body,
@@ -676,14 +685,14 @@ export class Scene {
                         pointB: mousePosition
                     })
                     // attach constraint
-                    World.add(this.engine.world, this.mouseConstraint)
+                    World.add(this.world, this.mouseConstraint)
                 }
                 break;
 
             case EventType.RELEASE:
                 // remove constrain
                 if (this.mouseConstraint) {
-                    World.remove(this.engine.world, this.mouseConstraint)
+                    World.remove(this.world, this.mouseConstraint)
                     this.mouseConstraint = undefined
                 }
                 break;
@@ -715,7 +724,7 @@ export class Scene {
      */
     getBodiesAt(position: PIXI.IPointData, singleBody:boolean = false): Body[] {
         let intersected:Body[] = []
-        let bodies: Body[] = Composite.allBodies(this.engine.world);
+        let bodies: Body[] = Composite.allBodies(this.world);
 
         // code borrowed from Matterjs MouseConstraint
         for (let i = 0; i < bodies.length; i++) {
@@ -855,7 +864,7 @@ export class Scene {
 
 
     private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
-        const bodies: Body[] = Composite.allBodies(this.engine.world)
+        const bodies: Body[] = Composite.allBodies(this.world)
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
@@ -945,7 +954,7 @@ export class Scene {
 
         // update rendering positions
         // TODO: switch to scene internal drawable list? better performance???
-        var bodies = Composite.allBodies(this.engine.world);
+        var bodies = Composite.allBodies(this.world);
         bodies.forEach(body => {
             if(body.displayable) {
                 body.displayable.updateFromBody(body);
@@ -988,7 +997,7 @@ export class Scene {
             var mouseConstraint = MouseConstraint.create(this.engine, {
                 mouse: mouse
             });
-            World.add(this.engine.world, mouseConstraint);
+            World.add(this.world, mouseConstraint);
         }
 
     }

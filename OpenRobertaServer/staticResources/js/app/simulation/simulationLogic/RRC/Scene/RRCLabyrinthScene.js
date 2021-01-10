@@ -276,7 +276,8 @@ define(["require", "exports", "matter-js", "../../Displayable", "../../Unit", ".
                 var h = Unit_1.Unit.fromLength(rect.h);
                 var body = Displayable_1.createRect(x, y, w, h, 0, { color: rect.color, strokeColor: rect.color });
                 body.displayable.rotation = rect.rotation;
-                matter_js_1.Body.setStatic(body, true);
+                //Body.setStatic(body, true);
+                body.enableMouseInteraction = true;
                 matter_js_1.World.add(_this.engine.world, body);
             });
         };
@@ -296,6 +297,7 @@ define(["require", "exports", "matter-js", "../../Displayable", "../../Unit", ".
             }
         };
         RRCLabyrinthScene.prototype.onInit = function (chain) {
+            this.initRobot();
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);
