@@ -77,7 +77,6 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             return this.app.renderer.extract.canvas(object);
         };
         SceneRender.prototype.switchScene = function (scene, noLoad) {
-            var _a;
             if (noLoad === void 0) { noLoad = false; }
             if (!scene) {
                 console.log('undefined scene!');
@@ -86,7 +85,10 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             if (this.scene == scene) {
                 return;
             }
-            (_a = this.scene) === null || _a === void 0 ? void 0 : _a.setSceneRenderer(null); // unregister this renderer
+            if (scene) {
+                this.scene.stopSim();
+                this.scene.setSceneRenderer(null); // unregister this renderer
+            }
             // remove all children from PIXI renderer
             if (this.scrollView.children.length > 0) {
                 //console.log('Number of children: ' + this.scrollView.children.length);

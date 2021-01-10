@@ -110,7 +110,10 @@ export class SceneRender {
             return;
         }
 
-        this.scene?.setSceneRenderer(null); // unregister this renderer
+        if(scene) {
+            this.scene.stopSim();
+            this.scene.setSceneRenderer(null); // unregister this renderer
+        }
 
         // remove all children from PIXI renderer
         if(this.scrollView.children.length > 0) {
