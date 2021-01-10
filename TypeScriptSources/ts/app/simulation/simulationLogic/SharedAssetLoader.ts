@@ -118,6 +118,13 @@ export class SharedAssetLoader {
 
         let countToLoad = 1 + fontsToLoad.length;
 
+        // check whether we have anything to load
+        if((assetsToLoad.length + fontsToLoad.length) == 0) {
+            console.log('nothing to load.')
+            callback();
+            return;
+        }
+
 
         // TODO: threadless, lock?
         fontsToLoad.forEach(font => {

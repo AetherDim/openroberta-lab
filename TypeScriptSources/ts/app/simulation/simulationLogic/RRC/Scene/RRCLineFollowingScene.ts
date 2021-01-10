@@ -6,7 +6,7 @@ import {AgeGroup} from "../AgeGroup";
 export class RRCLineFollowingScene extends RRCScene {
 
 
-    getLineFollowingAsset() {
+    getAsset() {
         switch (this.ageGroup) {
             case AgeGroup.ES:
                 return RRC.LINE_FOLLOWING_BACKGROUND_ES;
@@ -23,12 +23,12 @@ export class RRCLineFollowingScene extends RRCScene {
         RRC.loader.load(() => {
             chain.next();
         },
-            this.getLineFollowingAsset()
+            this.getAsset()
         );
     }
 
     onInit(chain: AsyncChain) {
-        let goal = RRC.loader.get(this.getLineFollowingAsset()).texture;
+        let goal = RRC.loader.get(this.getAsset()).texture;
         this.goalSprite = new PIXI.Sprite(goal);
 
         this.groundContainer.addChild(this.goalSprite);

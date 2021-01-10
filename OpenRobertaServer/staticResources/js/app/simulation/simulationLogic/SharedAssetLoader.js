@@ -104,6 +104,12 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
                 return asset != null;
             });
             var countToLoad = 1 + fontsToLoad.length;
+            // check whether we have anything to load
+            if ((assetsToLoad.length + fontsToLoad.length) == 0) {
+                console.log('nothing to load.');
+                callback();
+                return;
+            }
             // TODO: threadless, lock?
             fontsToLoad.forEach(function (font) {
                 WebFont.load({

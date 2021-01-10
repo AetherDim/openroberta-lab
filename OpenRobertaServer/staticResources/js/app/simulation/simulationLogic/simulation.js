@@ -1,4 +1,4 @@
-define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, RRCRainbowScene_1, RRCScene_1) {
+define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneHandle = void 0;
@@ -75,6 +75,9 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
         SceneManager.prototype.getCurrentHandle = function () {
             return this.sceneHandleMap.get(this.currentID);
         };
+        SceneManager.prototype.setCurrentScene = function (ID) {
+            this.currentID = ID;
+        };
         return SceneManager;
     }());
     exports.SceneManager = SceneManager;
@@ -82,24 +85,46 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     //
     // register scenes
     //
-    sceneManager.registerScene(new SceneHandle('Test Scene', 'TestScene', 'Test scene with all sim features', function () {
+    sceneManager.registerScene(
+    //
+    // Test
+    //
+    new SceneHandle('Test Scene', 'TestScene', 'Test scene with all sim features', function () {
         return new TestScene_1.TestScene();
     }), new SceneHandle('Empty Scene', 'EmptyScene', 'Empty Scene', function () {
         return new Scene_1.Scene();
     }), new SceneHandle('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function () {
         return new RRCScene_1.RRCScene(AgeGroup_1.AgeGroup.ES);
-    }), new SceneHandle('RRC - Line Following - ES', 'RRCLineFollowingES', 'Roborave Cyberspace line following ES', function () {
+    }), 
+    //
+    //  Line Following
+    //
+    new SceneHandle('RRC - Line Following - ES', 'RRCLineFollowingES', 'Roborave Cyberspace line following ES', function () {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(AgeGroup_1.AgeGroup.ES);
     }), new SceneHandle('RRC - Line Following - MS', 'RRCLineFollowingMS', 'Roborave Cyberspace line following MS', function () {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(AgeGroup_1.AgeGroup.MS);
     }), new SceneHandle('RRC - Line Following - HS', 'RRCLineFollowingHS', 'Roborave Cyberspace line following HS', function () {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(AgeGroup_1.AgeGroup.HS);
-    }), new SceneHandle('RRC - Rainbow - ES', 'RRCRainbowES', 'Roborave Cyberspace Rainbow ES', function () {
+    }), 
+    //
+    // Rainbow
+    //
+    new SceneHandle('RRC - Rainbow - ES', 'RRCRainbowES', 'Roborave Cyberspace Rainbow ES', function () {
         return new RRCRainbowScene_1.RRCRainbowScene(AgeGroup_1.AgeGroup.ES);
     }), new SceneHandle('RRC - Rainbow - MS', 'RRCRainbowMS', 'Roborave Cyberspace Rainbow MS', function () {
         return new RRCRainbowScene_1.RRCRainbowScene(AgeGroup_1.AgeGroup.MS);
     }), new SceneHandle('RRC - Rainbow - HS', 'RRCRainbowHS', 'Roborave Cyberspace Rainbow HS', function () {
         return new RRCRainbowScene_1.RRCRainbowScene(AgeGroup_1.AgeGroup.HS);
+    }), 
+    //
+    // Labyrinth
+    //
+    new SceneHandle('RRC - Labyrinth - ES', 'RRCLabyrinthES', 'Roborave Cyberspace Labyrinth ES', function () {
+        return new RRCLabyrinthScene_1.RRCLabyrinthScene(AgeGroup_1.AgeGroup.ES);
+    }), new SceneHandle('RRC - Labyrinth - MS', 'RRCLabyrinthMS', 'Roborave Cyberspace Labyrinth MS', function () {
+        return new RRCLabyrinthScene_1.RRCLabyrinthScene(AgeGroup_1.AgeGroup.MS);
+    }), new SceneHandle('RRC - Labyrinth - HS', 'RRCLabyrinthHS', 'Roborave Cyberspace Labyrinth HS', function () {
+        return new RRCLabyrinthScene_1.RRCLabyrinthScene(AgeGroup_1.AgeGroup.HS);
     }));
     //
     // create engine
@@ -184,6 +209,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     exports.getScenes = getScenes;
     function selectScene(ID) {
         var scene = sceneManager.getScene(ID);
+        sceneManager.setCurrentScene(ID);
         engine.switchScene(scene, true);
         scene === null || scene === void 0 ? void 0 : scene.fullReset();
     }

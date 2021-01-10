@@ -7,6 +7,7 @@ import {Scene} from "./Scene/Scene";
 import {TestScene} from "./Scene/TestScene";
 import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 import {RRCScene} from "./RRC/Scene/RRCScene";
+import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 
 
 // TODO: check whether this has to be defined in here
@@ -88,6 +89,10 @@ export class SceneManager {
     getCurrentHandle(): SceneHandle {
         return this.sceneHandleMap.get(this.currentID);
     }
+
+    setCurrentScene(ID: string) {
+        this.currentID = ID;
+    }
 }
 
 
@@ -99,6 +104,11 @@ const sceneManager = new SceneManager();
 //
 
 sceneManager.registerScene(
+
+    //
+    // Test
+    //
+
     new SceneHandle(
     'Test Scene',
     'TestScene',
@@ -125,6 +135,10 @@ sceneManager.registerScene(
             return new RRCScene(AgeGroup.ES);
         }
     ),
+
+    //
+    //  Line Following
+    //
 
     new SceneHandle(
         'RRC - Line Following - ES',
@@ -153,6 +167,10 @@ sceneManager.registerScene(
         }
     ),
 
+    //
+    // Rainbow
+    //
+
     new SceneHandle(
         'RRC - Rainbow - ES',
         'RRCRainbowES',
@@ -177,6 +195,37 @@ sceneManager.registerScene(
         'Roborave Cyberspace Rainbow HS',
         () => {
             return new RRCRainbowScene(AgeGroup.HS);
+        }
+    ),
+
+    //
+    // Labyrinth
+    //
+
+    new SceneHandle(
+        'RRC - Labyrinth - ES',
+        'RRCLabyrinthES',
+        'Roborave Cyberspace Labyrinth ES',
+        () => {
+            return new RRCLabyrinthScene(AgeGroup.ES);
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Labyrinth - MS',
+        'RRCLabyrinthMS',
+        'Roborave Cyberspace Labyrinth MS',
+        () => {
+            return new RRCLabyrinthScene(AgeGroup.MS);
+        }
+    ),
+
+    new SceneHandle(
+        'RRC - Labyrinth - HS',
+        'RRCLabyrinthHS',
+        'Roborave Cyberspace Labyrinth HS',
+        () => {
+            return new RRCLabyrinthScene(AgeGroup.HS);
         }
     ),
 
@@ -281,6 +330,7 @@ export function getScenes(): SceneHandle[] {
 
 export function selectScene(ID: string) {
     const scene = sceneManager.getScene(ID);
+    sceneManager.setCurrentScene(ID);
     engine.switchScene(scene, true);
     scene?.fullReset();
 }

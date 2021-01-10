@@ -20,7 +20,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup"], 
         function RRCLineFollowingScene() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        RRCLineFollowingScene.prototype.getLineFollowingAsset = function () {
+        RRCLineFollowingScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
                 case AgeGroup_1.AgeGroup.ES:
                     return RRC.LINE_FOLLOWING_BACKGROUND_ES;
@@ -33,10 +33,10 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup"], 
         RRCLineFollowingScene.prototype.onLoadAssets = function (chain) {
             RRC.loader.load(function () {
                 chain.next();
-            }, this.getLineFollowingAsset());
+            }, this.getAsset());
         };
         RRCLineFollowingScene.prototype.onInit = function (chain) {
-            var goal = RRC.loader.get(this.getLineFollowingAsset()).texture;
+            var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);
             chain.next();

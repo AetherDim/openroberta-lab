@@ -176,7 +176,8 @@ require.config({
             { 'Scene':[
                 'RRCScene',
                 'RRCLineFollowingScene',
-                'RRCRainbowScene'
+                'RRCRainbowScene',
+                'RRCLabyrinthScene',
             ]}
         ]}
     ]),
