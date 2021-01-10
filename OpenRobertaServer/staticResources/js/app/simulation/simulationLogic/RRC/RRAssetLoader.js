@@ -11,26 +11,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 define(["require", "exports", "../SharedAssetLoader"], function (require, exports, SharedAssetLoader_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -45,12 +25,9 @@ define(["require", "exports", "../SharedAssetLoader"], function (require, export
     }(SharedAssetLoader_1.Asset));
     var RRCFontAsset = /** @class */ (function (_super) {
         __extends(RRCFontAsset, _super);
-        function RRCFontAsset(css) {
-            var families = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                families[_i - 1] = arguments[_i];
-            }
-            return _super.apply(this, __spread([exports.RRC_ASSET_PATH + css], families)) || this;
+        function RRCFontAsset(css, families, name) {
+            if (name === void 0) { name = null; }
+            return _super.call(this, exports.RRC_ASSET_PATH + css, families, name) || this;
         }
         return RRCFontAsset;
     }(SharedAssetLoader_1.FontAsset));
@@ -64,7 +41,7 @@ define(["require", "exports", "../SharedAssetLoader"], function (require, export
     exports.loader = new SharedAssetLoader_1.SharedAssetLoader();
     exports.BLANK_BACKGROUND = new RRCAsset('blank.svg');
     exports.GOAL_BACKGROUND = new RRCAsset('goal.svg');
-    exports.PROGGY_TINY_FONT = new RRCFontAsset('fonts/ProggyTiny.css', 'ProggyTiny');
+    exports.PROGGY_TINY_FONT = new RRCFontAsset('fonts/ProggyTiny.css', ['ProggyTiny']);
     // Labyrinth
     exports.LABYRINTH_BLANK_BACKGROUND_ES = new RRCAsset('labyrinth/es/labyrinth.svg');
     exports.LABYRINTH_BLANK_BACKGROUND_MS = new RRCAsset('labyrinth/ms/labyrinth.svg');

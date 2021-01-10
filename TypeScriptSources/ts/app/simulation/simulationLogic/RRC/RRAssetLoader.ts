@@ -9,8 +9,8 @@ class RRCAsset extends Asset {
 }
 
 class RRCFontAsset extends FontAsset {
-    constructor(css: string, ...families: string[]) {
-        super(RRC_ASSET_PATH + css, ...families);
+    constructor(css: string, families: string[], name: string = null) {
+        super(RRC_ASSET_PATH + css, families, name);
     }
 }
 
@@ -26,7 +26,7 @@ export const loader = new SharedAssetLoader();
 export const BLANK_BACKGROUND = new RRCAsset('blank.svg');
 export const GOAL_BACKGROUND = new RRCAsset('goal.svg');
 
-export const PROGGY_TINY_FONT = new RRCFontAsset('fonts/ProggyTiny.css', 'ProggyTiny');
+export const PROGGY_TINY_FONT = new RRCFontAsset('fonts/ProggyTiny.css', ['ProggyTiny']);
 
 // Labyrinth
 export const LABYRINTH_BLANK_BACKGROUND_ES = new RRCAsset('labyrinth/es/labyrinth.svg');

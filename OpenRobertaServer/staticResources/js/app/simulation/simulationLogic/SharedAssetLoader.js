@@ -17,13 +17,16 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
     }());
     exports.Asset = Asset;
     var FontAsset = /** @class */ (function () {
-        function FontAsset(css) {
-            var families = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                families[_i - 1] = arguments[_i];
-            }
+        function FontAsset(css, families, name) {
+            if (name === void 0) { name = null; }
             this.families = families;
             this.css = css;
+            if (name) {
+                this.name = name;
+            }
+            else {
+                this.name = css; // => the same as path
+            }
         }
         return FontAsset;
     }());
@@ -70,18 +73,19 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
     var SharedAssetLoader = /** @class */ (function () {
         function SharedAssetLoader() {
             this.loader = new PIXI.Loader(); // you can also create your own if you want
+            this.fontMap = new Map();
         }
         SharedAssetLoader.prototype.get = function (asset) {
             return this.loader.resources[asset.name];
         };
         SharedAssetLoader.prototype.load = function (callback) {
-            var _this = this;
+            var _this_1 = this;
             var assets = [];
             for (var _i = 1; _i < arguments.length; _i++) {
                 assets[_i - 1] = arguments[_i];
             }
             var fontsToLoad = assets.filter(function (asset) {
-                return (asset instanceof FontAsset);
+                return (asset instanceof FontAsset) && !_this_1.fontMap.get(asset.name);
             });
             var assetsToLoad = assets.map(function (asset) {
                 var assetToLoad = null;
@@ -91,7 +95,7 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
                 else {
                     assetToLoad = asset;
                 }
-                if (_this.get(assetToLoad)) {
+                if (_this_1.get(assetToLoad)) {
                     console.log('asset found!');
                     return null;
                 }
@@ -112,11 +116,13 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
             }
             // TODO: threadless, lock?
             fontsToLoad.forEach(function (font) {
+                var _this = _this_1;
                 WebFont.load({
                     inactive: function () {
                         console.warn('Font inactive');
                     },
                     active: function () {
+                        _this.fontMap.set(font.name, font);
                         countToLoad--;
                         if (countToLoad == 0) {
                             callback();
@@ -130,7 +136,7 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
             });
             assetsToLoad.forEach(function (asset) {
                 if (asset) {
-                    _this.loader.add(asset.name, asset.path);
+                    _this_1.loader.add(asset.name, asset.path);
                 }
             });
             this.loader.load(function () {

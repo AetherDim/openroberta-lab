@@ -21,10 +21,16 @@ export class FontAsset {
 
     readonly families: string[];
     readonly css: string;
+    readonly name: string;
 
-    constructor(css: string, ...families: string[]) {
+    constructor(css: string, families: string[], name: string = null) {
         this.families = families;
         this.css = css;
+        if(name) {
+            this.name = name;
+        } else {
+            this.name = css; // => the same as path
+        }
     }
 
 
@@ -84,6 +90,7 @@ export class MultiAsset {
 export class SharedAssetLoader {
 
     private readonly loader = new PIXI.Loader(); // you can also create your own if you want
+    private readonly fontMap = new Map<string, FontAsset>();
 
     get(asset: Asset): PIXI.LoaderResource {
         return this.loader.resources[asset.name];
@@ -91,7 +98,7 @@ export class SharedAssetLoader {
 
     load(callback:() => void, ...assets: (Asset|FontAsset)[]) {
         var fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
-            return (asset instanceof FontAsset);
+            return (asset instanceof FontAsset) && !this.fontMap.get(asset.name);
         });
 
         let assetsToLoad: Asset[] = assets.map(asset => {
@@ -128,11 +135,13 @@ export class SharedAssetLoader {
 
         // TODO: threadless, lock?
         fontsToLoad.forEach(font => {
+            const _this = this;
             WebFont.load({
                 inactive: () => {
                     console.warn('Font inactive');
                 },
                 active: () => {
+                    _this.fontMap.set(font.name, font);
                     countToLoad --;
                     if(countToLoad == 0) {
                         callback();
