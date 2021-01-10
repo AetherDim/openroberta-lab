@@ -110,7 +110,7 @@ export class SceneRender {
             return;
         }
 
-        if(scene) {
+        if(this.scene) {
             this.scene.stopSim();
             this.scene.setSceneRenderer(null); // unregister this renderer
         }

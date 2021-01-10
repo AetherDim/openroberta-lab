@@ -85,7 +85,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             if (this.scene == scene) {
                 return;
             }
-            if (scene) {
+            if (this.scene) {
                 this.scene.stopSim();
                 this.scene.setSceneRenderer(null); // unregister this renderer
             }
