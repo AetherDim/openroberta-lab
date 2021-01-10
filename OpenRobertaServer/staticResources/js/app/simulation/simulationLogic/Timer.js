@@ -7,7 +7,9 @@ define(["require", "exports"], function (require, exports) {
             this.running = false;
             this.sleepTime = 100;
             this.shallStop = false;
+            this.lastCall = 0;
             this.callTime = 0;
+            this.selfCallingFunc = function () { };
             this.sleepTime = sleepTime;
             this.userFunction = userFunction;
         }

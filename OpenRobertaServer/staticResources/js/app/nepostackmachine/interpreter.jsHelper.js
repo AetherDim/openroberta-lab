@@ -1,3 +1,4 @@
+"use strict";
 define(["require", "simulation.simulation", "exports"], function (require, SIM, exports) {
     //This file contains function which allow the interpreter to communicate with the simulation.
     function getBlockById(id) {

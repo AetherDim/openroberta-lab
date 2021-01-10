@@ -149,6 +149,7 @@ require.config({
         'ProgramManager',
         'SharedAssetLoader',
         'Random',
+        'Util',
         { 'Scene': [
             'Scene',
             'TestScene',

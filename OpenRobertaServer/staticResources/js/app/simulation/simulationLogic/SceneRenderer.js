@@ -6,8 +6,6 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
     var SceneRender = /** @class */ (function () {
         function SceneRender(canvas, autoResizeTo, scene) {
             var _this = this;
-            if (autoResizeTo === void 0) { autoResizeTo = null; }
-            if (scene === void 0) { scene = null; }
             var htmlCanvas = null;
             var resizeTo = null;
             var backgroundColor = $('#simDiv').css('background-color');
@@ -32,7 +30,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 view: htmlCanvas,
                 backgroundColor: Color_1.rgbToNumber(backgroundColor),
                 antialias: true,
-                resizeTo: resizeTo,
+                resizeTo: resizeTo || undefined,
                 resolution: window.devicePixelRatio || 0.75,
             });
             // add mouse/touch control
@@ -87,7 +85,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             }
             if (this.scene) {
                 this.scene.stopSim();
-                this.scene.setSceneRenderer(null); // unregister this renderer
+                this.scene.setSceneRenderer(undefined); // unregister this renderer
             }
             // remove all children from PIXI renderer
             if (this.scrollView.children.length > 0) {

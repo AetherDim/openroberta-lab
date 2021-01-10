@@ -18,14 +18,13 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
         };
         ProgramManager.prototype.setPrograms = function (programs, refresh, robotType) {
             if (refresh === void 0) { refresh = false; }
-            if (robotType === void 0) { robotType = null; }
             if (programs.length < this.robots.length) {
                 console.warn("Not enough programs!");
             }
             this.interpreters = [];
             // reset interpreters
             this.robots.forEach(function (robot) {
-                robot.interpreter = null;
+                robot.interpreter = undefined;
             });
             for (var i = 0; i < programs.length; i++) {
                 if (i >= this.robots.length) {
@@ -41,7 +40,7 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
             // TODO:
             // the original simulation.js would replace all robots if refresh is true
             // we will only change the type (The robot should manage anything type related internally)
-            if (refresh) {
+            if (refresh && robotType) {
                 this.robots.forEach(function (robot) {
                     robot.setRobotType(robotType);
                 });
@@ -157,36 +156,37 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
                 return;
             }
             if (this.debugMode) {
-                Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (block) {
+                Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (realBlock) {
+                    var block = realBlock;
                     if (!$(block.svgGroup_).hasClass('blocklyDisabled')) {
                         if (_this.observers.hasOwnProperty(block.id)) {
-                            _this.observers[block.id].disconnect();
+                            _this.observers[realBlock.id].disconnect();
                         }
                         var observer = new MutationObserver(function (mutations) {
                             mutations.forEach(function (mutation) {
                                 if ($(block.svgGroup_).hasClass('blocklyDisabled')) {
-                                    _this.removeBreakPoint(block);
+                                    _this.removeBreakPoint(realBlock);
                                     $(block.svgPath_).removeClass('breakpoint').removeClass('selectedBreakpoint');
                                 }
                                 else {
                                     if ($(block.svgGroup_).hasClass('blocklySelected')) {
                                         if ($(block.svgPath_).hasClass('breakpoint')) {
-                                            _this.removeBreakPoint(block);
+                                            _this.removeBreakPoint(realBlock);
                                             $(block.svgPath_).removeClass('breakpoint');
                                         }
                                         else if ($(block.svgPath_).hasClass('selectedBreakpoint')) {
-                                            _this.removeBreakPoint(block);
+                                            _this.removeBreakPoint(realBlock);
                                             $(block.svgPath_).removeClass('selectedBreakpoint').stop(true, true).animate({ 'fill-opacity': '1' }, 0);
                                         }
                                         else {
-                                            _this.breakpoints.push(block.id);
+                                            _this.breakpoints.push(realBlock.id);
                                             $(block.svgPath_).addClass('breakpoint');
                                         }
                                     }
                                 }
                             });
                         });
-                        _this.observers[block.id] = observer;
+                        _this.observers[realBlock.id] = observer;
                         observer.observe(block.svgGroup_, { attributes: true });
                     }
                 });

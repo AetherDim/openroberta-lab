@@ -3,7 +3,7 @@ import { ColorPalette } from "./Color";
 import { Unit } from "./Unit";
 
 export class Displayable {
-    displayObject: PIXI.DisplayObject = null;
+    displayObject: PIXI.DisplayObject;
 
     x: number = 0;
     y: number = 0;

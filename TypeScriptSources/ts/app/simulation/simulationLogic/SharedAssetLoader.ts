@@ -1,10 +1,11 @@
 import * as WebFont from 'webfontloader'
 import Texture = PIXI.Texture;
 import {randomIntBetween} from "./Random";
+import { Util } from "./Util"
 
 export class Asset {
 
-    constructor(path: string, name: string = null) {
+    constructor(path: string, name?: string) {
         this.path = path;
         if(name) {
             this.name = name;
@@ -23,7 +24,7 @@ export class FontAsset {
     readonly css: string;
     readonly name: string;
 
-    constructor(css: string, families: string[], name: string = null) {
+    constructor(css: string, families: string[], name?: string) {
         this.families = families;
         this.css = css;
         if(name) {
@@ -38,7 +39,7 @@ export class FontAsset {
 
 export class MultiAsset {
 
-    constructor(prefix: string, postfix: string, idStart: number, idEnd:number, name: string = null) {
+    constructor(prefix: string, postfix: string, idStart: number, idEnd:number, name?: string) {
         this.prefix = prefix;
         this.postfix = postfix;
         this.idStart = idStart;
@@ -50,28 +51,28 @@ export class MultiAsset {
     readonly postfix: string;
     readonly idStart:number;
     readonly idEnd: number;
-    readonly name: string;
+    readonly name?: string;
 
-    getAsset(id: number): Asset {
+    getAsset(id: number): Asset | undefined {
         if(id >= this.idStart && id <= this.idEnd) {
             let assetPath = this.prefix + id + this.postfix;
             let assetName = this.getAssetName(id);
             return new Asset(assetPath, assetName);
         } else {
-            return null;
+            return undefined;
         }
 
     }
 
-    getAssetName(id: number): string {
+    getAssetName(id: number): string | undefined {
         if(id >= this.idStart && id <= this.idEnd && this.name) {
             return this.name + '_' + id;
         } else {
-            return null;
+            return undefined;
         }
     }
 
-    getRandomAsset(): Asset {
+    getRandomAsset(): Asset | undefined {
         return this.getAsset(this.getRandomAssetID());
     }
 
@@ -97,13 +98,13 @@ export class SharedAssetLoader {
     }
 
     load(callback:() => void, ...assets: (Asset|FontAsset)[]) {
-        var fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
+        let fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
             return (asset instanceof FontAsset) && !this.fontMap.get(asset.name);
         });
 
-        let assetsToLoad: Asset[] = assets.map(asset => {
+        const assetsToLoad = Util.mapNotNull(assets, asset => {
 
-            var assetToLoad: Asset = null;
+            let assetToLoad: Asset | null = null;
             if(asset instanceof FontAsset) {
                 return null;
             } else {
@@ -117,10 +118,6 @@ export class SharedAssetLoader {
                 console.log('asset not found, loading ...');
                 return assetToLoad;
             }
-        });
-
-        assetsToLoad = assetsToLoad.filter(asset => {
-            return asset != null;
         });
 
         let countToLoad = 1 + fontsToLoad.length;
