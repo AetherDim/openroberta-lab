@@ -32,4 +32,6 @@ export interface RobotHardwareStateSensors {
         presence: boolean
     }}
 
+    touch?: { [port: string]: boolean }
+
 }

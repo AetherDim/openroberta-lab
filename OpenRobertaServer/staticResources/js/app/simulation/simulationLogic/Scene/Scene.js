@@ -221,13 +221,13 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.topContainer.zIndex = this.topContainerZ;
         };
         Scene.prototype.registerContainersToEngine = function () {
-            var _this_1 = this;
             if (!this.sceneRenderer) {
                 console.warn('No renderer to register containers to!');
                 return;
             }
+            var renderer = this.sceneRenderer;
             this.containerList.forEach(function (container) {
-                _this_1.sceneRenderer.add(container);
+                renderer.add(container);
             });
         };
         Scene.prototype.setContainerVisibility = function (visible) {
@@ -721,6 +721,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             var _this = this;
             // FIXME: What to do with undefined 'getImageData'?
             var getImageData = this.getImageData;
+            var allBodies = matter_js_1.Composite.allBodies(this.engine.world);
             if (getImageData) {
                 this.robots.forEach(function (robot) {
                     robot.update(new RobotUpdateOptions_1.RobotUpdateOptions({
@@ -728,7 +729,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                         programPaused: _this_1.programManager.isProgramPaused(),
                         getImageData: getImageData,
                         getNearestPointTo: function (point, includePoint) { return _this.getNearestPoint(point, includePoint); },
-                        intersectionPointsWithLine: function (line) { return _this.intersectionPointsWithLine(line); }
+                        intersectionPointsWithLine: function (line) { return _this.intersectionPointsWithLine(line); },
+                        bodyIntersectsOther: function (body) { return matter_js_1.Query.collides(body, allBodies).length > 1; } // "collides with itself"
                     }));
                 });
             }

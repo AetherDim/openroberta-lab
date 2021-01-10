@@ -9,6 +9,7 @@ define(["require", "exports"], function (require, exports) {
             this.getImageData = o.getImageData;
             this.getNearestPointTo = o.getNearestPointTo;
             this.intersectionPointsWithLine = o.intersectionPointsWithLine;
+            this.bodyIntersectsOther = o.bodyIntersectsOther;
         }
         return RobotUpdateOptions;
     }());

@@ -169,6 +169,7 @@ require.config({
             'ColorSensor',
             'RobotUpdateOptions',
             'UltrasonicSensor',
+            'TouchSensor'
         ]},
         { 'RRC': [
             'RRAssetLoader',

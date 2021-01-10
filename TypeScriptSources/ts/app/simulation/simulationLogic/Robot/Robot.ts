@@ -13,7 +13,7 @@ import { RobotUpdateOptions } from './RobotUpdateOptions'
 import { LineBaseClass } from '../Geometry/LineBaseClass'
 import { UltrasonicSensor } from './UltrasonicSensor'
 import { Ray } from '../Geometry/Ray'
-import { Color } from '../Color'
+import { TouchSensor } from './TouchSensor'
 
 type StringMap<V> = { [key: string]: V }
 type NumberMap<V> = { [key: number]: V }
@@ -49,14 +49,19 @@ export class Robot {
 	updateSensorGraphics = true
 
 	/**
-	 * The color sensor of the robot
+	 * The color sensors of the robot
 	 */
 	private colorSensors: StringMap<ColorSensor> = {}
 
 	/**
-	 * The ultrasonic sensor of the robot
+	 * The ultrasonic sensors of the robot
 	 */
 	private ultrasonicSensors: StringMap<UltrasonicSensor> = {}
+
+	/**
+	 * The touch sensors of the robot
+	 */
+	private touchSensors: StringMap<TouchSensor> = {}
 
 	robotBehaviour?: RobotSimBehaviour
 
@@ -140,12 +145,12 @@ export class Robot {
 	}
 
 	/**
-	 * Sets the color sensor at the position (x,y) in meter
+	 * Sets the color sensor at the position (x,y) in meters
 	 * 
 	 * @param port the port of the sensor
 	 * @param x x position of the sensor in meters
 	 * @param y y position of the sensor in meters
-	 * @returns false if a color sensor at `port` already exists and a new color sesor was not added
+	 * @returns false if a color sensor at `port` already exists and a new color sensor was not added
 	 */
 	addColorSensor(port: string, x: number, y: number): boolean {
 		if (this.colorSensors[port]) {
@@ -167,6 +172,27 @@ export class Robot {
 		}
 		this.ultrasonicSensors[port] = ultrasonicSensor
 		this.bodyContainer.addChild(ultrasonicSensor.graphics)
+		return true
+	}
+
+	getTouchSensors(): TouchSensor[] {
+		return Object.values(this.touchSensors)
+	}
+
+	/**
+	 * Adds `touchSensor` to `this.touchSensors` if the port is not occupied
+	 * 
+	 * @param port The port of the touch sensor
+	 * @param touchSensor The touch sensor which will be added
+	 * @returns false if a touch sensor at `port` already exists and the new touch sensor was not added
+	 */
+	addTouchSensor(port: string, touchSensor: TouchSensor): boolean {
+		if (this.touchSensors[port]) {
+			return false
+		}
+		Composite.add(this.physicsComposite, touchSensor.physicsBody)
+		this.physicsComposite.addRigidBodyConstraints(this.body, touchSensor.physicsBody, 0.3, 0.3)
+		this.touchSensors[port] = touchSensor
 		return true
 	}
 
@@ -271,12 +297,7 @@ export class Robot {
 		}
 
 		// update sensors
-		this.updateRobotBehaviourHardwareStateSensors(
-			dt,
-			updateOptions.getImageData,
-			updateOptions.getNearestPointTo,
-			updateOptions.intersectionPointsWithLine
-		)
+		this.updateRobotBehaviourHardwareStateSensors(updateOptions)
 
 		if(!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
 			const delay = this.interpreter.runNOperations(1000) / 1000;
@@ -596,12 +617,7 @@ export class Robot {
 		return Vector.add(this.body.position, Vector.rotate(relativePosition, this.body.angle))
 	}
 
-	private updateRobotBehaviourHardwareStateSensors(
-		dt: number,
-		getImageData: (x: number, y: number, w: number, h: number) => ImageData,
-		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | undefined,
-		intersectionPointsWithLine: (line: LineBaseClass) => Vector[]
-		) {
+	private updateRobotBehaviourHardwareStateSensors(updateOptions: RobotUpdateOptions) {
 		if (!this.robotBehaviour) {
 			return
 		}
@@ -619,20 +635,20 @@ export class Robot {
 		const gyroRate = this.body.angularVelocity * 180 / Math.PI
 		const oldAngle = sensors.gyro?.[2].angle;
 		sensors.gyro = { 2: {
-			angle: oldAngle ? oldAngle + gyroRate * dt : this.body.angle * 180 / Math.PI,
+			angle: oldAngle ? oldAngle + gyroRate * updateOptions.dt : this.body.angle * 180 / Math.PI,
 			rate: gyroRate
 		}}
 
 		// color
+		if (!sensors.color) {
+			sensors.color = {}
+		}
 		for (const port in this.colorSensors) {
 			const colorSensor = this.colorSensors[port]
 			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
-			const color = getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
+			const color = updateOptions.getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
 			colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics)
-			if (!sensors.color) {
-				sensors.color = {}
-			}
 			sensors.color[port] = {
 				ambientlight: 0,
 				colorValue: "none",
@@ -643,6 +659,12 @@ export class Robot {
 		}
 
 		// ultrasonic sensor
+		if (!sensors.ultrasonic) {
+			sensors.ultrasonic = {}
+		}
+		if (!sensors.infrared) {
+			sensors.infrared = {}
+		}
 		for (const port in this.ultrasonicSensors) {
 			const ultrasonicSensor = this.ultrasonicSensors[port]
 			const sensorPosition = this.getAbsolutePosition(ultrasonicSensor.position)
@@ -654,12 +676,12 @@ export class Robot {
 			// (point - sensorPos) * vec > 0
 			const vectors = rays.map(r => Vector.perp(r.directionVector))
 			const dotProducts = vectors.map(v => Vector.dot(v, sensorPosition))
-			let nearestPoint = getNearestPointTo(sensorPosition, point => {
+			let nearestPoint = updateOptions.getNearestPointTo(sensorPosition, point => {
 				return Vector.dot(point, vectors[0]) < dotProducts[0]
 					&& Vector.dot(point, vectors[1]) > dotProducts[1]
 			})
 			let minDistanceSquared = nearestPoint ? Vector.magnitudeSquared(Vector.sub(nearestPoint, sensorPosition)) : Infinity
-			const intersectionPoints = intersectionPointsWithLine(rays[0]).concat(intersectionPointsWithLine(rays[1]))
+			const intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0]).concat(updateOptions.intersectionPointsWithLine(rays[1]))
 			intersectionPoints.forEach(intersectionPoint => {
 				const distanceSquared = Vector.magnitudeSquared(Vector.sub(intersectionPoint, sensorPosition))
 				if (distanceSquared < minDistanceSquared) {
@@ -684,9 +706,6 @@ export class Robot {
 				}
 			}
 			ultrasonicDistance = Unit.fromLength(ultrasonicDistance)
-			if (!sensors.ultrasonic) {
-				sensors.ultrasonic = {}
-			}
 			sensors.ultrasonic[port] = {
 				// `distance` is in cm
 				distance: Math.min(ultrasonicDistance, ultrasonicSensor.maximumMeasurableDistance) * 100,
@@ -694,14 +713,21 @@ export class Robot {
 			}
 
 			// infrared sensor (use ultrasonic distance)
-			if (!sensors.infrared) {
-				sensors.infrared = {}
-			}
 			sensors.infrared[port] = {
 				// `distance` is in cm and at maximum 70cm
 				distance: Math.min(ultrasonicDistance, 0.7) * 100,
 				presence: false
 			}
+		}
+
+		// touch sensor
+		if (!sensors.touch) {
+			sensors.touch = {}
+		}
+		for (const port in this.touchSensors) {
+			const touchSensor = this.touchSensors[port]
+			touchSensor.setIsTouched(updateOptions.bodyIntersectsOther(touchSensor.physicsBody))
+			sensors.touch[port] = touchSensor.getIsTouched()
 		}
 	}
 
@@ -759,8 +785,11 @@ export class Robot {
 				backWheel
 			]
 		})
-		robot.addColorSensor("3", 0.08, 0)
-		robot.addUltrasonicSensor("4" , new UltrasonicSensor(Vector.create(0.12, 0), 90 * 2 * Math.PI / 360))
+		robot.addColorSensor("3", 0.075, 0)
+		robot.addUltrasonicSensor("4" , new UltrasonicSensor(Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
+		const touchSensorBody = createRect(0.085, 0, 0.01, 0.12, 0, {color: 0xFF0000})
+		Body.setMass(touchSensorBody, Unit.getMass(0.05))
+		robot.addTouchSensor("1", new TouchSensor(touchSensorBody))
 		return robot
 	}
 }
