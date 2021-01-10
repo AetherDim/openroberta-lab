@@ -150,6 +150,16 @@ export class Scene {
     readonly topContainer = new PIXI.Container()
     readonly topContainerZ = 50;
 
+
+    readonly containerList: PIXI.Container[] = [
+      this.groundContainer,
+      this.groundAnimationContainer,
+      this.entityBottomContainer,
+      this.entityContainer,
+      this.entityTopContainer,
+      this.topContainer
+    ];
+
     protected setupContainers() {
         this.groundContainer.zIndex = this.groundContainerZ;
         this.groundAnimationContainer.zIndex = this.groundAnimationContainerZ;
@@ -164,12 +174,16 @@ export class Scene {
             console.warn('No renderer to register containers to!');
             return
         }
-        this.sceneRenderer.add(this.groundContainer);
-        this.sceneRenderer.add(this.groundAnimationContainer);
-        this.sceneRenderer.add(this.entityBottomContainer);
-        this.sceneRenderer.add(this.entityContainer);
-        this.sceneRenderer.add(this.entityTopContainer);
-        this.sceneRenderer.add(this.topContainer);
+        this.containerList.forEach(container => {
+            this.sceneRenderer.add(container);
+        });
+    }
+
+    protected setContainerVisibility(visible: boolean) {
+        this.containerList.forEach(container => {
+            container.visible = visible;
+        });
+        this.scoreContainer.visible = visible;
     }
 
 
@@ -191,12 +205,9 @@ export class Scene {
     }
 
     private clearAllContainers() {
-        this.clearContainer(this.groundContainer);
-        this.clearContainer(this.groundAnimationContainer);
-        this.clearContainer(this.entityBottomContainer);
-        this.clearContainer(this.entityContainer);
-        this.clearContainer(this.entityTopContainer);
-        this.clearContainer(this.topContainer);
+        this.containerList.forEach(container => {
+            this.clearContainer(container);
+        });
     }
 
     //
@@ -334,15 +345,32 @@ export class Scene {
     private hasBeenInitialized = false;
     private hasFinishedLoading = false;
 
+    private loadingStartTime: number = 0;
+    private minLoadTime = 500;
+
     private loadingChain?: AsyncChain;
 
     private finishedLoading(chain: AsyncChain) {
+
+        // fake longer loading time for smooth animation
+        var loadingTime = Date.now() - this.loadingStartTime;
+        if(loadingTime < this.minLoadTime) {
+            const _this = this;
+            setTimeout(() => {
+                this.finishedLoading(chain);
+            }, this.minLoadTime-loadingTime);
+            return;
+        }
+
         this.currentlyLoading = false;
         this.hasFinishedLoading = true;
         this.hasBeenInitialized = true;
 
         // remove loading animation
         this.sceneRenderer?.remove(this.loadingContainer);
+
+        // make container visibility
+        this.setContainerVisibility(true);
 
         // update image for rgb sensor
         this.updateImageDataFunction();
@@ -401,6 +429,9 @@ export class Scene {
         // should not run while loading running
         this.stopSim();
 
+        // hide rendering containers
+        this.setContainerVisibility(false);
+
         // start loading animation
         this.sceneRenderer?.addDisplayable(this.loadingContainer);
 
@@ -448,6 +479,9 @@ export class Scene {
 
         console.log('starting to load scene!');
         console.log('Loading stages: ' + this.loadingChain.length());
+
+        // start time
+        this.loadingStartTime = Date.now();
 
         this.loadingChain.next();
     }
@@ -551,7 +585,7 @@ export class Scene {
         return this.sceneRenderer;
     }
 
-    setSceneRenderer(sceneRenderer?: SceneRender, forceLoadAssets: boolean = false) {
+    setSceneRenderer(sceneRenderer?: SceneRender, noLoad: boolean = false) {
 
         if(sceneRenderer != this.sceneRenderer) {
             this.sceneRenderer = sceneRenderer;
@@ -564,8 +598,8 @@ export class Scene {
 
         }
 
-        if(sceneRenderer && !this.hasFinishedLoading) {
-            this.load(forceLoadAssets);
+        if(sceneRenderer && !this.hasFinishedLoading && !noLoad) {
+            this.load();
         }
     }
 

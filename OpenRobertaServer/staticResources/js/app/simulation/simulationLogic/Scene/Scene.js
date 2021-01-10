@@ -126,6 +126,14 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
              */
             this.topContainer = new PIXI.Container();
             this.topContainerZ = 50;
+            this.containerList = [
+                this.groundContainer,
+                this.groundAnimationContainer,
+                this.entityBottomContainer,
+                this.entityContainer,
+                this.entityTopContainer,
+                this.topContainer
+            ];
             this.removeTexturesOnUnload = true;
             this.removeBaseTexturesOnUnload = true;
             //
@@ -152,6 +160,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.resourcesLoaded = false;
             this.hasBeenInitialized = false;
             this.hasFinishedLoading = false;
+            this.loadingStartTime = 0;
+            this.minLoadTime = 500;
             //
             // #############################################################################
             //
@@ -210,16 +220,20 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.topContainer.zIndex = this.topContainerZ;
         };
         Scene.prototype.registerContainersToEngine = function () {
+            var _this_1 = this;
             if (!this.sceneRenderer) {
                 console.warn('No renderer to register containers to!');
                 return;
             }
-            this.sceneRenderer.add(this.groundContainer);
-            this.sceneRenderer.add(this.groundAnimationContainer);
-            this.sceneRenderer.add(this.entityBottomContainer);
-            this.sceneRenderer.add(this.entityContainer);
-            this.sceneRenderer.add(this.entityTopContainer);
-            this.sceneRenderer.add(this.topContainer);
+            this.containerList.forEach(function (container) {
+                _this_1.sceneRenderer.add(container);
+            });
+        };
+        Scene.prototype.setContainerVisibility = function (visible) {
+            this.containerList.forEach(function (container) {
+                container.visible = visible;
+            });
+            this.scoreContainer.visible = visible;
         };
         Scene.prototype.clearContainer = function (container) {
             container.children.forEach(function (child) {
@@ -233,12 +247,10 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             });*/
         };
         Scene.prototype.clearAllContainers = function () {
-            this.clearContainer(this.groundContainer);
-            this.clearContainer(this.groundAnimationContainer);
-            this.clearContainer(this.entityBottomContainer);
-            this.clearContainer(this.entityContainer);
-            this.clearContainer(this.entityTopContainer);
-            this.clearContainer(this.topContainer);
+            var _this_1 = this;
+            this.containerList.forEach(function (container) {
+                _this_1.clearContainer(container);
+            });
         };
         Scene.prototype.setScore = function (score) {
             if (score) {
@@ -316,12 +328,24 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.loadingAnimation.rotation += 0.05 * dt;
         };
         Scene.prototype.finishedLoading = function (chain) {
+            var _this_1 = this;
             var _a;
+            // fake longer loading time for smooth animation
+            var loadingTime = Date.now() - this.loadingStartTime;
+            if (loadingTime < this.minLoadTime) {
+                var _this = this;
+                setTimeout(function () {
+                    _this_1.finishedLoading(chain);
+                }, this.minLoadTime - loadingTime);
+                return;
+            }
             this.currentlyLoading = false;
             this.hasFinishedLoading = true;
             this.hasBeenInitialized = true;
             // remove loading animation
             (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.remove(this.loadingContainer);
+            // make container visibility
+            this.setContainerVisibility(true);
             // update image for rgb sensor
             this.updateImageDataFunction();
             if (this.autostartSim) {
@@ -367,6 +391,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.hasFinishedLoading = false;
             // should not run while loading running
             this.stopSim();
+            // hide rendering containers
+            this.setContainerVisibility(false);
             // start loading animation
             (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.addDisplayable(this.loadingContainer);
             // build new async chain
@@ -397,6 +423,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             { func: this.finishedLoading, thisContext: this });
             console.log('starting to load scene!');
             console.log('Loading stages: ' + this.loadingChain.length());
+            // start time
+            this.loadingStartTime = Date.now();
             this.loadingChain.next();
         };
         Scene.prototype.updateImageDataFunction = function () {
@@ -434,8 +462,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;
         };
-        Scene.prototype.setSceneRenderer = function (sceneRenderer, forceLoadAssets) {
-            if (forceLoadAssets === void 0) { forceLoadAssets = false; }
+        Scene.prototype.setSceneRenderer = function (sceneRenderer, noLoad) {
+            if (noLoad === void 0) { noLoad = false; }
             if (sceneRenderer != this.sceneRenderer) {
                 this.sceneRenderer = sceneRenderer;
                 if (sceneRenderer) {
@@ -443,8 +471,8 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                     this.registerContainersToEngine(); // register rendering containers
                 }
             }
-            if (sceneRenderer && !this.hasFinishedLoading) {
-                this.load(forceLoadAssets);
+            if (sceneRenderer && !this.hasFinishedLoading && !noLoad) {
+                this.load();
             }
         };
         Scene.prototype.renderTick = function (dt) {

@@ -282,10 +282,12 @@ export function getScenes(): SceneHandle[] {
 export function selectScene(ID: string) {
     const scene = sceneManager.getScene(ID);
     engine.switchScene(scene, true);
+    scene?.fullReset();
 }
 
 export function nextScene(): SceneHandle {
     const scene = sceneManager.getNextScene();
     engine.switchScene(scene, true);
+    scene?.fullReset();
     return sceneManager.getCurrentHandle();
 }

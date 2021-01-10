@@ -100,7 +100,7 @@ export class SceneRender {
     }
 
 
-    switchScene(scene?: Scene, forceFullReload: boolean = false) {
+    switchScene(scene?: Scene, noLoad: boolean = false) {
         if(!scene) {
             console.log('undefined scene!')
             scene = new Scene();
@@ -123,7 +123,7 @@ export class SceneRender {
 
         this.scene = scene
 
-        scene.setSceneRenderer(this, forceFullReload);
+        scene.setSceneRenderer(this, noLoad);
 
     }
 
