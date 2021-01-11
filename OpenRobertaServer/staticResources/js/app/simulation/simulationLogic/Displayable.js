@@ -23,7 +23,6 @@ define(["require", "exports", "matter-js", "./Color", "./Unit"], function (requi
             if (x === void 0) { x = 0; }
             if (y === void 0) { y = 0; }
             if (rotation === void 0) { rotation = 0; }
-            this.displayObject = null;
             this.x = 0;
             this.y = 0;
             this.rotation = 0;

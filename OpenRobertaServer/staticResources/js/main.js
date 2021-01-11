@@ -149,6 +149,7 @@ require.config({
         'ProgramManager',
         'SharedAssetLoader',
         'Random',
+        'Util',
         { 'Scene': [
             'Scene',
             'TestScene',
@@ -169,6 +170,7 @@ require.config({
             'ColorSensor',
             'RobotUpdateOptions',
             'UltrasonicSensor',
+            'TouchSensor'
         ]},
         { 'RRC': [
             'RRAssetLoader',

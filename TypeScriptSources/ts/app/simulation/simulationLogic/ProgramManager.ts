@@ -12,8 +12,8 @@ export class ProgramManager {
     private programPaused: boolean = true;
 
     private debugMode = false;
-    private breakpoints = [];
-    private observers = {};
+    private breakpoints: string[] = [];
+    private observers: { [key: string]: MutationObserver} = {};
     private interpreters: Interpreter[] = [];
     private initialized = false;
 
@@ -26,7 +26,7 @@ export class ProgramManager {
         this.robots = scene.robots;
     }
 
-    setPrograms(programs: any[], refresh: boolean = false, robotType: string = null) {
+    setPrograms(programs: any[], refresh: boolean = false, robotType?: string) {
         if(programs.length < this.robots.length) {
             console.warn("Not enough programs!");
         }
@@ -35,7 +35,7 @@ export class ProgramManager {
 
         // reset interpreters
         this.robots.forEach(robot => {
-            robot.interpreter = null;
+            robot.interpreter = undefined;
         });
 
 
@@ -56,7 +56,7 @@ export class ProgramManager {
         // TODO:
         // the original simulation.js would replace all robots if refresh is true
         // we will only change the type (The robot should manage anything type related internally)
-        if(refresh) {
+        if(refresh && robotType) {
             this.robots.forEach(robot => {
                 robot.setRobotType(robotType);
             });
@@ -120,7 +120,7 @@ export class ProgramManager {
         }
     }
 
-    addVariableValue(name, value) {
+    addVariableValue(name: string, value: any) {
         switch (typeof value) {
             case "number": {
                 $("#variableValue").append('<div><label>' + name + ' :  </label><span> ' + Math.round(value*100)/100 + '</span></div>');
@@ -192,44 +192,45 @@ export class ProgramManager {
         }
 
         if (this.debugMode) {
-            Blockly.getMainWorkspace().getAllBlocks(false).forEach((block: any) => {
+            Blockly.getMainWorkspace().getAllBlocks(false).forEach((realBlock) => {
+                const block = <any>realBlock
                 if (!$(block.svgGroup_).hasClass('blocklyDisabled')) {
 
                     if (_this.observers.hasOwnProperty(block.id)) {
-                        _this.observers[block.id].disconnect();
+                        _this.observers[realBlock.id].disconnect();
                     }
 
                     var observer = new MutationObserver((mutations) => {
                         mutations.forEach(function(mutation) {
                             if ($(block.svgGroup_).hasClass('blocklyDisabled')) {
-                                _this.removeBreakPoint(block);
+                                _this.removeBreakPoint(realBlock);
                                 $(block.svgPath_).removeClass('breakpoint').removeClass('selectedBreakpoint');
                             } else {
                                 if ($(block.svgGroup_).hasClass('blocklySelected')) {
                                     if ($(block.svgPath_).hasClass('breakpoint')) {
-                                        _this.removeBreakPoint(block);
+                                        _this.removeBreakPoint(realBlock);
                                         $(block.svgPath_).removeClass('breakpoint');
                                     } else if ($(block.svgPath_).hasClass('selectedBreakpoint')) {
-                                        _this.removeBreakPoint(block);
+                                        _this.removeBreakPoint(realBlock);
                                         $(block.svgPath_).removeClass('selectedBreakpoint').stop(true, true).animate({ 'fill-opacity': '1' }, 0);
                                     } else {
-                                        _this.breakpoints.push(block.id);
+                                        _this.breakpoints.push(realBlock.id);
                                         $(block.svgPath_).addClass('breakpoint');
                                     }
                                 }
                             }
                         });
                     });
-                    _this.observers[block.id] = observer;
+                    _this.observers[realBlock.id] = observer;
                     observer.observe(block.svgGroup_, { attributes: true });
                 }
             });
         } else {
-            Blockly.getMainWorkspace().getAllBlocks(false).forEach((block: any) => {
+            Blockly.getMainWorkspace().getAllBlocks(false).forEach((block) => {
                 if (_this.observers.hasOwnProperty(block.id)) {
                     _this.observers[block.id].disconnect();
                 }
-                $(block.svgPath_).removeClass('breakpoint');
+                $((<any>block).svgPath_).removeClass('breakpoint');
             });
         }
     }
@@ -248,7 +249,7 @@ export class ProgramManager {
     }
 
     /** removes breakpoint block */
-    removeBreakPoint(block) {
+    removeBreakPoint(block: Blockly.Block) {
         for (var i = 0; i < this.breakpoints.length; i++) {
             if (this.breakpoints[i] === block.id) {
                 this.breakpoints.splice(i, 1);

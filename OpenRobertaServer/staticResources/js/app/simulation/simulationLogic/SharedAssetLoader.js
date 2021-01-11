@@ -1,10 +1,9 @@
-define(["require", "exports", "webfontloader", "./Random"], function (require, exports, WebFont, Random_1) {
+define(["require", "exports", "webfontloader", "./Random", "./Util"], function (require, exports, WebFont, Random_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SharedAssetLoader = exports.MultiAsset = exports.FontAsset = exports.Asset = void 0;
     var Asset = /** @class */ (function () {
         function Asset(path, name) {
-            if (name === void 0) { name = null; }
             this.path = path;
             if (name) {
                 this.name = name;
@@ -18,7 +17,6 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
     exports.Asset = Asset;
     var FontAsset = /** @class */ (function () {
         function FontAsset(css, families, name) {
-            if (name === void 0) { name = null; }
             this.families = families;
             this.css = css;
             if (name) {
@@ -33,7 +31,6 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
     exports.FontAsset = FontAsset;
     var MultiAsset = /** @class */ (function () {
         function MultiAsset(prefix, postfix, idStart, idEnd, name) {
-            if (name === void 0) { name = null; }
             this.prefix = prefix;
             this.postfix = postfix;
             this.idStart = idStart;
@@ -47,7 +44,7 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
                 return new Asset(assetPath, assetName);
             }
             else {
-                return null;
+                return undefined;
             }
         };
         MultiAsset.prototype.getAssetName = function (id) {
@@ -55,7 +52,7 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
                 return this.name + '_' + id;
             }
             else {
-                return null;
+                return undefined;
             }
         };
         MultiAsset.prototype.getRandomAsset = function () {
@@ -87,7 +84,7 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
             var fontsToLoad = assets.filter(function (asset) {
                 return (asset instanceof FontAsset) && !_this_1.fontMap.get(asset.name);
             });
-            var assetsToLoad = assets.map(function (asset) {
+            var assetsToLoad = Util_1.Util.mapNotNull(assets, function (asset) {
                 var assetToLoad = null;
                 if (asset instanceof FontAsset) {
                     return null;
@@ -103,9 +100,6 @@ define(["require", "exports", "webfontloader", "./Random"], function (require, e
                     console.log('asset not found, loading ...');
                     return assetToLoad;
                 }
-            });
-            assetsToLoad = assetsToLoad.filter(function (asset) {
-                return asset != null;
             });
             var countToLoad = 1 + fontsToLoad.length;
             // check whether we have anything to load

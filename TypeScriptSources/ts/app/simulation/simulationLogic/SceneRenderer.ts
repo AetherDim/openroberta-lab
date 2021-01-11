@@ -11,11 +11,11 @@ export class SceneRender {
     
     readonly app: PIXI.Application; // "window"
 
-    private scene: Scene;   // scene with physics and components
+    private scene?: Scene;   // scene with physics and components
     readonly scrollView: ScrollView;
     
 
-    constructor(canvas: HTMLCanvasElement | string, autoResizeTo: HTMLElement | string = null, scene: Scene=null) {
+    constructor(canvas: HTMLCanvasElement | string, autoResizeTo?: HTMLElement | string, scene?: Scene) {
 
         var htmlCanvas = null;
         var resizeTo = null;
@@ -44,7 +44,7 @@ export class SceneRender {
                 view: htmlCanvas,
                 backgroundColor: rgbToNumber(backgroundColor),
                 antialias: true,
-                resizeTo: resizeTo,
+                resizeTo: resizeTo || undefined,
                 resolution: window.devicePixelRatio || 0.75, // same as ScrollView.getPixelRatio()
             }
         );
@@ -112,7 +112,7 @@ export class SceneRender {
 
         if(this.scene) {
             this.scene.stopSim();
-            this.scene.setSceneRenderer(null); // unregister this renderer
+            this.scene.setSceneRenderer(undefined); // unregister this renderer
         }
 
         // remove all children from PIXI renderer

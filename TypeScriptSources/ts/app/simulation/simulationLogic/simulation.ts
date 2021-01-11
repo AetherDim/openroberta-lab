@@ -30,7 +30,7 @@ export class SceneHandle {
 export class SceneManager {
     private readonly sceneHandleMap = new Map<string, SceneHandle>();
     private readonly sceneMap = new Map<string, Scene>();
-    private currentID: string = null;
+    private currentID?: string;
 
     getScene(ID: string) {
         let scene = this.sceneMap.get(ID);
@@ -58,10 +58,10 @@ export class SceneManager {
         return Array.from(this.sceneHandleMap.values());
     }
 
-    getNextScene(): Scene {
+    getNextScene(): Scene | undefined {
         if(this.sceneHandleMap.size < 1) {
             console.error('No scenes registered!!!');
-            return null;
+            return undefined;
         }
 
         if(!this.currentID) {
@@ -86,8 +86,11 @@ export class SceneManager {
         return this.getScene(this.currentID);
     }
 
-    getCurrentHandle(): SceneHandle {
-        return this.sceneHandleMap.get(this.currentID);
+    getCurrentHandle(): SceneHandle | undefined {
+        if (this.currentID) {
+            return this.sceneHandleMap.get(this.currentID);
+        }
+        return undefined
     }
 
     setCurrentScene(ID: string) {
@@ -335,7 +338,7 @@ export function selectScene(ID: string) {
     scene?.fullReset();
 }
 
-export function nextScene(): SceneHandle {
+export function nextScene(): SceneHandle | undefined {
     const scene = sceneManager.getNextScene();
     engine.switchScene(scene, true);
     scene?.fullReset();

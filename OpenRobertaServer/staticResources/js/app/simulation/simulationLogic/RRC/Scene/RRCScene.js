@@ -77,6 +77,7 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Ro
             var robot = Robot_1.Robot.EV3();
             robot.body.enableMouseInteraction = true;
             matter_js_1.World.add(this.world, robot.physicsComposite);
+            this.robots.push(robot);
         };
         return RRCScene;
     }(Scene_1.Scene));

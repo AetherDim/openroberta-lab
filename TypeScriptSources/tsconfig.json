@@ -15,6 +15,7 @@
         "downlevelIteration": true, // iterator iteration with 'for of' loop
     },
     "include": ["ts/**/*"],
+    //"include": ["ts/app/simulation/simulationLogic/**/*"],
     "exclude": [
         "**/node_modules",
         "**/interpreter.runStackMachineJson.ts"

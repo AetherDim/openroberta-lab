@@ -18,7 +18,6 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
         function SceneManager() {
             this.sceneHandleMap = new Map();
             this.sceneMap = new Map();
-            this.currentID = null;
         }
         SceneManager.prototype.getScene = function (ID) {
             var scene = this.sceneMap.get(ID);
@@ -51,7 +50,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
         SceneManager.prototype.getNextScene = function () {
             if (this.sceneHandleMap.size < 1) {
                 console.error('No scenes registered!!!');
-                return null;
+                return undefined;
             }
             if (!this.currentID) {
                 this.currentID = Array.from(this.sceneHandleMap.keys())[0];
@@ -73,7 +72,10 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
             return this.getScene(this.currentID);
         };
         SceneManager.prototype.getCurrentHandle = function () {
-            return this.sceneHandleMap.get(this.currentID);
+            if (this.currentID) {
+                return this.sceneHandleMap.get(this.currentID);
+            }
+            return undefined;
         };
         SceneManager.prototype.setCurrentScene = function (ID) {
             this.currentID = ID;

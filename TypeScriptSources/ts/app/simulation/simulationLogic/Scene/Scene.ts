@@ -1,6 +1,6 @@
 import { Robot } from '../Robot/Robot';
 import { createDisplayableFromBody } from '../Displayable';
-import { Engine, Mouse, World, Render, MouseConstraint, Composite, Vector, Events, Body, Constraint, IEventComposite, Sleeping, Bounds, Vertices } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Composite, Vector, Events, Body, Constraint, IEventComposite, Sleeping, Bounds, Vertices, Query } from 'matter-js';
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
@@ -198,8 +198,9 @@ export class Scene {
             console.warn('No renderer to register containers to!');
             return
         }
+        const renderer = this.sceneRenderer
         this.containerList.forEach(container => {
-            this.sceneRenderer.add(container);
+            renderer.add(container);
         });
     }
 
@@ -947,6 +948,7 @@ export class Scene {
         const _this = this
         // FIXME: What to do with undefined 'getImageData'?
         const getImageData = this.getImageData
+        const allBodies = Composite.allBodies(this.engine.world)
         if (getImageData) {
             this.robots.forEach(robot => {
                 robot.update(new RobotUpdateOptions({
@@ -954,7 +956,8 @@ export class Scene {
                     programPaused: this.programManager.isProgramPaused(),
                     getImageData: getImageData,
                     getNearestPointTo: (point, includePoint) => _this.getNearestPoint(point, includePoint),
-                    intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line)
+                    intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line),
+                    bodyIntersectsOther: body => Query.collides(body, allBodies).length > 1 // "collides with itself"
                 }))
             })
         }

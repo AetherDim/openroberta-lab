@@ -100,6 +100,7 @@ export class RRCScene extends Scene {
         let robot = Robot.EV3();
         robot.body.enableMouseInteraction = true;
         World.add(this.world, robot.physicsComposite);
+        this.robots.push(robot)
     }
 
 

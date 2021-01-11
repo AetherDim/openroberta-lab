@@ -17,6 +17,10 @@ export class Browser {
   isTouchSafari(): boolean {
     return this.hasMultiTouchInteraction && this.name == "Safari"
   }
+
+  isSafariEvent(event: Event): event is SafariEvent & Event {
+    return this.name == "Safari"
+  }
 }
 
 /**
@@ -109,8 +113,16 @@ export enum MouseButton {
  * @param vec vector/point to copy
  */
 export function cloneVector(vec: PIXI.IPointData) {
+  return {x: vec.x, y: vec.y};
+}
+
+/**
+ * Copy point or vector
+ * @param vec vector/point to copy
+ */
+export function cloneVectorOrUndefined(vec?: PIXI.IPointData) {
   if(!vec) {
-    return null;
+    return undefined;
   }
   return {x: vec.x, y: vec.y};
 }
@@ -225,17 +237,17 @@ export class EventData {
    * previous position, only available from some events (MOVE, RELEASE, DRAG)
    * For all other events, this will contain old data or no data.
    */
-  previousPosition: PIXI.IPointData = null;
+  previousPosition?: PIXI.IPointData;
 
   /**
    * Event (mouse/touch) location.
    */
-  currentPosition: PIXI.IPointData = null;
+  currentPosition: PIXI.IPointData = { x: 0, y: 0 };
 
   /**
    * Contains delta information for mouse move, drag and scroll
    */
-  delta: PIXI.IPointData = null;
+  delta?: PIXI.IPointData;
 
   /**
    * Delta zoom scale (this factor should be around 1).
@@ -305,7 +317,10 @@ export class EventData {
   /**
    * Translates the previous global positions to the scroll view local position.
    */
-  getPreviousLocalPosition(): PIXI.IPointData {
+  getPreviousLocalPosition(): PIXI.IPointData | undefined {
+    if (!this.previousPosition) {
+      return undefined
+    }
     return this.scrollView.toLocal(this.previousPosition);
   }
 
@@ -313,6 +328,10 @@ export class EventData {
    * Translates the global delta to a local delta relative to the scroll view.
    */
   getDeltaLocal() {
+    // TODO: Maybe wrong since delta is a relative vector and not an absolute one
+    if (!this.delta) {
+      return undefined
+    }
     return this.scrollView.toLocal(this.delta);
   }
 
@@ -339,7 +358,7 @@ export class EventData {
 
     event.buttons = Object.assign([], this.buttons);
     event.id = this.id;
-    event.previousPosition = cloneVector(this.previousPosition);
+    event.previousPosition = cloneVectorOrUndefined(this.previousPosition);
     event.delta = this.delta;
     event.deltaZoom = this.deltaZoom;
     event.eventFired = this.eventFired;
@@ -349,6 +368,12 @@ export class EventData {
     return event;
   }
 
+}
+
+interface SafariEvent {
+  scale: number
+  layerX: number
+  layerY: number
 }
 
 /**
@@ -525,9 +550,10 @@ export class ScrollView extends PIXI.Container {
       data.pressed = data.isAnyButtonPressed();
     } else {
       // find and remove touch data
-      data = this.touchEventDataMap.get(ev.data.pointerId);
-      if(data) {
+      const tempData = this.touchEventDataMap.get(ev.data.pointerId);
+      if (tempData) {
         this.touchEventDataMap.delete(ev.data.pointerId);
+        data = tempData
       } else {
         // This should not happen
         //console.error('touch released before press!');
@@ -615,8 +641,8 @@ export class ScrollView extends PIXI.Container {
 
         this.touchEventDataMap.forEach((data: EventData, id: number, map: Map<number, EventData>) => {
           // ignore incomplete touch events
-          previousPosition.x += data.previousPosition.x;
-          previousPosition.y += data.previousPosition.y;
+          previousPosition.x += data.previousPosition?.x || 0;
+          previousPosition.y += data.previousPosition?.y || 0;
           currentPosition.x += data.currentPosition.x;
           currentPosition.y += data.currentPosition.y;
           data.eventFired = false; // reset all events fired
@@ -641,6 +667,7 @@ export class ScrollView extends PIXI.Container {
       }
 
       // here we also check if the event is cancelled before we attempt zoom
+      // TODO: cancel might not initialized. Do not use optional booleans if possible
       if(!cancel && this.touchEventDataMap.size == 2 && !this.browser.isTouchSafari()) { // zoom mode
 
         // get the touch input from the map
@@ -653,8 +680,8 @@ export class ScrollView extends PIXI.Container {
         } else {
 
           // calculate previous touch distance
-          let pp1 = touch1.previousPosition;
-          let pp2 = touch2.previousPosition;
+          let pp1 = touch1.previousPosition!;
+          let pp2 = touch2.previousPosition!;
           let previousLength = Math.sqrt(Math.pow(pp1.x-pp2.x, 2) + Math.pow(pp1.y-pp2.y, 2));
 
           // calculate current touch distance
@@ -686,8 +713,8 @@ export class ScrollView extends PIXI.Container {
     
     if(!cancel && type == EventType.DRAG && allEventFired) {
       // move view to new position and check bounds
-      this.x -= data.delta.x;
-      this.y -= data.delta.y;
+      this.x -= data.delta?.x || 0;
+      this.y -= data.delta?.y || 0;
 
       /*let visible = 1-this.minimalVisibleArea;
       let check = this.customHitArea.x - this.width*visible
@@ -800,17 +827,17 @@ export class ScrollView extends PIXI.Container {
    * zoom event (gesture event)
    * @param e event data
    */
-  private onZoom(e) {
+  private onZoom(e: Event) {
     //console.log('zoom');
 
     // TODO: we could use this for other browsers if there is another with support
-    if(this.browser.name == 'Safari') {
+    if(this.browser.isSafariEvent(e)) {
 
       if(this.lastTouchDistance > 0) {
 
         // calculate distance change between fingers
         var delta = e.scale / this.lastTouchDistance
-        this.mouseEventData.delta.x = delta;
+        this.mouseEventData.delta = {x: delta, y: 0};
         if (this.browser.isTouchSafari()) {
           this.mouseEventData.setNewPosition({x: e.layerX, y: e.layerY })
         }
@@ -839,8 +866,10 @@ export class ScrollView extends PIXI.Container {
    * zoom begin event (gesture begin event)
    * @param e event data
    */
-  private onZoomBegin(e) {
-    this.lastTouchDistance = e.scale;
+  private onZoomBegin(e: Event) {
+    if (this.browser.isSafariEvent(e)) {
+      this.lastTouchDistance = e.scale;
+    }
     e.preventDefault();
   }
 
@@ -848,7 +877,7 @@ export class ScrollView extends PIXI.Container {
    * zoom end event (gesture end event)
    * @param e event data
    */
-  private onZoomEnd(e) {
+  private onZoomEnd(e: Event) {
     this.lastTouchDistance = -1;
     e.preventDefault();
   }

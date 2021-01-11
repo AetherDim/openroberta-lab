@@ -26,7 +26,6 @@ define(["require", "exports", "../SharedAssetLoader"], function (require, export
     var RRCFontAsset = /** @class */ (function (_super) {
         __extends(RRCFontAsset, _super);
         function RRCFontAsset(css, families, name) {
-            if (name === void 0) { name = null; }
             return _super.call(this, exports.RRC_ASSET_PATH + css, families, name) || this;
         }
         return RRCFontAsset;

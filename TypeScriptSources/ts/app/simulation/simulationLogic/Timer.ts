@@ -5,12 +5,12 @@ export class Timer {
     running = false;
     sleepTime = 100;
     shallStop = false;
-    lastCall: number;
+    lastCall: number = 0;
     callTime: number = 0;
 
     userFunction: (dt: number) => void;
 
-    private selfCallingFunc: () => void;
+    private selfCallingFunc: () => void = () => {};
 
     constructor(sleepTime: number, userFunction: (dt: number) => void) {
         this.sleepTime = sleepTime;

@@ -18,9 +18,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
     var RRCRainbowScene = /** @class */ (function (_super) {
         __extends(RRCRainbowScene, _super);
         function RRCRainbowScene() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.backgroundAsset = null;
-            return _this;
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         RRCRainbowScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
@@ -50,9 +48,11 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
         };
         RRCRainbowScene.prototype.onInit = function (chain) {
             this.initRobot();
-            var goal = RRC.loader.get(this.backgroundAsset).texture;
-            this.goalSprite = new PIXI.Sprite(goal);
-            this.groundContainer.addChild(this.goalSprite);
+            if (this.backgroundAsset) {
+                var goal = RRC.loader.get(this.backgroundAsset).texture;
+                this.goalSprite = new PIXI.Sprite(goal);
+                this.groundContainer.addChild(this.goalSprite);
+            }
             chain.next();
         };
         return RRCRainbowScene;

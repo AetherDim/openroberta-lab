@@ -14,7 +14,7 @@ var __extends = (this && this.__extends) || (function () {
 define(["require", "exports", "./pixijs"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ScrollView = exports.EventData = exports.ScrollViewEvent = exports.cloneVector = exports.MouseButton = exports.EventType = exports.getBrowser = exports.Browser = void 0;
+    exports.ScrollView = exports.EventData = exports.ScrollViewEvent = exports.cloneVectorOrUndefined = exports.cloneVector = exports.MouseButton = exports.EventType = exports.getBrowser = exports.Browser = void 0;
     var Browser = /** @class */ (function () {
         function Browser(o) {
             this.name = o.name;
@@ -24,6 +24,9 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         }
         Browser.prototype.isTouchSafari = function () {
             return this.hasMultiTouchInteraction && this.name == "Safari";
+        };
+        Browser.prototype.isSafariEvent = function (event) {
+            return this.name == "Safari";
         };
         return Browser;
     }());
@@ -111,12 +114,20 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
      * @param vec vector/point to copy
      */
     function cloneVector(vec) {
-        if (!vec) {
-            return null;
-        }
         return { x: vec.x, y: vec.y };
     }
     exports.cloneVector = cloneVector;
+    /**
+     * Copy point or vector
+     * @param vec vector/point to copy
+     */
+    function cloneVectorOrUndefined(vec) {
+        if (!vec) {
+            return undefined;
+        }
+        return { x: vec.x, y: vec.y };
+    }
+    exports.cloneVectorOrUndefined = cloneVectorOrUndefined;
     /**
      * Scroll view event. This event contains data and is cancelable.
      */
@@ -180,18 +191,9 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
              */
             this.id = -1;
             /**
-             * previous position, only available from some events (MOVE, RELEASE, DRAG)
-             * For all other events, this will contain old data or no data.
-             */
-            this.previousPosition = null;
-            /**
              * Event (mouse/touch) location.
              */
-            this.currentPosition = null;
-            /**
-             * Contains delta information for mouse move, drag and scroll
-             */
-            this.delta = null;
+            this.currentPosition = { x: 0, y: 0 };
             /**
              * Delta zoom scale (this factor should be around 1).
              */
@@ -265,12 +267,19 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * Translates the previous global positions to the scroll view local position.
          */
         EventData.prototype.getPreviousLocalPosition = function () {
+            if (!this.previousPosition) {
+                return undefined;
+            }
             return this.scrollView.toLocal(this.previousPosition);
         };
         /**
          * Translates the global delta to a local delta relative to the scroll view.
          */
         EventData.prototype.getDeltaLocal = function () {
+            // TODO: Maybe wrong since delta is a relative vector and not an absolute one
+            if (!this.delta) {
+                return undefined;
+            }
             return this.scrollView.toLocal(this.delta);
         };
         /**
@@ -295,7 +304,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             var event = new EventData(this.scrollView, this.isMouse, this.pressed, this.currentPosition);
             event.buttons = Object.assign([], this.buttons);
             event.id = this.id;
-            event.previousPosition = cloneVector(this.previousPosition);
+            event.previousPosition = cloneVectorOrUndefined(this.previousPosition);
             event.delta = this.delta;
             event.deltaZoom = this.deltaZoom;
             event.eventFired = this.eventFired;
@@ -446,9 +455,10 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             }
             else {
                 // find and remove touch data
-                data = this.touchEventDataMap.get(ev.data.pointerId);
-                if (data) {
+                var tempData = this.touchEventDataMap.get(ev.data.pointerId);
+                if (tempData) {
                     this.touchEventDataMap.delete(ev.data.pointerId);
+                    data = tempData;
                 }
                 else {
                     // This should not happen
@@ -470,6 +480,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          */
         ScrollView.prototype.onMove = function (ev) {
             //console.log('move');
+            var _a, _b;
             if (isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
                 return;
             }
@@ -517,9 +528,10 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                     var currentPosition_1 = { x: 0, y: 0 };
                     var oneCancelled_1 = false;
                     this.touchEventDataMap.forEach(function (data, id, map) {
+                        var _a, _b;
                         // ignore incomplete touch events
-                        previousPosition_1.x += data.previousPosition.x;
-                        previousPosition_1.y += data.previousPosition.y;
+                        previousPosition_1.x += ((_a = data.previousPosition) === null || _a === void 0 ? void 0 : _a.x) || 0;
+                        previousPosition_1.y += ((_b = data.previousPosition) === null || _b === void 0 ? void 0 : _b.y) || 0;
                         currentPosition_1.x += data.currentPosition.x;
                         currentPosition_1.y += data.currentPosition.y;
                         data.eventFired = false; // reset all events fired
@@ -538,6 +550,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                     cancel = this.fireEvent(data, type);
                 }
                 // here we also check if the event is cancelled before we attempt zoom
+                // TODO: cancel might not initialized. Do not use optional booleans if possible
                 if (!cancel && this.touchEventDataMap.size == 2 && !this.browser.isTouchSafari()) { // zoom mode
                     // get the touch input from the map
                     var touches = this.touchEventDataMap.values();
@@ -572,8 +585,8 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             }
             if (!cancel && type == EventType.DRAG && allEventFired) {
                 // move view to new position and check bounds
-                this.x -= data.delta.x;
-                this.y -= data.delta.y;
+                this.x -= ((_a = data.delta) === null || _a === void 0 ? void 0 : _a.x) || 0;
+                this.y -= ((_b = data.delta) === null || _b === void 0 ? void 0 : _b.y) || 0;
                 /*let visible = 1-this.minimalVisibleArea;
                 let check = this.customHitArea.x - this.width*visible
                 if(this.x < check) {
@@ -666,11 +679,11 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         ScrollView.prototype.onZoom = function (e) {
             //console.log('zoom');
             // TODO: we could use this for other browsers if there is another with support
-            if (this.browser.name == 'Safari') {
+            if (this.browser.isSafariEvent(e)) {
                 if (this.lastTouchDistance > 0) {
                     // calculate distance change between fingers
                     var delta = e.scale / this.lastTouchDistance;
-                    this.mouseEventData.delta.x = delta;
+                    this.mouseEventData.delta = { x: delta, y: 0 };
                     if (this.browser.isTouchSafari()) {
                         this.mouseEventData.setNewPosition({ x: e.layerX, y: e.layerY });
                     }
@@ -694,7 +707,9 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param e event data
          */
         ScrollView.prototype.onZoomBegin = function (e) {
-            this.lastTouchDistance = e.scale;
+            if (this.browser.isSafariEvent(e)) {
+                this.lastTouchDistance = e.scale;
+            }
             e.preventDefault();
         };
         /**
