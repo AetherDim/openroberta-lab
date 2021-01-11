@@ -9,6 +9,7 @@ import { Polygon } from '../Geometry/Polygon';
 import { LineBaseClass } from '../Geometry/LineBaseClass';
 import { RobotUpdateOptions } from '../Robot/RobotUpdateOptions';
 import {IEntity} from "../Entity";
+import { Unit } from '../Unit';
 
 export class AsyncListener {
 
@@ -76,6 +77,8 @@ export class Scene {
      * @protected
      */
     protected numberOfRobots = 1;
+
+    readonly unit = new Unit()
 
     /**
      * All programmable robots within the scene.

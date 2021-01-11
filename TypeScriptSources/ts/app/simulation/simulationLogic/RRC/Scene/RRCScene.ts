@@ -2,7 +2,7 @@ import { AsyncChain, Scene } from "../../Scene/Scene";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
-import {World} from "matter-js";
+import {Vector, World} from "matter-js";
 
 export class RRCScene extends Scene {
 
@@ -96,8 +96,14 @@ export class RRCScene extends Scene {
         chain.next();
     }
 
-    initRobot() {
+    /**
+     * Sets the position (meters) and rotation (degrees; clockwise) of the robot
+     * @param opt Options of type '{ position?: Vector, rotation?: number }'
+     */
+    initRobot(opt?: { position?: Vector, rotation?: number }) {
         let robot = Robot.EV3();
+        const position = opt?.position || Vector.create()
+        robot.setPose(this.unit.getPosition(position), opt?.rotation || 0, false)
         robot.body.enableMouseInteraction = true;
         World.add(this.world, robot.physicsComposite);
         this.robots.push(robot)

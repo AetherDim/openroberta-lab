@@ -73,8 +73,14 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Ro
             this.showScoreScreen(100);
             chain.next();
         };
-        RRCScene.prototype.initRobot = function () {
+        /**
+         * Sets the position (meters) and rotation (degrees; clockwise) of the robot
+         * @param opt Options of type '{ position?: Vector, rotation?: number }'
+         */
+        RRCScene.prototype.initRobot = function (opt) {
             var robot = Robot_1.Robot.EV3();
+            var position = (opt === null || opt === void 0 ? void 0 : opt.position) || matter_js_1.Vector.create();
+            robot.setPose(this.unit.getPosition(position), (opt === null || opt === void 0 ? void 0 : opt.rotation) || 0, false);
             robot.body.enableMouseInteraction = true;
             matter_js_1.World.add(this.world, robot.physicsComposite);
             this.robots.push(robot);

@@ -9,7 +9,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1) {
+define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Unit"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = exports.AsyncChain = exports.AsyncListener = void 0;
@@ -72,12 +72,17 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
              * @protected
              */
             this.numberOfRobots = 1;
+            this.unit = new Unit_1.Unit();
             /**
              * All programmable robots within the scene.
              * The program flow manager will use the robots internally.
              */
             this.robots = new Array();
             this.programManager = new ProgramManager_1.ProgramManager(this);
+            //
+            // #############################################################################
+            //
+            this.entities = new Array();
             //
             // #############################################################################
             //
@@ -211,6 +216,20 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         };
         Scene.prototype.getNumberOfRobots = function () {
             return this.numberOfRobots;
+        };
+        Scene.prototype.addEntities = function () {
+            var _this_1 = this;
+            var entities = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                entities[_i] = arguments[_i];
+            }
+            entities.forEach(function (entity) { return _this_1.addEntity(entity); });
+        };
+        Scene.prototype.addEntity = function (entity) {
+            if (!this.entities.includes(entity)) {
+                this.entities.push(entity);
+                // register physics and graphics
+            }
         };
         Scene.prototype.setupContainers = function () {
             this.groundContainer.zIndex = this.groundContainerZ;

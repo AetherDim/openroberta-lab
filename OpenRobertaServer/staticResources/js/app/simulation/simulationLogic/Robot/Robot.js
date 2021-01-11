@@ -84,6 +84,20 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.body.frictionAir = 0.0;
         };
         /**
+         * Sets the position and rotation of the robot. (Body, wheels and sensors)
+         *
+         * @param position Position of the robot body in meters
+         * @param rotation Rotation of the robot body in radians
+         */
+        Robot.prototype.setPose = function (position, rotation, inRadians) {
+            if (inRadians === void 0) { inRadians = true; }
+            matter_js_1.Composite.translate(this.physicsComposite, matter_js_1.Vector.sub(position, this.body.position));
+            if (!inRadians) {
+                rotation *= 2 * Math.PI / 360;
+            }
+            matter_js_1.Composite.rotate(this.physicsComposite, rotation - this.body.angle, this.body.position);
+        };
+        /**
          * Returns the color sensor which can be `undefined`
          */
         Robot.prototype.getColorSensors = function () {

@@ -138,6 +138,20 @@ export class Robot {
 	}
 
 	/**
+	 * Sets the position and rotation of the robot. (Body, wheels and sensors)
+	 * 
+	 * @param position Position of the robot body in meters
+	 * @param rotation Rotation of the robot body in radians
+	 */
+	setPose(position: Vector, rotation: number, inRadians: boolean = true) {
+		Composite.translate(this.physicsComposite, Vector.sub(position, this.body.position))
+		if (!inRadians) {
+			rotation *= 2 * Math.PI / 360
+		}
+		Composite.rotate(this.physicsComposite, rotation - this.body.angle, this.body.position)
+	}
+
+	/**
 	 * Returns the color sensor which can be `undefined`
 	 */
 	getColorSensors(): ColorSensor[] {
