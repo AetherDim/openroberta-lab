@@ -8,6 +8,7 @@ import { ProgramManager } from '../ProgramManager';
 import { Polygon } from '../Geometry/Polygon';
 import { LineBaseClass } from '../Geometry/LineBaseClass';
 import { RobotUpdateOptions } from '../Robot/RobotUpdateOptions';
+import {IEntity} from "../Entity";
 
 export class AsyncListener {
 
@@ -20,6 +21,7 @@ export class AsyncListener {
     }
 
 }
+
 export class AsyncChain {
 
     private readonly listeners: AsyncListener[];
@@ -94,6 +96,28 @@ export class Scene {
     getNumberOfRobots(): number {
         return this.numberOfRobots;
     }
+
+    //
+    // #############################################################################
+    //
+
+    readonly entities: Array<IEntity> = new Array<IEntity>();
+
+    addEntities(...entities: IEntity[]) {
+        entities.forEach(entity => this.addEntity(entity));
+    }
+
+    addEntity(entity: IEntity) {
+        if(!this.entities.includes(entity)) {
+            this.entities.push(entity);
+
+            // register physics and graphics
+
+
+
+        }
+    }
+
 
     //
     // #############################################################################
