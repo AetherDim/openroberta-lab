@@ -37,6 +37,13 @@ define(["require", "exports"], function (require, exports) {
             }
             return result;
         };
+        Util.getOptions = function (init, someOptions) {
+            var options = new init();
+            if (someOptions != undefined) {
+                Object.assign(options, someOptions);
+            }
+            return options;
+        };
         return Util;
     }());
     exports.Util = Util;

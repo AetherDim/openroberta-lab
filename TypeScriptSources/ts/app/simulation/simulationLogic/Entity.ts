@@ -1,11 +1,14 @@
 import {Scene} from "./Scene/Scene";
 import {Body, Composite, Constraint, Vector, Bodies} from "matter-js";
-import {text} from "d3";
+import { Util } from "./Util";
 
 
 export interface IEntity {
 
     getScene(): Scene;
+
+    getParent(): IContainerEntity | undefined
+    _setParent(containerEntity: IContainerEntity | undefined): void
 
 }
 
@@ -14,7 +17,7 @@ export interface IUpdatableEntity extends IEntity {
     /**
      * called once per engine update
      */
-    update();
+    update(dt: number): void;
 
 }
 
@@ -32,12 +35,6 @@ export interface IDrawableEntity extends IEntity {
      */
     getLayerContainer?(): PIXI.Container;
 
-    setDrawablePosition(vec: Vector);
-
-    setDrawableRotation(rotation: number);
-
-    setDrawableScale(vec: Vector);
-
 }
 
 export interface IPhysicsBodyEntity extends IEntity {
@@ -47,7 +44,7 @@ export interface IPhysicsBodyEntity extends IEntity {
      */
     getPhysicsBody(): Body;
 
-    setStatic(isStatic: boolean);
+    setStatic(isStatic: boolean): void;
 
 }
 
@@ -74,7 +71,7 @@ export interface IDrawablePhysicsEntity extends IDrawableEntity, IPhysicsBodyEnt
     /**
      * update position of physics entity to the drawable part
      */
-    updateDrawablePosition();
+    updateDrawablePosition(): void;
 
 }
 
@@ -82,8 +79,11 @@ export abstract class DrawablePhysicsEntity implements IDrawablePhysicsEntity {
 
     readonly scene: Scene;
 
-    protected constructor(scene: Scene) {
+    protected drawable: PIXI.DisplayObject
+
+    protected constructor(scene: Scene, drawable: PIXI.DisplayObject) {
         this.scene = scene;
+        this.drawable = drawable
     }
 
     getScene(): Scene {
@@ -91,8 +91,8 @@ export abstract class DrawablePhysicsEntity implements IDrawablePhysicsEntity {
     }
 
     updateDrawablePosition() {
-        this.setDrawablePosition(this.getPhysicsBody().position);
-        this.setDrawableRotation(this.getPhysicsBody().angle);
+        this.drawable.position.copyFrom(this.getPhysicsBody().position);
+        this.drawable.rotation = this.getPhysicsBody().angle;
     }
 
     setStatic(isStatic: boolean) {
@@ -104,25 +104,29 @@ export abstract class DrawablePhysicsEntity implements IDrawablePhysicsEntity {
 export interface DrawablePhysicsEntity extends IDrawablePhysicsEntity {}
 
 
+export interface IContainerEntity extends IEntity {
 
-//
-//
-//
+    getChildren(): IEntity[]
 
-
-
-export abstract class DrawSettings {
-
-    color?: number = 0xFFFFFF;
-    alpha?: number = 1;
-    strokeColor?: number = 0x000000;
-    strokeAlpha?: number = 1;
-    strokeWidth?: number = 2;
-
+    removeChild(child: IEntity): void
+    addChild(child: IEntity): void
 }
 
+//
+//
+//
 
 
+
+export class DrawSettings {
+
+    color: number = 0xFFFFFF;
+    alpha: number = 1;
+    strokeColor: number = 0x000000;
+    strokeAlpha: number = 1;
+    strokeWidth: number = 2;
+
+}
 
 
 
@@ -130,26 +134,46 @@ export abstract class DrawSettings {
 // Specialized Entities
 //
 
-export class RectEntity extends DrawablePhysicsEntity {
+export class RectEntityOptions extends DrawSettings {
+    roundingRadius: number = 0
+    relativeToCenter: boolean = true
+}
+
+export class PhysicsRectEntity extends DrawablePhysicsEntity {
 
     protected body: Body;
 
-    private constructor(scene: Scene, x: number, y: number, width: number, height: number, drawSettings: DrawSettings, relativeToCenter:boolean = false) {
-        super(scene);
+    private constructor(scene: Scene, x: number, y: number, width: number, height: number, drawable: PIXI.DisplayObject) {
+        super(scene, drawable);
+
+        PhysicsRectEntity.create(scene, x, y, width, height, {})
 
         this.body = Bodies.rectangle(x, y, width, height);
-
-
     }
 
 
-    static create(scene: Scene, x: number, y: number, width: number, height: number, drawSettings: DrawSettings, relativeToCenter:boolean = false): RectEntity {
-        return new RectEntity(scene, x, y, width, height, drawSettings, relativeToCenter);
-        // TODO
+    static create(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity {
+
+        const options = Util.getOptions(RectEntityOptions, opts);
+        
+        [x, y, width, height] = scene.unit.getLengths([x, y, width, height])
+        if (!options.relativeToCenter) {
+            x += width / 2
+            y += height / 2
+        }
+
+        const graphics = new PIXI.Graphics();
+
+        graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha);
+        graphics.beginFill(options.color, options.alpha);
+        graphics.drawRoundedRect(-width/2, -height/2, width, height, options.roundingRadius || 1);
+        graphics.endFill();
+
+        return new PhysicsRectEntity(scene, x, y, width, height, graphics);
     }
 
-    static createTexture(scene: Scene, x: number, y: number, texture: PIXI.Texture, drawSettings: DrawSettings, relativeToCenter:boolean = false): RectEntity {
-        return new RectEntity(scene, x, y, texture.width, texture.height, drawSettings, relativeToCenter);
+    static createTexture(scene: Scene, x: number, y: number, texture: PIXI.Texture, alpha: number, relativeToCenter:boolean = false): PhysicsRectEntity {
+        return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject());
         // TODO
     }
 
