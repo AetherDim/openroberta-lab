@@ -21,6 +21,20 @@ export class Util {
 		return options
 	}
 
+	/**
+     * @param array Array where the first occurrence of `element` will be removed
+     * @param element The element which will bew removed from `array`
+     * @returns `true` if the element was removed
+     */
+    static removeFromArray<T>(array: T[], element: T): boolean {
+        const index = array.indexOf(element, 0);
+        if (index > -1) {
+            array.splice(index, 1)
+            return true
+        }
+        return false
+    }
+
 }
 
 type ObjectKeys<T> = 

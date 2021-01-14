@@ -3,6 +3,31 @@ import {Body, Composite, Constraint, Vector, Bodies} from "matter-js";
 import { Util } from "./Util";
 
 
+export class Meta<T> {
+    name: keyof T
+    constructor(name: keyof T) {
+        this.name = name
+    }
+
+    isSupertypeOf(value: any): value is T {
+        if (this.name in value) {
+            return true
+        }
+        return false
+    }
+}
+
+export class Type {
+    static readonly IEntity = new Meta<IEntity>("IEntity")
+    static readonly IUpdatableEntity = new Meta<IUpdatableEntity>("IUpdatableEntity")
+    static readonly IDrawableEntity = new Meta<IDrawableEntity>("IDrawableEntity")
+    static readonly IPhysicsBodyEntity = new Meta<IPhysicsBodyEntity>("IPhysicsBodyEntity")
+    static readonly IDrawablePhysicsEntity = new Meta<IDrawablePhysicsEntity>("IDrawablePhysicsEntity")
+    static readonly IContainerEntity = new Meta<IContainerEntity>("IContainerEntity")
+}
+
+
+
 export interface IEntity {
 
     getScene(): Scene;
@@ -10,9 +35,12 @@ export interface IEntity {
     getParent(): IContainerEntity | undefined
     _setParent(containerEntity: IContainerEntity | undefined): void
 
+    IEntity(): void
 }
 
 export interface IUpdatableEntity extends IEntity {
+
+    IUpdatableEntity(): void
 
     /**
      * called once per engine update
@@ -24,6 +52,8 @@ export interface IUpdatableEntity extends IEntity {
 
 export interface IDrawableEntity extends IEntity {
 
+    IDrawableEntity(): void
+
     /**
      * returns a drawable for this entity
      */
@@ -31,13 +61,15 @@ export interface IDrawableEntity extends IEntity {
 
     /**
      * get container to register graphics
-     * if function is undefined, the entity layer will be used
+     * if function is undefined, the entity layer of the `Scene` will be used
      */
-    getLayerContainer?(): PIXI.Container;
+    getContainer?(): PIXI.Container;
 
 }
 
 export interface IPhysicsBodyEntity extends IEntity {
+
+    IPhysicsBodyEntity(): void
 
     /**
      * returns the physics object of this entity
@@ -67,6 +99,8 @@ export interface IPhysicsConstraintEntity extends IEntity {
 }
 
 export interface IDrawablePhysicsEntity extends IDrawableEntity, IPhysicsBodyEntity {
+
+    IDrawablePhysicsEntity(): void
 
     /**
      * update position of physics entity to the drawable part
@@ -106,10 +140,13 @@ export interface DrawablePhysicsEntity extends IDrawablePhysicsEntity {}
 
 export interface IContainerEntity extends IEntity {
 
+    IContainerEntity(): void
+
     getChildren(): IEntity[]
 
     removeChild(child: IEntity): void
     addChild(child: IEntity): void
+
 }
 
 //

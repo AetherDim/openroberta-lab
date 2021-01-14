@@ -9,7 +9,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Unit"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Unit_1) {
+define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = exports.AsyncChain = exports.AsyncListener = void 0;
@@ -82,7 +82,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             //
             // #############################################################################
             //
-            this.entities = new Array();
+            this.entities = [];
+            this.updatableEntities = [];
+            this.drawablePhysicsEntities = [];
             //
             // #############################################################################
             //
@@ -226,9 +228,52 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             entities.forEach(function (entity) { return _this_1.addEntity(entity); });
         };
         Scene.prototype.addEntity = function (entity) {
+            var _a, _b;
+            if (entity.getScene() != this) {
+                console.warn("Entity " + entity + " is not in this (" + this + ") scene");
+            }
             if (!this.entities.includes(entity)) {
                 this.entities.push(entity);
                 // register physics and graphics
+                if (Entity_1.Type.IUpdatableEntity.isSupertypeOf(entity)) {
+                    this.updatableEntities.push(entity);
+                }
+                if (Entity_1.Type.IDrawableEntity.isSupertypeOf(entity)) {
+                    var container = (_b = (_a = entity.getContainer) === null || _a === void 0 ? void 0 : _a.call(entity)) !== null && _b !== void 0 ? _b : this.entityContainer;
+                    container.addChild(entity.getDrawable());
+                }
+                if (Entity_1.Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
+                    this.drawablePhysicsEntities.push(entity);
+                }
+                if (Entity_1.Type.IContainerEntity.isSupertypeOf(entity)) {
+                    var t_1 = this;
+                    entity.getChildren().forEach(function (entity) { return t_1.addEntity(entity); });
+                }
+            }
+        };
+        Scene.prototype.removeEntity = function (entity) {
+            if (entity.getScene() != this) {
+                console.warn("Entity " + entity + " is not in this (" + this + ") scene");
+            }
+            if (Util_1.Util.removeFromArray(this.entities, entity)) {
+                // remove from parent
+                var parentEntity = entity.getParent();
+                if (parentEntity != undefined) {
+                    parentEntity.removeChild(entity);
+                }
+                // remove physics and graphics
+                if (Entity_1.Type.IUpdatableEntity.isSupertypeOf(entity)) {
+                    Util_1.Util.removeFromArray(this.updatableEntities, entity);
+                }
+                if (Entity_1.Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
+                    Util_1.Util.removeFromArray(this.drawablePhysicsEntities, entity);
+                }
+                if (Entity_1.Type.IContainerEntity.isSupertypeOf(entity)) {
+                    var children = entity.getChildren();
+                    for (var i = 0; i < children.length; i++) {
+                        entity.removeChild(children[i]);
+                    }
+                }
             }
         };
         Scene.prototype.setupContainers = function () {
@@ -738,6 +783,13 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             // update robots
             // update ground every tick: this.updateColorDataFunction()
             var _this = this;
+            this.updatableEntities.forEach(function (entity) { return entity.update(_this.dt); });
+            this.drawablePhysicsEntities.forEach(function (entity) {
+                var drawable = entity.getDrawable();
+                var physicsBody = entity.getPhysicsBody();
+                drawable.position.copyFrom(physicsBody.position);
+                drawable.angle = physicsBody.angle;
+            });
             // FIXME: What to do with undefined 'getImageData'?
             var getImageData = this.getImageData;
             var allBodies = matter_js_1.Composite.allBodies(this.engine.world);

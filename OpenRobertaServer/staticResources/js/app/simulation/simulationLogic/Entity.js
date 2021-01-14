@@ -30,7 +30,32 @@ var __read = (this && this.__read) || function (o, n) {
 define(["require", "exports", "matter-js", "./Util"], function (require, exports, matter_js_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PhysicsRectEntity = exports.RectEntityOptions = exports.DrawSettings = exports.DrawablePhysicsEntity = void 0;
+    exports.PhysicsRectEntity = exports.RectEntityOptions = exports.DrawSettings = exports.DrawablePhysicsEntity = exports.Type = exports.Meta = void 0;
+    var Meta = /** @class */ (function () {
+        function Meta(name) {
+            this.name = name;
+        }
+        Meta.prototype.isSupertypeOf = function (value) {
+            if (this.name in value) {
+                return true;
+            }
+            return false;
+        };
+        return Meta;
+    }());
+    exports.Meta = Meta;
+    var Type = /** @class */ (function () {
+        function Type() {
+        }
+        Type.IEntity = new Meta("IEntity");
+        Type.IUpdatableEntity = new Meta("IUpdatableEntity");
+        Type.IDrawableEntity = new Meta("IDrawableEntity");
+        Type.IPhysicsBodyEntity = new Meta("IPhysicsBodyEntity");
+        Type.IDrawablePhysicsEntity = new Meta("IDrawablePhysicsEntity");
+        Type.IContainerEntity = new Meta("IContainerEntity");
+        return Type;
+    }());
+    exports.Type = Type;
     var DrawablePhysicsEntity = /** @class */ (function () {
         function DrawablePhysicsEntity(scene, drawable) {
             this.scene = scene;

@@ -8,8 +8,9 @@ import { ProgramManager } from '../ProgramManager';
 import { Polygon } from '../Geometry/Polygon';
 import { LineBaseClass } from '../Geometry/LineBaseClass';
 import { RobotUpdateOptions } from '../Robot/RobotUpdateOptions';
-import {IEntity} from "../Entity";
+import { IDrawablePhysicsEntity, IEntity, IUpdatableEntity, Type } from "../Entity";
 import { Unit } from '../Unit';
+import { Util } from '../Util';
 
 export class AsyncListener {
 
@@ -104,19 +105,73 @@ export class Scene {
     // #############################################################################
     //
 
-    readonly entities: Array<IEntity> = new Array<IEntity>();
+    private readonly entities: IEntity[] = []
+    private readonly updatableEntities: IUpdatableEntity[] = []
+    private readonly drawablePhysicsEntities: IDrawablePhysicsEntity[] = []
+
 
     addEntities(...entities: IEntity[]) {
         entities.forEach(entity => this.addEntity(entity));
     }
 
     addEntity(entity: IEntity) {
+        if (entity.getScene() != this) {
+            console.warn(`Entity ${entity} is not in this (${this}) scene`)
+        }
         if(!this.entities.includes(entity)) {
             this.entities.push(entity);
 
             // register physics and graphics
 
+            if (Type.IUpdatableEntity.isSupertypeOf(entity)) {
+                this.updatableEntities.push(entity)
+            }
 
+            if (Type.IDrawableEntity.isSupertypeOf(entity)) {
+                const container = entity.getContainer?.() ?? this.entityContainer;
+                container.addChild(entity.getDrawable())
+            }
+
+            if (Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
+                this.drawablePhysicsEntities.push(entity)
+            }
+
+            if (Type.IContainerEntity.isSupertypeOf(entity)) {
+                const t = this
+                entity.getChildren().forEach(entity => t.addEntity(entity))
+            }
+
+        }
+    }
+
+    removeEntity(entity: IEntity) {
+        if (entity.getScene() != this) {
+            console.warn(`Entity ${entity} is not in this (${this}) scene`)
+        }
+        if(Util.removeFromArray(this.entities, entity)) {
+
+            // remove from parent
+            const parentEntity = entity.getParent()
+            if (parentEntity != undefined) {
+                parentEntity.removeChild(entity)
+            }
+
+            // remove physics and graphics
+
+            if (Type.IUpdatableEntity.isSupertypeOf(entity)) {
+                Util.removeFromArray(this.updatableEntities, entity)
+            }
+
+            if (Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
+                Util.removeFromArray(this.drawablePhysicsEntities, entity)
+            }
+
+            if (Type.IContainerEntity.isSupertypeOf(entity)) {
+                const children = entity.getChildren()
+                for (let i = 0; i < children.length; i++) {
+                    entity.removeChild(children[i])
+                }
+            }
 
         }
     }
@@ -949,6 +1004,15 @@ export class Scene {
         // update robots
         // update ground every tick: this.updateColorDataFunction()
         const _this = this
+
+        this.updatableEntities.forEach(entity => entity.update(_this.dt))
+        this.drawablePhysicsEntities.forEach(entity => {
+            const drawable = entity.getDrawable()
+            const physicsBody = entity.getPhysicsBody()
+            drawable.position.copyFrom(physicsBody.position)
+            drawable.angle = physicsBody.angle
+        })
+
         // FIXME: What to do with undefined 'getImageData'?
         const getImageData = this.getImageData
         const allBodies = Composite.allBodies(this.engine.world)
