@@ -32,7 +32,11 @@ export class TestScene extends Scene {
             handler(ev)
         });
     }
-    
+
+    getUnitConverter(): Unit {
+        return new Unit({ m: 1000 })
+    }
+
     /**
      * called after resource loading on Init
      * 
@@ -43,8 +47,7 @@ export class TestScene extends Scene {
         // use 0.001 for EV3
         const scale = 0.001;
         
-        Unit.setUnitScaling({m: 1000})
-        this.unit.setUnitScaling({m: 1000})
+        const unit = this.unit
 
         // (<any>Resolver)._restingThresh = 4 * scale;
         // (<any>Resolver)._restingThreshTangent = 6 * scale;
@@ -65,7 +68,7 @@ export class TestScene extends Scene {
 
         //World.add(this.engine.world, robotComposite);
 
-        Composite.translate(robotComposite, Unit.getPositionVec(100 * scale, 100 * scale))
+        Composite.translate(robotComposite, unit.getPositionVec(100 * scale, 100 * scale))
 
         const polygon = new Polygon([
             Vector.create(0, 0),
@@ -73,7 +76,7 @@ export class TestScene extends Scene {
             Vector.create(100, 50),
             Vector.create(0, 100),
             Vector.create(50, 50)
-        ].map(v => Unit.getPosition(Vector.mult(Vector.add(v, Vector.create(200, 200)), scale))))
+        ].map(v => unit.getPosition(Vector.mult(Vector.add(v, Vector.create(200, 200)), scale))))
     
         const polygonGraphics = new PIXI.Graphics()
         polygonGraphics.beginFill(0xFF0000)
@@ -191,8 +194,8 @@ export class TestScene extends Scene {
             const forcePos = Vector.add(body.position, Vector.mult(vec, -40))
     
             
-            const maxTorque = Unit.getTorque(100*1000*1000 * Math.pow(scale, 3.5))
-            const motor = useEV3 ? ElectricMotor.EV3() : new ElectricMotor(120, maxTorque)
+            const maxTorque = unit.getTorque(100*1000*1000 * Math.pow(scale, 3.5))
+            const motor = useEV3 ? ElectricMotor.EV3(unit) : new ElectricMotor(unit, 120, maxTorque)
             robot.leftDrivingWheel.applyTorqueFromMotor(motor, leftForce)
             robot.rightDrivingWheel.applyTorqueFromMotor(motor, rightForce)
 

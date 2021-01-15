@@ -1,4 +1,4 @@
-define(["require", "exports", "../Unit"], function (require, exports, Unit_1) {
+define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ColorSensor = void 0;
@@ -8,13 +8,13 @@ define(["require", "exports", "../Unit"], function (require, exports, Unit_1) {
          *
          * @param position Position relative to the robot position in meter
          */
-        function ColorSensor(position) {
+        function ColorSensor(unit, position) {
             /**
              * The color which is detected below the color sensor
              */
             this.detectedColor = { red: 0, green: 0, blue: 0 };
             this.graphics = new PIXI.Graphics();
-            this.position = Unit_1.Unit.getPosition(position);
+            this.position = unit.getPosition(position);
             this.updateGraphics();
         }
         ColorSensor.prototype.getDetectedColor = function () {

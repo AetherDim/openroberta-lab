@@ -79,7 +79,10 @@ export class Scene {
      */
     protected numberOfRobots = 1;
 
-    readonly unit = new Unit()
+    private _unit = new Unit({})
+    get unit(): Unit {
+        return this._unit
+    }
 
     /**
      * All programmable robots within the scene.
@@ -515,6 +518,10 @@ export class Scene {
         // remove all drawables from the containers
         this.clearAllContainers();
 
+        this.entities.length = 0
+        this.updatableEntities.length = 0
+        this.drawablePhysicsEntities.length = 0
+
         chain.next();
     }
 
@@ -576,6 +583,7 @@ export class Scene {
 
         // finish loading
         this.loadingChain.push(
+            {func: chain => { this._unit = this.getUnitConverter(); chain.next() }, thisContext: this },
             {func: this.initScoreContainer, thisContext: this}, // init score container
             {func: this.onInit, thisContext: this}, // init scene
             // swap from loading to scene, remove loading animation, cleanup, ...
@@ -1166,6 +1174,13 @@ export class Scene {
     onLoadAssets(chain: AsyncChain) {
         console.log('on asset load');
         chain.next();
+    }
+
+    /**
+     * Returns the unit converter which is used for this scene
+     */
+    getUnitConverter(): Unit {
+        return new Unit({})
     }
 
     /**

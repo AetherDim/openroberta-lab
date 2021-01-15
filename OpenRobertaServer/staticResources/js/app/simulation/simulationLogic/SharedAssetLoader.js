@@ -86,7 +86,7 @@ define(["require", "exports", "webfontloader", "./Random", "./Util"], function (
             });
             var assetsToLoad = Util_1.Util.mapNotNull(assets, function (asset) {
                 var assetToLoad = null;
-                if (asset instanceof FontAsset) {
+                if (asset == undefined || asset instanceof FontAsset) {
                     return null;
                 }
                 else {

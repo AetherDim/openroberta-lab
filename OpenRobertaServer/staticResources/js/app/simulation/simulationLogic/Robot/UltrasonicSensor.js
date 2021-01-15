@@ -1,9 +1,9 @@
-define(["require", "exports", "matter-js", "../Unit"], function (require, exports, matter_js_1, Unit_1) {
+define(["require", "exports", "matter-js"], function (require, exports, matter_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UltrasonicSensor = void 0;
     var UltrasonicSensor = /** @class */ (function () {
-        function UltrasonicSensor(position, angularRange) {
+        function UltrasonicSensor(unit, position, angularRange) {
             /**
              * The measured distance in matter units
              */
@@ -13,7 +13,7 @@ define(["require", "exports", "matter-js", "../Unit"], function (require, export
              */
             this.maximumMeasurableDistance = 2.5;
             this.graphics = new PIXI.Graphics();
-            this.position = Unit_1.Unit.getPosition(position);
+            this.position = unit.getPosition(position);
             this.angularRange = angularRange;
             this.updateGraphics();
         }

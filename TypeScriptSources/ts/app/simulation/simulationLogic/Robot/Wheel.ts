@@ -56,7 +56,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		this.physicsEntity = physicsEntity
 		
 		this.physicsBody = this.physicsEntity.getPhysicsBody();
-		[x, y, width, height] = Unit.getLengths([x, y, width, height])
+		[x, y, width, height] = scene.unit.getLengths([x, y, width, height])
 
 		const container = this.physicsEntity.getDrawable()
 
@@ -77,8 +77,8 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		container.addChild(this.debugContainer)
 
 
-		if (mass) {
-			Body.setMass(this.physicsBody, Unit.getMass(mass))
+		if (mass != undefined) {
+			Body.setMass(this.physicsBody, scene.unit.getMass(mass))
 		}
 		this.wheelRadius = width / 2
 		this.momentOfInertia = 0.5 * this.physicsBody.mass * Math.pow(this.wheelRadius, 2)
@@ -204,7 +204,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		let alongForce = 0
 
 		// TODO: A bot hacky to use a constant acceleration
-		const mass = this.normalForce / Unit.getAcceleration(9.81)//wheel.mass
+		const mass = this.normalForce / this.scene.unit.getAcceleration(9.81)//wheel.mass
 		const totalTorque = slidingFrictionTorque + this.torque + rollingFrictionTorque
 		/** time to adjust speed such that the wheel rotation speed matches the center of mass wheel speed */
 		const timeToAdjustSpeed = wheelVelocityDifference / (alongSlideFrictionForce / mass - totalTorque / this.momentOfInertia * this.wheelRadius)

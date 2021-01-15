@@ -27,7 +27,7 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-define(["require", "exports", "d3", "matter-js", "../Unit", "../Entity"], function (require, exports, d3_1, matter_js_1, Unit_1, Entity_1) {
+define(["require", "exports", "d3", "matter-js", "../Entity"], function (require, exports, d3_1, matter_js_1, Entity_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Wheel = void 0;
@@ -65,7 +65,7 @@ define(["require", "exports", "d3", "matter-js", "../Unit", "../Entity"], functi
             _this.debugContainer = new PIXI.Container();
             _this.physicsEntity = physicsEntity;
             _this.physicsBody = _this.physicsEntity.getPhysicsBody();
-            _a = __read(Unit_1.Unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
+            _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
             var container = _this.physicsEntity.getDrawable();
             _this.wheelProfile = d3_1.range(4).map(function () {
                 var graphics = new PIXI.Graphics();
@@ -81,8 +81,8 @@ define(["require", "exports", "d3", "matter-js", "../Unit", "../Entity"], functi
             // this.debugContainer.addChild(this.debugText)
             // container.addChild(this.debugText)
             container.addChild(_this.debugContainer);
-            if (mass) {
-                matter_js_1.Body.setMass(_this.physicsBody, Unit_1.Unit.getMass(mass));
+            if (mass != undefined) {
+                matter_js_1.Body.setMass(_this.physicsBody, scene.unit.getMass(mass));
             }
             _this.wheelRadius = width / 2;
             _this.momentOfInertia = 0.5 * _this.physicsBody.mass * Math.pow(_this.wheelRadius, 2);
@@ -188,7 +188,7 @@ define(["require", "exports", "d3", "matter-js", "../Unit", "../Entity"], functi
             var slidingFrictionTorque = -alongSlideFrictionForce * this.wheelRadius;
             var alongForce = 0;
             // TODO: A bot hacky to use a constant acceleration
-            var mass = this.normalForce / Unit_1.Unit.getAcceleration(9.81); //wheel.mass
+            var mass = this.normalForce / this.scene.unit.getAcceleration(9.81); //wheel.mass
             var totalTorque = slidingFrictionTorque + this.torque + rollingFrictionTorque;
             /** time to adjust speed such that the wheel rotation speed matches the center of mass wheel speed */
             var timeToAdjustSpeed = wheelVelocityDifference / (alongSlideFrictionForce / mass - totalTorque / this.momentOfInertia * this.wheelRadius);

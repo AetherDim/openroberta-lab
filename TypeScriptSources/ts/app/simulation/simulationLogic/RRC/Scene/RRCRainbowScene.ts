@@ -5,6 +5,7 @@ import {AsyncChain} from "../../Scene/Scene";
 import {randomBool, randomIntBetween, randomWeightedBool} from "../../Random";
 import {Asset} from "../../SharedAssetLoader";
 import { Vector } from "matter-js";
+import { Unit } from "../../Unit";
 
 export class RRCRainbowScene extends RRCScene {
 
@@ -41,7 +42,7 @@ export class RRCRainbowScene extends RRCScene {
     }
 
     onInit(chain: AsyncChain) {
-        this.initRobot({ position: Vector.create(200, 200), rotation: 45 });
+        this.initRobot({ position: {x: 0.5, y: 0.5 }, rotation: 45 });
 
         if (this.backgroundAsset) {
             let goal = RRC.loader.get(this.backgroundAsset).texture;

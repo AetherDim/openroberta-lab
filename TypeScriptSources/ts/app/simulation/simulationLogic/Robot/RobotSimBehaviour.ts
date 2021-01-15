@@ -7,6 +7,8 @@ import { RobotHardwareStateSensors } from "./RobotHardwareStateSensors";
 
 export class RobotSimBehaviour extends ARobotBehaviour {
 
+	private readonly unit: Unit
+
 	/**
 	 * Drive action of the robot
 	 */
@@ -29,8 +31,9 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		speed: number
 	}
 
-	constructor() {
+	constructor(unit: Unit) {
 		super();
+		this.unit = unit
 		this.hardwareState.motors = {};
 		U.loggingEnabled(false, false);
 	}
@@ -284,10 +287,10 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 
 			this.drive = {
 				// convert distance from cm to m
-				distance: distance ? Unit.getLength(distance * 0.01) : undefined,
+				distance: distance ? this.unit.getLength(distance * 0.01) : undefined,
 				// convert speed from precent to fraction
 				speed: (speed ? { left: speed * 0.01, right: speed * 0.01} : undefined),
-				time: time ? Unit.getTime(time) : undefined
+				time: time ? this.unit.getTime(time) : undefined
 			}
 
 			return 1
@@ -347,10 +350,10 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 
 			this.drive = {
 				// convert distance from cm to m
-				distance: distance ? Unit.getLength(distance * 0.01) : undefined,
+				distance: distance ? this.unit.getLength(distance * 0.01) : undefined,
 				// convert speedL and speedR from precent to fraction
 				speed: { left: speedL * 0.01, right: speedR * 0.01},
-				time: Unit.getTime(time) || undefined
+				time: this.unit.getTime(time) || undefined
 			}
 
 			return 1;

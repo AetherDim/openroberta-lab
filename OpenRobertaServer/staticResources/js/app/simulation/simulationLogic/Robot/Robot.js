@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1) {
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -148,7 +148,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             if (this.colorSensors[port]) {
                 return false;
             }
-            var colorSensor = new ColorSensor_1.ColorSensor(matter_js_1.Vector.create(x, y));
+            var colorSensor = new ColorSensor_1.ColorSensor(this.scene.unit, matter_js_1.Vector.create(x, y));
             this.colorSensors[port] = colorSensor;
             this.bodyContainer.addChild(colorSensor.graphics);
             return true;
@@ -205,7 +205,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var _this = this;
             this.programCode = JSON.parse(program.javaScriptProgram);
             this.configuration = program.javaScriptConfiguration;
-            this.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour();
+            this.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour(this.scene.unit);
             this.interpreter = new interpreter_interpreter_1.Interpreter(this.programCode, this.robotBehaviour, function () {
                 _this.programTerminated();
             }, breakpoints);
@@ -239,7 +239,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 return;
             }
             // update wheels velocities
-            var gravitationalAcceleration = Unit_1.Unit.getAcceleration(9.81);
+            var gravitationalAcceleration = this.scene.unit.getAcceleration(9.81);
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
             this.wheelsList.forEach(function (wheel) {
                 wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration);
@@ -332,8 +332,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     this.robotBehaviour.rotate = undefined;
                 }
             }
-            this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(), speed.left);
-            this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(), speed.right);
+            this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), speed.left);
+            this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), speed.right);
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {
@@ -640,7 +640,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                         this_1.debugGraphics.position.set(nearestPoint.x, nearestPoint.y);
                     }
                 }
-                ultrasonicDistance = Unit_1.Unit.fromLength(ultrasonicDistance);
+                ultrasonicDistance = this_1.scene.unit.fromLength(ultrasonicDistance);
                 sensors.ultrasonic[port] = {
                     // `distance` is in cm
                     distance: Math.min(ultrasonicDistance, ultrasonicSensor.maximumMeasurableDistance) * 100,
@@ -712,7 +712,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             backWheel.slideFriction = 0.05;
             backWheel.rollingFriction = 0.03;
             var robotBody = Entity_1.PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10);
-            matter_js_1.Body.setMass(robotBody.getPhysicsBody(), Unit_1.Unit.getMass(0.300));
+            matter_js_1.Body.setMass(robotBody.getPhysicsBody(), scene.unit.getMass(0.300));
             var robot = new Robot({
                 scene: scene,
                 body: robotBody,
@@ -723,7 +723,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 ]
             });
             robot.addColorSensor("3", 0.075, 0);
-            robot.addUltrasonicSensor("4", new UltrasonicSensor_1.UltrasonicSensor(matter_js_1.Vector.create(0.095, 0), 90 * 2 * Math.PI / 360));
+            robot.addUltrasonicSensor("4", new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(0.095, 0), 90 * 2 * Math.PI / 360));
             var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000 });
             matter_js_1.Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05));
             robot.addTouchSensor("1", new TouchSensor_1.TouchSensor(scene, touchSensorBody));

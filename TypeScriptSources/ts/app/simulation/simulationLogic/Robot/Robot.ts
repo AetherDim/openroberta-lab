@@ -222,7 +222,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		if (this.colorSensors[port]) {
 			return false
 		}
-		const colorSensor = new ColorSensor(Vector.create(x, y))
+		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y))
 		this.colorSensors[port] = colorSensor
 		this.bodyContainer.addChild(colorSensor.graphics)
 		return true
@@ -298,7 +298,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		const _this = this;
 		this.programCode = JSON.parse(program.javaScriptProgram);
 		this.configuration = program.javaScriptConfiguration
-		this.robotBehaviour = new RobotSimBehaviour();
+		this.robotBehaviour = new RobotSimBehaviour(this.scene.unit);
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
 			_this.programTerminated();
 		}, breakpoints);
@@ -353,7 +353,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		}
 
 		// update wheels velocities
-		const gravitationalAcceleration = Unit.getAcceleration(9.81)
+		const gravitationalAcceleration = this.scene.unit.getAcceleration(9.81)
 		const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
 		this.wheelsList.forEach(wheel => {
 			wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration)
@@ -450,8 +450,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			}
 		}
 
-		this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(), speed.left)
-		this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(), speed.right)
+		this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), speed.left)
+		this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), speed.right)
 
 		// update pose
 		let motors = this.robotBehaviour.getActionState("motors", true);
@@ -773,7 +773,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 					this.debugGraphics.position.set(nearestPoint.x, nearestPoint.y)
 				}
 			}
-			ultrasonicDistance = Unit.fromLength(ultrasonicDistance)
+			ultrasonicDistance = this.scene.unit.fromLength(ultrasonicDistance)
 			sensors.ultrasonic[port] = {
 				// `distance` is in cm
 				distance: Math.min(ultrasonicDistance, ultrasonicSensor.maximumMeasurableDistance) * 100,
@@ -846,7 +846,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		backWheel.slideFriction = 0.05
 		backWheel.rollingFriction = 0.03
 		const robotBody = PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10)
-		Body.setMass(robotBody.getPhysicsBody(), Unit.getMass(0.300))
+		Body.setMass(robotBody.getPhysicsBody(), scene.unit.getMass(0.300))
 		const robot = new Robot({
 			scene: scene,
 			body: robotBody,
@@ -857,7 +857,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			]
 		})
 		robot.addColorSensor("3", 0.075, 0)
-		robot.addUltrasonicSensor("4" , new UltrasonicSensor(Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
+		robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
 		const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000 })
 		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
 		robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))

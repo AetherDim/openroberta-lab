@@ -3,6 +3,7 @@ import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
 import {Vector, World} from "matter-js";
+import { Unit } from "../../Unit";
 
 export class RRCScene extends Scene {
 
@@ -88,6 +89,9 @@ export class RRCScene extends Scene {
         this.scoreText3.position.set(-this.scoreText.width/2+3, -this.scoreText.height/2);
     }
 
+    getUnitConverter(): Unit {
+        return new Unit({ m: 1000 })
+    }
 
     onInit(chain: AsyncChain) {
         this.initRobot();
@@ -102,7 +106,7 @@ export class RRCScene extends Scene {
      */
     initRobot(opt?: { position?: Vector, rotation?: number }) {
         let robot = Robot.EV3(this);
-        const position = opt?.position || Vector.create()
+        const position = opt?.position ?? Vector.create()
         robot.setPose(this.unit.getPosition(position), opt?.rotation || 0, false)
         robot.body.enableMouseInteraction = true;
         this.addRobot(robot)

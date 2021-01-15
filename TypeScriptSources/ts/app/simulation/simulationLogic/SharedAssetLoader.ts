@@ -97,7 +97,7 @@ export class SharedAssetLoader {
         return this.loader.resources[asset.name];
     }
 
-    load(callback:() => void, ...assets: (Asset|FontAsset)[]) {
+    load(callback:() => void, ...assets: (Asset|FontAsset|undefined)[]) {
         let fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
             return (asset instanceof FontAsset) && !this.fontMap.get(asset.name);
         });
@@ -105,7 +105,7 @@ export class SharedAssetLoader {
         const assetsToLoad = Util.mapNotNull(assets, asset => {
 
             let assetToLoad: Asset | null = null;
-            if(asset instanceof FontAsset) {
+            if(asset == undefined || asset instanceof FontAsset) {
                 return null;
             } else {
                 assetToLoad = asset;

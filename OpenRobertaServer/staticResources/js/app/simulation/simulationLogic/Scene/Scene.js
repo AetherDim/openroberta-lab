@@ -72,7 +72,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
              * @protected
              */
             this.numberOfRobots = 1;
-            this.unit = new Unit_1.Unit();
+            this._unit = new Unit_1.Unit({});
             /**
              * All programmable robots within the scene.
              * The program flow manager will use the robots internally.
@@ -210,6 +210,13 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 _this.update();
             });
         }
+        Object.defineProperty(Scene.prototype, "unit", {
+            get: function () {
+                return this._unit;
+            },
+            enumerable: false,
+            configurable: true
+        });
         Scene.prototype.getProgramManager = function () {
             return this.programManager;
         };
@@ -458,6 +465,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             matter_js_1.Composite.clear(this.world, false, true);
             // remove all drawables from the containers
             this.clearAllContainers();
+            this.entities.length = 0;
+            this.updatableEntities.length = 0;
+            this.drawablePhysicsEntities.length = 0;
             chain.next();
         };
         /**
@@ -502,7 +512,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 { func: function (chain) { _this_1.resourcesLoaded = true; chain.next(); }, thisContext: this });
             }
             // finish loading
-            this.loadingChain.push({ func: this.initScoreContainer, thisContext: this }, // init score container
+            this.loadingChain.push({ func: function (chain) { _this_1._unit = _this_1.getUnitConverter(); chain.next(); }, thisContext: this }, { func: this.initScoreContainer, thisContext: this }, // init score container
             { func: this.onInit, thisContext: this }, // init scene
             // swap from loading to scene, remove loading animation, cleanup, ...
             { func: this.finishedLoading, thisContext: this });
@@ -940,6 +950,12 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.onLoadAssets = function (chain) {
             console.log('on asset load');
             chain.next();
+        };
+        /**
+         * Returns the unit converter which is used for this scene
+         */
+        Scene.prototype.getUnitConverter = function () {
+            return new Unit_1.Unit({});
         };
         /**
          * called on scene switch

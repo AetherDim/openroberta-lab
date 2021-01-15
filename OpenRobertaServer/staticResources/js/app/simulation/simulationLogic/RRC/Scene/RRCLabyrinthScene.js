@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "matter-js", "../../Displayable", "../../Unit", "../AgeGroup", "./RRCScene", "../RRAssetLoader"], function (require, exports, matter_js_1, Displayable_1, Unit_1, AgeGroup_1, RRCScene_1, RRC) {
+define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "../../Entity", "matter-js"], function (require, exports, AgeGroup_1, RRCScene_1, RRC, Entity_1, matter_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCLabyrinthScene = void 0;
@@ -274,17 +274,16 @@ define(["require", "exports", "matter-js", "../../Displayable", "../../Unit", ".
             return _this;
         }
         RRCLabyrinthScene.prototype.addLabyrinth = function (labyrinth) {
-            var _this = this;
+            var unit = this.unit;
+            var t = this;
             labyrinth.forEach(function (rect) {
-                var x = Unit_1.Unit.fromLength(rect.x);
-                var y = Unit_1.Unit.fromLength(rect.y);
-                var w = Unit_1.Unit.fromLength(rect.w);
-                var h = Unit_1.Unit.fromLength(rect.h);
-                var body = Displayable_1.createRect(x + w / 2, y + h / 2, w, h, 0, { color: rect.color, strokeColor: rect.color });
-                body.displayable.rotation = rect.rotation;
-                matter_js_1.Body.setStatic(body, true);
-                body.enableMouseInteraction = true;
-                matter_js_1.World.add(_this.engine.world, body);
+                var x = unit.fromLength(rect.x);
+                var y = unit.fromLength(rect.y);
+                var w = unit.fromLength(rect.w);
+                var h = unit.fromLength(rect.h);
+                var bodyEntity = Entity_1.PhysicsRectEntity.create(t, x + w / 2, y + h / 2, w, h, { color: rect.color, strokeColor: rect.color });
+                t.addEntity(bodyEntity);
+                matter_js_1.Body.setStatic(bodyEntity.getPhysicsBody(), true);
             });
         };
         RRCLabyrinthScene.prototype.onLoadAssets = function (chain) {

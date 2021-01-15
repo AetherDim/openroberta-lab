@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Robot/Robot", "matter-js"], function (require, exports, Scene_1, RRC, Robot_1, matter_js_1) {
+define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit"], function (require, exports, Scene_1, RRC, Robot_1, matter_js_1, Unit_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -67,6 +67,9 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Ro
             this.scoreText3.text = text;
             this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);
         };
+        RRCScene.prototype.getUnitConverter = function () {
+            return new Unit_1.Unit({ m: 1000 });
+        };
         RRCScene.prototype.onInit = function (chain) {
             this.initRobot();
             this.setScore(266);
@@ -78,8 +81,9 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Ro
          * @param opt Options of type '{ position?: Vector, rotation?: number }'
          */
         RRCScene.prototype.initRobot = function (opt) {
+            var _a;
             var robot = Robot_1.Robot.EV3(this);
-            var position = (opt === null || opt === void 0 ? void 0 : opt.position) || matter_js_1.Vector.create();
+            var position = (_a = opt === null || opt === void 0 ? void 0 : opt.position) !== null && _a !== void 0 ? _a : matter_js_1.Vector.create();
             robot.setPose(this.unit.getPosition(position), (opt === null || opt === void 0 ? void 0 : opt.rotation) || 0, false);
             robot.body.enableMouseInteraction = true;
             this.addRobot(robot);

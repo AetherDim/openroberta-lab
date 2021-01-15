@@ -25,8 +25,8 @@ export class UltrasonicSensor {
 
 	graphics = new PIXI.Graphics()
 
-	constructor(position: Vector, angularRange: number) {
-		this.position = Unit.getPosition(position)
+	constructor(unit: Unit, position: Vector, angularRange: number) {
+		this.position = unit.getPosition(position)
 		this.angularRange = angularRange
 		this.updateGraphics()
 	}

@@ -1,10 +1,9 @@
-import { Body, World } from "matter-js";
-import { createRect } from "../../Displayable";
 import { AsyncChain } from "../../Scene/Scene";
-import { Unit } from "../../Unit";
 import { AgeGroup } from "../AgeGroup";
 import {RRCScene} from "./RRCScene";
 import * as RRC from '../RRAssetLoader'
+import { PhysicsRectEntity } from "../../Entity";
+import { Body } from "matter-js";
 
 class LabyrinthRect {
     x: number;
@@ -272,16 +271,16 @@ export class RRCLabyrinthScene extends RRCScene {
 
 
     addLabyrinth(labyrinth: LabyrinthRect[]) {
+        const unit = this.unit
+        const t = this
         labyrinth.forEach(rect => {
-            const x = Unit.fromLength(rect.x);
-            const y = Unit.fromLength(rect.y);
-            const w = Unit.fromLength(rect.w);
-            const h = Unit.fromLength(rect.h);
-            const body: Body = createRect(x + w/2, y + h/2, w, h, 0, {color: rect.color, strokeColor: rect.color});
-            body.displayable!.rotation = rect.rotation;
-            Body.setStatic(body, true);
-            body.enableMouseInteraction = true;
-            World.add(this.engine.world, body);
+            const x = unit.fromLength(rect.x);
+            const y = unit.fromLength(rect.y);
+            const w = unit.fromLength(rect.w);
+            const h = unit.fromLength(rect.h);
+            const bodyEntity = PhysicsRectEntity.create(t, x + w/2, y + h/2, w, h, {color: rect.color, strokeColor: rect.color});
+            t.addEntity(bodyEntity)
+            Body.setStatic(bodyEntity.getPhysicsBody(), true)
         });
     }
 

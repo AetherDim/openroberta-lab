@@ -11,14 +11,15 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.constants", "../interpreter.util", "../Unit"], function (require, exports, interpreter_aRobotBehaviour_1, C, U, Unit_1) {
+define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.constants", "../interpreter.util"], function (require, exports, interpreter_aRobotBehaviour_1, C, U) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RobotSimBehaviour = void 0;
     var RobotSimBehaviour = /** @class */ (function (_super) {
         __extends(RobotSimBehaviour, _super);
-        function RobotSimBehaviour() {
+        function RobotSimBehaviour(unit) {
             var _this = _super.call(this) || this;
+            _this.unit = unit;
             _this.hardwareState.motors = {};
             U.loggingEnabled(false, false);
             return _this;
@@ -249,10 +250,10 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
                 }
                 this.drive = {
                     // convert distance from cm to m
-                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : undefined,
+                    distance: distance ? this.unit.getLength(distance * 0.01) : undefined,
                     // convert speed from precent to fraction
                     speed: (speed ? { left: speed * 0.01, right: speed * 0.01 } : undefined),
-                    time: time ? Unit_1.Unit.getTime(time) : undefined
+                    time: time ? this.unit.getTime(time) : undefined
                 };
                 return 1;
             }
@@ -305,10 +306,10 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
                 }
                 this.drive = {
                     // convert distance from cm to m
-                    distance: distance ? Unit_1.Unit.getLength(distance * 0.01) : undefined,
+                    distance: distance ? this.unit.getLength(distance * 0.01) : undefined,
                     // convert speedL and speedR from precent to fraction
                     speed: { left: speedL * 0.01, right: speedR * 0.01 },
-                    time: Unit_1.Unit.getTime(time) || undefined
+                    time: this.unit.getTime(time) || undefined
                 };
                 return 1;
             }

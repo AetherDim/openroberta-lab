@@ -134,7 +134,7 @@ const bodyPrototype = { vectorAlongBody, velocityAlongBody }
 const oldBodyCreate = Body.create
 Body.create = function (options: IBodyDefinition) {
     if (!options.density) {
-        options.density = Unit.getDensity(1000)
+        options.density = 1
     }
     return oldBodyCreate({...options, ...bodyPrototype})
 }

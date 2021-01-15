@@ -6,42 +6,17 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
      * Converts SI units to the internal matter.js units and the other way.
      */
     var Unit = /** @class */ (function () {
-        function Unit() {
-            /**
-             * meters factor from SI units to internal
-             */
-            this.m = 1;
-            /**
-             * kilograms factor from SI units to internal
-             */
-            this.kg = 1;
-            /**
-             * seconds factor from SI units to internal
-             */
-            this.s = 1;
-        }
         /**
-         * Set the unit scaling from SI units to internal matter.js units
+         * Construct a 'Unit' with unit scaling from SI units to internal matter.js units
          *
          * @param options meter, kilogram and seconds. The default is 1.
          */
-        Unit.prototype.setUnitScaling = function (options) {
+        function Unit(options) {
             var _a, _b, _c;
             this.m = (_a = options.m) !== null && _a !== void 0 ? _a : 1;
             this.kg = (_b = options.kg) !== null && _b !== void 0 ? _b : 1;
             this.s = (_c = options.kg) !== null && _c !== void 0 ? _c : 1;
-        };
-        /**
-         * Set the unit scaling from SI units to internal matter.js units
-         *
-         * @param options meter, kilogram and seconds. The default is 1.
-         */
-        Unit.setUnitScaling = function (options) {
-            var _a, _b, _c;
-            Unit.m = (_a = options.m) !== null && _a !== void 0 ? _a : 1;
-            Unit.kg = (_b = options.kg) !== null && _b !== void 0 ? _b : 1;
-            Unit.s = (_c = options.kg) !== null && _c !== void 0 ? _c : 1;
-        };
+        }
         Unit.prototype.getLength = function (meter) {
             return meter * this.m;
         };
@@ -97,72 +72,6 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
         Unit.prototype.fromPosition = function (position) {
             return matter_js_1.Vector.mult(position, 1 / this.m);
         };
-        Unit.getLength = function (meter) {
-            return meter * Unit.m;
-        };
-        Unit.getLengths = function (meters) {
-            return meters.map(Unit.getLength);
-        };
-        Unit.getMass = function (kg) {
-            return kg * Unit.kg;
-        };
-        Unit.getTime = function (seconds) {
-            return seconds * Unit.s;
-        };
-        Unit.getArea = function (area) {
-            return area * Unit.m * Unit.m;
-        };
-        Unit.getVolume = function (volume) {
-            return volume * Unit.m * Unit.m * Unit.m;
-        };
-        Unit.getVelocity = function (velocity) {
-            return velocity * Unit.m / Unit.s;
-        };
-        Unit.getAcceleration = function (acceleration) {
-            return acceleration * Unit.m / (Unit.s * Unit.s);
-        };
-        Unit.getForce = function (newton) {
-            return newton * Unit.m / (Unit.s * Unit.s) * Unit.kg;
-        };
-        Unit.getTorque = function (torque) {
-            return Unit.getForce(torque) * Unit.m;
-        };
-        Unit.getRPM = function (rpm) {
-            return rpm / Unit.s;
-        };
-        Unit.getDensity = function (density) {
-            return density * Unit.kg / (Unit.m * Unit.m * Unit.m);
-        };
-        Unit.getPosition = function (position) {
-            return matter_js_1.Vector.mult(position, Unit.m);
-        };
-        Unit.getPositionVec = function (x, y) {
-            return matter_js_1.Vector.create(x * Unit.m, y * Unit.m);
-        };
-        Unit.fromLength = function (meter) {
-            return meter / Unit.m;
-        };
-        Unit.fromVelocity = function (velocity) {
-            return velocity / (Unit.m / Unit.s);
-        };
-        Unit.fromRPM = function (rpm) {
-            return rpm * Unit.s;
-        };
-        Unit.fromPosition = function (position) {
-            return matter_js_1.Vector.mult(position, 1 / Unit.m);
-        };
-        /**
-         * meters factor from SI units to internal
-         */
-        Unit.m = 1;
-        /**
-         * kilograms factor from SI units to internal
-         */
-        Unit.kg = 1;
-        /**
-         * seconds factor from SI units to internal
-         */
-        Unit.s = 1;
         return Unit;
     }());
     exports.Unit = Unit;

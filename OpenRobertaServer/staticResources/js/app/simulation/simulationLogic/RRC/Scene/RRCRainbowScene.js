@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "../../Random", "matter-js"], function (require, exports, RRCScene_1, AgeGroup_1, RRC, Random_1, matter_js_1) {
+define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "../../Random"], function (require, exports, RRCScene_1, AgeGroup_1, RRC, Random_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCRainbowScene = void 0;
@@ -47,7 +47,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             }, this.backgroundAsset);
         };
         RRCRainbowScene.prototype.onInit = function (chain) {
-            this.initRobot({ position: matter_js_1.Vector.create(200, 200), rotation: 45 });
+            this.initRobot({ position: { x: 0.5, y: 0.5 }, rotation: 45 });
             if (this.backgroundAsset) {
                 var goal = RRC.loader.get(this.backgroundAsset).texture;
                 this.goalSprite = new PIXI.Sprite(goal);

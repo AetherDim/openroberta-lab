@@ -20,8 +20,8 @@ export class ColorSensor {
      * 
      * @param position Position relative to the robot position in meter
      */
-    constructor(position: Vector) {
-        this.position = Unit.getPosition(position)
+    constructor(unit: Unit, position: Vector) {
+        this.position = unit.getPosition(position)
         this.updateGraphics()
     }
 

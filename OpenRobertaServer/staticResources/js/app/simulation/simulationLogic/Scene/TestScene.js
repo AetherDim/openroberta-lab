@@ -40,6 +40,9 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
                 handler(ev);
             });
         };
+        TestScene.prototype.getUnitConverter = function () {
+            return new Unit_1.Unit({ m: 1000 });
+        };
         /**
          * called after resource loading on Init
          *
@@ -48,8 +51,7 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
         TestScene.prototype.onInit = function (chain) {
             // use 0.001 for EV3
             var scale = 0.001;
-            Unit_1.Unit.setUnitScaling({ m: 1000 });
-            this.unit.setUnitScaling({ m: 1000 });
+            var unit = this.unit;
             // (<any>Resolver)._restingThresh = 4 * scale;
             // (<any>Resolver)._restingThreshTangent = 6 * scale;
             // (<any>Sleeping)._motionWakeThreshold = 0.18 * scale;
@@ -63,14 +65,14 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
             this.addRobot(robot);
             var robotComposite = robot.physicsComposite;
             //World.add(this.engine.world, robotComposite);
-            matter_js_1.Composite.translate(robotComposite, Unit_1.Unit.getPositionVec(100 * scale, 100 * scale));
+            matter_js_1.Composite.translate(robotComposite, unit.getPositionVec(100 * scale, 100 * scale));
             var polygon = new Polygon_1.Polygon([
                 matter_js_1.Vector.create(0, 0),
                 matter_js_1.Vector.create(100, 0),
                 matter_js_1.Vector.create(100, 50),
                 matter_js_1.Vector.create(0, 100),
                 matter_js_1.Vector.create(50, 50)
-            ].map(function (v) { return Unit_1.Unit.getPosition(matter_js_1.Vector.mult(matter_js_1.Vector.add(v, matter_js_1.Vector.create(200, 200)), scale)); }));
+            ].map(function (v) { return unit.getPosition(matter_js_1.Vector.mult(matter_js_1.Vector.add(v, matter_js_1.Vector.create(200, 200)), scale)); }));
             var polygonGraphics = new PIXI.Graphics();
             polygonGraphics.beginFill(0xFF0000);
             polygonGraphics.moveTo(polygon.vertices[0].x, polygon.vertices[0].y);
@@ -169,8 +171,8 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
                 var force = matter_js_1.Vector.mult(vec, 0.0001 * 1000 * 1000 * 1000 * 1000);
                 var normalVec = matter_js_1.Vector.mult(matter_js_1.Vector.create(-vec.y, vec.x), 10);
                 var forcePos = matter_js_1.Vector.add(body.position, matter_js_1.Vector.mult(vec, -40));
-                var maxTorque = Unit_1.Unit.getTorque(100 * 1000 * 1000 * Math.pow(scale, 3.5));
-                var motor = useEV3 ? ElectricMotor_1.ElectricMotor.EV3() : new ElectricMotor_1.ElectricMotor(120, maxTorque);
+                var maxTorque = unit.getTorque(100 * 1000 * 1000 * Math.pow(scale, 3.5));
+                var motor = useEV3 ? ElectricMotor_1.ElectricMotor.EV3(unit) : new ElectricMotor_1.ElectricMotor(unit, 120, maxTorque);
                 robot.leftDrivingWheel.applyTorqueFromMotor(motor, leftForce);
                 robot.rightDrivingWheel.applyTorqueFromMotor(motor, rightForce);
             }

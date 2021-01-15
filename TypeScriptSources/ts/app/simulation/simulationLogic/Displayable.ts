@@ -123,22 +123,6 @@ export function createDisplayableFromBody(body: Body, settings?: DisplaySettings
 }
 
 
-export function createRect(x: number, y: number, width: number, height: number, roundingRadius: number = 0, settings: DisplaySettings = {}) {
-
-    [x, y, width, height] = Unit.getLengths([x, y, width, height])
-
-    const graphics = new PIXI.Graphics();
-
-    graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
-    graphics.beginFill(settings.color, settings.alpha);
-    graphics.drawRoundedRect(-width/2, -height/2, width, height, roundingRadius);
-    graphics.endFill();
-
-
-    var displayable = new Displayable(graphics);
-
-    return Bodies.rectangle(x, y, width, height, {displayable: displayable});
-}
 
 export function createCircle(x: number, y: number, radius: number, settings: DisplaySettings = {}) {
 
