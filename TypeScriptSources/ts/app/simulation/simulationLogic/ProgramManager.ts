@@ -23,7 +23,7 @@ export class ProgramManager {
 
     constructor(scene: Scene) {
         this.scene = scene;
-        this.robots = scene.robots;
+        this.robots = scene.getRobots();
     }
 
     setPrograms(programs: any[], refresh: boolean = false, robotType?: string) {

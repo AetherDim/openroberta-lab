@@ -85,7 +85,7 @@ export class Scene {
      * All programmable robots within the scene.
      * The program flow manager will use the robots internally.
      */
-    readonly robots: Array<Robot> = new Array<Robot>();
+    private readonly robots: Array<Robot> = new Array<Robot>();
 
     readonly programManager = new ProgramManager(this);
 
@@ -95,6 +95,14 @@ export class Scene {
 
     getRobots(): Robot[] {
         return this.robots;
+    }
+
+    /**
+     * Adds `robot` to scene (to `robots` array and entities)
+     */
+    addRobot(robot: Robot) {
+        this.robots.push(robot)
+        this.addEntity(robot)
     }
 
     getNumberOfRobots(): number {
@@ -109,6 +117,9 @@ export class Scene {
     private readonly updatableEntities: IUpdatableEntity[] = []
     private readonly drawablePhysicsEntities: IDrawablePhysicsEntity[] = []
 
+    containsEntity(entity: IEntity): boolean {
+        return this.entities.includes(entity)
+    }
 
     addEntities(...entities: IEntity[]) {
         entities.forEach(entity => this.addEntity(entity));
@@ -130,6 +141,13 @@ export class Scene {
             if (Type.IDrawableEntity.isSupertypeOf(entity)) {
                 const container = entity.getContainer?.() ?? this.entityContainer;
                 container.addChild(entity.getDrawable())
+            }
+
+            // TODO: Think about this. There might be wrapper types.
+            // Only add entities with no parents to the physics world.
+            // A parent should imply a physics `Composite` which only has to be added once.
+            if (entity.getParent() == undefined && Type.IPhysicsEntity.isSupertypeOf(entity)) {
+                Composite.add(this.world, entity.getPhysicsObject())
             }
 
             if (Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
@@ -160,6 +178,10 @@ export class Scene {
 
             if (Type.IUpdatableEntity.isSupertypeOf(entity)) {
                 Util.removeFromArray(this.updatableEntities, entity)
+            }
+
+            if (Type.IDrawableEntity.isSupertypeOf(entity)) {
+                entity.getContainer?.().removeChild(entity.getDrawable())
             }
 
             if (Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
@@ -726,13 +748,13 @@ export class Scene {
 
         // register events
         const _this = this;
-        Events.on(this.world, "beforeAdd", (e: IEventComposite<Composite>) => {
-            _this.addPhysics(e.object);
-        });
+        // Events.on(this.world, "beforeAdd", (e: IEventComposite<Composite>) => {
+        //     _this.addPhysics(e.object);
+        // });
 
-        Events.on(this.world, "afterRemove", (e: IEventComposite<Composite>) => {
-            _this.removePhysics(e.object);
-        });
+        // Events.on(this.world, "afterRemove", (e: IEventComposite<Composite>) => {
+        //     _this.removePhysics(e.object);
+        // });
 
 
         this.simTicker = new Timer(this.simSleepTime, (delta) => {
@@ -831,6 +853,7 @@ export class Scene {
         return intersected;
     }
 
+    /*
     private addPhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
 
         if(!obj) {
@@ -931,6 +954,7 @@ export class Scene {
         }
 
     }
+    */
 
     //
     // #############################################################################
@@ -945,6 +969,23 @@ export class Scene {
     // #############################################################################
     //
 
+    getRobotUpdateOptions(): RobotUpdateOptions | undefined {
+        // FIXME: What to do with undefined 'getImageData'?
+        const getImageData = this.getImageData
+        if (getImageData) {
+            const _this = this
+            const allBodies = Composite.allBodies(this.engine.world)
+            return new RobotUpdateOptions({
+                dt: this.dt,
+                programPaused: this.programManager.isProgramPaused(),
+                getImageData: getImageData,
+                getNearestPointTo: (point, includePoint) => _this.getNearestPoint(point, includePoint),
+                intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line),
+                bodyIntersectsOther: body => Query.collides(body, allBodies).length > 1 // "collides with itself"
+            })
+        }
+        return undefined
+    }
 
     private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
         const bodies: Body[] = Composite.allBodies(this.world)
@@ -1007,27 +1048,12 @@ export class Scene {
 
         this.updatableEntities.forEach(entity => entity.update(_this.dt))
         this.drawablePhysicsEntities.forEach(entity => {
-            const drawable = entity.getDrawable()
-            const physicsBody = entity.getPhysicsBody()
-            drawable.position.copyFrom(physicsBody.position)
-            drawable.angle = physicsBody.angle
+            entity.updateDrawablePosition()
+            // const drawable = entity.getDrawable()
+            // const physicsBody = entity.getPhysicsBody()
+            // drawable.position.copyFrom(physicsBody.position)
+            // drawable.angle = physicsBody.angle
         })
-
-        // FIXME: What to do with undefined 'getImageData'?
-        const getImageData = this.getImageData
-        const allBodies = Composite.allBodies(this.engine.world)
-        if (getImageData) {
-            this.robots.forEach(robot => {
-                robot.update(new RobotUpdateOptions({
-                    dt: this.dt,
-                    programPaused: this.programManager.isProgramPaused(),
-                    getImageData: getImageData,
-                    getNearestPointTo: (point, includePoint) => _this.getNearestPoint(point, includePoint),
-                    intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line),
-                    bodyIntersectsOther: body => Query.collides(body, allBodies).length > 1 // "collides with itself"
-                }))
-            })
-        }
 
         this.programManager.update(); // update breakpoints, ...
 

@@ -50,7 +50,8 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
         Type.IEntity = new Meta("IEntity");
         Type.IUpdatableEntity = new Meta("IUpdatableEntity");
         Type.IDrawableEntity = new Meta("IDrawableEntity");
-        Type.IPhysicsBodyEntity = new Meta("IPhysicsBodyEntity");
+        Type.IPhysicsEntity = new Meta("IPhysicsEntity");
+        Type.IPhysicsCompositeEntity = new Meta("IPhysicsCompositeEntity");
         Type.IDrawablePhysicsEntity = new Meta("IDrawablePhysicsEntity");
         Type.IContainerEntity = new Meta("IContainerEntity");
         return Type;
@@ -61,15 +62,28 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
             this.scene = scene;
             this.drawable = drawable;
         }
+        DrawablePhysicsEntity.prototype.IEntity = function () { };
         DrawablePhysicsEntity.prototype.getScene = function () {
             return this.scene;
         };
+        DrawablePhysicsEntity.prototype.getParent = function () {
+            return this.parent;
+        };
+        DrawablePhysicsEntity.prototype._setParent = function (parent) {
+            this.parent = parent;
+        };
+        DrawablePhysicsEntity.prototype.IDrawablePhysicsEntity = function () { };
         DrawablePhysicsEntity.prototype.updateDrawablePosition = function () {
             this.drawable.position.copyFrom(this.getPhysicsBody().position);
             this.drawable.rotation = this.getPhysicsBody().angle;
         };
-        DrawablePhysicsEntity.prototype.setStatic = function (isStatic) {
-            matter_js_1.Body.setStatic(this.getPhysicsBody(), isStatic);
+        DrawablePhysicsEntity.prototype.IDrawableEntity = function () { };
+        DrawablePhysicsEntity.prototype.getDrawable = function () {
+            return this.drawable;
+        };
+        DrawablePhysicsEntity.prototype.IPhysicsEntity = function () { };
+        DrawablePhysicsEntity.prototype.getPhysicsObject = function () {
+            return this.getPhysicsBody();
         };
         return DrawablePhysicsEntity;
     }());
@@ -81,9 +95,6 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
         function DrawSettings() {
             this.color = 0xFFFFFF;
             this.alpha = 1;
-            this.strokeColor = 0x000000;
-            this.strokeAlpha = 1;
-            this.strokeWidth = 2;
         }
         return DrawSettings;
     }());
@@ -97,6 +108,7 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.roundingRadius = 0;
             _this.relativeToCenter = true;
+            _this.physics = {};
             return _this;
         }
         return RectEntityOptions;
@@ -104,16 +116,16 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
     exports.RectEntityOptions = RectEntityOptions;
     var PhysicsRectEntity = /** @class */ (function (_super) {
         __extends(PhysicsRectEntity, _super);
-        function PhysicsRectEntity(scene, x, y, width, height, drawable) {
+        function PhysicsRectEntity(scene, x, y, width, height, drawable, bodyOptions) {
             var _this = _super.call(this, scene, drawable) || this;
-            PhysicsRectEntity.create(scene, x, y, width, height, {});
-            _this.body = matter_js_1.Bodies.rectangle(x, y, width, height);
+            _this.body = matter_js_1.Bodies.rectangle(x, y, width, height, bodyOptions);
             return _this;
         }
-        PhysicsRectEntity.create = function (scene, x, y, width, height, opts) {
-            var _a;
+        PhysicsRectEntity.prototype.getPhysicsBody = function () {
+            return this.body;
+        };
+        PhysicsRectEntity.createGraphics = function (x, y, width, height, opts) {
             var options = Util_1.Util.getOptions(RectEntityOptions, opts);
-            _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
             if (!options.relativeToCenter) {
                 x += width / 2;
                 y += height / 2;
@@ -121,13 +133,27 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
             var graphics = new PIXI.Graphics();
             graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha);
             graphics.beginFill(options.color, options.alpha);
-            graphics.drawRoundedRect(-width / 2, -height / 2, width, height, options.roundingRadius || 1);
+            graphics.drawRoundedRect(-width / 2, -height / 2, width, height, options.roundingRadius);
             graphics.endFill();
-            return new PhysicsRectEntity(scene, x, y, width, height, graphics);
+            return graphics;
         };
-        PhysicsRectEntity.createTexture = function (scene, x, y, texture, alpha, relativeToCenter) {
+        PhysicsRectEntity.create = function (scene, x, y, width, height, opts) {
+            var _a;
+            _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
+            var graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts);
+            return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts === null || opts === void 0 ? void 0 : opts.physics);
+        };
+        PhysicsRectEntity.createWithContainer = function (scene, x, y, width, height, opts) {
+            var _a;
+            _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
+            var graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts);
+            var container = new PIXI.Container();
+            container.addChild(graphics);
+            return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts === null || opts === void 0 ? void 0 : opts.physics);
+        };
+        PhysicsRectEntity.createTexture = function (scene, x, y, texture, alpha, relativeToCenter, bodyOptions) {
             if (relativeToCenter === void 0) { relativeToCenter = false; }
-            return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject());
+            return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), bodyOptions);
             // TODO
         };
         return PhysicsRectEntity;

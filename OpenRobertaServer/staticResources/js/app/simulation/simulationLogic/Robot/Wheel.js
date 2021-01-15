@@ -1,3 +1,16 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
     if (!m) return o;
@@ -14,66 +27,86 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], function (require, exports, d3_1, matter_js_1, Displayable_1, Unit_1) {
+define(["require", "exports", "d3", "matter-js", "../Unit", "../Entity"], function (require, exports, d3_1, matter_js_1, Unit_1, Entity_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Wheel = void 0;
-    var Wheel = /** @class */ (function () {
+    var Wheel = /** @class */ (function (_super) {
+        __extends(Wheel, _super);
         /**
          * Creates a top down wheel at position `(x, y)` and `(width, height)`.
          * The wheel radius is half of the `width`.
          *
+         * @param scene
+         * @param x
+         * @param y
+         * @param width
+         * @param height
+         * @param physicsEntity
+         * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
+         */
+        function Wheel(scene, x, y, width, height, physicsEntity, mass) {
+            var _a;
+            var _this = _super.call(this, scene, physicsEntity.getDrawable()) || this;
+            _this.rollingFriction = 0.03;
+            _this.slideFriction = 0.3;
+            /**
+             * Positive torque indirectly exerts a forward force along the body
+             */
+            _this.torque = 0;
+            /**
+             * The force in the `z` direction
+             */
+            _this.normalForce = 0;
+            _this.prevWheelAngle = 0;
+            _this.wheelAngle = 0;
+            _this.angularVelocity = 0;
+            _this.wheelProfile = [];
+            _this.debugContainer = new PIXI.Container();
+            _this.physicsEntity = physicsEntity;
+            _this.physicsBody = _this.physicsEntity.getPhysicsBody();
+            _a = __read(Unit_1.Unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
+            var container = _this.physicsEntity.getDrawable();
+            _this.wheelProfile = d3_1.range(4).map(function () {
+                var graphics = new PIXI.Graphics();
+                graphics.beginFill(0xFF0000);
+                graphics.drawRect(0, -height / 2, width * 0.1, height);
+                graphics.endFill();
+                container.addChild(graphics);
+                return graphics;
+            });
+            _this.debugText = new PIXI.Text("");
+            _this.debugText.style = new PIXI.TextStyle({ fill: 0x0000 });
+            _this.debugText.angle = 45;
+            // this.debugContainer.addChild(this.debugText)
+            // container.addChild(this.debugText)
+            container.addChild(_this.debugContainer);
+            if (mass) {
+                matter_js_1.Body.setMass(_this.physicsBody, Unit_1.Unit.getMass(mass));
+            }
+            _this.wheelRadius = width / 2;
+            _this.momentOfInertia = 0.5 * _this.physicsBody.mass * Math.pow(_this.wheelRadius, 2);
+            return _this;
+        }
+        // TODO: Workaround: static function instead of constructor since `super` has to be the first statement in constructor
+        /**
+         * Creates a top down wheel at position `(x, y)` and `(width, height)`.
+         * The wheel radius is half of the `width`.
+         *
+         * @param scene
          * @param x
          * @param y
          * @param width
          * @param height
          * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
          */
-        function Wheel(x, y, width, height, mass) {
-            var _a;
-            this.rollingFriction = 0.03;
-            this.slideFriction = 0.3;
-            /**
-             * Positive torque indirectly exerts a forward force along the body
-             */
-            this.torque = 0;
-            /**
-             * The force in the `z` direction
-             */
-            this.normalForce = 0;
-            this.prevWheelAngle = 0;
-            this.wheelAngle = 0;
-            this.angularVelocity = 0;
-            this.wheelProfile = [];
-            this.debugContainer = new PIXI.Container();
-            this.physicsBody = Displayable_1.createRect(x, y, width, height);
-            _a = __read(Unit_1.Unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
-            var displayable = this.physicsBody.displayable;
-            if (displayable) {
-                var container_1 = new PIXI.Container();
-                container_1.addChild(displayable.displayObject);
-                this.wheelProfile = d3_1.range(4).map(function () {
-                    var graphics = new PIXI.Graphics();
-                    graphics.beginFill(0xFF0000);
-                    graphics.drawRect(0, -height / 2, width * 0.1, height);
-                    graphics.endFill();
-                    container_1.addChild(graphics);
-                    return graphics;
-                });
-                this.debugText = new PIXI.Text("");
-                this.debugText.style = new PIXI.TextStyle({ fill: 0x0000 });
-                this.debugText.angle = 45;
-                // this.debugContainer.addChild(this.debugText)
-                // container.addChild(this.debugText)
-                container_1.addChild(this.debugContainer);
-                displayable.displayObject = container_1;
-            }
-            if (mass) {
-                matter_js_1.Body.setMass(this.physicsBody, Unit_1.Unit.getMass(mass));
-            }
-            this.wheelRadius = width / 2;
-            this.momentOfInertia = 0.5 * this.physicsBody.mass * Math.pow(this.wheelRadius, 2);
-        }
+        Wheel.create = function (scene, x, y, width, height, mass) {
+            return new Wheel(scene, x, y, width, height, Entity_1.PhysicsRectEntity.createWithContainer(scene, x, y, width, height), mass);
+        };
+        // implement abstract DrawablePhysicsEntity method 
+        Wheel.prototype.getPhysicsBody = function () {
+            return this.physicsBody;
+        };
         Wheel.prototype.applyTorque = function (torque) {
             this.torque += torque;
         };
@@ -202,6 +235,6 @@ define(["require", "exports", "d3", "matter-js", "../Displayable", "../Unit"], f
             this.wheelAngle += this.angularVelocity * dt;
         };
         return Wheel;
-    }());
+    }(Entity_1.DrawablePhysicsEntity));
     exports.Wheel = Wheel;
 });

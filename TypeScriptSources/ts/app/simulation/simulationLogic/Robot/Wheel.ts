@@ -1,15 +1,18 @@
 import { range } from "d3"
 import { Body, Vector } from "matter-js"
-import { createRect } from "../Displayable"
 import { ElectricMotor } from "./ElectricMotor"
 import { Unit } from "../Unit"
+import { DrawablePhysicsEntity, PhysicsRectEntity } from "../Entity"
+import { Scene } from "../Scene/Scene"
 
-export class Wheel {
+export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	
 	/**
 	 * The physics `Body` of the wheel
 	 */
 	physicsBody: Body
+
+	physicsEntity: PhysicsRectEntity<PIXI.Container>
 
 	rollingFriction = 0.03
 	slideFriction = 0.3
@@ -40,39 +43,39 @@ export class Wheel {
 	 * Creates a top down wheel at position `(x, y)` and `(width, height)`.
 	 * The wheel radius is half of the `width`.
 	 * 
+	 * @param scene
 	 * @param x
 	 * @param y 
 	 * @param width 
 	 * @param height 
+	 * @param physicsEntity 
 	 * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
 	 */
-	constructor(x: number, y: number, width: number, height: number, mass?: number) {
-		this.physicsBody = createRect(x, y, width, height);
+	private constructor(scene: Scene, x: number, y: number, width: number, height: number, physicsEntity: PhysicsRectEntity<PIXI.Container>, mass?: number) {
+		super(scene, physicsEntity.getDrawable())
+		this.physicsEntity = physicsEntity
+		
+		this.physicsBody = this.physicsEntity.getPhysicsBody();
 		[x, y, width, height] = Unit.getLengths([x, y, width, height])
 
-		const displayable = this.physicsBody.displayable
-		if (displayable) {
-			const container = new PIXI.Container()
-			container.addChild(displayable.displayObject)
+		const container = this.physicsEntity.getDrawable()
 
-			this.wheelProfile = range(4).map(() => {
-				const graphics = new PIXI.Graphics()
-				graphics.beginFill(0xFF0000)
-				graphics.drawRect(0, -height/2, width * 0.1, height)
-				graphics.endFill()
-				container.addChild(graphics)
-				return graphics
-			})
+		this.wheelProfile = range(4).map(() => {
+			const graphics = new PIXI.Graphics()
+			graphics.beginFill(0xFF0000)
+			graphics.drawRect(0, -height/2, width * 0.1, height)
+			graphics.endFill()
+			container.addChild(graphics)
+			return graphics
+		})
 
-			this.debugText = new PIXI.Text("")
-			this.debugText.style = new PIXI.TextStyle({fill: 0x0000})
-			this.debugText.angle = 45
-			// this.debugContainer.addChild(this.debugText)
-			// container.addChild(this.debugText)
-			container.addChild(this.debugContainer)
+		this.debugText = new PIXI.Text("")
+		this.debugText.style = new PIXI.TextStyle({fill: 0x0000})
+		this.debugText.angle = 45
+		// this.debugContainer.addChild(this.debugText)
+		// container.addChild(this.debugText)
+		container.addChild(this.debugContainer)
 
-			displayable.displayObject = container
-		}
 
 		if (mass) {
 			Body.setMass(this.physicsBody, Unit.getMass(mass))
@@ -81,6 +84,27 @@ export class Wheel {
 		this.momentOfInertia = 0.5 * this.physicsBody.mass * Math.pow(this.wheelRadius, 2)
 	}
 
+	// TODO: Workaround: static function instead of constructor since `super` has to be the first statement in constructor
+	/**
+	 * Creates a top down wheel at position `(x, y)` and `(width, height)`.
+	 * The wheel radius is half of the `width`.
+	 * 
+	 * @param scene
+	 * @param x
+	 * @param y 
+	 * @param width 
+	 * @param height 
+	 * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
+	 */
+	static create(scene: Scene, x: number, y: number, width: number, height: number, mass?: number) {
+		return new Wheel(scene, x, y, width, height, PhysicsRectEntity.createWithContainer(scene, x, y, width, height), mass)
+	}
+
+
+	// implement abstract DrawablePhysicsEntity method 
+	getPhysicsBody(): Body {
+		return this.physicsBody
+	}
 
 	
 	applyTorque(torque: number) {

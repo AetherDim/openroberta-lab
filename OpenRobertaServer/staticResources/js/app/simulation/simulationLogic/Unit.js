@@ -26,9 +26,10 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
          * @param options meter, kilogram and seconds. The default is 1.
          */
         Unit.prototype.setUnitScaling = function (options) {
-            this.m = options.m || 1;
-            this.kg = options.kg || 1;
-            this.s = options.kg || 1;
+            var _a, _b, _c;
+            this.m = (_a = options.m) !== null && _a !== void 0 ? _a : 1;
+            this.kg = (_b = options.kg) !== null && _b !== void 0 ? _b : 1;
+            this.s = (_c = options.kg) !== null && _c !== void 0 ? _c : 1;
         };
         /**
          * Set the unit scaling from SI units to internal matter.js units
@@ -36,15 +37,17 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
          * @param options meter, kilogram and seconds. The default is 1.
          */
         Unit.setUnitScaling = function (options) {
-            Unit.m = options.m || 1;
-            Unit.kg = options.kg || 1;
-            Unit.s = options.kg || 1;
+            var _a, _b, _c;
+            Unit.m = (_a = options.m) !== null && _a !== void 0 ? _a : 1;
+            Unit.kg = (_b = options.kg) !== null && _b !== void 0 ? _b : 1;
+            Unit.s = (_c = options.kg) !== null && _c !== void 0 ? _c : 1;
         };
         Unit.prototype.getLength = function (meter) {
             return meter * this.m;
         };
         Unit.prototype.getLengths = function (meters) {
-            return meters.map(this.getLength);
+            var t = this;
+            return meters.map(function (meter) { return t.getLength(meter); });
         };
         Unit.prototype.getMass = function (kg) {
             return kg * this.kg;

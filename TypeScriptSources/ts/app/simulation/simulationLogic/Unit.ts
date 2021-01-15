@@ -37,9 +37,9 @@ export class Unit {
      * @param options meter, kilogram and seconds. The default is 1.
      */
     setUnitScaling(options: {m?: number, kg?: number, s?: number}) {
-        this.m = options.m || 1
-        this.kg = options.kg || 1
-        this.s = options.kg || 1
+        this.m = options.m ?? 1
+        this.kg = options.kg ?? 1
+        this.s = options.kg ?? 1
     }
 
     /**
@@ -48,9 +48,9 @@ export class Unit {
      * @param options meter, kilogram and seconds. The default is 1.
      */
     static setUnitScaling(options: {m?: number, kg?: number, s?: number}) {
-        Unit.m = options.m || 1
-        Unit.kg = options.kg || 1
-        Unit.s = options.kg || 1
+        Unit.m = options.m ?? 1
+        Unit.kg = options.kg ?? 1
+        Unit.s = options.kg ?? 1
     }
 
     getLength(meter: number): number {
@@ -58,7 +58,8 @@ export class Unit {
     }
 
     getLengths(meters: number[]): number[] {
-        return meters.map(this.getLength)
+        const t = this
+        return meters.map(meter => t.getLength(meter))
     }
 
     getMass(kg: number): number {

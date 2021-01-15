@@ -1,5 +1,5 @@
 import {Scene} from "./Scene/Scene";
-import {Body, Composite, Constraint, Vector, Bodies} from "matter-js";
+import {Body, Composite, Constraint, Vector, Bodies, IBodyDefinition, IChamferableBodyDefinition} from "matter-js";
 import { Util } from "./Util";
 
 
@@ -21,7 +21,8 @@ export class Type {
     static readonly IEntity = new Meta<IEntity>("IEntity")
     static readonly IUpdatableEntity = new Meta<IUpdatableEntity>("IUpdatableEntity")
     static readonly IDrawableEntity = new Meta<IDrawableEntity>("IDrawableEntity")
-    static readonly IPhysicsBodyEntity = new Meta<IPhysicsBodyEntity>("IPhysicsBodyEntity")
+    static readonly IPhysicsEntity = new Meta<IPhysicsEntity>("IPhysicsEntity")
+    static readonly IPhysicsCompositeEntity = new Meta<IPhysicsCompositeEntity>("IPhysicsCompositeEntity")
     static readonly IDrawablePhysicsEntity = new Meta<IDrawablePhysicsEntity>("IDrawablePhysicsEntity")
     static readonly IContainerEntity = new Meta<IContainerEntity>("IContainerEntity")
 }
@@ -67,20 +68,29 @@ export interface IDrawableEntity extends IEntity {
 
 }
 
-export interface IPhysicsBodyEntity extends IEntity {
+export interface IPhysicsEntity extends IEntity {
 
-    IPhysicsBodyEntity(): void
+    IPhysicsEntity(): void
+
+    /**
+     * returns the physics object of this entity
+     */
+    getPhysicsObject(): Body | Constraint | Composite;
+
+}
+
+export interface IPhysicsBodyEntity extends IPhysicsEntity {
 
     /**
      * returns the physics object of this entity
      */
     getPhysicsBody(): Body;
 
-    setStatic(isStatic: boolean): void;
-
 }
 
-export interface IPhysicsCompositeEntity extends IEntity {
+export interface IPhysicsCompositeEntity extends IPhysicsEntity {
+
+    IPhysicsCompositeEntity(): void
 
     /**
      * returns the physics object of this entity
@@ -89,7 +99,7 @@ export interface IPhysicsCompositeEntity extends IEntity {
 
 }
 
-export interface IPhysicsConstraintEntity extends IEntity {
+export interface IPhysicsConstraintEntity extends IPhysicsEntity {
 
     /**
      * returns the physics object of this entity
@@ -109,33 +119,51 @@ export interface IDrawablePhysicsEntity extends IDrawableEntity, IPhysicsBodyEnt
 
 }
 
-export abstract class DrawablePhysicsEntity implements IDrawablePhysicsEntity {
+export abstract class DrawablePhysicsEntity<Drawable extends PIXI.DisplayObject> implements IDrawablePhysicsEntity {
 
     readonly scene: Scene;
 
-    protected drawable: PIXI.DisplayObject
+    private parent?: IContainerEntity
 
-    protected constructor(scene: Scene, drawable: PIXI.DisplayObject) {
+    protected drawable: Drawable
+
+    protected constructor(scene: Scene, drawable: Drawable) {
         this.scene = scene;
         this.drawable = drawable
     }
 
+    IEntity(){}
     getScene(): Scene {
         return this.scene;
     }
 
+    getParent() {
+        return this.parent
+    }
+
+    _setParent(parent: IContainerEntity | undefined) {
+        this.parent = parent
+    }
+
+    IDrawablePhysicsEntity(){}
     updateDrawablePosition() {
         this.drawable.position.copyFrom(this.getPhysicsBody().position);
         this.drawable.rotation = this.getPhysicsBody().angle;
     }
 
-    setStatic(isStatic: boolean) {
-        Body.setStatic(this.getPhysicsBody(), isStatic);
+    IDrawableEntity(){}
+    getDrawable(): Drawable {
+        return this.drawable
     }
 
+    IPhysicsEntity(){}
+    getPhysicsObject() {
+        return this.getPhysicsBody()
+    }
+
+    abstract getPhysicsBody(): Body
+
 }
-// force define missing members (interface merging)
-export interface DrawablePhysicsEntity extends IDrawablePhysicsEntity {}
 
 
 export interface IContainerEntity extends IEntity {
@@ -159,9 +187,9 @@ export class DrawSettings {
 
     color: number = 0xFFFFFF;
     alpha: number = 1;
-    strokeColor: number = 0x000000;
-    strokeAlpha: number = 1;
-    strokeWidth: number = 2;
+    strokeColor?: number// = 0x000000;
+    strokeAlpha?: number// = 1;
+    strokeWidth?: number// = 2;
 
 }
 
@@ -174,26 +202,26 @@ export class DrawSettings {
 export class RectEntityOptions extends DrawSettings {
     roundingRadius: number = 0
     relativeToCenter: boolean = true
+    physics: IChamferableBodyDefinition = {}
 }
 
-export class PhysicsRectEntity extends DrawablePhysicsEntity {
+export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.DisplayObject> extends DrawablePhysicsEntity<Drawable> {
 
     protected body: Body;
 
-    private constructor(scene: Scene, x: number, y: number, width: number, height: number, drawable: PIXI.DisplayObject) {
+    protected constructor(scene: Scene, x: number, y: number, width: number, height: number, drawable: Drawable, bodyOptions: IChamferableBodyDefinition | undefined) {
         super(scene, drawable);
-
-        PhysicsRectEntity.create(scene, x, y, width, height, {})
-
-        this.body = Bodies.rectangle(x, y, width, height);
+        this.body = Bodies.rectangle(x, y, width, height, bodyOptions);
     }
 
+    getPhysicsBody() {
+        return this.body
+    }
 
-    static create(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity {
+    private static createGraphics(x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PIXI.Graphics {
 
         const options = Util.getOptions(RectEntityOptions, opts);
         
-        [x, y, width, height] = scene.unit.getLengths([x, y, width, height])
         if (!options.relativeToCenter) {
             x += width / 2
             y += height / 2
@@ -203,14 +231,29 @@ export class PhysicsRectEntity extends DrawablePhysicsEntity {
 
         graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha);
         graphics.beginFill(options.color, options.alpha);
-        graphics.drawRoundedRect(-width/2, -height/2, width, height, options.roundingRadius || 1);
+        graphics.drawRoundedRect(-width/2, -height/2, width, height, options.roundingRadius);
         graphics.endFill();
 
-        return new PhysicsRectEntity(scene, x, y, width, height, graphics);
+        return graphics
     }
 
-    static createTexture(scene: Scene, x: number, y: number, texture: PIXI.Texture, alpha: number, relativeToCenter:boolean = false): PhysicsRectEntity {
-        return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject());
+    static create(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity<PIXI.Graphics> {
+        [x, y, width, height] = scene.unit.getLengths([x, y, width, height])
+        const graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts)
+        return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts?.physics);
+    }
+
+    static createWithContainer(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity<PIXI.Container> {
+        [x, y, width, height] = scene.unit.getLengths([x, y, width, height])
+        const graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts)
+        const container = new PIXI.Container()
+        container.addChild(graphics)
+        return new PhysicsRectEntity<PIXI.Container>(scene, x, y, width, height, graphics, opts?.physics);
+    }
+
+
+    static createTexture(scene: Scene, x: number, y: number, texture: PIXI.Texture, alpha: number, relativeToCenter:boolean = false, bodyOptions?: IChamferableBodyDefinition): PhysicsRectEntity<PIXI.DisplayObject> {
+        return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), bodyOptions);
         // TODO
     }
 

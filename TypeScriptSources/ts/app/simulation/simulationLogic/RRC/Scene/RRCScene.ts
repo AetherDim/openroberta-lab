@@ -101,12 +101,11 @@ export class RRCScene extends Scene {
      * @param opt Options of type '{ position?: Vector, rotation?: number }'
      */
     initRobot(opt?: { position?: Vector, rotation?: number }) {
-        let robot = Robot.EV3();
+        let robot = Robot.EV3(this);
         const position = opt?.position || Vector.create()
         robot.setPose(this.unit.getPosition(position), opt?.rotation || 0, false)
         robot.body.enableMouseInteraction = true;
-        World.add(this.world, robot.physicsComposite);
-        this.robots.push(robot)
+        this.addRobot(robot)
     }
 
 

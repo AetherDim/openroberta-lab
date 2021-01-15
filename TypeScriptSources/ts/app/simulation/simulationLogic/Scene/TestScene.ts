@@ -1,6 +1,6 @@
 "use strict";
-import { Bodies, Body, Composite, Events, Vector, World } from "matter-js";
-import { createRect } from "../Displayable";
+import { Composite, Events, IBodyDefinition, Vector } from "matter-js";
+import { PhysicsRectEntity } from "../Entity";
 import { LineSegment } from "../Geometry/LineSegment";
 import { Polygon } from "../Geometry/Polygon";
 import { ElectricMotor } from "../Robot/ElectricMotor";
@@ -44,6 +44,7 @@ export class TestScene extends Scene {
         const scale = 0.001;
         
         Unit.setUnitScaling({m: 1000})
+        this.unit.setUnitScaling({m: 1000})
 
         // (<any>Resolver)._restingThresh = 4 * scale;
         // (<any>Resolver)._restingThreshTangent = 6 * scale;
@@ -57,12 +58,12 @@ export class TestScene extends Scene {
         this.groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill())
 
         const useEV3 = true
-        const robot = useEV3 ? Robot.EV3() : Robot.default(scale)
-        this.robots.push(robot);
+        const robot = useEV3 ? Robot.EV3(this) : Robot.default(this, scale)
+        this.addRobot(robot);
         
         const robotComposite = robot.physicsComposite
 
-        World.add(this.engine.world, robotComposite);
+        //World.add(this.engine.world, robotComposite);
 
         Composite.translate(robotComposite, Unit.getPositionVec(100 * scale, 100 * scale))
 
@@ -203,33 +204,27 @@ export class TestScene extends Scene {
         });
 
 
-        // TODO: remove
-        var world = this.engine.world;
-        var bodies = [
+        const t = this
+        function makeRect(x: number, y: number, w: number, h: number, opt: IBodyDefinition): PhysicsRectEntity {
+            return PhysicsRectEntity.create(t, scale*x, scale*y, scale*w, scale*h, { physics: opt })
+        }
+        const bodies = [
             // blocks
-            Bodies.rectangle(200, 100, 60, 60, { frictionAir: 0.001 }),
-            Bodies.rectangle(400, 100, 60, 60, { frictionAir: 0.05 }),
-            Bodies.rectangle(600, 100, 60, 60, { frictionAir: 0.1 }),
+            makeRect(200, 100, 60, 60, { frictionAir: 0.001 }),
+            makeRect(400, 100, 60, 60, { frictionAir: 0.05 }),
+            makeRect(600, 100, 60, 60, { frictionAir: 0.1 }),
     
             // walls
-            Bodies.rectangle(400, -25, 800, 50, { isStatic: true }),
-            Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
-            Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-            Bodies.rectangle(-25, 300, 50, 600, { isStatic: true })
+            makeRect(400, -25, 800, 50, { isStatic: true }),
+            makeRect(400, 600, 800, 50, { isStatic: true }),
+            makeRect(800, 300, 50, 600, { isStatic: true }),
+            makeRect(-25, 300, 50, 600, { isStatic: true })
         ]
-        bodies.forEach(body => Body.scale(body, scale, scale, Vector.create()))
 
-        bodies = [
-            createRect(400*scale, -25*scale, 800*scale, 50*scale),
-            createRect(400*scale, 600*scale, 800*scale, 50*scale),
-            createRect(800*scale, 300*scale, 50*scale, 600*scale),
-            createRect(-25*scale, 300*scale, 50*scale, 600*scale),
-        ]
-        bodies.forEach(body => Body.setStatic(body, true))
-        World.add(world, bodies);
+        bodies.forEach(b => t.addEntity(b))
 
-        const allBodies = Composite.allBodies(world)
-        allBodies.forEach(body => body.slop *= scale)
+        // const allBodies = Composite.allBodies(world)
+        // allBodies.forEach(body => body.slop *= scale)
 
 
         chain.next();

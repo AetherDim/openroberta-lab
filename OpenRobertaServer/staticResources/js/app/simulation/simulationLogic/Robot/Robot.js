@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../ExtendedMatter"], function (require, exports, matter_js_1, Displayable_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1) {
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "../Unit", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Unit_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -23,6 +23,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
              * robot type
              */
             this.type = 'default';
+            this.children = [];
             this.leftForce = 0;
             this.rightForce = 0;
             this.encoder = {
@@ -33,23 +34,19 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             this.wheelSlideFriction = 0.07;
             this.needsNewCommands = true;
             this.endEncoder = null;
-            this.body = robot.body;
+            this.scene = robot.scene;
+            this.bodyEntity = robot.body;
+            this.body = robot.body.getPhysicsBody();
             this.leftDrivingWheel = robot.leftDrivingWheel;
             this.rightDrivingWheel = robot.rightDrivingWheel;
             this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels);
-            // FIXME: Workaround. Change body display object to a container
-            var displayable = this.body.displayable;
-            this.bodyContainer = new PIXI.Container();
-            if (displayable) {
-                var bodyDisplayObject = displayable.displayObject;
-                this.bodyContainer.position = bodyDisplayObject.position.clone();
-                bodyDisplayObject.position.set(0, 0);
-                this.bodyContainer.addChild(bodyDisplayObject);
-                displayable.displayObject = this.bodyContainer;
-            }
+            this.bodyContainer = this.bodyEntity.getDrawable();
             this.physicsWheelsList = [];
             this.physicsComposite = matter_js_1.Composite.create();
             this.updatePhysicsObject();
+            this.addChild(this.bodyEntity);
+            var t = this;
+            this.wheelsList.forEach(function (wheel) { return t.addChild(wheel); });
         }
         Robot.prototype.setRobotType = function (type) {
             this.type = type;
@@ -82,6 +79,42 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
                 _this_1.physicsComposite.addRigidBodyConstraints(_this_1.body, wheel, 0.1, 0.1);
             });
             this.body.frictionAir = 0.0;
+        };
+        Robot.prototype.IEntity = function () { };
+        Robot.prototype.getScene = function () {
+            return this.scene;
+        };
+        Robot.prototype.getParent = function () {
+            return this.parent;
+        };
+        Robot.prototype._setParent = function (parent) {
+            this.parent = parent;
+        };
+        Robot.prototype.IPhysicsEntity = function () { };
+        Robot.prototype.getPhysicsObject = function () {
+            return this.physicsComposite;
+        };
+        Robot.prototype.IPhysicsCompositeEntity = function () { };
+        Robot.prototype.getPhysicsComposite = function () {
+            return this.physicsComposite;
+        };
+        Robot.prototype.IContainerEntity = function () { };
+        Robot.prototype.getChildren = function () {
+            return this.children;
+        };
+        Robot.prototype.addChild = function (child) {
+            var _a;
+            (_a = child.getParent()) === null || _a === void 0 ? void 0 : _a.removeChild(child);
+            child._setParent(this);
+            this.children.push(child);
+            if (this.scene.containsEntity(this)) {
+                this.scene.addEntity(child);
+            }
+        };
+        Robot.prototype.removeChild = function (child) {
+            child._setParent(undefined);
+            Util_1.Util.removeFromArray(this.children, child);
+            this.scene.removeEntity(child);
         };
         /**
          * Sets the position and rotation of the robot. (Body, wheels and sensors)
@@ -145,6 +178,7 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
             if (this.touchSensors[port]) {
                 return false;
             }
+            this.addChild(touchSensor);
             matter_js_1.Composite.add(this.physicsComposite, touchSensor.physicsBody);
             this.physicsComposite.addRigidBodyConstraints(this.body, touchSensor.physicsBody, 0.3, 0.3);
             this.touchSensors[port] = touchSensor;
@@ -197,14 +231,13 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
         };
         Robot.prototype.reset = function () {
         };
-        /**
-         *
-         * @param dt time step of the matter.js simulation
-         * @param programPaused is program paused
-         * @param getImageData get the image data of the ground layer
-         */
-        Robot.prototype.update = function (updateOptions) {
-            var dt = updateOptions.dt;
+        // IUpdatableEntity
+        Robot.prototype.IUpdatableEntity = function () { };
+        Robot.prototype.update = function (dt) {
+            var updateOptions = this.scene.getRobotUpdateOptions();
+            if (updateOptions == undefined) {
+                return;
+            }
             // update wheels velocities
             var gravitationalAcceleration = Unit_1.Unit.getAcceleration(9.81);
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
@@ -639,15 +672,16 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
          *
          * @param scale scale of the robot
          */
-        Robot.default = function (scale) {
+        Robot.default = function (scene, scale) {
             if (scale === void 0) { scale = 1; }
-            var frontWheel = new Wheel_1.Wheel(27 * scale, 0, 10 * scale, 10 * scale);
+            var frontWheel = Wheel_1.Wheel.create(scene, 27 * scale, 0, 10 * scale, 10 * scale);
             frontWheel.slideFriction = 0.1;
             frontWheel.rollingFriction = 0.0;
             return new Robot({
-                body: Displayable_1.createRect(0, 0, 40 * scale, 30 * scale),
-                leftDrivingWheel: new Wheel_1.Wheel(-0, -22 * scale, 20 * scale, 10 * scale),
-                rightDrivingWheel: new Wheel_1.Wheel(-0, 22 * scale, 20 * scale, 10 * scale),
+                scene: scene,
+                body: Entity_1.PhysicsRectEntity.createWithContainer(scene, 0, 0, 40 * scale, 30 * scale),
+                leftDrivingWheel: Wheel_1.Wheel.create(scene, -0, -22 * scale, 20 * scale, 10 * scale),
+                rightDrivingWheel: Wheel_1.Wheel.create(scene, -0, 22 * scale, 20 * scale, 10 * scale),
                 otherWheels: [
                     frontWheel
                 ]
@@ -656,41 +690,43 @@ define(["require", "exports", "matter-js", "../Displayable", "./ElectricMotor", 
         /**
          * Long robot with 4 wheels
          */
-        Robot.default2 = function () {
+        Robot.default2 = function (scene) {
             return new Robot({
-                body: Displayable_1.createRect(0, 0, 40, 30),
-                leftDrivingWheel: new Wheel_1.Wheel(-50, -20, 20, 10),
-                rightDrivingWheel: new Wheel_1.Wheel(-50, 20, 20, 10),
+                scene: scene,
+                body: Entity_1.PhysicsRectEntity.createWithContainer(scene, 0, 0, 40, 30),
+                leftDrivingWheel: Wheel_1.Wheel.create(scene, -50, -20, 20, 10),
+                rightDrivingWheel: Wheel_1.Wheel.create(scene, -50, 20, 20, 10),
                 otherWheels: [
-                    new Wheel_1.Wheel(50, -15, 20, 10),
-                    new Wheel_1.Wheel(50, 15, 20, 10)
+                    Wheel_1.Wheel.create(scene, 50, -15, 20, 10),
+                    Wheel_1.Wheel.create(scene, 50, 15, 20, 10)
                 ]
             });
         };
         /**
          * Similar to the EV3 LEGO robot
          */
-        Robot.EV3 = function () {
+        Robot.EV3 = function (scene) {
             var wheel = { diameter: 0.05, width: 0.02 };
             // TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
-            var backWheel = new Wheel_1.Wheel(-0.09, 0, wheel.width, wheel.width, 0.30);
+            var backWheel = Wheel_1.Wheel.create(scene, -0.09, 0, wheel.width, wheel.width, 0.30);
             backWheel.slideFriction = 0.05;
             backWheel.rollingFriction = 0.03;
-            var robotBody = Displayable_1.createRect(0, 0, 0.15, 0.10);
-            matter_js_1.Body.setMass(robotBody, Unit_1.Unit.getMass(0.300));
+            var robotBody = Entity_1.PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10);
+            matter_js_1.Body.setMass(robotBody.getPhysicsBody(), Unit_1.Unit.getMass(0.300));
             var robot = new Robot({
+                scene: scene,
                 body: robotBody,
-                leftDrivingWheel: new Wheel_1.Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
-                rightDrivingWheel: new Wheel_1.Wheel(0, 0.07, wheel.diameter, wheel.width, 0.050),
+                leftDrivingWheel: Wheel_1.Wheel.create(scene, 0, -0.07, wheel.diameter, wheel.width, 0.050),
+                rightDrivingWheel: Wheel_1.Wheel.create(scene, 0, 0.07, wheel.diameter, wheel.width, 0.050),
                 otherWheels: [
                     backWheel
                 ]
             });
             robot.addColorSensor("3", 0.075, 0);
             robot.addUltrasonicSensor("4", new UltrasonicSensor_1.UltrasonicSensor(matter_js_1.Vector.create(0.095, 0), 90 * 2 * Math.PI / 360));
-            var touchSensorBody = Displayable_1.createRect(0.085, 0, 0.01, 0.12, 0, { color: 0xFF0000 });
-            matter_js_1.Body.setMass(touchSensorBody, Unit_1.Unit.getMass(0.05));
-            robot.addTouchSensor("1", new TouchSensor_1.TouchSensor(touchSensorBody));
+            var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000 });
+            matter_js_1.Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05));
+            robot.addTouchSensor("1", new TouchSensor_1.TouchSensor(scene, touchSensorBody));
             return robot;
         };
         return Robot;

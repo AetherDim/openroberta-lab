@@ -9,7 +9,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util"], function (require, exports, Displayable_1, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1) {
+define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = exports.AsyncChain = exports.AsyncListener = void 0;
@@ -199,12 +199,12 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             this.initLoadingContainer();
             // register events
             var _this = this;
-            matter_js_1.Events.on(this.world, "beforeAdd", function (e) {
-                _this.addPhysics(e.object);
-            });
-            matter_js_1.Events.on(this.world, "afterRemove", function (e) {
-                _this.removePhysics(e.object);
-            });
+            // Events.on(this.world, "beforeAdd", (e: IEventComposite<Composite>) => {
+            //     _this.addPhysics(e.object);
+            // });
+            // Events.on(this.world, "afterRemove", (e: IEventComposite<Composite>) => {
+            //     _this.removePhysics(e.object);
+            // });
             this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
                 // delta is the time from last render call
                 _this.update();
@@ -216,8 +216,18 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         Scene.prototype.getRobots = function () {
             return this.robots;
         };
+        /**
+         * Adds `robot` to scene (to `robots` array and entities)
+         */
+        Scene.prototype.addRobot = function (robot) {
+            this.robots.push(robot);
+            this.addEntity(robot);
+        };
         Scene.prototype.getNumberOfRobots = function () {
             return this.numberOfRobots;
+        };
+        Scene.prototype.containsEntity = function (entity) {
+            return this.entities.includes(entity);
         };
         Scene.prototype.addEntities = function () {
             var _this_1 = this;
@@ -242,6 +252,12 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                     var container = (_b = (_a = entity.getContainer) === null || _a === void 0 ? void 0 : _a.call(entity)) !== null && _b !== void 0 ? _b : this.entityContainer;
                     container.addChild(entity.getDrawable());
                 }
+                // TODO: Think about this. There might be wrapper types.
+                // Only add entities with no parents to the physics world.
+                // A parent should imply a physics `Composite` which only has to be added once.
+                if (entity.getParent() == undefined && Entity_1.Type.IPhysicsEntity.isSupertypeOf(entity)) {
+                    matter_js_1.Composite.add(this.world, entity.getPhysicsObject());
+                }
                 if (Entity_1.Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
                     this.drawablePhysicsEntities.push(entity);
                 }
@@ -252,6 +268,7 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             }
         };
         Scene.prototype.removeEntity = function (entity) {
+            var _a;
             if (entity.getScene() != this) {
                 console.warn("Entity " + entity + " is not in this (" + this + ") scene");
             }
@@ -264,6 +281,9 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
                 // remove physics and graphics
                 if (Entity_1.Type.IUpdatableEntity.isSupertypeOf(entity)) {
                     Util_1.Util.removeFromArray(this.updatableEntities, entity);
+                }
+                if (Entity_1.Type.IDrawableEntity.isSupertypeOf(entity)) {
+                    (_a = entity.getContainer) === null || _a === void 0 ? void 0 : _a.call(entity).removeChild(entity.getDrawable());
                 }
                 if (Entity_1.Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
                     Util_1.Util.removeFromArray(this.drawablePhysicsEntities, entity);
@@ -631,89 +651,108 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
             }
             return intersected;
         };
-        Scene.prototype.addPhysics = function (obj) {
-            var _this_1 = this;
-            if (!obj) {
+        /*
+        private addPhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
+    
+            if(!obj) {
                 return;
             }
-            var element = obj;
-            if (element.type) {
+    
+            const element  = <Body | Composite | Constraint><any>obj;
+    
+            if(element.type) {
+    
                 switch (element.type) {
                     case 'body':
-                        var body = element;
-                        if (body.displayable) {
+                        var body = <Body>element;
+        
+                        if(body.displayable) {
                             this.entityContainer.addChild(body.displayable.displayObject);
                         }
-                        if (this.debugPixiRendering) {
-                            if (!body.debugDisplayable) {
-                                body.debugDisplayable = Displayable_1.createDisplayableFromBody(body);
+                        
+                        if(this.debugPixiRendering) {
+        
+                            if(!body.debugDisplayable) {
+                                body.debugDisplayable = createDisplayableFromBody(body);
                             }
+                            
                             this.entityContainer.addChild(body.debugDisplayable.displayObject);
+                            
                         }
                         break;
+        
                     case 'composite':
-                        matter_js_1.Composite.allBodies(element).forEach(function (e) {
-                            _this_1.addPhysics(e);
+                        Composite.allBodies(<Composite>element).forEach((e) => {
+                            this.addPhysics(e);
                         });
                         break;
+        
                     case "mouseConstraint":
                     case 'constraint':
                         // TODO: Maybe add constraint as PIXI graphics
                         break;
+                
                     default:
                         console.error("unknown type: " + element.type);
                         break;
                 }
-            }
-            else if (Array.isArray(obj)) {
-                var array = obj;
-                var _this_2 = this;
-                array.forEach(function (e) { return _this_2.addPhysics(e); });
-            }
-            else {
+        
+            } else if(Array.isArray(obj)) {
+                const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
+                const _this = this;
+                array.forEach((e: Body | Composite | Constraint) => _this.addPhysics(e));
+            } else {
                 console.error('unknown type: ' + obj);
             }
-        };
-        Scene.prototype.removePhysics = function (obj) {
-            var _this_1 = this;
-            if (!obj) {
+    
+            
+        }
+    
+        private removePhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
+    
+            if(!obj) {
                 return;
             }
-            var element = obj;
-            if (element.type) {
+    
+            const element  = <Body | Composite | Constraint><any>obj;
+    
+            if(element.type) {
                 switch (element.type) {
                     case 'body':
-                        var body = element;
-                        if (body.displayable) {
+                        var body = <Body>element;
+                        if(body.displayable) {
                             this.entityContainer.removeChild(body.displayable.displayObject);
                         }
-                        if (body.debugDisplayable) {
+                        if(body.debugDisplayable) {
                             this.entityContainer.removeChild(body.debugDisplayable.displayObject);
                         }
                         break;
+    
                     case 'composite':
-                        matter_js_1.Composite.allBodies(element).forEach(function (e) {
-                            _this_1.removePhysics(e);
+                        Composite.allBodies(<Composite>element).forEach((e) => {
+                            this.removePhysics(e);
                         });
                         break;
+    
                     case "mouseConstraint":
                     case 'constraint':
                         // TODO: Maybe remove constraint PIXI graphics
                         break;
+                
                     default:
                         console.error("unknown type: " + element.type);
                         break;
                 }
-            }
-            else if (Array.isArray(obj)) {
-                var array = obj;
-                var _this_3 = this;
-                array.forEach(function (e) { return _this_3.removePhysics(e); });
-            }
-            else {
+            } else if(Array.isArray(obj)) {
+                const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
+                const _this = this;
+                array.forEach((e: Body | Composite | Constraint) => _this.removePhysics(e));
+            } else {
                 console.error('unknown type: ' + obj);
             }
-        };
+    
+        }
+        */
         //
         // #############################################################################
         //
@@ -724,6 +763,23 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
         //
         // #############################################################################
         //
+        Scene.prototype.getRobotUpdateOptions = function () {
+            // FIXME: What to do with undefined 'getImageData'?
+            var getImageData = this.getImageData;
+            if (getImageData) {
+                var _this_2 = this;
+                var allBodies_1 = matter_js_1.Composite.allBodies(this.engine.world);
+                return new RobotUpdateOptions_1.RobotUpdateOptions({
+                    dt: this.dt,
+                    programPaused: this.programManager.isProgramPaused(),
+                    getImageData: getImageData,
+                    getNearestPointTo: function (point, includePoint) { return _this_2.getNearestPoint(point, includePoint); },
+                    intersectionPointsWithLine: function (line) { return _this_2.intersectionPointsWithLine(line); },
+                    bodyIntersectsOther: function (body) { return matter_js_1.Query.collides(body, allBodies_1).length > 1; } // "collides with itself"
+                });
+            }
+            return undefined;
+        };
         Scene.prototype.forEachBodyPartVertices = function (code) {
             var bodies = matter_js_1.Composite.allBodies(this.world);
             for (var i = 0; i < bodies.length; i++) {
@@ -778,33 +834,18 @@ define(["require", "exports", "../Displayable", "matter-js", "../Timer", "../Scr
          * update physics and robots
          */
         Scene.prototype.update = function () {
-            var _this_1 = this;
             this.onUpdate();
             // update robots
             // update ground every tick: this.updateColorDataFunction()
             var _this = this;
             this.updatableEntities.forEach(function (entity) { return entity.update(_this.dt); });
             this.drawablePhysicsEntities.forEach(function (entity) {
-                var drawable = entity.getDrawable();
-                var physicsBody = entity.getPhysicsBody();
-                drawable.position.copyFrom(physicsBody.position);
-                drawable.angle = physicsBody.angle;
+                entity.updateDrawablePosition();
+                // const drawable = entity.getDrawable()
+                // const physicsBody = entity.getPhysicsBody()
+                // drawable.position.copyFrom(physicsBody.position)
+                // drawable.angle = physicsBody.angle
             });
-            // FIXME: What to do with undefined 'getImageData'?
-            var getImageData = this.getImageData;
-            var allBodies = matter_js_1.Composite.allBodies(this.engine.world);
-            if (getImageData) {
-                this.robots.forEach(function (robot) {
-                    robot.update(new RobotUpdateOptions_1.RobotUpdateOptions({
-                        dt: _this_1.dt,
-                        programPaused: _this_1.programManager.isProgramPaused(),
-                        getImageData: getImageData,
-                        getNearestPointTo: function (point, includePoint) { return _this.getNearestPoint(point, includePoint); },
-                        intersectionPointsWithLine: function (line) { return _this.intersectionPointsWithLine(line); },
-                        bodyIntersectsOther: function (body) { return matter_js_1.Query.collides(body, allBodies).length > 1; } // "collides with itself"
-                    }));
-                });
-            }
             this.programManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // FIX Grid bucket memory consumption

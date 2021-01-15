@@ -11,7 +11,7 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
             this.interpreters = [];
             this.initialized = false;
             this.scene = scene;
-            this.robots = scene.robots;
+            this.robots = scene.getRobots();
         }
         ProgramManager.prototype.hasBeenInitialized = function () {
             return this.initialized;

@@ -1,5 +1,4 @@
 import { Body, Vector, Composite } from 'matter-js'
-import { createRect } from '../Displayable'
 import { ElectricMotor } from './ElectricMotor'
 
 import "../ExtendedMatter"
@@ -10,14 +9,16 @@ import { Unit } from '../Unit'
 import { Wheel } from './Wheel'
 import { ColorSensor } from './ColorSensor'
 import { RobotUpdateOptions } from './RobotUpdateOptions'
-import { LineBaseClass } from '../Geometry/LineBaseClass'
 import { UltrasonicSensor } from './UltrasonicSensor'
 import { Ray } from '../Geometry/Ray'
 import { TouchSensor } from './TouchSensor'
+import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, PhysicsRectEntity } from '../Entity'
+import { Scene } from '../Scene/Scene'
+import { Util } from '../Util'
 
 type StringMap<V> = { [key: string]: V }
 type NumberMap<V> = { [key: number]: V }
-export class Robot {
+export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompositeEntity {
 
 	/**
 	 * The full robot physics object
@@ -29,6 +30,7 @@ export class Robot {
 	 */
 	body: Body
 	private bodyContainer: PIXI.Container
+	private bodyEntity: PhysicsRectEntity<PIXI.Container>
 
 	/**
 	 * The wheels of the robot as `Body`s
@@ -82,26 +84,23 @@ export class Robot {
     }
 
 
-	constructor(robot: {body: Body, leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
-		this.body = robot.body
+	constructor(robot: {scene: Scene, body: PhysicsRectEntity<PIXI.Container>, leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
+		this.scene = robot.scene
+		this.bodyEntity = robot.body
+		this.body = robot.body.getPhysicsBody()
 		this.leftDrivingWheel = robot.leftDrivingWheel
 		this.rightDrivingWheel = robot.rightDrivingWheel
 		this.wheelsList = [this.leftDrivingWheel, this.rightDrivingWheel].concat(robot.otherWheels)
 
-		// FIXME: Workaround. Change body display object to a container
-		const displayable = this.body.displayable
-		this.bodyContainer = new PIXI.Container()
-		if (displayable) {
-			const bodyDisplayObject = displayable.displayObject
-			this.bodyContainer.position = bodyDisplayObject.position.clone()
-			bodyDisplayObject.position.set(0, 0)
-			this.bodyContainer.addChild(bodyDisplayObject)
-			displayable.displayObject = this.bodyContainer
-		}
+		this.bodyContainer = this.bodyEntity.getDrawable()
 
 		this.physicsWheelsList = []
 		this.physicsComposite = Composite.create()
 		this.updatePhysicsObject()
+
+		this.addChild(this.bodyEntity)
+		const t = this
+		this.wheelsList.forEach(wheel => t.addChild(wheel))
 	}
 
 	private updatePhysicsObject() {
@@ -135,6 +134,59 @@ export class Robot {
 		});
 
 		this.body.frictionAir = 0.0;
+	}
+
+	// IEntity and IContainerEntity
+
+	private parent?: IContainerEntity
+	private children: IEntity[] = []
+	private scene: Scene
+
+	IEntity(){}
+
+	getScene() {
+		return this.scene
+	}
+
+	getParent(): IContainerEntity | undefined {
+		return this.parent
+	}
+
+	_setParent(parent: IContainerEntity | undefined) {
+		this.parent = parent
+	}
+
+	IPhysicsEntity(){}
+
+	getPhysicsObject() {
+		return this.physicsComposite
+	}
+
+	IPhysicsCompositeEntity(){}
+
+	getPhysicsComposite() {
+		return this.physicsComposite
+	}
+
+	IContainerEntity(){}
+
+	getChildren() {
+		return this.children
+	}
+
+	addChild(child: IEntity) {
+		child.getParent()?.removeChild(child)
+		child._setParent(this)
+		this.children.push(child)
+		if (this.scene.containsEntity(this)) {
+			this.scene.addEntity(child)
+		}
+	}
+
+	removeChild(child: IEntity) {
+		child._setParent(undefined)
+		Util.removeFromArray(this.children, child)
+		this.scene.removeEntity(child)
 	}
 
 	/**
@@ -204,6 +256,7 @@ export class Robot {
 		if (this.touchSensors[port]) {
 			return false
 		}
+		this.addChild(touchSensor)
 		Composite.add(this.physicsComposite, touchSensor.physicsBody)
 		this.physicsComposite.addRigidBodyConstraints(this.body, touchSensor.physicsBody, 0.3, 0.3)
 		this.touchSensors[port] = touchSensor
@@ -288,15 +341,16 @@ export class Robot {
 		
 	}
 
-	/**
-	 * 
-	 * @param dt time step of the matter.js simulation
-	 * @param programPaused is program paused
-	 * @param getImageData get the image data of the ground layer
-	 */
-	update(updateOptions: RobotUpdateOptions) {
+	// IUpdatableEntity
 
-		const dt = updateOptions.dt
+	IUpdatableEntity(){}
+
+	update(dt: number) {
+
+		const updateOptions = this.scene.getRobotUpdateOptions()
+		if (updateOptions == undefined) {
+			return
+		}
 
 		// update wheels velocities
 		const gravitationalAcceleration = Unit.getAcceleration(9.81)
@@ -751,14 +805,15 @@ export class Robot {
 	 * 
 	 * @param scale scale of the robot
 	 */
-	static default(scale: number = 1): Robot {
-		const frontWheel = new Wheel(27*scale, 0, 10*scale, 10*scale)
+	static default(scene: Scene, scale: number = 1): Robot {
+		const frontWheel = Wheel.create(scene, 27*scale, 0, 10*scale, 10*scale)
 		frontWheel.slideFriction = 0.1
 		frontWheel.rollingFriction = 0.0
 		return new Robot({
-			body: createRect(0, 0, 40*scale, 30*scale),
-			leftDrivingWheel: new Wheel(-0, -22*scale, 20*scale, 10*scale),
-			rightDrivingWheel: new Wheel(-0, 22*scale, 20*scale, 10*scale),
+			scene: scene,
+			body: PhysicsRectEntity.createWithContainer(scene, 0, 0, 40*scale, 30*scale),
+			leftDrivingWheel: Wheel.create(scene, -0, -22*scale, 20*scale, 10*scale),
+			rightDrivingWheel: Wheel.create(scene, -0, 22*scale, 20*scale, 10*scale),
 			otherWheels: [
 				frontWheel
 			]
@@ -768,14 +823,15 @@ export class Robot {
 	/**
 	 * Long robot with 4 wheels
 	 */
-	static default2(): Robot {
+	static default2(scene: Scene): Robot {
 		return new Robot({
-			body: createRect(0, 0, 40, 30),
-			leftDrivingWheel: new Wheel(-50, -20, 20, 10),
-			rightDrivingWheel: new Wheel(-50, 20, 20, 10),
+			scene: scene,
+			body: PhysicsRectEntity.createWithContainer(scene, 0, 0, 40, 30),
+			leftDrivingWheel: Wheel.create(scene, -50, -20, 20, 10),
+			rightDrivingWheel: Wheel.create(scene, -50, 20, 20, 10),
 			otherWheels: [
-				new Wheel(50, -15, 20, 10),
-				new Wheel(50,  15, 20, 10)
+				Wheel.create(scene, 50, -15, 20, 10),
+				Wheel.create(scene, 50,  15, 20, 10)
 			]
 		})
 	}
@@ -783,27 +839,28 @@ export class Robot {
 	/**
 	 * Similar to the EV3 LEGO robot
 	 */
-	static EV3(): Robot {
+	static EV3(scene: Scene): Robot {
 		const wheel = { diameter: 0.05, width: 0.02 }
 		// TODO: Constraints are broken, if the front wheel has less mass (front wheel mass may be 0.030)
-		const backWheel = new Wheel(-0.09, 0, wheel.width, wheel.width, 0.30)
+		const backWheel = Wheel.create(scene, -0.09, 0, wheel.width, wheel.width, 0.30)
 		backWheel.slideFriction = 0.05
 		backWheel.rollingFriction = 0.03
-		const robotBody = createRect(0, 0, 0.15, 0.10)
-		Body.setMass(robotBody, Unit.getMass(0.300))
+		const robotBody = PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10)
+		Body.setMass(robotBody.getPhysicsBody(), Unit.getMass(0.300))
 		const robot = new Robot({
+			scene: scene,
 			body: robotBody,
-			leftDrivingWheel: new Wheel(0, -0.07, wheel.diameter, wheel.width, 0.050),
-			rightDrivingWheel: new Wheel(0,  0.07, wheel.diameter, wheel.width, 0.050),
+			leftDrivingWheel: Wheel.create(scene, 0, -0.07, wheel.diameter, wheel.width, 0.050),
+			rightDrivingWheel: Wheel.create(scene, 0,  0.07, wheel.diameter, wheel.width, 0.050),
 			otherWheels: [
 				backWheel
 			]
 		})
 		robot.addColorSensor("3", 0.075, 0)
 		robot.addUltrasonicSensor("4" , new UltrasonicSensor(Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
-		const touchSensorBody = createRect(0.085, 0, 0.01, 0.12, 0, {color: 0xFF0000})
-		Body.setMass(touchSensorBody, Unit.getMass(0.05))
-		robot.addTouchSensor("1", new TouchSensor(touchSensorBody))
+		const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000 })
+		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
+		robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
 		return robot
 	}
 }

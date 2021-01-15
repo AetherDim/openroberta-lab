@@ -78,12 +78,11 @@ define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Ro
          * @param opt Options of type '{ position?: Vector, rotation?: number }'
          */
         RRCScene.prototype.initRobot = function (opt) {
-            var robot = Robot_1.Robot.EV3();
+            var robot = Robot_1.Robot.EV3(this);
             var position = (opt === null || opt === void 0 ? void 0 : opt.position) || matter_js_1.Vector.create();
             robot.setPose(this.unit.getPosition(position), (opt === null || opt === void 0 ? void 0 : opt.rotation) || 0, false);
             robot.body.enableMouseInteraction = true;
-            matter_js_1.World.add(this.world, robot.physicsComposite);
-            this.robots.push(robot);
+            this.addRobot(robot);
         };
         return RRCScene;
     }(Scene_1.Scene));

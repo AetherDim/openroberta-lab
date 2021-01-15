@@ -150,6 +150,7 @@ require.config({
         'SharedAssetLoader',
         'Random',
         'Util',
+        'Entity',
         { 'Scene': [
             'Scene',
             'TestScene',

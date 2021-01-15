@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSegment", "../Geometry/Polygon", "../Robot/ElectricMotor", "../Robot/Robot", "../ScrollView", "../Unit", "./Scene"], function (require, exports, matter_js_1, Displayable_1, LineSegment_1, Polygon_1, ElectricMotor_1, Robot_1, ScrollView_1, Unit_1, Scene_1) {
+define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment", "../Geometry/Polygon", "../Robot/ElectricMotor", "../Robot/Robot", "../ScrollView", "../Unit", "./Scene"], function (require, exports, matter_js_1, Entity_1, LineSegment_1, Polygon_1, ElectricMotor_1, Robot_1, ScrollView_1, Unit_1, Scene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TestScene = void 0;
@@ -49,6 +49,7 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
             // use 0.001 for EV3
             var scale = 0.001;
             Unit_1.Unit.setUnitScaling({ m: 1000 });
+            this.unit.setUnitScaling({ m: 1000 });
             // (<any>Resolver)._restingThresh = 4 * scale;
             // (<any>Resolver)._restingThreshTangent = 6 * scale;
             // (<any>Sleeping)._motionWakeThreshold = 0.18 * scale;
@@ -58,10 +59,10 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
             // add some background elements
             this.groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill());
             var useEV3 = true;
-            var robot = useEV3 ? Robot_1.Robot.EV3() : Robot_1.Robot.default(scale);
-            this.robots.push(robot);
+            var robot = useEV3 ? Robot_1.Robot.EV3(this) : Robot_1.Robot.default(this, scale);
+            this.addRobot(robot);
             var robotComposite = robot.physicsComposite;
-            matter_js_1.World.add(this.engine.world, robotComposite);
+            //World.add(this.engine.world, robotComposite);
             matter_js_1.Composite.translate(robotComposite, Unit_1.Unit.getPositionVec(100 * scale, 100 * scale));
             var polygon = new Polygon_1.Polygon([
                 matter_js_1.Vector.create(0, 0),
@@ -176,30 +177,24 @@ define(["require", "exports", "matter-js", "../Displayable", "../Geometry/LineSe
             matter_js_1.Events.on(this.engine, 'beforeUpdate', function () {
                 updateKeysActions();
             });
-            // TODO: remove
-            var world = this.engine.world;
+            var t = this;
+            function makeRect(x, y, w, h, opt) {
+                return Entity_1.PhysicsRectEntity.create(t, scale * x, scale * y, scale * w, scale * h, { physics: opt });
+            }
             var bodies = [
                 // blocks
-                matter_js_1.Bodies.rectangle(200, 100, 60, 60, { frictionAir: 0.001 }),
-                matter_js_1.Bodies.rectangle(400, 100, 60, 60, { frictionAir: 0.05 }),
-                matter_js_1.Bodies.rectangle(600, 100, 60, 60, { frictionAir: 0.1 }),
+                makeRect(200, 100, 60, 60, { frictionAir: 0.001 }),
+                makeRect(400, 100, 60, 60, { frictionAir: 0.05 }),
+                makeRect(600, 100, 60, 60, { frictionAir: 0.1 }),
                 // walls
-                matter_js_1.Bodies.rectangle(400, -25, 800, 50, { isStatic: true }),
-                matter_js_1.Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
-                matter_js_1.Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-                matter_js_1.Bodies.rectangle(-25, 300, 50, 600, { isStatic: true })
+                makeRect(400, -25, 800, 50, { isStatic: true }),
+                makeRect(400, 600, 800, 50, { isStatic: true }),
+                makeRect(800, 300, 50, 600, { isStatic: true }),
+                makeRect(-25, 300, 50, 600, { isStatic: true })
             ];
-            bodies.forEach(function (body) { return matter_js_1.Body.scale(body, scale, scale, matter_js_1.Vector.create()); });
-            bodies = [
-                Displayable_1.createRect(400 * scale, -25 * scale, 800 * scale, 50 * scale),
-                Displayable_1.createRect(400 * scale, 600 * scale, 800 * scale, 50 * scale),
-                Displayable_1.createRect(800 * scale, 300 * scale, 50 * scale, 600 * scale),
-                Displayable_1.createRect(-25 * scale, 300 * scale, 50 * scale, 600 * scale),
-            ];
-            bodies.forEach(function (body) { return matter_js_1.Body.setStatic(body, true); });
-            matter_js_1.World.add(world, bodies);
-            var allBodies = matter_js_1.Composite.allBodies(world);
-            allBodies.forEach(function (body) { return body.slop *= scale; });
+            bodies.forEach(function (b) { return t.addEntity(b); });
+            // const allBodies = Composite.allBodies(world)
+            // allBodies.forEach(body => body.slop *= scale)
             chain.next();
         };
         return TestScene;
