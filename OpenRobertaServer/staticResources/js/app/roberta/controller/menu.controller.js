@@ -544,28 +544,30 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
             $('.menuSim').parent().removeClass('disabled'); //these two were in all cases
             $("#simButtonsCollapse").collapse('hide'); //so I extracted them here
 
-            SIM.selectScene(event.target.id);
-            $('#'+event.target.id).parent().addClass('disabled');
+            name = event.target.id.replace('_small_Menu_', '');
+            SIM.selectScene(name);
+            $('#'+name).parent().addClass('disabled');
+            $('#'+name+'_small_Menu_').parent().addClass('disabled');
 
         }, 'sim clicked');
 
 
-        function buildSceneMenu(menu) {
+        function buildSceneMenu(menu, addString) {
             // TODO: clear #simSelectionMenuContent??
             // seems to work without clear
             const scenes = SIM.getScenes();
 
             for (i = 0; i < scenes.length; i++) {
                 const scene = scenes[i];
-                $(menu).append('<li><a href="#" id="' + scene.ID + '" class="menuSim typcn typcn-image " title="' + scene.description + '">' + scene.name + '</a></li>');
+                $(menu).append('<li><a href="#" id="' + scene.ID + addString + '" class="menuSim typcn typcn-image " title="' + scene.description + '">' + scene.name + '</a></li>');
                 if(i === 0) {
-                    $('#'+scene.ID).parent().addClass('disabled');
+                    $('#'+scene.ID + addString).parent().addClass('disabled');
                 }
             }
         }
 
-        buildSceneMenu('#simSelectionMenuContentSmall');
-        buildSceneMenu('#simSelectionMenuContent');
+        buildSceneMenu('#simSelectionMenuContentSmall', '_small_Menu_');
+        buildSceneMenu('#simSelectionMenuContent', '');
 
 
 
