@@ -33,6 +33,13 @@ export class RRCLabyrinthScene extends RRCScene {
         rotation: 0,
         color: 0x000000
     }, {
+        x: 700,
+        y: 100,
+        w: 5,
+        h: 450,
+        rotation: 0,
+        color: 0x000000
+    }, {
         x: 400,
         y: 0,
         w: 5,
@@ -102,6 +109,13 @@ export class RRCLabyrinthScene extends RRCScene {
         y: 100,
         w: 200,
         h: 5,
+        rotation: 0,
+        color: 0x000000
+    }, {
+        x: 700,
+        y: 100,
+        w: 5,
+        h: 450,
         rotation: 0,
         color: 0x000000
     }, {
@@ -181,6 +195,13 @@ export class RRCLabyrinthScene extends RRCScene {
         y: 100,
         w: 100,
         h: 5,
+        rotation: 0,
+        color: 0x000000
+    }, {
+        x: 700,
+        y: 100,
+        w: 5,
+        h: 450,
         rotation: 0,
         color: 0x000000
     }, {
@@ -272,15 +293,14 @@ export class RRCLabyrinthScene extends RRCScene {
 
     addLabyrinth(labyrinth: LabyrinthRect[]) {
         const unit = this.unit
-        const t = this
         labyrinth.forEach(rect => {
             const x = unit.fromLength(rect.x);
             const y = unit.fromLength(rect.y);
             const w = unit.fromLength(rect.w);
             const h = unit.fromLength(rect.h);
-            const bodyEntity = PhysicsRectEntity.create(t, x + w/2, y + h/2, w, h, {color: rect.color, strokeColor: rect.color});
-            t.addEntity(bodyEntity)
-            Body.setStatic(bodyEntity.getPhysicsBody(), true)
+            const bodyEntity = PhysicsRectEntity.create(this, x, y, w, h, {color: rect.color, strokeColor: rect.color, relativeToCenter: true});
+            this.addEntity(bodyEntity);
+            Body.setStatic(bodyEntity.getPhysicsBody(), true);
         });
     }
 
@@ -327,6 +347,8 @@ export class RRCLabyrinthScene extends RRCScene {
                 this.addLabyrinth(this.MazeObstacleList_HS);
                 break;
         }
+
+        this.addWalls(true);
 
         chain.next();
     }

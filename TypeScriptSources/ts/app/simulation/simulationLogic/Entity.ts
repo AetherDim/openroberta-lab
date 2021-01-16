@@ -209,9 +209,15 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
 
     protected body: Body;
 
-    protected constructor(scene: Scene, x: number, y: number, width: number, height: number, drawable: Drawable, bodyOptions: IChamferableBodyDefinition | undefined) {
+    protected constructor(scene: Scene, x: number, y: number, width: number, height: number, drawable: Drawable, opts?: Partial<RectEntityOptions>) {
         super(scene, drawable);
-        this.body = Bodies.rectangle(x, y, width, height, bodyOptions);
+
+        if(opts?.relativeToCenter) {
+            x += width/2;
+            y += height/2;
+        }
+
+        this.body = Bodies.rectangle(x, y, width, height, opts?.physics);
     }
 
     getPhysicsBody() {
@@ -240,7 +246,7 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
     static create(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity<PIXI.Graphics> {
         [x, y, width, height] = scene.unit.getLengths([x, y, width, height])
         const graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts)
-        return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts?.physics);
+        return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts);
     }
 
     static createWithContainer(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity<PIXI.Container> {
@@ -248,12 +254,12 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
         const graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts)
         const container = new PIXI.Container()
         container.addChild(graphics)
-        return new PhysicsRectEntity<PIXI.Container>(scene, x, y, width, height, graphics, opts?.physics);
+        return new PhysicsRectEntity<PIXI.Container>(scene, x, y, width, height, graphics, opts);
     }
 
 
     static createTexture(scene: Scene, x: number, y: number, texture: PIXI.Texture, alpha: number, relativeToCenter:boolean = false, bodyOptions?: IChamferableBodyDefinition): PhysicsRectEntity<PIXI.DisplayObject> {
-        return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), bodyOptions);
+        return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), {physics: bodyOptions});
         // TODO
     }
 

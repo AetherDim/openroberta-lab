@@ -53,6 +53,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 this.goalSprite = new PIXI.Sprite(goal);
                 this.groundContainer.addChild(this.goalSprite);
             }
+            this.addWalls(true);
             chain.next();
         };
         return RRCRainbowScene;

@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -68,7 +68,8 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);
         };
         RRCScene.prototype.getUnitConverter = function () {
-            return new Unit_1.Unit({ m: 1000 });
+            // approx 60px = 20cm
+            return new Unit_1.Unit({ m: 350 });
         };
         RRCScene.prototype.onInit = function (chain) {
             this.initRobot();
@@ -87,6 +88,31 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             robot.setPose(this.unit.getPosition(position), (opt === null || opt === void 0 ? void 0 : opt.rotation) || 0, false);
             robot.body.enableMouseInteraction = true;
             this.addRobot(robot);
+        };
+        RRCScene.prototype.addWalls = function (visible) {
+            if (visible === void 0) { visible = false; }
+            var unit = this.getUnitConverter();
+            var t = unit.fromLength(100);
+            var x = unit.fromLength(0);
+            var y = unit.fromLength(0);
+            var w = unit.fromLength(800);
+            var h = unit.fromLength(540);
+            var top = Entity_1.PhysicsRectEntity.create(this, x - t, y - t, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
+            var bottom = Entity_1.PhysicsRectEntity.create(this, x - t, y + h, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
+            var left = Entity_1.PhysicsRectEntity.create(this, x - t, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
+            var right = Entity_1.PhysicsRectEntity.create(this, x + w, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
+            this.addEntity(top);
+            this.addEntity(bottom);
+            this.addEntity(left);
+            this.addEntity(right);
+            matter_js_1.Body.setStatic(top.getPhysicsBody(), true);
+            matter_js_1.Body.setStatic(bottom.getPhysicsBody(), true);
+            matter_js_1.Body.setStatic(left.getPhysicsBody(), true);
+            matter_js_1.Body.setStatic(right.getPhysicsBody(), true);
+            top.getDrawable().visible = visible;
+            bottom.getDrawable().visible = visible;
+            left.getDrawable().visible = visible;
+            right.getDrawable().visible = visible;
         };
         return RRCScene;
     }(Scene_1.Scene));

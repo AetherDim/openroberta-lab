@@ -2,9 +2,10 @@ import { AsyncChain } from "../../Scene/AsyncChain";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
-import {Vector, World} from "matter-js";
+import {Body, Vector, World} from "matter-js";
 import { Unit } from "../../Unit";
 import {Scene} from "../../Scene/Scene";
+import {PhysicsRectEntity} from "../../Entity";
 
 export class RRCScene extends Scene {
 
@@ -91,7 +92,8 @@ export class RRCScene extends Scene {
     }
 
     getUnitConverter(): Unit {
-        return new Unit({ m: 1000 })
+        // approx 60px = 20cm
+        return new Unit({ m: 350 })
     }
 
     onInit(chain: AsyncChain) {
@@ -111,6 +113,35 @@ export class RRCScene extends Scene {
         robot.setPose(this.unit.getPosition(position), opt?.rotation || 0, false)
         robot.body.enableMouseInteraction = true;
         this.addRobot(robot)
+    }
+
+    addWalls(visible: boolean = false) {
+        let unit = this.getUnitConverter();
+
+        const t = unit.fromLength(100);
+        const x = unit.fromLength(0);
+        const y = unit.fromLength(0);
+        const w = unit.fromLength(800);
+        const h = unit.fromLength(540);
+
+        const top = PhysicsRectEntity.create(this, x - t, y - t, w + 2*t, t, {color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true});
+        const bottom = PhysicsRectEntity.create(this, x - t, y + h, w + 2*t, t, {color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true});
+        const left = PhysicsRectEntity.create(this, x - t, y, t, h, {color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true});
+        const right = PhysicsRectEntity.create(this, x + w, y, t, h, {color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true});
+
+        this.addEntity(top);
+        this.addEntity(bottom);
+        this.addEntity(left);
+        this.addEntity(right);
+        Body.setStatic(top.getPhysicsBody(), true);
+        Body.setStatic(bottom.getPhysicsBody(), true);
+        Body.setStatic(left.getPhysicsBody(), true);
+        Body.setStatic(right.getPhysicsBody(), true);
+
+        top.getDrawable().visible = visible;
+        bottom.getDrawable().visible = visible;
+        left.getDrawable().visible = visible;
+        right.getDrawable().visible = visible;
     }
 
 

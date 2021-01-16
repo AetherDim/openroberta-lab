@@ -101,7 +101,7 @@ define(["require", "exports", "d3", "matter-js", "../Entity"], function (require
          * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
          */
         Wheel.create = function (scene, x, y, width, height, mass) {
-            return new Wheel(scene, x, y, width, height, Entity_1.PhysicsRectEntity.createWithContainer(scene, x, y, width, height), mass);
+            return new Wheel(scene, x, y, width, height, Entity_1.PhysicsRectEntity.createWithContainer(scene, x, y, width, height, { color: 0, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5 }), mass);
         };
         // implement abstract DrawablePhysicsEntity method 
         Wheel.prototype.getPhysicsBody = function () {

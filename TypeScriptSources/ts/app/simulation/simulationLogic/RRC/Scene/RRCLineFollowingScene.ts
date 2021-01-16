@@ -35,6 +35,8 @@ export class RRCLineFollowingScene extends RRCScene {
 
         this.groundContainer.addChild(this.goalSprite);
 
+        this.addWalls(true);
+
         chain.next();
     }
 

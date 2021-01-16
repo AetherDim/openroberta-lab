@@ -243,7 +243,7 @@ sceneManager.registerScene(
 // create engine
 //
 var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNextScene());
-engine.getScene().setupDebugRenderer('notConstantValue');
+//engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
 
 
@@ -301,6 +301,7 @@ export function setInfo() {
 
 export function resetPose() {
     engine.getScene()?.reset();
+    //engine.getScene()?.fullReset();
 }
 
 export function updateDebugMode(debugMode:boolean) {

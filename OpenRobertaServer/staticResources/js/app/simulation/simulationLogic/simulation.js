@@ -132,7 +132,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     // create engine
     //
     var engine = new SceneRenderer_1.SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNextScene());
-    engine.getScene().setupDebugRenderer('notConstantValue');
+    //engine.getScene().setupDebugRenderer('notConstantValue');
     //engine.getScene().setupDebugRenderer('simDiv');
     // store old programs
     var storedPrograms;
@@ -181,6 +181,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     function resetPose() {
         var _a;
         (_a = engine.getScene()) === null || _a === void 0 ? void 0 : _a.reset();
+        //engine.getScene()?.fullReset();
     }
     exports.resetPose = resetPose;
     function updateDebugMode(debugMode) {

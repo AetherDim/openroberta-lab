@@ -38,6 +38,13 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     rotation: 0,
                     color: 0x000000
                 }, {
+                    x: 700,
+                    y: 100,
+                    w: 5,
+                    h: 450,
+                    rotation: 0,
+                    color: 0x000000
+                }, {
                     x: 400,
                     y: 0,
                     w: 5,
@@ -106,6 +113,13 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     y: 100,
                     w: 200,
                     h: 5,
+                    rotation: 0,
+                    color: 0x000000
+                }, {
+                    x: 700,
+                    y: 100,
+                    w: 5,
+                    h: 450,
                     rotation: 0,
                     color: 0x000000
                 }, {
@@ -184,6 +198,13 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     y: 100,
                     w: 100,
                     h: 5,
+                    rotation: 0,
+                    color: 0x000000
+                }, {
+                    x: 700,
+                    y: 100,
+                    w: 5,
+                    h: 450,
                     rotation: 0,
                     color: 0x000000
                 }, {
@@ -274,15 +295,15 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
             return _this;
         }
         RRCLabyrinthScene.prototype.addLabyrinth = function (labyrinth) {
+            var _this = this;
             var unit = this.unit;
-            var t = this;
             labyrinth.forEach(function (rect) {
                 var x = unit.fromLength(rect.x);
                 var y = unit.fromLength(rect.y);
                 var w = unit.fromLength(rect.w);
                 var h = unit.fromLength(rect.h);
-                var bodyEntity = Entity_1.PhysicsRectEntity.create(t, x + w / 2, y + h / 2, w, h, { color: rect.color, strokeColor: rect.color });
-                t.addEntity(bodyEntity);
+                var bodyEntity = Entity_1.PhysicsRectEntity.create(_this, x, y, w, h, { color: rect.color, strokeColor: rect.color, relativeToCenter: true });
+                _this.addEntity(bodyEntity);
                 matter_js_1.Body.setStatic(bodyEntity.getPhysicsBody(), true);
             });
         };
@@ -317,6 +338,7 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     this.addLabyrinth(this.MazeObstacleList_HS);
                     break;
             }
+            this.addWalls(true);
             chain.next();
         };
         return RRCLabyrinthScene;
