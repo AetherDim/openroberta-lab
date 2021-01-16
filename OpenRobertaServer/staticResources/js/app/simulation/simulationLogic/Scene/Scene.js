@@ -140,7 +140,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             /**
              * sleep time before calling update
              */
-            this.simSleepTime = 1 / 60;
+            this.simSleepTime = 1 / 30;
             //
             // #############################################################################
             //
@@ -524,14 +524,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.simTicker.sleepTime = simSleepTime;
         };
         Scene.prototype.startBlocklyUpdate = function () {
-            if (this.hasFinishedLoading) {
-                this.blocklyTicker.start();
-            }
+            this.blocklyTicker.start();
         };
         Scene.prototype.stopBlocklyUpdate = function () {
-            if (this.hasFinishedLoading) {
-                this.blocklyTicker.stop();
-            }
+            this.blocklyTicker.stop();
         };
         Scene.prototype.setBlocklyUpdateSleepTime = function (simSleepTime) {
             this.blocklyUpdateSleepTime = simSleepTime;
@@ -540,13 +536,25 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;
         };
-        Scene.prototype.setSceneRenderer = function (sceneRenderer, noLoad) {
+        Scene.prototype.setSceneRenderer = function (sceneRenderer, allowBlocklyUpdate, noLoad) {
+            if (allowBlocklyUpdate === void 0) { allowBlocklyUpdate = false; }
             if (noLoad === void 0) { noLoad = false; }
             if (sceneRenderer != this.sceneRenderer) {
                 this.sceneRenderer = sceneRenderer;
                 if (sceneRenderer) {
                     sceneRenderer.switchScene(this); // this will remove all registered rendering containers
                     this.registerContainersToEngine(); // register rendering containers
+                    // tell the program manager whether we are allowed to do a blockly breakpoint update
+                    // this will be allowed if there is a blockly instance for us to use
+                    this.programManager._setAllowBlocklyUpdate(allowBlocklyUpdate);
+                    if (allowBlocklyUpdate) {
+                        this.startBlocklyUpdate(); // enable blockly update timer
+                    }
+                }
+                else {
+                    // disable blockly breakpoint update because we have no scene
+                    this.programManager._setAllowBlocklyUpdate(false);
+                    this.stopBlocklyUpdate();
                 }
             }
             if (sceneRenderer && !this.hasFinishedLoading && !noLoad) {

@@ -602,7 +602,7 @@ export class Scene {
     /**
      * sleep time before calling update
      */
-    private simSleepTime = 1/60;
+    private simSleepTime = 1/30;
 
     /**
      * simulation ticker/timer
@@ -640,16 +640,12 @@ export class Scene {
      */
     private readonly blocklyTicker: Timer;
 
-    startBlocklyUpdate() {
-        if(this.hasFinishedLoading) {
-            this.blocklyTicker.start();
-        }
+    private startBlocklyUpdate() {
+        this.blocklyTicker.start();
     }
 
-    stopBlocklyUpdate() {
-        if(this.hasFinishedLoading) {
-            this.blocklyTicker.stop();
-        }
+    private stopBlocklyUpdate() {
+        this.blocklyTicker.stop();
     }
 
     setBlocklyUpdateSleepTime(simSleepTime: number) {
@@ -682,7 +678,7 @@ export class Scene {
         return this.sceneRenderer;
     }
 
-    setSceneRenderer(sceneRenderer?: SceneRender, noLoad: boolean = false) {
+    setSceneRenderer(sceneRenderer?: SceneRender, allowBlocklyUpdate: boolean = false, noLoad: boolean = false) {
 
         if(sceneRenderer != this.sceneRenderer) {
             this.sceneRenderer = sceneRenderer;
@@ -691,6 +687,17 @@ export class Scene {
                 sceneRenderer.switchScene(this); // this will remove all registered rendering containers
 
                 this.registerContainersToEngine(); // register rendering containers
+
+                // tell the program manager whether we are allowed to do a blockly breakpoint update
+                // this will be allowed if there is a blockly instance for us to use
+                this.programManager._setAllowBlocklyUpdate(allowBlocklyUpdate);
+                if(allowBlocklyUpdate) {
+                    this.startBlocklyUpdate(); // enable blockly update timer
+                }
+            } else {
+                // disable blockly breakpoint update because we have no scene
+                this.programManager._setAllowBlocklyUpdate(false);
+                this.stopBlocklyUpdate();
             }
 
         }

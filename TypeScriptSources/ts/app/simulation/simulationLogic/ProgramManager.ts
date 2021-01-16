@@ -17,6 +17,15 @@ export class ProgramManager {
     private interpreters: Interpreter[] = [];
     private initialized = false;
 
+    private allowBlocklyUpdate: boolean = false;
+
+    /**
+     * setter for Scene.ts
+     */
+    _setAllowBlocklyUpdate(allowBlocklyUpdate: boolean) {
+        this.allowBlocklyUpdate = allowBlocklyUpdate;
+    }
+
     hasBeenInitialized(): boolean {
         return this.initialized;
     }
@@ -187,6 +196,11 @@ export class ProgramManager {
     /** adds/removes the ability for a block to be a breakpoint to a block */
     updateBreakpointEvent() {
         let _this = this;
+
+        if(!this.debugMode || !this.allowBlocklyUpdate) {
+            // this function is very costly and we don not need an update if the debug mode is disabled
+            return;
+        }
 
         if(!Blockly.getMainWorkspace()) {
             // blockly workspace not initialized

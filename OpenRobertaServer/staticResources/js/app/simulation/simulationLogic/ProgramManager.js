@@ -10,9 +10,16 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
             this.observers = {};
             this.interpreters = [];
             this.initialized = false;
+            this.allowBlocklyUpdate = false;
             this.scene = scene;
             this.robots = scene.getRobots();
         }
+        /**
+         * setter for Scene.ts
+         */
+        ProgramManager.prototype._setAllowBlocklyUpdate = function (allowBlocklyUpdate) {
+            this.allowBlocklyUpdate = allowBlocklyUpdate;
+        };
         ProgramManager.prototype.hasBeenInitialized = function () {
             return this.initialized;
         };
@@ -153,6 +160,10 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
         /** adds/removes the ability for a block to be a breakpoint to a block */
         ProgramManager.prototype.updateBreakpointEvent = function () {
             var _this = this;
+            if (!this.debugMode || !this.allowBlocklyUpdate) {
+                // this function is very costly and we don not need an update if the debug mode is disabled
+                return;
+            }
             if (!Blockly.getMainWorkspace()) {
                 // blockly workspace not initialized
                 return;

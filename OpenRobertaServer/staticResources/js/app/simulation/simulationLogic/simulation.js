@@ -131,7 +131,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     //
     // create engine
     //
-    var engine = new SceneRenderer_1.SceneRender('sceneCanvas', 'simDiv', sceneManager.getNextScene());
+    var engine = new SceneRenderer_1.SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNextScene());
     engine.getScene().setupDebugRenderer('notConstantValue');
     //engine.getScene().setupDebugRenderer('simDiv');
     // store old programs

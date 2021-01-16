@@ -4,10 +4,12 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
     exports.SceneRender = void 0;
     // physics and graphics
     var SceneRender = /** @class */ (function () {
-        function SceneRender(canvas, autoResizeTo, scene) {
+        function SceneRender(canvas, allowBlocklyAccess, autoResizeTo, scene) {
             var _this = this;
+            this.allowBlocklyAccess = false;
             var htmlCanvas = null;
             var resizeTo = null;
+            this.allowBlocklyAccess = allowBlocklyAccess;
             var backgroundColor = $('#simDiv').css('background-color');
             if (canvas instanceof HTMLCanvasElement) {
                 htmlCanvas = canvas;
@@ -95,7 +97,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             // reset rendering scale and offset
             this.scrollView.reset();
             this.scene = scene;
-            scene.setSceneRenderer(this, noLoad);
+            scene.setSceneRenderer(this, this.allowBlocklyAccess, noLoad);
         };
         // TODO: remove before add? only add once?
         SceneRender.prototype.addDisplayable = function (displayable) {

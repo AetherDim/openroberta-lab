@@ -13,12 +13,16 @@ export class SceneRender {
 
     private scene?: Scene;   // scene with physics and components
     readonly scrollView: ScrollView;
+
+    readonly allowBlocklyAccess: boolean = false;
     
 
-    constructor(canvas: HTMLCanvasElement | string, autoResizeTo?: HTMLElement | string, scene?: Scene) {
+    constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, autoResizeTo?: HTMLElement | string, scene?: Scene) {
 
         var htmlCanvas = null;
         var resizeTo = null;
+
+        this.allowBlocklyAccess = allowBlocklyAccess;
 
         const backgroundColor = $('#simDiv').css('background-color');
 
@@ -126,7 +130,7 @@ export class SceneRender {
 
         this.scene = scene
 
-        scene.setSceneRenderer(this, noLoad);
+        scene.setSceneRenderer(this, this.allowBlocklyAccess, noLoad);
 
     }
 

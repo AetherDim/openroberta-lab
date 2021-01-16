@@ -242,7 +242,7 @@ sceneManager.registerScene(
 //
 // create engine
 //
-var engine = new SceneRender('sceneCanvas', 'simDiv', sceneManager.getNextScene());
+var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNextScene());
 engine.getScene().setupDebugRenderer('notConstantValue');
 //engine.getScene().setupDebugRenderer('simDiv');
 
