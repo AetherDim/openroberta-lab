@@ -629,7 +629,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 ultrasonicSensor.setMeasuredDistance(ultrasonicDistance, this_1.updateSensorGraphics);
                 if (this_1.updateSensorGraphics) {
                     // update nearestPoint
-                    if (nearestPoint) {
+                    if (nearestPoint != undefined) {
                         if (!this_1.debugGraphics) {
                             this_1.debugGraphics = new PIXI.Graphics()
                                 .beginFill(0xFF0000)
@@ -638,6 +638,10 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                             this_1.bodyContainer.parent.addChild(this_1.debugGraphics);
                         }
                         this_1.debugGraphics.position.set(nearestPoint.x, nearestPoint.y);
+                        this_1.debugGraphics.visible = ultrasonicDistance <= ultrasonicSensor.maximumMeasurableDistance;
+                    }
+                    else if (this_1.debugGraphics != undefined) {
+                        this_1.debugGraphics.visible = false;
                     }
                 }
                 ultrasonicDistance = this_1.scene.unit.fromLength(ultrasonicDistance);

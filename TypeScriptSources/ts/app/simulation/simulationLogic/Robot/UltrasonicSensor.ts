@@ -14,9 +14,11 @@ export class UltrasonicSensor {
 	measuredDistance = Infinity
 
 	/**
-	 * The maximum distance which can be measured by the ultrasonic sensor in meters
+	 * The maximum distance which can be measured by the ultrasonic sensor in matter units
 	 */
-	maximumMeasurableDistance = 2.5
+	maximumMeasurableDistance: number
+
+	private unit: Unit
 
 	/**
 	 * Angular range in radians
@@ -26,9 +28,20 @@ export class UltrasonicSensor {
 	graphics = new PIXI.Graphics()
 
 	constructor(unit: Unit, position: Vector, angularRange: number) {
+		this.unit = unit
 		this.position = unit.getPosition(position)
 		this.angularRange = angularRange
+		this.maximumMeasurableDistance = 0
+		this.setMaximumMeasurableDistanceInMeters(2.5)
 		this.updateGraphics()
+	}
+
+
+	/**
+	 * @param distance distance in meters
+	 */
+	setMaximumMeasurableDistanceInMeters(distance: number) {
+		this.maximumMeasurableDistance = this.unit.getLength(distance)
 	}
 
 	/**
@@ -44,7 +57,7 @@ export class UltrasonicSensor {
 	}
 
 	updateGraphics() {
-		const graphicsDistance = Math.min(500, this.measuredDistance)
+		const graphicsDistance = Math.min(this.maximumMeasurableDistance, this.measuredDistance)
 		const vector = Vector.create(graphicsDistance, 0)
 		const halfAngle = this.angularRange/2
 		const leftVector = Vector.rotate(vector, halfAngle)

@@ -762,7 +762,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			ultrasonicSensor.setMeasuredDistance(ultrasonicDistance, this.updateSensorGraphics)
 			if (this.updateSensorGraphics) {
 				// update nearestPoint
-				if (nearestPoint) {
+				if (nearestPoint != undefined) {
 					if (!this.debugGraphics) {
 						this.debugGraphics = new PIXI.Graphics()
 							.beginFill(0xFF0000)
@@ -771,6 +771,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 						this.bodyContainer.parent.addChild(this.debugGraphics)
 					}
 					this.debugGraphics.position.set(nearestPoint.x, nearestPoint.y)
+					this.debugGraphics.visible = ultrasonicDistance <= ultrasonicSensor.maximumMeasurableDistance
+				} else if (this.debugGraphics != undefined) {
+					this.debugGraphics.visible = false
 				}
 			}
 			ultrasonicDistance = this.scene.unit.fromLength(ultrasonicDistance)

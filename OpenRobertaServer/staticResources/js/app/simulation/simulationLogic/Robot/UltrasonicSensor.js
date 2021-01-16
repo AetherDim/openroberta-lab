@@ -8,15 +8,20 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
              * The measured distance in matter units
              */
             this.measuredDistance = Infinity;
-            /**
-             * The maximum distance which can be measured by the ultrasonic sensor in meters
-             */
-            this.maximumMeasurableDistance = 2.5;
             this.graphics = new PIXI.Graphics();
+            this.unit = unit;
             this.position = unit.getPosition(position);
             this.angularRange = angularRange;
+            this.maximumMeasurableDistance = 0;
+            this.setMaximumMeasurableDistanceInMeters(2.5);
             this.updateGraphics();
         }
+        /**
+         * @param distance distance in meters
+         */
+        UltrasonicSensor.prototype.setMaximumMeasurableDistanceInMeters = function (distance) {
+            this.maximumMeasurableDistance = this.unit.getLength(distance);
+        };
         /**
          * @param distance The measured distance in matter units
          * @param updateGraphics If true, updates the graphics
@@ -30,7 +35,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             }
         };
         UltrasonicSensor.prototype.updateGraphics = function () {
-            var graphicsDistance = Math.min(500, this.measuredDistance);
+            var graphicsDistance = Math.min(this.maximumMeasurableDistance, this.measuredDistance);
             var vector = matter_js_1.Vector.create(graphicsDistance, 0);
             var halfAngle = this.angularRange / 2;
             var leftVector = matter_js_1.Vector.rotate(vector, halfAngle);
