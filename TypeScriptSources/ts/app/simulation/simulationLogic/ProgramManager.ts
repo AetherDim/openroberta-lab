@@ -159,15 +159,17 @@ export class ProgramManager {
      * has to be called after one simulation run
      */
     update() {
-        this.updateBreakpointEvent();
 
-        if(this.allInterpretersTerminated() && !this.programPaused) {
+        let allTerminated = this.allInterpretersTerminated();
+        if(allTerminated && !this.programPaused) {
             console.log('All programs terminated');
             this.stopProgram();
         }
 
-        this.updateSimVariables();
-        
+        if(!allTerminated) {
+            this.updateSimVariables();
+        }
+
     }
 
     allInterpretersTerminated(): boolean {

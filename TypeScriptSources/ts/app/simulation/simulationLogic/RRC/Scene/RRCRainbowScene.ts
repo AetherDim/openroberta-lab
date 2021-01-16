@@ -1,7 +1,7 @@
 import {RRCScene} from "./RRCScene";
 import {AgeGroup} from "../AgeGroup";
 import * as RRC from "../RRAssetLoader";
-import {AsyncChain} from "../../Scene/Scene";
+import { AsyncChain } from "../../Scene/AsyncChain";
 import {randomBool, randomIntBetween, randomWeightedBool} from "../../Random";
 import {Asset} from "../../SharedAssetLoader";
 import { Vector } from "matter-js";

@@ -7,7 +7,8 @@ import { ElectricMotor } from "../Robot/ElectricMotor";
 import { Robot } from "../Robot/Robot";
 import { EventType, ScrollViewEvent } from "../ScrollView";
 import { Unit } from "../Unit";
-import { AsyncChain, Scene } from "./Scene";
+import { Scene } from "./Scene";
+import { AsyncChain } from "./AsyncChain";
 
 export class TestScene extends Scene {
 

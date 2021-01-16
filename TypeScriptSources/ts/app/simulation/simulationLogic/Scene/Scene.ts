@@ -11,7 +11,7 @@ import { RobotUpdateOptions } from '../Robot/RobotUpdateOptions';
 import { IDrawablePhysicsEntity, IEntity, IUpdatableEntity, Type } from "../Entity";
 import { Unit } from '../Unit';
 import { Util } from '../Util';
-import {AsyncChain} from "./AsyncChain";
+import { AsyncChain } from "./AsyncChain";
 
 export class Scene {
 
@@ -630,6 +630,37 @@ export class Scene {
     // #############################################################################
     //
 
+    /**
+     * sleep time before calling blockly update
+     */
+    private blocklyUpdateSleepTime = 1/10;
+
+    /**
+     * simulation ticker/timer
+     */
+    private readonly blocklyTicker: Timer;
+
+    startBlocklyUpdate() {
+        if(this.hasFinishedLoading) {
+            this.blocklyTicker.start();
+        }
+    }
+
+    stopBlocklyUpdate() {
+        if(this.hasFinishedLoading) {
+            this.blocklyTicker.stop();
+        }
+    }
+
+    setBlocklyUpdateSleepTime(simSleepTime: number) {
+        this.blocklyUpdateSleepTime = simSleepTime;
+        this.blocklyTicker.sleepTime = simSleepTime;
+    }
+
+    //
+    // #############################################################################
+    //
+
 
     /**
      * Debug renderer used by the scene for all registered physics object
@@ -712,6 +743,11 @@ export class Scene {
         this.simTicker = new Timer(this.simSleepTime, (delta) => {
             // delta is the time from last render call
             _this.update();
+        });
+
+        this.blocklyTicker = new Timer(this.blocklyUpdateSleepTime, (delta) => {
+            // update blockly
+            _this.programManager.updateBreakpointEvent();
         });
     }
 

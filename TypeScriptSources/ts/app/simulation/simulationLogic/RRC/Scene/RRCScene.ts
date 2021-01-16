@@ -1,9 +1,10 @@
-import { AsyncChain, Scene } from "../../Scene/Scene";
+import { AsyncChain } from "../../Scene/AsyncChain";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
 import {Vector, World} from "matter-js";
 import { Unit } from "../../Unit";
+import {Scene} from "../../Scene/Scene";
 
 export class RRCScene extends Scene {
 

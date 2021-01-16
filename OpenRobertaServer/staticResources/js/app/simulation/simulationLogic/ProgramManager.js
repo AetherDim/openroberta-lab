@@ -131,12 +131,14 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
          * has to be called after one simulation run
          */
         ProgramManager.prototype.update = function () {
-            this.updateBreakpointEvent();
-            if (this.allInterpretersTerminated() && !this.programPaused) {
+            var allTerminated = this.allInterpretersTerminated();
+            if (allTerminated && !this.programPaused) {
                 console.log('All programs terminated');
                 this.stopProgram();
             }
-            this.updateSimVariables();
+            if (!allTerminated) {
+                this.updateSimVariables();
+            }
         };
         ProgramManager.prototype.allInterpretersTerminated = function () {
             var allTerminated = true;

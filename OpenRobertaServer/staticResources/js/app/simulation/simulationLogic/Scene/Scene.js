@@ -9,58 +9,10 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1) {
+define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Scene = exports.AsyncChain = exports.AsyncListener = void 0;
-    var AsyncListener = /** @class */ (function () {
-        function AsyncListener(func, thisContext) {
-            this.func = func;
-            this.thisContext = thisContext;
-        }
-        return AsyncListener;
-    }());
-    exports.AsyncListener = AsyncListener;
-    var AsyncChain = /** @class */ (function () {
-        function AsyncChain() {
-            var listeners = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                listeners[_i] = arguments[_i];
-            }
-            this.index = 0;
-            this.listeners = listeners;
-        }
-        AsyncChain.prototype.push = function () {
-            var _this_1 = this;
-            var listeners = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                listeners[_i] = arguments[_i];
-            }
-            listeners.forEach(function (listener) {
-                _this_1.listeners.push(listener);
-            });
-        };
-        AsyncChain.prototype.next = function () {
-            if (this.listeners.length <= this.index) {
-                return;
-            }
-            var listener = this.listeners[this.index];
-            this.index++;
-            //console.log('Chain Index: ' + this.index);
-            listener.func.call(listener.thisContext, this);
-        };
-        AsyncChain.prototype.hasFinished = function () {
-            return this.listeners.length <= this.index;
-        };
-        AsyncChain.prototype.reset = function () {
-            this.index = 0;
-        };
-        AsyncChain.prototype.length = function () {
-            return this.listeners.length;
-        };
-        return AsyncChain;
-    }());
-    exports.AsyncChain = AsyncChain;
+    exports.Scene = void 0;
     var Scene = /** @class */ (function () {
         //
         // #############################################################################
@@ -189,6 +141,13 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
              * sleep time before calling update
              */
             this.simSleepTime = 1 / 60;
+            //
+            // #############################################################################
+            //
+            /**
+             * sleep time before calling blockly update
+             */
+            this.blocklyUpdateSleepTime = 1 / 10;
             /**
              * whether to create debug displayables to show all physics objects
              */
@@ -208,6 +167,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
                 // delta is the time from last render call
                 _this.update();
+            });
+            this.blocklyTicker = new Timer_1.Timer(this.blocklyUpdateSleepTime, function (delta) {
+                // update blockly
+                _this.programManager.updateBreakpointEvent();
             });
         }
         Object.defineProperty(Scene.prototype, "unit", {
@@ -491,7 +454,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // start loading animation
             (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.addDisplayable(this.loadingContainer);
             // build new async chain
-            this.loadingChain = new AsyncChain();
+            this.loadingChain = new AsyncChain_1.AsyncChain();
             if (this.hasBeenInitialized) {
                 // unload old things
                 this.loadingChain.push({ func: this.unload, thisContext: this }, // unload scene (pixi/robots/matterjs)
@@ -559,6 +522,20 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.setSimSleepTime = function (simSleepTime) {
             this.simSleepTime = simSleepTime;
             this.simTicker.sleepTime = simSleepTime;
+        };
+        Scene.prototype.startBlocklyUpdate = function () {
+            if (this.hasFinishedLoading) {
+                this.blocklyTicker.start();
+            }
+        };
+        Scene.prototype.stopBlocklyUpdate = function () {
+            if (this.hasFinishedLoading) {
+                this.blocklyTicker.stop();
+            }
+        };
+        Scene.prototype.setBlocklyUpdateSleepTime = function (simSleepTime) {
+            this.blocklyUpdateSleepTime = simSleepTime;
+            this.blocklyTicker.sleepTime = simSleepTime;
         };
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;

@@ -1,4 +1,4 @@
-import { AsyncChain } from "../../Scene/Scene";
+import { AsyncChain } from "../../Scene/AsyncChain";
 import { AgeGroup } from "../AgeGroup";
 import {RRCScene} from "./RRCScene";
 import * as RRC from '../RRAssetLoader'

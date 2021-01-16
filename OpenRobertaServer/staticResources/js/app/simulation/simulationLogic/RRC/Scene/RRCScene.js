@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../../Scene/Scene", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit"], function (require, exports, Scene_1, RRC, Robot_1, matter_js_1, Unit_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
