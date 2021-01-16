@@ -154,6 +154,7 @@ require.config({
         { 'Scene': [
             'Scene',
             'TestScene',
+            'AsyncChain',
         ]},
         { 'Geometry': [
             'Line',
