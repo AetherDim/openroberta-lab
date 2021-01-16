@@ -261,12 +261,14 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
                     }
                 }
             }
-            var _this = this;
-            Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (block) {
-                if (block.inTask && !block.disabled && !block.getInheritedDisabled()) {
-                    $(block.svgPath_).stop(true, true).animate({ 'fill-opacity': '1' }, 0);
-                }
-            });
+            if (this.allowBlocklyUpdate) {
+                var _this = this;
+                Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (block) {
+                    if (block.inTask && !block.disabled && !block.getInheritedDisabled()) {
+                        $(block.svgPath_).stop(true, true).animate({ 'fill-opacity': '1' }, 0);
+                    }
+                });
+            }
             this.breakpoints = [];
             this.debugMode = false;
             this.updateBreakpointEvent();

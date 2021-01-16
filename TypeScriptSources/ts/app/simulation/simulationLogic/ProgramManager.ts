@@ -303,12 +303,16 @@ export class ProgramManager {
                 }
             }
         }
-        let _this = this;
-        Blockly.getMainWorkspace().getAllBlocks(false).forEach((block:any) => {
-            if (block.inTask && !block.disabled && !block.getInheritedDisabled()) {
-                $(block.svgPath_).stop(true, true).animate({ 'fill-opacity': '1' }, 0);
-            }
-        });
+
+        if(this.allowBlocklyUpdate) {
+            let _this = this;
+            Blockly.getMainWorkspace().getAllBlocks(false).forEach((block:any) => {
+                if (block.inTask && !block.disabled && !block.getInheritedDisabled()) {
+                    $(block.svgPath_).stop(true, true).animate({ 'fill-opacity': '1' }, 0);
+                }
+            });
+        }
+
         this.breakpoints = [];
         this.debugMode = false;
         this.updateBreakpointEvent();

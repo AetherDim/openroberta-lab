@@ -550,17 +550,22 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
         }, 'sim clicked');
 
 
-        // TODO: clear #simSelectionMenuContent??
-        // seems to work without clear
-        const scenes = SIM.getScenes();
+        function buildSceneMenu(menu) {
+            // TODO: clear #simSelectionMenuContent??
+            // seems to work without clear
+            const scenes = SIM.getScenes();
 
-        for (i = 0; i < scenes.length; i++) {
-            const scene = scenes[i];
-            $('#simSelectionMenuContent').append('<li><a href="#" id="' + scene.ID + '" class="menuSim typcn typcn-image " title="' + scene.description + '">' + scene.name + '</a></li>');
-            if(i === 0) {
-                $('#'+scene.ID).parent().addClass('disabled');
+            for (i = 0; i < scenes.length; i++) {
+                const scene = scenes[i];
+                $(menu).append('<li><a href="#" id="' + scene.ID + '" class="menuSim typcn typcn-image " title="' + scene.description + '">' + scene.name + '</a></li>');
+                if(i === 0) {
+                    $('#'+scene.ID).parent().addClass('disabled');
+                }
             }
         }
+
+        buildSceneMenu('#simSelectionMenuContentSmall');
+        buildSceneMenu('#simSelectionMenuContent');
 
 
 
