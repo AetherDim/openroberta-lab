@@ -856,7 +856,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				backWheel
 			]
 		})
-		robot.addColorSensor("3", 0.075, 0)
+		robot.addColorSensor("3", 0.06, 0)
 		robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
 		const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5 })
 		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))

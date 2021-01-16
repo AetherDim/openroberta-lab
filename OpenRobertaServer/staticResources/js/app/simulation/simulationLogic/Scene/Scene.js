@@ -1,14 +1,3 @@
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
 define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -152,6 +141,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
              * whether to create debug displayables to show all physics objects
              */
             this.debugPixiRendering = false;
+            //
+            // #############################################################################
+            //
+            this.allBodies = [];
             // setup graphic containers
             this.setupContainers();
             // setup container for loading animation
@@ -763,7 +756,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             var getImageData = this.getImageData;
             if (getImageData) {
                 var _this_2 = this;
-                var allBodies_1 = matter_js_1.Composite.allBodies(this.engine.world);
+                var allBodies_1 = this.allBodies;
                 return new RobotUpdateOptions_1.RobotUpdateOptions({
                     dt: this.dt,
                     programPaused: this.programManager.isProgramPaused(),
@@ -776,7 +769,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             return undefined;
         };
         Scene.prototype.forEachBodyPartVertices = function (code) {
-            var bodies = matter_js_1.Composite.allBodies(this.world);
+            var bodies = this.allBodies;
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
                 // TODO: Use body.bounds for faster execution
@@ -804,27 +797,13 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.intersectionPointsWithLine = function (line) {
             var result = [];
             this.forEachBodyPartVertices(function (vertices) {
-                var e_1, _a;
                 var newIntersectionPoints = new Polygon_1.Polygon(vertices).intersectionPointsWithLine(line);
-                try {
-                    for (var newIntersectionPoints_1 = __values(newIntersectionPoints), newIntersectionPoints_1_1 = newIntersectionPoints_1.next(); !newIntersectionPoints_1_1.done; newIntersectionPoints_1_1 = newIntersectionPoints_1.next()) {
-                        var point = newIntersectionPoints_1_1.value;
-                        result.push(point);
-                    }
-                }
-                catch (e_1_1) { e_1 = { error: e_1_1 }; }
-                finally {
-                    try {
-                        if (newIntersectionPoints_1_1 && !newIntersectionPoints_1_1.done && (_a = newIntersectionPoints_1.return)) _a.call(newIntersectionPoints_1);
-                    }
-                    finally { if (e_1) throw e_1.error; }
+                for (var i = 0; i < newIntersectionPoints.length; i++) {
+                    result.push(newIntersectionPoints[i]);
                 }
             });
             return result;
         };
-        //
-        // #############################################################################
-        //
         /**
          * update physics and robots
          */
@@ -833,13 +812,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // update robots
             // update ground every tick: this.updateColorDataFunction()
             var _this = this;
+            this.allBodies = matter_js_1.Composite.allBodies(this.world);
             this.updatableEntities.forEach(function (entity) { return entity.update(_this.dt); });
             this.drawablePhysicsEntities.forEach(function (entity) {
                 entity.updateDrawablePosition();
-                // const drawable = entity.getDrawable()
-                // const physicsBody = entity.getPhysicsBody()
-                // drawable.position.copyFrom(physicsBody.position)
-                // drawable.angle = physicsBody.angle
             });
             this.programManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics

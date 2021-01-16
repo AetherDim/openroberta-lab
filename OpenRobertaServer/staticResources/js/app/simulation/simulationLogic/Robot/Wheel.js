@@ -67,10 +67,12 @@ define(["require", "exports", "d3", "matter-js", "../Entity"], function (require
             _this.physicsBody = _this.physicsEntity.getPhysicsBody();
             _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
             var container = _this.physicsEntity.getDrawable();
+            var wheelProfileWidth = width * 0.3;
+            _this.wheelProfileWidth = wheelProfileWidth;
             _this.wheelProfile = d3_1.range(4).map(function () {
                 var graphics = new PIXI.Graphics();
                 graphics.beginFill(0xFF0000);
-                graphics.drawRect(0, -height / 2, width * 0.1, height);
+                graphics.drawRect(0, -height / 2, wheelProfileWidth, height);
                 graphics.endFill();
                 container.addChild(graphics);
                 return graphics;
@@ -132,7 +134,7 @@ define(["require", "exports", "d3", "matter-js", "../Entity"], function (require
                 var position = profileGraphics.position;
                 var angle = this.wheelAngle + 2 * Math.PI * i / this.wheelProfile.length;
                 profileGraphics.visible = Math.sin(angle) < 0;
-                position.x = this.wheelRadius * Math.cos(angle) - profileGraphics.width / 2;
+                position.x = this.wheelRadius * Math.cos(angle) - this.wheelProfileWidth / 2 * Math.sin(angle);
                 profileGraphics.scale.x = Math.sin(angle);
             }
             //this.debugText.text = "" + Unit.fromVelocity(this.angularVelocity * this.wheelRadius - this.physicsBody.velocityAlongBody())//(this.angularVelocity / (2 * Math.PI))
@@ -156,7 +158,7 @@ define(["require", "exports", "d3", "matter-js", "../Entity"], function (require
         Wheel.prototype.update = function (dt) {
             var wheel = this.physicsBody;
             var vec = wheel.vectorAlongBody();
-            var orthVec = matter_js_1.Vector.perp(vec);
+            var orthVec = { x: -vec.y, y: vec.x };
             // torque from the rolling friction
             // rollingFriction = d/R and d * F_N = torque
             var rollingFrictionTorque = this.customFunction(-wheel.velocityAlongBody(), 100)

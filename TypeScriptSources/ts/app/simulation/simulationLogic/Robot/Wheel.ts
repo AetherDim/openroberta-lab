@@ -19,6 +19,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	// staticFriction = 0.09
 
 	wheelRadius: number
+	wheelProfileWidth: number
 
 	momentOfInertia: number
 
@@ -60,10 +61,12 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 
 		const container = this.physicsEntity.getDrawable()
 
+		const wheelProfileWidth = width * 0.3
+		this.wheelProfileWidth = wheelProfileWidth
 		this.wheelProfile = range(4).map(() => {
 			const graphics = new PIXI.Graphics()
 			graphics.beginFill(0xFF0000)
-			graphics.drawRect(0, -height/2, width * 0.1, height)
+			graphics.drawRect(0, -height/2, wheelProfileWidth, height)
 			graphics.endFill()
 			container.addChild(graphics)
 			return graphics
@@ -138,7 +141,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 			const position = profileGraphics.position
 			const angle = this.wheelAngle + 2 * Math.PI * i / this.wheelProfile.length
 			profileGraphics.visible = Math.sin(angle) < 0
-			position.x = this.wheelRadius * Math.cos(angle) - profileGraphics.width / 2
+			position.x = this.wheelRadius * Math.cos(angle) - this.wheelProfileWidth/2 * Math.sin(angle)
 			profileGraphics.scale.x = Math.sin(angle)
 		}
 
@@ -166,7 +169,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		const wheel = this.physicsBody
 
 		const vec = wheel.vectorAlongBody()
-		const orthVec = Vector.perp(vec)
+		const orthVec: Vector = {x: -vec.y, y: vec.x}
 
 		// torque from the rolling friction
 		// rollingFriction = d/R and d * F_N = torque

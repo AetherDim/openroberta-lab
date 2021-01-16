@@ -23,8 +23,9 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
          */
         UltrasonicSensor.prototype.setMeasuredDistance = function (distance, updateGraphics) {
             if (updateGraphics === void 0) { updateGraphics = true; }
+            var isDifferentDistance = this.measuredDistance != distance;
             this.measuredDistance = distance;
-            if (updateGraphics) {
+            if (updateGraphics && isDifferentDistance) {
                 this.updateGraphics();
             }
         };

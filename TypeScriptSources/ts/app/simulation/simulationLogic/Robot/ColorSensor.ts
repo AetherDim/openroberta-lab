@@ -37,8 +37,9 @@ export class ColorSensor {
      * @param b blue color value
      */
     setDetectedColor(r: number, g: number, b: number, updateGraphics: boolean = true) {
+        const isDifferentColor = this.detectedColor.red != r || this.detectedColor.green != g || this.detectedColor.blue != b
         this.detectedColor = { red: r, green: g, blue: b }
-        if (updateGraphics) {
+        if (updateGraphics && isDifferentColor) {
             this.updateGraphics()
         }
     }
@@ -48,9 +49,11 @@ export class ColorSensor {
         this.graphics
 				.clear()
 				.beginFill((color.red * 256 + color.green) * 256 + color.blue)
-				.lineStyle(3, 0) // black border
+                .lineStyle(1, 0) // black border
+                // pixi.js needs more performance if 'drawCircle' is used
+                //.drawRect(-6, -6, 12, 12)
 				.drawCircle(0, 0, 6)
-                .endFill
+                .endFill()
         this.graphics.position.set(this.position.x, this.position.y)
     }
 

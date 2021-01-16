@@ -969,7 +969,7 @@ export class Scene {
         const getImageData = this.getImageData
         if (getImageData) {
             const _this = this
-            const allBodies = Composite.allBodies(this.engine.world)
+            const allBodies = this.allBodies
             return new RobotUpdateOptions({
                 dt: this.dt,
                 programPaused: this.programManager.isProgramPaused(),
@@ -983,7 +983,7 @@ export class Scene {
     }
 
     private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
-        const bodies: Body[] = Composite.allBodies(this.world)
+        const bodies: Body[] = this.allBodies
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
@@ -1017,8 +1017,8 @@ export class Scene {
         const result: Vector[] = []
         this.forEachBodyPartVertices(vertices => {
             const newIntersectionPoints = new Polygon(vertices).intersectionPointsWithLine(line)
-            for (const point of newIntersectionPoints) {
-                result.push(point)
+            for (let i = 0; i < newIntersectionPoints.length; i++) {
+                result.push(newIntersectionPoints[i])
             }
         })
         return result
@@ -1029,6 +1029,7 @@ export class Scene {
     // #############################################################################
     //
 
+    private allBodies: Body[] = []
 
     /**
      * update physics and robots
@@ -1041,13 +1042,11 @@ export class Scene {
         // update ground every tick: this.updateColorDataFunction()
         const _this = this
 
+        this.allBodies = Composite.allBodies(this.world)
+
         this.updatableEntities.forEach(entity => entity.update(_this.dt))
         this.drawablePhysicsEntities.forEach(entity => {
             entity.updateDrawablePosition()
-            // const drawable = entity.getDrawable()
-            // const physicsBody = entity.getPhysicsBody()
-            // drawable.position.copyFrom(physicsBody.position)
-            // drawable.angle = physicsBody.angle
         })
 
         this.programManager.update(); // update breakpoints, ...

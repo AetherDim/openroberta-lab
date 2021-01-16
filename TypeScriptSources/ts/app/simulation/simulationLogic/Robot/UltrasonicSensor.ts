@@ -36,8 +36,9 @@ export class UltrasonicSensor {
 	 * @param updateGraphics If true, updates the graphics
 	 */
 	setMeasuredDistance(distance: number, updateGraphics: boolean = true) {
+		const isDifferentDistance = this.measuredDistance != distance
 		this.measuredDistance = distance
-		if (updateGraphics) {
+		if (updateGraphics && isDifferentDistance) {
 			this.updateGraphics()
 		}
 	}

@@ -57,6 +57,22 @@ define(["require", "exports"], function (require, exports) {
             }
             return false;
         };
+        Util.vectorAdd = function (v1, v2) {
+            return { x: v1.x + v2.x, y: v1.y + v2.y };
+        };
+        Util.vectorSub = function (v1, v2) {
+            return { x: v1.x - v2.x, y: v1.y - v2.y };
+        };
+        Util.vectorDistance = function (v1, v2) {
+            var dx = v1.x - v2.x;
+            var dy = v1.y - v2.y;
+            return Math.sqrt(dx * dx + dy + dy);
+        };
+        Util.vectorDistanceSquared = function (v1, v2) {
+            var dx = v1.x - v2.x;
+            var dy = v1.y - v2.y;
+            return dx * dx + dy + dy;
+        };
         return Util;
     }());
     exports.Util = Util;

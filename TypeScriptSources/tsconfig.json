@@ -13,6 +13,7 @@
         "strict": false,
         "strictNullChecks": false,
         "downlevelIteration": true, // iterator iteration with 'for of' loop
+        "incremental": true,
     },
     "include": ["ts/**/*"],
     //"include": ["ts/app/simulation/simulationLogic/**/*"],

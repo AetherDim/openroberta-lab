@@ -722,7 +722,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     backWheel
                 ]
             });
-            robot.addColorSensor("3", 0.075, 0);
+            robot.addColorSensor("3", 0.06, 0);
             robot.addUltrasonicSensor("4", new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(0.095, 0), 90 * 2 * Math.PI / 360));
             var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5 });
             matter_js_1.Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05));
