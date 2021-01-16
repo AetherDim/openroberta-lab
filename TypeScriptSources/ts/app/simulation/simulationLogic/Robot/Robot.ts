@@ -845,7 +845,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		const backWheel = Wheel.create(scene, -0.09, 0, wheel.width, wheel.width, 0.30)
 		backWheel.slideFriction = 0.05
 		backWheel.rollingFriction = 0.03
-		const robotBody = PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10, {color: 0xf97306, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5})
+		const robotBody = PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10,
+			{ color: 0xf97306, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
 		Body.setMass(robotBody.getPhysicsBody(), scene.unit.getMass(0.300))
 		const robot = new Robot({
 			scene: scene,
@@ -858,7 +859,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		})
 		robot.addColorSensor("3", 0.06, 0)
 		robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
-		const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5 })
+		const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12,
+			{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
 		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
 		robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
 		return robot

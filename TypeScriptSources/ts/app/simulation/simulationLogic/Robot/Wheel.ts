@@ -100,7 +100,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	 * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
 	 */
 	static create(scene: Scene, x: number, y: number, width: number, height: number, mass?: number) {
-		return new Wheel(scene, x, y, width, height, PhysicsRectEntity.createWithContainer(scene, x, y, width, height, {color: 0, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5}), mass)
+		return new Wheel(scene, x, y, width, height, PhysicsRectEntity.createWithContainer(scene, x, y, width, height, {color: 0, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 }), mass)
 	}
 
 

@@ -135,7 +135,7 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
                 y += height / 2;
             }
             var graphics = new PIXI.Graphics();
-            graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha);
+            graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha, options.strokeAlignment);
             graphics.beginFill(options.color, options.alpha);
             graphics.drawRoundedRect(-width / 2, -height / 2, width, height, options.roundingRadius);
             graphics.endFill();

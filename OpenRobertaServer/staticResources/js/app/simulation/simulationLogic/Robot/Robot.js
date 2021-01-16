@@ -711,7 +711,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var backWheel = Wheel_1.Wheel.create(scene, -0.09, 0, wheel.width, wheel.width, 0.30);
             backWheel.slideFriction = 0.05;
             backWheel.rollingFriction = 0.03;
-            var robotBody = Entity_1.PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10, { color: 0xf97306, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5 });
+            var robotBody = Entity_1.PhysicsRectEntity.createWithContainer(scene, 0, 0, 0.15, 0.10, { color: 0xf97306, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 });
             matter_js_1.Body.setMass(robotBody.getPhysicsBody(), scene.unit.getMass(0.300));
             var robot = new Robot({
                 scene: scene,
@@ -724,7 +724,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             });
             robot.addColorSensor("3", 0.06, 0);
             robot.addUltrasonicSensor("4", new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(0.095, 0), 90 * 2 * Math.PI / 360));
-            var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 2, strokeAlpha: 0.5 });
+            var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 });
             matter_js_1.Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05));
             robot.addTouchSensor("1", new TouchSensor_1.TouchSensor(scene, touchSensorBody));
             return robot;

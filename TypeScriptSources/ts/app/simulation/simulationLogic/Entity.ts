@@ -190,6 +190,10 @@ export class DrawSettings {
     strokeColor?: number// = 0x000000;
     strokeAlpha?: number// = 1;
     strokeWidth?: number// = 2;
+    /**
+     * 0: inner, 0.5: middle, 1: outer (default middle)
+     */
+    strokeAlignment?: number
 
 }
 
@@ -235,7 +239,7 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
 
         const graphics = new PIXI.Graphics();
 
-        graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha);
+        graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha, options.strokeAlignment);
         graphics.beginFill(options.color, options.alpha);
         graphics.drawRoundedRect(-width/2, -height/2, width, height, options.roundingRadius);
         graphics.endFill();
