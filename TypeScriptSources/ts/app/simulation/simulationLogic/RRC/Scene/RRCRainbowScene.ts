@@ -42,7 +42,7 @@ export class RRCRainbowScene extends RRCScene {
     }
 
     onInit(chain: AsyncChain) {
-        this.initRobot({ position: {x: 0.5, y: 0.5 }, rotation: 45 });
+        this.initRobot({ position: {x: 402, y: 270 }, rotation: -90 });
 
         if (this.backgroundAsset) {
             let goal = RRC.loader.get(this.backgroundAsset).texture;

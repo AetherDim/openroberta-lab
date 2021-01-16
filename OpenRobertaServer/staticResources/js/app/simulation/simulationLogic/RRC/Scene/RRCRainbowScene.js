@@ -47,7 +47,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             }, this.backgroundAsset);
         };
         RRCRainbowScene.prototype.onInit = function (chain) {
-            this.initRobot({ position: { x: 0.5, y: 0.5 }, rotation: 45 });
+            this.initRobot({ position: { x: 402, y: 270 }, rotation: -90 });
             if (this.backgroundAsset) {
                 var goal = RRC.loader.get(this.backgroundAsset).texture;
                 this.goalSprite = new PIXI.Sprite(goal);

@@ -28,7 +28,7 @@ export class RRCLineFollowingScene extends RRCScene {
     }
 
     onInit(chain: AsyncChain) {
-        this.initRobot();
+        this.initRobot({ position: {x: 62, y: 450 }, rotation: -90 });
 
         let goal = RRC.loader.get(this.getAsset()).texture;
         this.goalSprite = new PIXI.Sprite(goal);

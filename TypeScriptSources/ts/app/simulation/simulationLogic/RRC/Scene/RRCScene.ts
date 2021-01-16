@@ -110,6 +110,12 @@ export class RRCScene extends Scene {
     initRobot(opt?: { position?: Vector, rotation?: number }) {
         let robot = Robot.EV3(this);
         const position = opt?.position ?? Vector.create()
+
+        const unit = this.getUnitConverter();
+
+        position.x = unit.fromLength(position.x);
+        position.y = unit.fromLength(position.y);
+
         robot.setPose(this.unit.getPosition(position), opt?.rotation || 0, false)
         robot.body.enableMouseInteraction = true;
         this.addRobot(robot)

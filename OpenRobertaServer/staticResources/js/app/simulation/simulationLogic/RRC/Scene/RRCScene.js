@@ -85,6 +85,9 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             var _a;
             var robot = Robot_1.Robot.EV3(this);
             var position = (_a = opt === null || opt === void 0 ? void 0 : opt.position) !== null && _a !== void 0 ? _a : matter_js_1.Vector.create();
+            var unit = this.getUnitConverter();
+            position.x = unit.fromLength(position.x);
+            position.y = unit.fromLength(position.y);
             robot.setPose(this.unit.getPosition(position), (opt === null || opt === void 0 ? void 0 : opt.rotation) || 0, false);
             robot.body.enableMouseInteraction = true;
             this.addRobot(robot);

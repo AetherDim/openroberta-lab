@@ -323,7 +323,7 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
             }
         };
         RRCLabyrinthScene.prototype.onInit = function (chain) {
-            this.initRobot();
+            this.initRobot({ position: { x: 752, y: 490 }, rotation: -90 });
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);
