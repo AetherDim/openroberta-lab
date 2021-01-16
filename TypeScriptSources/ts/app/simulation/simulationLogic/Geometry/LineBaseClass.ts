@@ -1,4 +1,5 @@
 import { Vector } from "matter-js"
+import { Util } from "../Util"
 // import { Line } from "./Line"
 
 
@@ -13,7 +14,7 @@ export abstract class LineBaseClass {
 	}
 
 	getPoint(parameter: number): Vector {
-		return Vector.add(this.startPoint, Vector.mult(this.directionVector, parameter))
+		return Util.vectorAdd(this.startPoint, Vector.mult(this.directionVector, parameter))
 	}
 
 	// toLine(): Line {
@@ -29,7 +30,7 @@ export abstract class LineBaseClass {
 	 */
 	intersectionParameters(lineBase: LineBaseClass): ({t: number, s: number} | null) {
 
-		const p = Vector.sub(this.startPoint, lineBase.startPoint)
+		const p = Util.vectorSub(this.startPoint, lineBase.startPoint)
 		// sp + t * dV = lB.sp + s * lB.dV
 		// sp - lB.sp = lB.dV * s - dV * t
 		// column matrix (lB.dV, -dV) is row matrix ((a, b), (c, d))
@@ -84,7 +85,7 @@ export abstract class LineBaseClass {
 		//     r * (s + t * r - p) = 0
 		//  => t = (r * (p - s)) / |r|^2
 
-		return Vector.dot(this.directionVector, Vector.sub(point, this.startPoint)) / Vector.magnitudeSquared(this.directionVector)
+		return Vector.dot(this.directionVector, Util.vectorSub(point, this.startPoint)) / Vector.magnitudeSquared(this.directionVector)
 	}
 
 	abstract nearestPointTo(point: Vector): Vector
@@ -102,14 +103,14 @@ export abstract class LineBaseClass {
 		var minDistance = Infinity
 		var nearestPoint: Vector | null = null
 		for (const p of endPoints) {
-			const squaredLength = Vector.magnitudeSquared(Vector.sub(lineBase.nearestPointTo(p), p))
+			const squaredLength = Util.vectorDistanceSquared(lineBase.nearestPointTo(p), p)
 			if (squaredLength < minDistance) {
 				minDistance = squaredLength
 				nearestPoint = p
 			}
 		}
 		for (const p of otherEndPoints) {
-			const squaredLength = Vector.magnitudeSquared(Vector.sub(this.nearestPointTo(p), p))
+			const squaredLength = Util.vectorDistanceSquared(this.nearestPointTo(p), p)
 			if (squaredLength < minDistance) {
 				minDistance = squaredLength
 				nearestPoint = p

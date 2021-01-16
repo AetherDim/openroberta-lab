@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./Color"], function (require, exports, matter_js_1, Color_1) {
+define(["require", "exports", "matter-js", "./Color", "./Util"], function (require, exports, matter_js_1, Color_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createPolygon = exports.createCircle = exports.createDisplayableFromBody = exports.DisplaySettings = exports.Displayable = void 0;
@@ -71,7 +71,7 @@ define(["require", "exports", "matter-js", "./Color"], function (require, export
         graphics.lineStyle(settings.strokeWidth, settings.strokeColor, settings.strokeAlpha);
         graphics.beginFill(settings.color, settings.alpha);
         var vertices = body.vertices;
-        vertices = vertices.map(function (e) { return matter_js_1.Vector.sub(e, body.position); });
+        vertices = vertices.map(function (e) { return Util_1.Util.vectorSub(e, body.position); });
         graphics.moveTo(vertices[0].x, vertices[0].y);
         for (var j = 1; j < vertices.length; j += 1) {
             graphics.lineTo(vertices[j].x, vertices[j].y);

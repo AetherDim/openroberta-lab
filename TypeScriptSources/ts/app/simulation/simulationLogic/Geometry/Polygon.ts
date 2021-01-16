@@ -1,4 +1,5 @@
 import { Vector } from "matter-js";
+import { Util } from "../Util";
 import { Line } from "./Line";
 import { LineBaseClass } from "./LineBaseClass";
 import { LineSegment } from "./LineSegment";
@@ -16,7 +17,7 @@ export class Polygon {
 
 		var minDistanceSquared = Infinity
 
-		const newVertices = this.vertices.map(p => Vector.sub(p, point))
+		const newVertices = this.vertices.map(p => Util.vectorSub(p, point))
 
 		const zeroVector = Vector.create()
 
@@ -55,11 +56,11 @@ export class Polygon {
 			var dotProduct: number
 			var endVertexDistanceSquared: number
 			if (lastVertexIsNear) {
-				direction = Vector.sub(vertex1, vertex0)
+				direction = Util.vectorSub(vertex1, vertex0)
 				dotProduct = Vector.dot(vertex0, direction)
 				endVertexDistanceSquared = vertex1DistanceSquared
 			} else {
-				direction = Vector.sub(vertex0, vertex1)
+				direction = Util.vectorSub(vertex0, vertex1)
 				dotProduct = Vector.dot(vertex1, direction)
 				endVertexDistanceSquared = lastVertexDistanceSquared
 			}
@@ -115,7 +116,7 @@ export class Polygon {
 
 		var minDistanceSquared = Infinity
 
-		const newVertices = this.vertices.map(p => Vector.sub(p, point))
+		const newVertices = this.vertices.map(p => Util.vectorSub(p, point))
 
 		const zeroVector = Vector.create()
 
@@ -174,7 +175,7 @@ export class Polygon {
 		let minDistancePoint: Vector | undefined
 
 		function updateWithVertices(vertex0: Vector, vertex1: Vector) {
-			const line = new Line(vertex0, Vector.sub(vertex1, vertex0))
+			const line = new Line(vertex0, Util.vectorSub(vertex1, vertex0))
 			const parameter = line.uncheckedNearestParameterTo(point)
 			
 			let newMinPoint: Vector
@@ -186,7 +187,7 @@ export class Polygon {
 				newMinPoint = line.getPoint(parameter)
 			}
 
-			const newMinDistanceSquared = Vector.magnitudeSquared(Vector.sub(newMinPoint, point))
+			const newMinDistanceSquared = Util.vectorDistanceSquared(newMinPoint, point)
 			if (newMinDistanceSquared < minDistanceSquared && includePoint(newMinPoint)) {
 				minDistancePoint = newMinPoint
 				minDistanceSquared = newMinDistanceSquared

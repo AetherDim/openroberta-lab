@@ -47,13 +47,13 @@ export class Util {
 	static vectorDistance(v1: Vector, v2: Vector): number {
 		const dx = v1.x - v2.x
 		const dy = v1.y - v2.y
-		return Math.sqrt(dx*dx + dy+dy)
+		return Math.sqrt(dx*dx + dy*dy)
 	}
 
 	static vectorDistanceSquared(v1: Vector, v2: Vector): number {
 		const dx = v1.x - v2.x
 		const dy = v1.y - v2.y
-		return dx*dx + dy+dy
+		return dx*dx + dy*dy
 	}
 
 }

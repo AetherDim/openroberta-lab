@@ -62,17 +62,17 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 wheel.frictionAir = 0.0;
                 // const constraint1 = new CustomConstraint(
                 //     this.body, wheel,
-                //     Vector.sub(wheel.position, this.body.position), Vector.create(), {
+                //     Util.vectorSub(wheel.position, this.body.position), Vector.create(), {
                 //         angularFrequency: 2 * Math.PI * 0.6,
                 //         damping: 1.0,
-                //         length: 0//Vector.magnitude(Vector.sub(this.body.position, wheel.position))
+                //         length: 0//Vector.magnitude(Util.vectorSub(this.body.position, wheel.position))
                 //     })
                 // const constraint2 = new CustomConstraint(
                 //     this.body, wheel,
-                //     Vector.create(), Vector.sub(this.body.position, wheel.position), {
+                //     Vector.create(), Util.vectorSub(this.body.position, wheel.position), {
                 //         angularFrequency: 2 * Math.PI * 0.6,
                 //         damping: 1.0,
-                //         length: 0//Vector.magnitude(Vector.sub(this.body.position, wheel.position))
+                //         length: 0//Vector.magnitude(Util.vectorSub(this.body.position, wheel.position))
                 //     })
                 // this.customConstraints.push(constraint1)
                 // this.customConstraints.push(constraint2)
@@ -124,7 +124,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          */
         Robot.prototype.setPose = function (position, rotation, inRadians) {
             if (inRadians === void 0) { inRadians = true; }
-            matter_js_1.Composite.translate(this.physicsComposite, matter_js_1.Vector.sub(position, this.body.position));
+            matter_js_1.Composite.translate(this.physicsComposite, Util_1.Util.vectorSub(position, this.body.position));
             if (!inRadians) {
                 rotation *= 2 * Math.PI / 360;
             }
@@ -219,8 +219,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         Robot.prototype.updateWheelVelocity = function (wheel, dt) {
             var vec = this.vectorAlongBody(wheel);
             var velocityAlongBody = matter_js_1.Vector.mult(vec, matter_js_1.Vector.dot(vec, wheel.velocity));
-            var velocityOrthBody = matter_js_1.Vector.sub(wheel.velocity, velocityAlongBody);
-            var velocityChange = matter_js_1.Vector.add(matter_js_1.Vector.mult(velocityAlongBody, -this.wheelDriveFriction), matter_js_1.Vector.mult(velocityOrthBody, -this.wheelSlideFriction));
+            var velocityOrthBody = Util_1.Util.vectorSub(wheel.velocity, velocityAlongBody);
+            var velocityChange = Util_1.Util.vectorAdd(matter_js_1.Vector.mult(velocityAlongBody, -this.wheelDriveFriction), matter_js_1.Vector.mult(velocityOrthBody, -this.wheelSlideFriction));
             // divide two times by `dt` since the simulation calculates velocity changes by adding
             // force/mass * dt
             matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.mult(velocityChange, wheel.mass / dt));
@@ -308,7 +308,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     if (!this.endEncoder) {
                         this.needsNewCommands = false;
                         /** also wheel distance */
-                        var axleLength = matter_js_1.Vector.magnitude(matter_js_1.Vector.sub(this.leftDrivingWheel.physicsBody.position, this.rightDrivingWheel.physicsBody.position));
+                        var axleLength = Util_1.Util.vectorDistance(this.leftDrivingWheel.physicsBody.position, this.rightDrivingWheel.physicsBody.position);
                         var wheelDrivingDistance = rotateData.angle * 0.5 * axleLength;
                         // left rotation for `angle * speed > 0`
                         var rotationFactor = Math.sign(rotateData.speed);
@@ -553,7 +553,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          * Returns the absolute position relative to `this.body`
          */
         Robot.prototype.getAbsolutePosition = function (relativePosition) {
-            return matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
+            return Util_1.Util.vectorAdd(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
         };
         Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (updateOptions) {
             var _a;
@@ -616,16 +616,16 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     return matter_js_1.Vector.dot(point, vectors[0]) < dotProducts[0]
                         && matter_js_1.Vector.dot(point, vectors[1]) > dotProducts[1];
                 });
-                var minDistanceSquared = nearestPoint ? matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(nearestPoint, sensorPosition)) : Infinity;
+                var minDistanceSquared = nearestPoint ? Util_1.Util.vectorDistanceSquared(nearestPoint, sensorPosition) : Infinity;
                 var intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0]).concat(updateOptions.intersectionPointsWithLine(rays[1]));
                 intersectionPoints.forEach(function (intersectionPoint) {
-                    var distanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(intersectionPoint, sensorPosition));
+                    var distanceSquared = Util_1.Util.vectorDistanceSquared(intersectionPoint, sensorPosition);
                     if (distanceSquared < minDistanceSquared) {
                         minDistanceSquared = distanceSquared;
                         nearestPoint = intersectionPoint;
                     }
                 });
-                var ultrasonicDistance = nearestPoint ? matter_js_1.Vector.magnitude(matter_js_1.Vector.sub(nearestPoint, sensorPosition)) : Infinity;
+                var ultrasonicDistance = nearestPoint ? Util_1.Util.vectorDistance(nearestPoint, sensorPosition) : Infinity;
                 ultrasonicSensor.setMeasuredDistance(ultrasonicDistance, this_1.updateSensorGraphics);
                 if (this_1.updateSensorGraphics) {
                     // update nearestPoint
@@ -751,18 +751,18 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var rotatedPositionA = matter_js_1.Vector.rotate(this.positionA, this.bodyA.angle - this.angleA);
             var rotatedPositionB = matter_js_1.Vector.rotate(this.positionB, this.bodyB.angle - this.angleB);
             /** positionA in world space */
-            var pointA = matter_js_1.Vector.add(this.bodyA.position, rotatedPositionA);
+            var pointA = Util_1.Util.vectorAdd(this.bodyA.position, rotatedPositionA);
             /** positionB in world space */
-            var pointB = matter_js_1.Vector.add(this.bodyB.position, rotatedPositionB);
-            var relativePosition = matter_js_1.Vector.sub(pointB, pointA);
+            var pointB = Util_1.Util.vectorAdd(this.bodyB.position, rotatedPositionB);
+            var relativePosition = Util_1.Util.vectorSub(pointB, pointA);
             var length = matter_js_1.Vector.magnitude(relativePosition);
             var unitRelativePosition = matter_js_1.Vector.mult(relativePosition, 1 / (length > 0 ? length : 1e-10));
             var lengthDelta = length - this.length;
             /** velocity of positionA in world space */
-            var velocityA = matter_js_1.Vector.add(this.bodyA.velocity, matter_js_1.Vector.mult(matter_js_1.Vector.perp(rotatedPositionA), this.bodyA.angularVelocity));
+            var velocityA = Util_1.Util.vectorAdd(this.bodyA.velocity, matter_js_1.Vector.mult(matter_js_1.Vector.perp(rotatedPositionA), this.bodyA.angularVelocity));
             /** velocity of positionB in world space */
-            var velocityB = matter_js_1.Vector.add(this.bodyB.velocity, matter_js_1.Vector.mult(matter_js_1.Vector.perp(rotatedPositionB), this.bodyB.angularVelocity));
-            var relativeVelocity = matter_js_1.Vector.sub(velocityB, velocityA);
+            var velocityB = Util_1.Util.vectorAdd(this.bodyB.velocity, matter_js_1.Vector.mult(matter_js_1.Vector.perp(rotatedPositionB), this.bodyB.angularVelocity));
+            var relativeVelocity = Util_1.Util.vectorSub(velocityB, velocityA);
             var velocity = matter_js_1.Vector.dot(unitRelativePosition, relativeVelocity);
             // see Wikipedia https://en.wikipedia.org/wiki/Harmonic_oscillator#Damped_harmonic_oscillator
             var acceleration = -this.angularFrequency * (this.angularFrequency * lengthDelta + 2 * this.damping * velocity);

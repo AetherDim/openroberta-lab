@@ -583,7 +583,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                         }
                         this.mouseConstraint = matter_js_1.Constraint.create({
                             bodyA: body,
-                            pointA: matter_js_1.Vector.sub(mousePosition, body.position),
+                            pointA: Util_1.Util.vectorSub(mousePosition, body.position),
                             pointB: mousePosition
                         });
                         // attach constraint
@@ -785,7 +785,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.forEachBodyPartVertices(function (vertices) {
                 var nearestBodyPoint = new Polygon_1.Polygon(vertices).nearestPointToPoint(point, includePoint);
                 if (nearestBodyPoint) {
-                    var distanceSquared = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(point, nearestBodyPoint));
+                    var distanceSquared = Util_1.Util.vectorDistanceSquared(point, nearestBodyPoint);
                     if (distanceSquared < minDistanceSquared) {
                         minDistanceSquared = distanceSquared;
                         nearestPoint = nearestBodyPoint;

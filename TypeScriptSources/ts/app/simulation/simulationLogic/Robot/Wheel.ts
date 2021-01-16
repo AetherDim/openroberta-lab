@@ -4,6 +4,7 @@ import { ElectricMotor } from "./ElectricMotor"
 import { Unit } from "../Unit"
 import { DrawablePhysicsEntity, PhysicsRectEntity } from "../Entity"
 import { Scene } from "../Scene/Scene"
+import { Util } from "../Util"
 
 export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	
@@ -247,7 +248,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 
 		// apply the friction force
 		Body.applyForce(wheel, wheel.position,
-			Vector.add(alongForceVec, orthSlideFrictionForceVec)
+			Util.vectorAdd(alongForceVec, orthSlideFrictionForceVec)
 		)
 
 

@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment", "../Geometry/Polygon", "../Robot/ElectricMotor", "../Robot/Robot", "../ScrollView", "../Unit", "./Scene"], function (require, exports, matter_js_1, Entity_1, LineSegment_1, Polygon_1, ElectricMotor_1, Robot_1, ScrollView_1, Unit_1, Scene_1) {
+define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment", "../Geometry/Polygon", "../Robot/ElectricMotor", "../Robot/Robot", "../ScrollView", "../Unit", "./Scene", "../Util"], function (require, exports, matter_js_1, Entity_1, LineSegment_1, Polygon_1, ElectricMotor_1, Robot_1, ScrollView_1, Unit_1, Scene_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TestScene = void 0;
@@ -72,7 +72,7 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
                 matter_js_1.Vector.create(100, 50),
                 matter_js_1.Vector.create(0, 100),
                 matter_js_1.Vector.create(50, 50)
-            ].map(function (v) { return unit.getPosition(matter_js_1.Vector.mult(matter_js_1.Vector.add(v, matter_js_1.Vector.create(200, 200)), scale)); }));
+            ].map(function (v) { return unit.getPosition(matter_js_1.Vector.mult(Util_1.Util.vectorAdd(v, matter_js_1.Vector.create(200, 200)), scale)); }));
             var polygonGraphics = new PIXI.Graphics();
             polygonGraphics.beginFill(0xFF0000);
             polygonGraphics.moveTo(polygon.vertices[0].x, polygon.vertices[0].y);
@@ -114,7 +114,7 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
                     setToPoint(mousePointGraphics, 0x00FF00);
                 }
                 if (event.type == ScrollView_1.EventType.DRAG) {
-                    var ls = new LineSegment_1.LineSegment(mousePos, matter_js_1.Vector.add(mousePos, matter_js_1.Vector.create(20, 100)));
+                    var ls = new LineSegment_1.LineSegment(mousePos, Util_1.Util.vectorAdd(mousePos, matter_js_1.Vector.create(20, 100)));
                     lineSegmentGraphics.position.set(mousePos.x, mousePos.y);
                     var intersectionPoints = polygon.intersectionPointsWithLine(ls);
                     intersectionPointGraphics.forEach(function (g) {
@@ -170,7 +170,7 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
                 var vec = matter_js_1.Vector.create(Math.cos(body.angle), Math.sin(body.angle));
                 var force = matter_js_1.Vector.mult(vec, 0.0001 * 1000 * 1000 * 1000 * 1000);
                 var normalVec = matter_js_1.Vector.mult(matter_js_1.Vector.create(-vec.y, vec.x), 10);
-                var forcePos = matter_js_1.Vector.add(body.position, matter_js_1.Vector.mult(vec, -40));
+                var forcePos = Util_1.Util.vectorAdd(body.position, matter_js_1.Vector.mult(vec, -40));
                 var maxTorque = unit.getTorque(100 * 1000 * 1000 * Math.pow(scale, 3.5));
                 var motor = useEV3 ? ElectricMotor_1.ElectricMotor.EV3(unit) : new ElectricMotor_1.ElectricMotor(unit, 120, maxTorque);
                 robot.leftDrivingWheel.applyTorqueFromMotor(motor, leftForce);

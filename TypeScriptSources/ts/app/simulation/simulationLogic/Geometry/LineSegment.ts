@@ -1,4 +1,5 @@
 import { Vector } from "matter-js";
+import { Util } from "../Util";
 import { LineBaseClass } from "./LineBaseClass";
 
 export class LineSegment extends LineBaseClass {
@@ -7,7 +8,7 @@ export class LineSegment extends LineBaseClass {
 	readonly point2: Vector
 
 	constructor(point1: Vector, point2: Vector) {
-		super(point1, Vector.sub(point2, point1))
+		super(point1, Util.vectorSub(point2, point1))
 		this.point1 = point1
 		this.point2 = point2
 	}

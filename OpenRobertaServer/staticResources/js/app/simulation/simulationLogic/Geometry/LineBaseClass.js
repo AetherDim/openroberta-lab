@@ -9,7 +9,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports", "matter-js"], function (require, exports, matter_js_1) {
+define(["require", "exports", "matter-js", "../Util"], function (require, exports, matter_js_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LineBaseClass = void 0;
@@ -20,7 +20,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             this.directionVector = direction;
         }
         LineBaseClass.prototype.getPoint = function (parameter) {
-            return matter_js_1.Vector.add(this.startPoint, matter_js_1.Vector.mult(this.directionVector, parameter));
+            return Util_1.Util.vectorAdd(this.startPoint, matter_js_1.Vector.mult(this.directionVector, parameter));
         };
         /**
          * Returns the intersection parameters of `this` and `line`. It may be null.
@@ -28,7 +28,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
          * @param lineBase The line which may intersect `this`
          */
         LineBaseClass.prototype.intersectionParameters = function (lineBase) {
-            var p = matter_js_1.Vector.sub(this.startPoint, lineBase.startPoint);
+            var p = Util_1.Util.vectorSub(this.startPoint, lineBase.startPoint);
             // sp + t * dV = lB.sp + s * lB.dV
             // sp - lB.sp = lB.dV * s - dV * t
             // column matrix (lB.dV, -dV) is row matrix ((a, b), (c, d))
@@ -71,7 +71,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             // intersection:
             //     r * (s + t * r - p) = 0
             //  => t = (r * (p - s)) / |r|^2
-            return matter_js_1.Vector.dot(this.directionVector, matter_js_1.Vector.sub(point, this.startPoint)) / matter_js_1.Vector.magnitudeSquared(this.directionVector);
+            return matter_js_1.Vector.dot(this.directionVector, Util_1.Util.vectorSub(point, this.startPoint)) / matter_js_1.Vector.magnitudeSquared(this.directionVector);
         };
         LineBaseClass.prototype.nearestPointToLineBase = function (lineBase) {
             var e_1, _a, e_2, _b;
@@ -86,7 +86,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             try {
                 for (var endPoints_1 = __values(endPoints), endPoints_1_1 = endPoints_1.next(); !endPoints_1_1.done; endPoints_1_1 = endPoints_1.next()) {
                     var p = endPoints_1_1.value;
-                    var squaredLength = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(lineBase.nearestPointTo(p), p));
+                    var squaredLength = Util_1.Util.vectorDistanceSquared(lineBase.nearestPointTo(p), p);
                     if (squaredLength < minDistance) {
                         minDistance = squaredLength;
                         nearestPoint = p;
@@ -103,7 +103,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             try {
                 for (var otherEndPoints_1 = __values(otherEndPoints), otherEndPoints_1_1 = otherEndPoints_1.next(); !otherEndPoints_1_1.done; otherEndPoints_1_1 = otherEndPoints_1.next()) {
                     var p = otherEndPoints_1_1.value;
-                    var squaredLength = matter_js_1.Vector.magnitudeSquared(matter_js_1.Vector.sub(this.nearestPointTo(p), p));
+                    var squaredLength = Util_1.Util.vectorDistanceSquared(this.nearestPointTo(p), p);
                     if (squaredLength < minDistance) {
                         minDistance = squaredLength;
                         nearestPoint = p;

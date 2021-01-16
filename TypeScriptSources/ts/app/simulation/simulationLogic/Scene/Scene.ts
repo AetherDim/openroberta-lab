@@ -781,7 +781,7 @@ export class Scene {
                     }
                     this.mouseConstraint = Constraint.create({
                         bodyA: body,
-                        pointA: Vector.sub(mousePosition, body.position),
+                        pointA: Util.vectorSub(mousePosition, body.position),
                         pointB: mousePosition
                     })
                     // attach constraint
@@ -1002,7 +1002,7 @@ export class Scene {
         this.forEachBodyPartVertices(vertices => {
             const nearestBodyPoint = new Polygon(vertices).nearestPointToPoint(point, includePoint)
             if (nearestBodyPoint) {
-                const distanceSquared = Vector.magnitudeSquared(Vector.sub(point, nearestBodyPoint))
+                const distanceSquared = Util.vectorDistanceSquared(point, nearestBodyPoint)
                 if (distanceSquared < minDistanceSquared) {
                     minDistanceSquared = distanceSquared
                     nearestPoint = nearestBodyPoint

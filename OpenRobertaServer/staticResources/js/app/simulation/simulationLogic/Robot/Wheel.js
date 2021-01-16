@@ -27,7 +27,7 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-define(["require", "exports", "d3", "matter-js", "../Entity"], function (require, exports, d3_1, matter_js_1, Entity_1) {
+define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], function (require, exports, d3_1, matter_js_1, Entity_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Wheel = void 0;
@@ -222,7 +222,7 @@ define(["require", "exports", "d3", "matter-js", "../Entity"], function (require
                 * this.customFunction(-orthVelocity, 100);
             var orthSlideFrictionForceVec = matter_js_1.Vector.mult(orthVec, orthSlideFrictionForce);
             // apply the friction force
-            matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.add(alongForceVec, orthSlideFrictionForceVec));
+            matter_js_1.Body.applyForce(wheel, wheel.position, Util_1.Util.vectorAdd(alongForceVec, orthSlideFrictionForceVec));
             // update `wheelAngle` and `angularVelocity` using torque
             // this.angularVelocity = (this.wheelAngle - this.prevWheelAngle) / dt
             // this.prevWheelAngle = this.wheelAngle
