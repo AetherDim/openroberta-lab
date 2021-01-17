@@ -493,7 +493,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             }
             var data;
             var type;
-            var cancel;
+            var cancel = false;
             var allEventFired = true; // for touch only
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;

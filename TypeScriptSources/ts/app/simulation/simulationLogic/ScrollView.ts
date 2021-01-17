@@ -594,7 +594,7 @@ export class ScrollView extends PIXI.Container {
 
 		let data: EventData;
 		let type: EventType;
-		let cancel: boolean;
+		let cancel: boolean = false;
 
 		let allEventFired = true; // for touch only
 
@@ -669,7 +669,6 @@ export class ScrollView extends PIXI.Container {
 			}
 
 			// here we also check if the event is cancelled before we attempt zoom
-			// TODO: cancel might not initialized. Do not use optional booleans if possible
 			if(!cancel && this.touchEventDataMap.size == 2 && !this.browser.isTouchSafari()) { // zoom mode
 
 				// get the touch input from the map
