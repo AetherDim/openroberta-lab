@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -23,6 +23,30 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             _this.ageGroup = ageGroup;
             return _this;
         }
+        /**
+         * @param position The position of the waypoint in matter Units
+         * @param score The score for reaching the waypoint
+         */
+        RRCScene.prototype.makeWaypoint = function (position, score) {
+            return new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), score);
+        };
+        /**
+         * @param position The position of the waypoint in matter Units
+         */
+        RRCScene.prototype.makeEndWaypoint = function (position, score) {
+            this.endWaypoint = new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), score);
+            return this.endWaypoint;
+        };
+        RRCScene.prototype.setWaypointList = function (list) {
+            var _this = this;
+            var t = this;
+            this.waypointsManager.resetListAndEvent(list, function (waypoint) {
+                t.setScore(t.getScore() + waypoint.score);
+                if (waypoint == _this.endWaypoint) {
+                    t.showScoreScreen(10);
+                }
+            });
+        };
         RRCScene.prototype.loadScoreAssets = function (chain) {
             RRC.loader.load(function () {
                 chain.next();
@@ -78,7 +102,7 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             chain.next();
         };
         /**
-         * Sets the position (meters) and rotation (degrees; clockwise) of the robot
+         * Sets the position (matter units) and rotation (degrees; clockwise) of the robot
          * @param opt Options of type '{ position?: Vector, rotation?: number }'
          */
         RRCScene.prototype.initRobot = function (opt) {

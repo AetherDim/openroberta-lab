@@ -2,6 +2,7 @@ import {RRCScene} from "./RRCScene";
 import { AsyncChain } from "../../Scene/AsyncChain";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
+import { WaypointList } from "../../Waypoints/WaypointList";
 
 export class RRCLineFollowingScene extends RRCScene {
 
@@ -29,6 +30,14 @@ export class RRCLineFollowingScene extends RRCScene {
 
     onInit(chain: AsyncChain) {
         this.initRobot({ position: {x: 62, y: 450 }, rotation: -90 });
+
+        // TODO: Change the waypoints
+        const waypoints = new WaypointList([
+            this.makeWaypoint({x: 62, y: 300 }, 100),
+            this.makeWaypoint({x: 200, y: 300 }, 100),
+            this.makeEndWaypoint({x: 200, y: 450 }, 100),
+        ])
+        this.setWaypointList(waypoints)
 
         let goal = RRC.loader.get(this.getAsset()).texture;
         this.goalSprite = new PIXI.Sprite(goal);

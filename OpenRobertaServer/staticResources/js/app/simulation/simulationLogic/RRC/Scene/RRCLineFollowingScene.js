@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup"], function (require, exports, RRCScene_1, RRC, AgeGroup_1) {
+define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "../../Waypoints/WaypointList"], function (require, exports, RRCScene_1, RRC, AgeGroup_1, WaypointList_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCLineFollowingScene = void 0;
@@ -37,6 +37,13 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup"], 
         };
         RRCLineFollowingScene.prototype.onInit = function (chain) {
             this.initRobot({ position: { x: 62, y: 450 }, rotation: -90 });
+            // TODO: Change the waypoints
+            var waypoints = new WaypointList_1.WaypointList([
+                this.makeWaypoint({ x: 62, y: 300 }, 100),
+                this.makeWaypoint({ x: 200, y: 300 }, 100),
+                this.makeEndWaypoint({ x: 200, y: 450 }, 100),
+            ]);
+            this.setWaypointList(waypoints);
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);

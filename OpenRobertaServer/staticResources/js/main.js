@@ -177,12 +177,18 @@ require.config({
         { 'RRC': [
             'RRAssetLoader',
             'AgeGroup',
-            { 'Scene':[
+            { 'Scene': [
                 'RRCScene',
                 'RRCLineFollowingScene',
                 'RRCRainbowScene',
                 'RRCLabyrinthScene',
             ]}
+        ]},
+        { "Waypoints": [
+            "Waypoint",
+            "WaypointList",
+            "WaypointsManager",
+            "ScoreWaypoint",
         ]}
     ]),
     shim: {

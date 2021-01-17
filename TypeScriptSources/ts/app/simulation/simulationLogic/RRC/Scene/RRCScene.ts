@@ -6,6 +6,8 @@ import {Body, Vector, World} from "matter-js";
 import { Unit } from "../../Unit";
 import {Scene} from "../../Scene/Scene";
 import {PhysicsRectEntity} from "../../Entity";
+import { ScoreWaypoint } from "../../Waypoints/ScoreWaypoint"
+import { WaypointList } from "../../Waypoints/WaypointList";
 
 export class RRCScene extends Scene {
 
@@ -15,6 +17,34 @@ export class RRCScene extends Scene {
         super();
 
         this.ageGroup = ageGroup;
+    }
+
+    /**
+	 * @param position The position of the waypoint in matter Units
+	 * @param score The score for reaching the waypoint
+	 */
+	makeWaypoint(position: Vector, score: number): ScoreWaypoint {
+		return new ScoreWaypoint(this.unit, this.unit.fromPosition(position), score)
+    }
+
+    private endWaypoint?: ScoreWaypoint
+
+    /**
+	 * @param position The position of the waypoint in matter Units
+	 */
+	makeEndWaypoint(position: Vector, score: number): ScoreWaypoint {
+        this.endWaypoint = new ScoreWaypoint(this.unit, this.unit.fromPosition(position), score)
+        return this.endWaypoint
+    }
+    
+    setWaypointList(list: WaypointList<ScoreWaypoint>) {
+        const t = this
+        this.waypointsManager.resetListAndEvent(list, (waypoint) => {
+            t.setScore(t.getScore() + waypoint.score)
+            if (waypoint == this.endWaypoint) {
+                t.showScoreScreen(10)
+            }
+        })
     }
 
 
@@ -104,7 +134,7 @@ export class RRCScene extends Scene {
     }
 
     /**
-     * Sets the position (meters) and rotation (degrees; clockwise) of the robot
+     * Sets the position (matter units) and rotation (degrees; clockwise) of the robot
      * @param opt Options of type '{ position?: Vector, rotation?: number }'
      */
     initRobot(opt?: { position?: Vector, rotation?: number }) {

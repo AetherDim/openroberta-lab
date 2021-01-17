@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1) {
+define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -87,7 +87,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             //
             // #############################################################################
             //
-            this.score = 0;
+            /**
+             * The score of the scene. Use getter and setter methods.
+             */
+            this._score = 0;
             //
             // #############################################################################
             //
@@ -145,6 +148,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // #############################################################################
             //
             this.allBodies = [];
+            this.waypointsManager = new WaypointsManager_1.WaypointsManager();
             // setup graphic containers
             this.setupContainers();
             // setup container for loading animation
@@ -301,13 +305,11 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             });
         };
         Scene.prototype.setScore = function (score) {
-            if (score) {
-                this.score = score;
-                this.updateScoreText();
-            }
+            this._score = score;
+            this.updateScoreText();
         };
         Scene.prototype.getScore = function () {
-            return this.score;
+            return this._score;
         };
         /**
          * Async loading function for fonts and images
@@ -421,9 +423,12 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             matter_js_1.Composite.clear(this.world, false, true);
             // remove all drawables from the containers
             this.clearAllContainers();
+            // remove entities
             this.entities.length = 0;
             this.updatableEntities.length = 0;
             this.drawablePhysicsEntities.length = 0;
+            // set score to 0
+            this.setScore(0);
             chain.next();
         };
         /**
@@ -817,6 +822,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.drawablePhysicsEntities.forEach(function (entity) {
                 entity.updateDrawablePosition();
             });
+            // TODO: Handle multiple robots and waypoints
+            if (this.robots.length >= 1) {
+                this.waypointsManager.update(this.robots[0].body.position);
+            }
             this.programManager.update(); // update breakpoints, ...
             matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // FIX Grid bucket memory consumption

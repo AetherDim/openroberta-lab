@@ -12,6 +12,8 @@ import { IDrawablePhysicsEntity, IEntity, IUpdatableEntity, Type } from "../Enti
 import { Unit } from '../Unit';
 import { Util } from '../Util';
 import { AsyncChain } from "./AsyncChain";
+import { WaypointsManager } from '../Waypoints/WaypointsManager';
+import { ScoreWaypoint } from '../Waypoints/ScoreWaypoint';
 
 export class Scene {
 
@@ -266,17 +268,18 @@ export class Scene {
     // #############################################################################
     //
 
-    private score: number = 0;
+    /**
+     * The score of the scene. Use getter and setter methods.
+     */
+    private _score: number = 0;
 
     setScore(score: number) {
-        if(score) {
-            this.score = score;
-            this.updateScoreText();
-        }
+        this._score = score;
+        this.updateScoreText();
     }
 
     getScore(): number {
-        return this.score;
+        return this._score;
     }
 
     //
@@ -462,9 +465,13 @@ export class Scene {
         // remove all drawables from the containers
         this.clearAllContainers();
 
+        // remove entities
         this.entities.length = 0
         this.updatableEntities.length = 0
         this.drawablePhysicsEntities.length = 0
+
+        // set score to 0
+        this.setScore(0)
 
         chain.next();
     }
@@ -1031,6 +1038,8 @@ export class Scene {
 
     private allBodies: Body[] = []
 
+    protected waypointsManager = new WaypointsManager<ScoreWaypoint>()
+
     /**
      * update physics and robots
      */
@@ -1048,6 +1057,11 @@ export class Scene {
         this.drawablePhysicsEntities.forEach(entity => {
             entity.updateDrawablePosition()
         })
+
+        // TODO: Handle multiple robots and waypoints
+        if (this.robots.length >= 1) {
+            this.waypointsManager.update(this.robots[0].body.position)
+        }
 
         this.programManager.update(); // update breakpoints, ...
 
