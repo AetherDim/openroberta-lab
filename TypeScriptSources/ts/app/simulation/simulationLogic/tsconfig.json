@@ -1,9 +1,9 @@
 {
-    "extends": "../../../../tsconfig.json",
-    "compilerOptions": {
-        "strict": true,
-        "strictNullChecks": true,
-        "alwaysStrict": true
-    },
-    "include": ["./**/*"],
+	"extends": "../../../../tsconfig.json",
+	"compilerOptions": {
+		"strict": true,
+		"strictNullChecks": true,
+		"alwaysStrict": true
+	},
+	"include": ["./**/*"],
 }

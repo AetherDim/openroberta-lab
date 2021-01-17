@@ -5,84 +5,84 @@ import { Util } from "./Util"
 
 export class Asset {
 
-    constructor(path: string, name?: string) {
-        this.path = path;
-        if(name) {
-            this.name = name;
-        } else {
-            this.name = path;
-        }
-    }
+	constructor(path: string, name?: string) {
+		this.path = path;
+		if(name) {
+			this.name = name;
+		} else {
+			this.name = path;
+		}
+	}
 
-    readonly name: string;
-    readonly path: string;
+	readonly name: string;
+	readonly path: string;
 }
 
 export class FontAsset {
 
-    readonly families: string[];
-    readonly css: string;
-    readonly name: string;
+	readonly families: string[];
+	readonly css: string;
+	readonly name: string;
 
-    constructor(css: string, families: string[], name?: string) {
-        this.families = families;
-        this.css = css;
-        if(name) {
-            this.name = name;
-        } else {
-            this.name = css; // => the same as path
-        }
-    }
+	constructor(css: string, families: string[], name?: string) {
+		this.families = families;
+		this.css = css;
+		if(name) {
+			this.name = name;
+		} else {
+			this.name = css; // => the same as path
+		}
+	}
 
 
 }
 
 export class MultiAsset {
 
-    constructor(prefix: string, postfix: string, idStart: number, idEnd:number, name?: string) {
-        this.prefix = prefix;
-        this.postfix = postfix;
-        this.idStart = idStart;
-        this.idEnd = idEnd;
-        this.name = name;
-    }
+	constructor(prefix: string, postfix: string, idStart: number, idEnd:number, name?: string) {
+		this.prefix = prefix;
+		this.postfix = postfix;
+		this.idStart = idStart;
+		this.idEnd = idEnd;
+		this.name = name;
+	}
 
-    readonly prefix: string;
-    readonly postfix: string;
-    readonly idStart:number;
-    readonly idEnd: number;
-    readonly name?: string;
+	readonly prefix: string;
+	readonly postfix: string;
+	readonly idStart:number;
+	readonly idEnd: number;
+	readonly name?: string;
 
-    getAsset(id: number): Asset | undefined {
-        if(id >= this.idStart && id <= this.idEnd) {
-            let assetPath = this.prefix + id + this.postfix;
-            let assetName = this.getAssetName(id);
-            return new Asset(assetPath, assetName);
-        } else {
-            return undefined;
-        }
+	getAsset(id: number): Asset | undefined {
+		if(id >= this.idStart && id <= this.idEnd) {
+			let assetPath = this.prefix + id + this.postfix;
+			let assetName = this.getAssetName(id);
+			return new Asset(assetPath, assetName);
+		} else {
+			return undefined;
+		}
 
-    }
+	}
 
-    getAssetName(id: number): string | undefined {
-        if(id >= this.idStart && id <= this.idEnd && this.name) {
-            return this.name + '_' + id;
-        } else {
-            return undefined;
-        }
-    }
+	getAssetName(id: number): string | undefined {
+		if(id >= this.idStart && id <= this.idEnd && this.name) {
+			return this.name + '_' + id;
+		} else {
+			return undefined;
+		}
+	}
 
-    getRandomAsset(): Asset | undefined {
-        return this.getAsset(this.getRandomAssetID());
-    }
+	getRandomAsset(): Asset | undefined {
+		return this.getAsset(this.getRandomAssetID());
+	}
 
-    getRandomAssetID(): number {
-        return randomIntBetween(this.idStart, this.idEnd);
-    }
+	getRandomAssetID(): number {
+		return randomIntBetween(this.idStart, this.idEnd);
+	}
 
-    getNumberOfIDs() {
-        return this.idEnd - this.idStart + 1;
-    }
+	getNumberOfIDs() {
+		return this.idEnd - this.idStart + 1;
+	}
 
 }
 
@@ -90,79 +90,79 @@ export class MultiAsset {
 
 export class SharedAssetLoader {
 
-    private readonly loader = new PIXI.Loader(); // you can also create your own if you want
-    private readonly fontMap = new Map<string, FontAsset>();
+	private readonly loader = new PIXI.Loader(); // you can also create your own if you want
+	private readonly fontMap = new Map<string, FontAsset>();
 
-    get(asset: Asset): PIXI.LoaderResource {
-        return this.loader.resources[asset.name];
-    }
+	get(asset: Asset): PIXI.LoaderResource {
+		return this.loader.resources[asset.name];
+	}
 
-    load(callback:() => void, ...assets: (Asset|FontAsset|undefined)[]) {
-        let fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
-            return (asset instanceof FontAsset) && !this.fontMap.get(asset.name);
-        });
+	load(callback:() => void, ...assets: (Asset|FontAsset|undefined)[]) {
+		let fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
+			return (asset instanceof FontAsset) && !this.fontMap.get(asset.name);
+		});
 
-        const assetsToLoad = Util.mapNotNull(assets, asset => {
+		const assetsToLoad = Util.mapNotNull(assets, asset => {
 
-            let assetToLoad: Asset | null = null;
-            if(asset == undefined || asset instanceof FontAsset) {
-                return null;
-            } else {
-                assetToLoad = asset;
-            }
+			let assetToLoad: Asset | null = null;
+			if(asset == undefined || asset instanceof FontAsset) {
+				return null;
+			} else {
+				assetToLoad = asset;
+			}
 
-            if(this.get(assetToLoad)) {
-                console.log('asset found!');
-                return null;
-            } else {
-                console.log('asset not found, loading ...');
-                return assetToLoad;
-            }
-        });
+			if(this.get(assetToLoad)) {
+				console.log('asset found!');
+				return null;
+			} else {
+				console.log('asset not found, loading ...');
+				return assetToLoad;
+			}
+		});
 
-        let countToLoad = 1 + fontsToLoad.length;
+		let countToLoad = 1 + fontsToLoad.length;
 
-        // check whether we have anything to load
-        if((assetsToLoad.length + fontsToLoad.length) == 0) {
-            console.log('nothing to load.')
-            callback();
-            return;
-        }
+		// check whether we have anything to load
+		if((assetsToLoad.length + fontsToLoad.length) == 0) {
+			console.log('nothing to load.')
+			callback();
+			return;
+		}
 
 
-        // TODO: threadless, lock?
-        fontsToLoad.forEach(font => {
-            const _this = this;
-            WebFont.load({
-                inactive: () => {
-                    console.warn('Font inactive');
-                },
-                active: () => {
-                    _this.fontMap.set(font.name, font);
-                    countToLoad --;
-                    if(countToLoad == 0) {
-                        callback();
-                    }
-                },
-                custom: {
-                    families: font.families,
-                    urls: [font.css],
-                }
-            });
-        });
+		// TODO: threadless, lock?
+		fontsToLoad.forEach(font => {
+			const _this = this;
+			WebFont.load({
+				inactive: () => {
+					console.warn('Font inactive');
+				},
+				active: () => {
+					_this.fontMap.set(font.name, font);
+					countToLoad --;
+					if(countToLoad == 0) {
+						callback();
+					}
+				},
+				custom: {
+					families: font.families,
+					urls: [font.css],
+				}
+			});
+		});
 
-        assetsToLoad.forEach(asset => {
-            if(asset) {
-                this.loader.add(asset.name, asset.path);
-            }
-        })
+		assetsToLoad.forEach(asset => {
+			if(asset) {
+				this.loader.add(asset.name, asset.path);
+			}
+		})
 
-        this.loader.load(() => {
-            countToLoad --;
-            if(countToLoad == 0) {
-                callback();
-            }
-        });
-    }
+		this.loader.load(() => {
+			countToLoad --;
+			if(countToLoad == 0) {
+				callback();
+			}
+		});
+	}
 
 }

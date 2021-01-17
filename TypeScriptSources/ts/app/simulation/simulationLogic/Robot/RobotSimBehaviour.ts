@@ -595,9 +595,9 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 				if (port !== undefined) {
 						var angle = port['angle'];
 						if (angle !== undefined) {
-						    if (this.hardwareState['angleReset'] == undefined) {
-						     	 this.hardwareState['angleReset'] = {};
-						    }
+							if (this.hardwareState['angleReset'] == undefined) {
+							 	 this.hardwareState['angleReset'] = {};
+							}
 								this.hardwareState['angleReset'][_port] = angle;
 						}
 				}

@@ -70,18 +70,18 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	configuration: any = null;
 	programCode: any = null;
 
-    interpreter?: Interpreter
-    
-    /**
-     * robot type
-     */
-    private type: string = 'default';
+	interpreter?: Interpreter
+	
+	/**
+	 * robot type
+	 */
+	private type: string = 'default';
 
 
-    setRobotType(type:string) {
-        this.type = type;
-        // TODO: change things
-    }
+	setRobotType(type:string) {
+		this.type = type;
+		// TODO: change things
+	}
 
 
 	constructor(robot: {scene: Scene, body: PhysicsRectEntity<PIXI.Container>, leftDrivingWheel: Wheel, rightDrivingWheel: Wheel, otherWheels: Wheel[]}) {
@@ -302,10 +302,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
 			_this.programTerminated();
 		}, breakpoints);
-        this.resetVariables()
-        
-        return this.interpreter;
-    }
+		this.resetVariables()
+		
+		return this.interpreter;
+	}
 
 	private programTerminated() {
 		console.log("Interpreter terminated");

@@ -8,149 +8,149 @@ import { ScrollView, ScrollViewEvent } from './ScrollView';
 
 // physics and graphics
 export class SceneRender {
-    
-    readonly app: PIXI.Application; // "window"
+	
+	readonly app: PIXI.Application; // "window"
 
-    private scene?: Scene;   // scene with physics and components
-    readonly scrollView: ScrollView;
+	private scene?: Scene;   // scene with physics and components
+	readonly scrollView: ScrollView;
 
-    readonly allowBlocklyAccess: boolean = false;
-    
+	readonly allowBlocklyAccess: boolean = false;
+	
 
-    constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, autoResizeTo?: HTMLElement | string, scene?: Scene) {
+	constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, autoResizeTo?: HTMLElement | string, scene?: Scene) {
 
-        var htmlCanvas = null;
-        var resizeTo = null;
+		var htmlCanvas = null;
+		var resizeTo = null;
 
-        this.allowBlocklyAccess = allowBlocklyAccess;
+		this.allowBlocklyAccess = allowBlocklyAccess;
 
-        const backgroundColor = $('#simDiv').css('background-color');
+		const backgroundColor = $('#simDiv').css('background-color');
 
-        if(canvas instanceof HTMLCanvasElement) {
-            htmlCanvas = canvas;
-        } else {
-            htmlCanvas = <HTMLCanvasElement> document.getElementById(canvas);
-        }
+		if(canvas instanceof HTMLCanvasElement) {
+			htmlCanvas = canvas;
+		} else {
+			htmlCanvas = <HTMLCanvasElement> document.getElementById(canvas);
+		}
 
-        if(autoResizeTo) {
-            if(autoResizeTo instanceof HTMLElement) {
-                resizeTo = autoResizeTo;
-            } else {
-                resizeTo = <HTMLElement> document.getElementById(autoResizeTo);
-            }
-        }
+		if(autoResizeTo) {
+			if(autoResizeTo instanceof HTMLElement) {
+				resizeTo = autoResizeTo;
+			} else {
+				resizeTo = <HTMLElement> document.getElementById(autoResizeTo);
+			}
+		}
 
-        // The application will create a renderer using WebGL, if possible,
-        // with a fallback to a canvas render. It will also setup the ticker
-        // and the root stage PIXI.Container
-        this.app = new PIXI.Application(
-            {
-                view: htmlCanvas,
-                backgroundColor: rgbToNumber(backgroundColor),
-                antialias: true,
-                resizeTo: resizeTo || undefined,
-                resolution: window.devicePixelRatio || 0.75, // same as ScrollView.getPixelRatio()
-            }
-        );
+		// The application will create a renderer using WebGL, if possible,
+		// with a fallback to a canvas render. It will also setup the ticker
+		// and the root stage PIXI.Container
+		this.app = new PIXI.Application(
+			{
+				view: htmlCanvas,
+				backgroundColor: rgbToNumber(backgroundColor),
+				antialias: true,
+				resizeTo: resizeTo || undefined,
+				resolution: window.devicePixelRatio || 0.75, // same as ScrollView.getPixelRatio()
+			}
+		);
 
-        // add mouse/touch control
-        this.scrollView = new ScrollView(this.app.stage, this.app.renderer);
-        this.scrollView.registerListener((ev: ScrollViewEvent) => {
-            if(this.scene) {
-                this.scene.interactionEvent(ev);
-            } 
-        });
+		// add mouse/touch control
+		this.scrollView = new ScrollView(this.app.stage, this.app.renderer);
+		this.scrollView.registerListener((ev: ScrollViewEvent) => {
+			if(this.scene) {
+				this.scene.interactionEvent(ev);
+			} 
+		});
 
-        // switch to scene
-        if(scene) {
-            this.switchScene(scene);
-        } else {
-            this.switchScene(new Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
-        }
+		// switch to scene
+		if(scene) {
+			this.switchScene(scene);
+		} else {
+			this.switchScene(new Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
+		}
 
-        this.app.ticker.add(dt => {
-            if(this.scene) {
-                this.scene.renderTick(dt);
-                this.app.queueResize(); // allow auto resize
-            }
-        }, this);
+		this.app.ticker.add(dt => {
+			if(this.scene) {
+				this.scene.renderTick(dt);
+				this.app.queueResize(); // allow auto resize
+			}
+		}, this);
 
-    }
+	}
 
-    getScene() {
-        return this.scene;
-    }
+	getScene() {
+		return this.scene;
+	}
 
-    // TODO: check this size
-    getWidth() {
-        return this.app.view.width;
-    }
+	// TODO: check this size
+	getWidth() {
+		return this.app.view.width;
+	}
 
-    getHeight() {
-        return this.app.view.height;
-    }
+	getHeight() {
+		return this.app.view.height;
+	}
 
-    // TODO: check this size
-    getViewWidth() {
-        return this.scrollView.getBounds().width;
-    }
+	// TODO: check this size
+	getViewWidth() {
+		return this.scrollView.getBounds().width;
+	}
 
-    getViewHeight() {
-        return this.scrollView.getBounds().height;
-    }
+	getViewHeight() {
+		return this.scrollView.getBounds().height;
+	}
 
-    getCanvasFromDisplayObject(object: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement {
-        return this.app.renderer.extract.canvas(object)
-    }
-
-
-    switchScene(scene?: Scene, noLoad: boolean = false) {
-        if(!scene) {
-            console.log('undefined scene!')
-            scene = new Scene();
-        }
-
-        if(this.scene == scene) {
-            return;
-        }
-
-        if(this.scene) {
-            this.scene.stopSim();
-            this.scene.setSceneRenderer(undefined); // unregister this renderer
-        }
-
-        // remove all children from PIXI renderer
-        if(this.scrollView.children.length > 0) {
-            //console.log('Number of children: ' + this.scrollView.children.length);
-            this.scrollView.removeChildren(0, this.scrollView.children.length);
-        }
-
-        // reset rendering scale and offset
-        this.scrollView.reset();
-
-        this.scene = scene
-
-        scene.setSceneRenderer(this, this.allowBlocklyAccess, noLoad);
-
-    }
+	getCanvasFromDisplayObject(object: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement {
+		return this.app.renderer.extract.canvas(object)
+	}
 
 
-    // TODO: remove before add? only add once?
+	switchScene(scene?: Scene, noLoad: boolean = false) {
+		if(!scene) {
+			console.log('undefined scene!')
+			scene = new Scene();
+		}
 
-    addDisplayable(displayable: PIXI.DisplayObject) {
-        this.scrollView.addChild(displayable);
-    }
+		if(this.scene == scene) {
+			return;
+		}
 
-    removeDisplayable(displayable: PIXI.DisplayObject) {
-        this.scrollView.removeChild(displayable);
-    }
+		if(this.scene) {
+			this.scene.stopSim();
+			this.scene.setSceneRenderer(undefined); // unregister this renderer
+		}
 
-    add(displayable: PIXI.DisplayObject) {
-        this.scrollView.addChild(displayable);
-    }
+		// remove all children from PIXI renderer
+		if(this.scrollView.children.length > 0) {
+			//console.log('Number of children: ' + this.scrollView.children.length);
+			this.scrollView.removeChildren(0, this.scrollView.children.length);
+		}
 
-    remove(displayable: PIXI.DisplayObject) {
-        this.scrollView.removeChild(displayable);
-    }
+		// reset rendering scale and offset
+		this.scrollView.reset();
+
+		this.scene = scene
+
+		scene.setSceneRenderer(this, this.allowBlocklyAccess, noLoad);
+
+	}
+
+
+	// TODO: remove before add? only add once?
+
+	addDisplayable(displayable: PIXI.DisplayObject) {
+		this.scrollView.addChild(displayable);
+	}
+
+	removeDisplayable(displayable: PIXI.DisplayObject) {
+		this.scrollView.removeChild(displayable);
+	}
+
+	add(displayable: PIXI.DisplayObject) {
+		this.scrollView.addChild(displayable);
+	}
+
+	remove(displayable: PIXI.DisplayObject) {
+		this.scrollView.removeChild(displayable);
+	}
 
 }

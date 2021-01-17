@@ -590,22 +590,22 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                 /*let visible = 1-this.minimalVisibleArea;
                 let check = this.customHitArea.x - this.width*visible
                 if(this.x < check) {
-                  this.x = check;
+                    this.x = check;
                 }
-          
+    
                 check = this.customHitArea.y - this.height*visible
                 if(this.y < check) {
-                  this.y = check;
+                    this.y = check;
                 }
-          
+    
                 check = this.customHitArea.x + this.customHitArea.width - this.width * this.minimalVisibleArea
                 if(this.x > check) {
-                  this.x = check;
+                    this.x = check;
                 }
-          
+    
                 check = this.customHitArea.y + this.customHitArea.height - this.height * this.minimalVisibleArea
                 if(this.y > check) {
-                  this.y = check;
+                    this.y = check;
                 }*/
             }
         };
@@ -628,11 +628,11 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                 });
                 // this should not work with safari mobile
                 /*if(ev.ctrlKey) {
-                  // x/y-scrolling
-                  type = EventType.SCROLL;
+                    // x/y-scrolling
+                    type = EventType.SCROLL;
                 } else {
-                  // zoom
-                  type = EventType.ZOOM;
+                    // zoom
+                    type = EventType.ZOOM;
                 }*/
                 var delta = ev.deltaY;
                 var zoomFactor = 1;

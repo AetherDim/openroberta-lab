@@ -1,5 +1,5 @@
 export enum AgeGroup {
-    ES,
-    MS,
-    HS,
+	ES,
+	MS,
+	HS,
 }

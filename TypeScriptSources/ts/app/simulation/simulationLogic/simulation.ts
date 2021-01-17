@@ -13,89 +13,89 @@ import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 // TODO: check whether this has to be defined in here
 // probably not
 export class SceneHandle {
-    readonly name: string;
-    readonly description: string;
-    readonly ID: string;
-    readonly creteScene: () => Scene;
+	readonly name: string;
+	readonly description: string;
+	readonly ID: string;
+	readonly creteScene: () => Scene;
 
-    constructor(name: string, ID: string, description: string, creteScene: () => Scene) {
-        this.name = name;
-        this.description = description;
-        this.ID = ID;
-        this.creteScene = creteScene;
-    }
+	constructor(name: string, ID: string, description: string, creteScene: () => Scene) {
+		this.name = name;
+		this.description = description;
+		this.ID = ID;
+		this.creteScene = creteScene;
+	}
 
 }
 
 export class SceneManager {
-    private readonly sceneHandleMap = new Map<string, SceneHandle>();
-    private readonly sceneMap = new Map<string, Scene>();
-    private currentID?: string;
+	private readonly sceneHandleMap = new Map<string, SceneHandle>();
+	private readonly sceneMap = new Map<string, Scene>();
+	private currentID?: string;
 
-    getScene(ID: string) {
-        let scene = this.sceneMap.get(ID);
-        if(!scene) {
-            const sceneHandle = this.sceneHandleMap.get(ID);
-            if(sceneHandle) {
-                scene = sceneHandle.creteScene();
-                this.sceneMap.set(ID, scene);
-            }
-        }
-        return scene;
-    }
+	getScene(ID: string) {
+		let scene = this.sceneMap.get(ID);
+		if(!scene) {
+			const sceneHandle = this.sceneHandleMap.get(ID);
+			if(sceneHandle) {
+				scene = sceneHandle.creteScene();
+				this.sceneMap.set(ID, scene);
+			}
+		}
+		return scene;
+	}
 
-    registerScene(...sceneHandles: SceneHandle[]) {
-        sceneHandles.forEach(handle => {
-            if(this.sceneHandleMap.get(handle.ID)) {
-                console.error('Scene with ID: ' + handle.ID + ' already registered!!!');
-                return;
-            }
-            this.sceneHandleMap.set(handle.ID, handle);
-        });
-    }
+	registerScene(...sceneHandles: SceneHandle[]) {
+		sceneHandles.forEach(handle => {
+			if(this.sceneHandleMap.get(handle.ID)) {
+				console.error('Scene with ID: ' + handle.ID + ' already registered!!!');
+				return;
+			}
+			this.sceneHandleMap.set(handle.ID, handle);
+		});
+	}
 
-    getSceneHandleList(): SceneHandle[] {
-        return Array.from(this.sceneHandleMap.values());
-    }
+	getSceneHandleList(): SceneHandle[] {
+		return Array.from(this.sceneHandleMap.values());
+	}
 
-    getNextScene(): Scene | undefined {
-        if(this.sceneHandleMap.size < 1) {
-            console.error('No scenes registered!!!');
-            return undefined;
-        }
+	getNextScene(): Scene | undefined {
+		if(this.sceneHandleMap.size < 1) {
+			console.error('No scenes registered!!!');
+			return undefined;
+		}
 
-        if(!this.currentID) {
-            this.currentID = Array.from(this.sceneHandleMap.keys())[0];
-            return this.getScene(this.currentID);
-        }
+		if(!this.currentID) {
+			this.currentID = Array.from(this.sceneHandleMap.keys())[0];
+			return this.getScene(this.currentID);
+		}
 
-        const keys = Array.from(this.sceneHandleMap.keys());
-        var idx = keys.indexOf(this.currentID);
+		const keys = Array.from(this.sceneHandleMap.keys());
+		var idx = keys.indexOf(this.currentID);
 
-        if(idx >= 0) {
-            idx ++;
-            if(idx >= keys.length) {
-                idx = 0;
-            }
-            this.currentID = keys[idx];
-        } else  {
-            // one loop around
-            this.currentID = Array.from(this.sceneHandleMap.keys())[0];
-        }
+		if(idx >= 0) {
+			idx ++;
+			if(idx >= keys.length) {
+				idx = 0;
+			}
+			this.currentID = keys[idx];
+		} else  {
+			// one loop around
+			this.currentID = Array.from(this.sceneHandleMap.keys())[0];
+		}
 
-        return this.getScene(this.currentID);
-    }
+		return this.getScene(this.currentID);
+	}
 
-    getCurrentHandle(): SceneHandle | undefined {
-        if (this.currentID) {
-            return this.sceneHandleMap.get(this.currentID);
-        }
-        return undefined
-    }
+	getCurrentHandle(): SceneHandle | undefined {
+		if (this.currentID) {
+			return this.sceneHandleMap.get(this.currentID);
+		}
+		return undefined
+	}
 
-    setCurrentScene(ID: string) {
-        this.currentID = ID;
-    }
+	setCurrentScene(ID: string) {
+		this.currentID = ID;
+	}
 }
 
 
@@ -108,129 +108,129 @@ const sceneManager = new SceneManager();
 
 sceneManager.registerScene(
 
-    //
-    // Test
-    //
+	//
+	// Test
+	//
 
-    new SceneHandle(
-    'Test Scene',
-    'TestScene',
-    'Test scene with all sim features',
-    () => {
-            return new TestScene();
-        }
-    ),
+	new SceneHandle(
+	'Test Scene',
+	'TestScene',
+	'Test scene with all sim features',
+	() => {
+			return new TestScene();
+		}
+	),
 
-    new SceneHandle(
-        'Empty Scene',
-        'EmptyScene',
-        'Empty Scene',
-        () => {
-            return new Scene();
-        }
-    ),
+	new SceneHandle(
+		'Empty Scene',
+		'EmptyScene',
+		'Empty Scene',
+		() => {
+			return new Scene();
+		}
+	),
 
-    new SceneHandle(
-        'RRC - Test Scene',
-        'RRCTest',
-        'Roborave Cyberspace Test',
-        () => {
-            return new RRCScene(AgeGroup.ES);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Test Scene',
+		'RRCTest',
+		'Roborave Cyberspace Test',
+		() => {
+			return new RRCScene(AgeGroup.ES);
+		}
+	),
 
-    //
-    //  Line Following
-    //
+	//
+	//  Line Following
+	//
 
-    new SceneHandle(
-        'RRC - Line Following - ES',
-        'RRCLineFollowingES',
-        'Roborave Cyberspace line following ES',
-        () => {
-            return new RRCLineFollowingScene(AgeGroup.ES);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Line Following - ES',
+		'RRCLineFollowingES',
+		'Roborave Cyberspace line following ES',
+		() => {
+			return new RRCLineFollowingScene(AgeGroup.ES);
+		}
+	),
 
-    new SceneHandle(
-        'RRC - Line Following - MS',
-        'RRCLineFollowingMS',
-        'Roborave Cyberspace line following MS',
-        () => {
-            return new RRCLineFollowingScene(AgeGroup.MS);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Line Following - MS',
+		'RRCLineFollowingMS',
+		'Roborave Cyberspace line following MS',
+		() => {
+			return new RRCLineFollowingScene(AgeGroup.MS);
+		}
+	),
 
-    new SceneHandle(
-        'RRC - Line Following - HS',
-        'RRCLineFollowingHS',
-        'Roborave Cyberspace line following HS',
-        () => {
-            return new RRCLineFollowingScene(AgeGroup.HS);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Line Following - HS',
+		'RRCLineFollowingHS',
+		'Roborave Cyberspace line following HS',
+		() => {
+			return new RRCLineFollowingScene(AgeGroup.HS);
+		}
+	),
 
-    //
-    // Rainbow
-    //
+	//
+	// Rainbow
+	//
 
-    new SceneHandle(
-        'RRC - Rainbow - ES',
-        'RRCRainbowES',
-        'Roborave Cyberspace Rainbow ES',
-        () => {
-            return new RRCRainbowScene(AgeGroup.ES);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Rainbow - ES',
+		'RRCRainbowES',
+		'Roborave Cyberspace Rainbow ES',
+		() => {
+			return new RRCRainbowScene(AgeGroup.ES);
+		}
+	),
 
-    new SceneHandle(
-        'RRC - Rainbow - MS',
-        'RRCRainbowMS',
-        'Roborave Cyberspace Rainbow MS',
-        () => {
-            return new RRCRainbowScene(AgeGroup.MS);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Rainbow - MS',
+		'RRCRainbowMS',
+		'Roborave Cyberspace Rainbow MS',
+		() => {
+			return new RRCRainbowScene(AgeGroup.MS);
+		}
+	),
 
-    new SceneHandle(
-        'RRC - Rainbow - HS',
-        'RRCRainbowHS',
-        'Roborave Cyberspace Rainbow HS',
-        () => {
-            return new RRCRainbowScene(AgeGroup.HS);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Rainbow - HS',
+		'RRCRainbowHS',
+		'Roborave Cyberspace Rainbow HS',
+		() => {
+			return new RRCRainbowScene(AgeGroup.HS);
+		}
+	),
 
-    //
-    // Labyrinth
-    //
+	//
+	// Labyrinth
+	//
 
-    new SceneHandle(
-        'RRC - Labyrinth - ES',
-        'RRCLabyrinthES',
-        'Roborave Cyberspace Labyrinth ES',
-        () => {
-            return new RRCLabyrinthScene(AgeGroup.ES);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Labyrinth - ES',
+		'RRCLabyrinthES',
+		'Roborave Cyberspace Labyrinth ES',
+		() => {
+			return new RRCLabyrinthScene(AgeGroup.ES);
+		}
+	),
 
-    new SceneHandle(
-        'RRC - Labyrinth - MS',
-        'RRCLabyrinthMS',
-        'Roborave Cyberspace Labyrinth MS',
-        () => {
-            return new RRCLabyrinthScene(AgeGroup.MS);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Labyrinth - MS',
+		'RRCLabyrinthMS',
+		'Roborave Cyberspace Labyrinth MS',
+		() => {
+			return new RRCLabyrinthScene(AgeGroup.MS);
+		}
+	),
 
-    new SceneHandle(
-        'RRC - Labyrinth - HS',
-        'RRCLabyrinthHS',
-        'Roborave Cyberspace Labyrinth HS',
-        () => {
-            return new RRCLabyrinthScene(AgeGroup.HS);
-        }
-    ),
+	new SceneHandle(
+		'RRC - Labyrinth - HS',
+		'RRCLabyrinthHS',
+		'Roborave Cyberspace Labyrinth HS',
+		() => {
+			return new RRCLabyrinthScene(AgeGroup.HS);
+		}
+	),
 
 
 );
@@ -260,67 +260,67 @@ let storedRobotType:string;
  * @param robotType 
  */
 export function init(programs: any[], refresh: boolean, robotType: string) {
-    storedPrograms = programs;
-    storedRobotType = robotType;
+	storedPrograms = programs;
+	storedRobotType = robotType;
 
-    //$('simScene').hide();
+	//$('simScene').hide();
 
-    engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
+	engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
 }
 
 
 export function getNumRobots(): number {
-    return engine.getScene().getNumberOfRobots();
+	return engine.getScene().getNumberOfRobots();
 }
 
 
 export function setPause(pause:boolean) {
-    engine.getScene().getProgramManager().setProgramPause(pause);
+	engine.getScene().getProgramManager().setProgramPause(pause);
 }
 
 export function run(refresh:boolean, robotType: any) {
-    init(storedPrograms, refresh, robotType);
+	init(storedPrograms, refresh, robotType);
 }
 
 /**
  * on stop program
  */
 export function stopProgram() {
-    // TODO: reset robot?
-    engine.getScene().getProgramManager().stopProgram();
-    init(storedPrograms, false, storedRobotType);
+	// TODO: reset robot?
+	engine.getScene().getProgramManager().stopProgram();
+	init(storedPrograms, false, storedRobotType);
 }
 
 export function importImage() {
-    alert('This function is not supported, sorry :(');
+	alert('This function is not supported, sorry :(');
 }
 
 export function setInfo() {
-    alert('info');
+	alert('info');
 }
 
 export function resetPose() {
-    engine.getScene()?.reset();
-    //engine.getScene()?.fullReset();
+	engine.getScene()?.reset();
+	//engine.getScene()?.fullReset();
 }
 
 export function updateDebugMode(debugMode:boolean) {
-    engine.getScene().getProgramManager().updateDebugMode(debugMode);
+	engine.getScene().getProgramManager().updateDebugMode(debugMode);
 }
 
 export function endDebugging() {
-    engine.getScene().getProgramManager().endDebugging();
+	engine.getScene().getProgramManager().endDebugging();
 }
 
 export function interpreterAddEvent(event:any) {
-    engine.getScene().getProgramManager().interpreterAddEvent(event);
+	engine.getScene().getProgramManager().interpreterAddEvent(event);
 }
 
 /**
  * on simulation close
  */
 export function cancel() {
-    engine.getScene().getProgramManager().stopProgram();
+	engine.getScene().getProgramManager().stopProgram();
 }
 
 
@@ -329,19 +329,19 @@ export function cancel() {
 //
 
 export function getScenes(): SceneHandle[] {
-    return sceneManager.getSceneHandleList();
+	return sceneManager.getSceneHandleList();
 }
 
 export function selectScene(ID: string) {
-    const scene = sceneManager.getScene(ID);
-    sceneManager.setCurrentScene(ID);
-    engine.switchScene(scene, true);
-    scene?.fullReset();
+	const scene = sceneManager.getScene(ID);
+	sceneManager.setCurrentScene(ID);
+	engine.switchScene(scene, true);
+	scene?.fullReset();
 }
 
 export function nextScene(): SceneHandle | undefined {
-    const scene = sceneManager.getNextScene();
-    engine.switchScene(scene, true);
-    scene?.fullReset();
-    return sceneManager.getCurrentHandle();
+	const scene = sceneManager.getNextScene();
+	engine.switchScene(scene, true);
+	scene?.fullReset();
+	return sceneManager.getCurrentHandle();
 }

@@ -9,52 +9,52 @@ import { Unit } from "../../Unit";
 
 export class RRCRainbowScene extends RRCScene {
 
-    getAsset() {
-        switch (this.ageGroup) {
-            case AgeGroup.ES:
-                if(randomBool()) {
-                    return RRC.RAINBOW_BACKGROUND_ES;
-                } else {
-                    return RRC.RAINBOW_BACKGROUND_ES_DINO;
-                }
+	getAsset() {
+		switch (this.ageGroup) {
+			case AgeGroup.ES:
+				if(randomBool()) {
+					return RRC.RAINBOW_BACKGROUND_ES;
+				} else {
+					return RRC.RAINBOW_BACKGROUND_ES_DINO;
+				}
 
-            case AgeGroup.MS:
-                if(randomWeightedBool(RRC.RAINBOW_BACKGROUND_MS_DINO.getNumberOfIDs(), RRC.RAINBOW_BACKGROUND_MS_SPACE_INVADERS.getNumberOfIDs())) {
-                    return RRC.RAINBOW_BACKGROUND_MS_DINO.getRandomAsset();
-                } else {
-                    return RRC.RAINBOW_BACKGROUND_MS_SPACE_INVADERS.getRandomAsset();
-                }
+			case AgeGroup.MS:
+				if(randomWeightedBool(RRC.RAINBOW_BACKGROUND_MS_DINO.getNumberOfIDs(), RRC.RAINBOW_BACKGROUND_MS_SPACE_INVADERS.getNumberOfIDs())) {
+					return RRC.RAINBOW_BACKGROUND_MS_DINO.getRandomAsset();
+				} else {
+					return RRC.RAINBOW_BACKGROUND_MS_SPACE_INVADERS.getRandomAsset();
+				}
 
-            case AgeGroup.HS:
-                return RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getRandomAsset();
-        }
-    }
+			case AgeGroup.HS:
+				return RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getRandomAsset();
+		}
+	}
 
-    backgroundAsset?: Asset;
+	backgroundAsset?: Asset;
 
-    onLoadAssets(chain: AsyncChain) {
-        this.backgroundAsset = this.getAsset();
-        RRC.loader.load(() => {
-                chain.next();
-            },
-            this.backgroundAsset
-        );
-    }
+	onLoadAssets(chain: AsyncChain) {
+		this.backgroundAsset = this.getAsset();
+		RRC.loader.load(() => {
+				chain.next();
+			},
+			this.backgroundAsset
+		);
+	}
 
-    onInit(chain: AsyncChain) {
-        this.initRobot({ position: {x: 402, y: 270 }, rotation: -90 });
+	onInit(chain: AsyncChain) {
+		this.initRobot({ position: {x: 402, y: 270 }, rotation: -90 });
 
-        if (this.backgroundAsset) {
-            let goal = RRC.loader.get(this.backgroundAsset).texture;
-            this.goalSprite = new PIXI.Sprite(goal);
+		if (this.backgroundAsset) {
+			let goal = RRC.loader.get(this.backgroundAsset).texture;
+			this.goalSprite = new PIXI.Sprite(goal);
 
-            this.groundContainer.addChild(this.goalSprite);
-        }
+			this.groundContainer.addChild(this.goalSprite);
+		}
 
-        this.addWalls(true);
+		this.addWalls(true);
 
-        chain.next();
-    }
+		chain.next();
+	}
 
 
 

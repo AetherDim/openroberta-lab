@@ -7,47 +7,47 @@ import { WaypointList } from "../../Waypoints/WaypointList";
 export class RRCLineFollowingScene extends RRCScene {
 
 
-    getAsset() {
-        switch (this.ageGroup) {
-            case AgeGroup.ES:
-                return RRC.LINE_FOLLOWING_BACKGROUND_ES;
+	getAsset() {
+		switch (this.ageGroup) {
+			case AgeGroup.ES:
+				return RRC.LINE_FOLLOWING_BACKGROUND_ES;
 
-            case AgeGroup.MS:
-                return RRC.LINE_FOLLOWING_BACKGROUND_MS;
+			case AgeGroup.MS:
+				return RRC.LINE_FOLLOWING_BACKGROUND_MS;
 
-            case AgeGroup.HS:
-                return RRC.LINE_FOLLOWING_BACKGROUND_HS;
-        }
-    }
+			case AgeGroup.HS:
+				return RRC.LINE_FOLLOWING_BACKGROUND_HS;
+		}
+	}
 
-    onLoadAssets(chain: AsyncChain) {
-        RRC.loader.load(() => {
-            chain.next();
-        },
-            this.getAsset()
-        );
-    }
+	onLoadAssets(chain: AsyncChain) {
+		RRC.loader.load(() => {
+			chain.next();
+		},
+			this.getAsset()
+		);
+	}
 
-    onInit(chain: AsyncChain) {
-        this.initRobot({ position: {x: 62, y: 450 }, rotation: -90 });
+	onInit(chain: AsyncChain) {
+		this.initRobot({ position: {x: 62, y: 450 }, rotation: -90 });
 
-        // TODO: Change the waypoints
-        const waypoints = new WaypointList([
-            this.makeWaypoint({x: 62, y: 300 }, 100),
-            this.makeWaypoint({x: 200, y: 300 }, 100),
-            this.makeEndWaypoint({x: 200, y: 450 }, 100),
-        ])
-        this.setWaypointList(waypoints)
+		// TODO: Change the waypoints
+		const waypoints = new WaypointList([
+			this.makeWaypoint({x: 62, y: 300 }, 100),
+			this.makeWaypoint({x: 200, y: 300 }, 100),
+			this.makeEndWaypoint({x: 200, y: 450 }, 100),
+		])
+		this.setWaypointList(waypoints)
 
-        let goal = RRC.loader.get(this.getAsset()).texture;
-        this.goalSprite = new PIXI.Sprite(goal);
+		let goal = RRC.loader.get(this.getAsset()).texture;
+		this.goalSprite = new PIXI.Sprite(goal);
 
-        this.groundContainer.addChild(this.goalSprite);
+		this.groundContainer.addChild(this.goalSprite);
 
-        this.addWalls(true);
+		this.addWalls(true);
 
-        chain.next();
-    }
+		chain.next();
+	}
 
 
 }
