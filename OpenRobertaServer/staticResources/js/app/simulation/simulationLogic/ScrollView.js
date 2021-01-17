@@ -552,7 +552,6 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                     cancel = this.fireEvent(data, type);
                 }
                 // here we also check if the event is cancelled before we attempt zoom
-                // TODO: cancel might not initialized. Do not use optional booleans if possible
                 if (!cancel && this.touchEventDataMap.size == 2 && !this.browser.isTouchSafari()) { // zoom mode
                     // get the touch input from the map
                     var touches = this.touchEventDataMap.values();

@@ -22,17 +22,14 @@ define(["require", "exports", "./Waypoint"], function (require, exports, Waypoin
         __extends(ScoreWaypoint, _super);
         /**
          * @param position The position of the waypoint in meters
+         * @param maxDistance The maximum distance to reach the waypoint in meters
          * @param score The score for reaching the waypoint
          */
-        function ScoreWaypoint(unit, position, score) {
-            var _this = _super.call(this, unit, position, ScoreWaypoint.defaultMaxDistance) || this;
+        function ScoreWaypoint(unit, position, maxDistance, score) {
+            var _this = _super.call(this, unit, position, maxDistance) || this;
             _this.score = score;
             return _this;
         }
-        /**
-         * Default maximum distance to reach the waypoint in meters
-         */
-        ScoreWaypoint.defaultMaxDistance = 0.05;
         return ScoreWaypoint;
     }(Waypoint_1.Waypoint));
     exports.ScoreWaypoint = ScoreWaypoint;

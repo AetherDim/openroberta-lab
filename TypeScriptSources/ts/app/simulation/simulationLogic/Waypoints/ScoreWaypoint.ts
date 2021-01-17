@@ -11,16 +11,12 @@ export class ScoreWaypoint extends Waypoint {
 
 	/**
 	 * @param position The position of the waypoint in meters
+	 * @param maxDistance The maximum distance to reach the waypoint in meters
 	 * @param score The score for reaching the waypoint
 	 */
-	constructor(unit: Unit, position: Vector, score: number) {
-		super(unit, position, ScoreWaypoint.defaultMaxDistance)
+	constructor(unit: Unit, position: Vector, maxDistance: number, score: number) {
+		super(unit, position, maxDistance)
 		this.score = score
 	}
-
-	/**
-	 * Default maximum distance to reach the waypoint in meters
-	 */
-	static defaultMaxDistance = 0.05
 
 }

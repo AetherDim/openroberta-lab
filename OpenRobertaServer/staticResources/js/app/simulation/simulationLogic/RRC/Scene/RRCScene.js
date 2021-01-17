@@ -26,15 +26,19 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         /**
          * @param position The position of the waypoint in matter Units
          * @param score The score for reaching the waypoint
+         * @param maxDistance The maximum distance which still reaches the waypoint (default: 0.05 meters)
          */
-        RRCScene.prototype.makeWaypoint = function (position, score) {
-            return new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), score);
+        RRCScene.prototype.makeWaypoint = function (position, score, maxDistance) {
+            if (maxDistance === void 0) { maxDistance = 0.05; }
+            return new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), maxDistance, score);
         };
         /**
          * @param position The position of the waypoint in matter Units
+         * @param maxDistance The maximum distance which still reaches the waypoint (default: 0.05 meters)
          */
-        RRCScene.prototype.makeEndWaypoint = function (position, score) {
-            this.endWaypoint = new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), score);
+        RRCScene.prototype.makeEndWaypoint = function (position, score, maxDistance) {
+            if (maxDistance === void 0) { maxDistance = 0.05; }
+            this.endWaypoint = new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), maxDistance, score);
             return this.endWaypoint;
         };
         RRCScene.prototype.setWaypointList = function (list) {
