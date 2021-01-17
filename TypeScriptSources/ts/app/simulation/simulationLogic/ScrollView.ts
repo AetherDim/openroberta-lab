@@ -839,11 +839,13 @@ export class ScrollView extends PIXI.Container {
 
 			if(this.lastTouchDistance > 0) {
 
+				const pixelRatio = this.getPixelRatio()
+
 				// calculate distance change between fingers
 				var delta = e.scale / this.lastTouchDistance
 				this.mouseEventData.delta = {x: delta, y: 0};
 				if (this.browser.isTouchSafari()) {
-					this.mouseEventData.setNewPosition({x: e.layerX, y: e.layerY })
+					this.mouseEventData.setNewPosition({x: e.layerX / pixelRatio, y: e.layerY / pixelRatio })
 				}
 	
 				this.lastTouchDistance = <number>e.scale;

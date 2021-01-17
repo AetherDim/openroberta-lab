@@ -684,11 +684,12 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             // TODO: we could use this for other browsers if there is another with support
             if (this.browser.isSafariEvent(e)) {
                 if (this.lastTouchDistance > 0) {
+                    var pixelRatio = this.getPixelRatio();
                     // calculate distance change between fingers
                     var delta = e.scale / this.lastTouchDistance;
                     this.mouseEventData.delta = { x: delta, y: 0 };
                     if (this.browser.isTouchSafari()) {
-                        this.mouseEventData.setNewPosition({ x: e.layerX, y: e.layerY });
+                        this.mouseEventData.setNewPosition({ x: e.layerX / pixelRatio, y: e.layerY / pixelRatio });
                     }
                     this.lastTouchDistance = e.scale;
                     var cancel = this.fireEvent(this.mouseEventData, EventType.ZOOM);
