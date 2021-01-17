@@ -425,7 +425,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev interaction data
          */
         ScrollView.prototype.onDown = function (ev) {
-            //console.log('down');
+            console.log('down ' + this.touchEventDataMap.size);
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
@@ -440,13 +440,14 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             }
             var cancel = this.fireEvent(data, EventType.PRESS);
             // ignore cancel (cancelEvent ist stored within the object)
+            ev.stopPropagation();
         };
         /**
          * mouse release / touch up event
          * @param ev interaction data
          */
         ScrollView.prototype.onUp = function (ev) {
-            //console.log('up');
+            console.log('up ' + this.touchEventDataMap.size);
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
@@ -473,14 +474,15 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             var cancel = this.fireEvent(data, EventType.RELEASE);
             // ignore cancel (cancelEvent ist stored within the object)
             data.cancelEvent = false; // reset cancel event flag (for the mouse)
+            ev.stopPropagation();
         };
         /**
          * mouse move/drag or touch drag event
          * @param ev  interaction data
          */
         ScrollView.prototype.onMove = function (ev) {
-            //console.log('move');
             var _a, _b;
+            console.log('move');
             if (isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
                 return;
             }
@@ -608,13 +610,14 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                     this.y = check;
                 }*/
             }
+            ev.stopPropagation();
         };
         /**
          * mouse wheel event
          * @param ev  interaction data
          */
         ScrollView.prototype.onWheel = function (ev) {
-            //console.log('wheel');
+            console.log('wheel');
             var pixelRatio = this.getPixelRatio();
             var data;
             if (ev.type == "wheel") {
@@ -677,7 +680,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param e event data
          */
         ScrollView.prototype.onZoom = function (e) {
-            //console.log('zoom');
+            console.log('zoom');
             // TODO: we could use this for other browsers if there is another with support
             if (this.browser.isSafariEvent(e)) {
                 if (this.lastTouchDistance > 0) {
@@ -707,6 +710,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param e event data
          */
         ScrollView.prototype.onZoomBegin = function (e) {
+            console.log('safari zoom');
             if (this.browser.isSafariEvent(e)) {
                 this.lastTouchDistance = e.scale;
             }
@@ -730,6 +734,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.viewport.on('pointerupoutside', this.onUp, this);
             this.viewport.on('pointercancel', this.onUp, this);
             this.viewport.on('pointerout', this.onUp, this);
+            this.viewport.on('onpointerleave', this.onUp, this);
             // 2017 recommended event
             this.renderer.view.addEventListener("wheel", function (e) { return _this.onWheel(e); });
             // Before 2017, IE9, Chrome, Safari, Opera
@@ -757,6 +762,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.viewport.off('pointerupoutside', this.onUp, this);
             this.viewport.off('pointercancel', this.onUp, this);
             this.viewport.off('pointerout', this.onUp, this);
+            this.viewport.off('onpointerleave', this.onUp, this);
             // TODO: other events
             console.error('not fully implemented function!!!');
         };

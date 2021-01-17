@@ -513,7 +513,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev interaction data
 	 */
 	private onDown(ev: PIXI.InteractionEvent) {
-		//console.log('down');
+		console.log('down ' + this.touchEventDataMap.size);
 
 		let data: EventData;
 
@@ -532,7 +532,8 @@ export class ScrollView extends PIXI.Container {
 		let cancel: boolean = this.fireEvent(data, EventType.PRESS);
 
 		// ignore cancel (cancelEvent ist stored within the object)
-			
+
+		ev.stopPropagation();
 	}
 
 	/**
@@ -540,7 +541,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev interaction data
 	 */
 	private onUp(ev: PIXI.InteractionEvent) {
-		//console.log('up');
+		console.log('up ' + this.touchEventDataMap.size);
 		
 		let data: EventData;
 
@@ -567,10 +568,11 @@ export class ScrollView extends PIXI.Container {
 		// we could update the delta here
 		let cancel: boolean = this.fireEvent(data, EventType.RELEASE);
 
-			// ignore cancel (cancelEvent ist stored within the object)
+		// ignore cancel (cancelEvent ist stored within the object)
 
-			data.cancelEvent = false; // reset cancel event flag (for the mouse)
+		data.cancelEvent = false; // reset cancel event flag (for the mouse)
 
+		ev.stopPropagation();
 	}
 
 	/**
@@ -578,7 +580,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev  interaction data
 	 */
 	private onMove(ev: PIXI.InteractionEvent) {
-		//console.log('move');
+		console.log('move');
 
 		if(isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
 			return;
@@ -739,6 +741,8 @@ export class ScrollView extends PIXI.Container {
 
 		}
 
+		ev.stopPropagation();
+
 	}
 
 	/**
@@ -746,7 +750,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev  interaction data
 	 */
 	private onWheel(ev: WheelEvent) {
-		//console.log('wheel');
+		console.log('wheel');
 
 		let pixelRatio = this.getPixelRatio(); 
 
@@ -813,7 +817,7 @@ export class ScrollView extends PIXI.Container {
 		} else {
 			console.error('unknown wheel event');
 		}
-		
+
 		ev.preventDefault();
 	}
 
@@ -828,7 +832,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param e event data
 	 */
 	private onZoom(e: Event) {
-		//console.log('zoom');
+		console.log('zoom');
 
 		// TODO: we could use this for other browsers if there is another with support
 		if(this.browser.isSafariEvent(e)) {
@@ -867,6 +871,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param e event data
 	 */
 	private onZoomBegin(e: Event) {
+		console.log('safari zoom');
 		if (this.browser.isSafariEvent(e)) {
 			this.lastTouchDistance = e.scale;
 		}
@@ -893,6 +898,7 @@ export class ScrollView extends PIXI.Container {
 			this.viewport.on('pointerupoutside', this.onUp, this);
 			this.viewport.on('pointercancel', this.onUp, this);
 			this.viewport.on('pointerout', this.onUp, this);
+			this.viewport.on('onpointerleave', this.onUp, this);
 
 			
 			// 2017 recommended event
@@ -926,6 +932,7 @@ export class ScrollView extends PIXI.Container {
 			this.viewport.off('pointerupoutside', this.onUp, this);
 			this.viewport.off('pointercancel', this.onUp, this);
 			this.viewport.off('pointerout', this.onUp, this);
+			this.viewport.off('onpointerleave', this.onUp, this);
 
 			// TODO: other events
 			console.error('not fully implemented function!!!');
