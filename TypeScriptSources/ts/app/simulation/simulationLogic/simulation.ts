@@ -265,6 +265,8 @@ export function init(programs: any[], refresh: boolean, robotType: string) {
 
 	//$('simScene').hide();
 
+	// TODO: prevent clicking run twice
+
 	engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
 }
 
@@ -344,4 +346,20 @@ export function nextScene(): SceneHandle | undefined {
 	engine.switchScene(scene, true);
 	scene?.fullReset();
 	return sceneManager.getCurrentHandle();
+}
+
+export function sim(run: boolean) {
+	if(run) {
+		engine.getScene().startSim();
+	} else {
+		engine.getScene().stopSim();
+	}
+}
+
+export function score(score: boolean) {
+	if(score) {
+		engine.getScene().showScoreScreen(0);
+	} else {
+		engine.getScene().hideScore();
+	}
 }

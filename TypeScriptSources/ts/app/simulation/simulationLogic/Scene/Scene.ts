@@ -290,6 +290,7 @@ export class Scene {
 	readonly scoreContainerZ = 60;
 
 	protected endScoreTime: number = Date.now();
+	protected scoreEndless: boolean = false;
 	protected showScore: boolean = false;
 
 	protected scoreText = new PIXI.Text("");
@@ -333,12 +334,30 @@ export class Scene {
 		
 	}
 
+	/**
+	 * shows the score for a number of seconds
+	 * if the time is <= 0 -> show the score forever
+	 * @param seconds
+	 */
 	showScoreScreen(seconds: number) {
+
+		this.scoreEndless = (seconds <= 0);
 		this.endScoreTime = Date.now() + seconds*1000;
-		this.showScore = true;
-		this.sceneRenderer?.add(this.scoreContainer);
+
+		if(!this.showScore) {
+			this.showScore = true;
+			this.sceneRenderer?.add(this.scoreContainer);
+		}
+
 	}
 
+	hideScore()
+	{
+		if(this.showScore) {
+			this.sceneRenderer?.remove(this.scoreContainer);
+			this.showScore = false;
+		}
+	}
 
 	//
 	// #############################################################################
@@ -721,9 +740,8 @@ export class Scene {
 
 		if(this.showScore) {
 			this.updateScoreAnimation(dt);
-			if(Date.now() > this.endScoreTime) {
-				this.showScore = false;
-				this.sceneRenderer?.remove(this.scoreContainer);
+			if(!this.scoreEndless && (Date.now() > this.endScoreTime)) {
+				this.hideScore();
 			}
 		}
 

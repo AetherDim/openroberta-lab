@@ -615,11 +615,31 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
             }
         }, 'head navigation menu item clicked');
 
+
+
+
+        function resetButton(name, stateDefault, state2) {
+            $('#' + name).removeClass(stateDefault).removeClass(state2).addClass(stateDefault);
+        }
+
+        function resetAllButtons() {
+            resetButton('simControl', 'typcn-media-play', 'typcn-media-play-outline');
+            resetButton('debugMode', 'typcn-spanner', 'typcn-spanner-outline');
+            resetButton('simScore', 'typcn-star', 'typcn-star-outline');
+            resetButton('simFLowControl', 'typcn-flash', 'typcn-flash-outline');
+
+            $('#simControlBreakPoint,#simControlStepOver,#simControlStepInto,#simVariables').hide();
+            $('#debugMode').attr('data-original-title', Blockly.Msg.MENU_DEBUG_START_TOOLTIP);
+        }
+
+
+
         $('.simScene').onWrap('click', function(event) {
             var scene = $("#simButtonsCollapse").collapse('hide');
             $('.menuSim').parent().removeClass('disabled');
 
             const handle = SIM.nextScene();
+            resetAllButtons();
 
             if(handle) {
                 $('#'+handle.ID).parent().addClass('disabled');

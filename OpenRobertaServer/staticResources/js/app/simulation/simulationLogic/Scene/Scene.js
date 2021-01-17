@@ -97,6 +97,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.scoreContainer = new PIXI.Container();
             this.scoreContainerZ = 60;
             this.endScoreTime = Date.now();
+            this.scoreEndless = false;
             this.showScore = false;
             this.scoreText = new PIXI.Text("");
             //
@@ -339,11 +340,26 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         };
         Scene.prototype.updateScoreAnimation = function (dt) {
         };
+        /**
+         * shows the score for a number of seconds
+         * if the time is <= 0 -> show the score forever
+         * @param seconds
+         */
         Scene.prototype.showScoreScreen = function (seconds) {
             var _a;
+            this.scoreEndless = (seconds <= 0);
             this.endScoreTime = Date.now() + seconds * 1000;
-            this.showScore = true;
-            (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.add(this.scoreContainer);
+            if (!this.showScore) {
+                this.showScore = true;
+                (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.add(this.scoreContainer);
+            }
+        };
+        Scene.prototype.hideScore = function () {
+            var _a;
+            if (this.showScore) {
+                (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.remove(this.scoreContainer);
+                this.showScore = false;
+            }
         };
         Scene.prototype.initLoadingContainer = function () {
             this.loadingContainer.zIndex = this.loadingContainerZ;
@@ -560,15 +576,13 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             }
         };
         Scene.prototype.renderTick = function (dt) {
-            var _a;
             if (this.currentlyLoading) {
                 this.updateLoadingAnimation(dt);
             }
             if (this.showScore) {
                 this.updateScoreAnimation(dt);
-                if (Date.now() > this.endScoreTime) {
-                    this.showScore = false;
-                    (_a = this.sceneRenderer) === null || _a === void 0 ? void 0 : _a.remove(this.scoreContainer);
+                if (!this.scoreEndless && (Date.now() > this.endScoreTime)) {
+                    this.hideScore();
                 }
             }
             this.onRenderTick(dt);

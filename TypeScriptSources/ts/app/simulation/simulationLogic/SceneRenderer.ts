@@ -77,8 +77,8 @@ export class SceneRender {
 
 	}
 
-	getScene() {
-		return this.scene;
+	getScene(): Scene {
+		return this.scene!!;
 	}
 
 	// TODO: check this size
@@ -128,7 +128,7 @@ export class SceneRender {
 		// reset rendering scale and offset
 		this.scrollView.reset();
 
-		this.scene = scene
+		this.scene = scene;
 
 		scene.setSceneRenderer(this, this.allowBlocklyAccess, noLoad);
 

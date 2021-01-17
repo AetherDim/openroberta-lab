@@ -22,6 +22,7 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                 return false;
             });
 
+
             $('#simRobotModal').removeClass("modal-backdrop");
             $('#simControl').onWrap('click', function(event) {
                 if (SIM.getNumRobots() == 1) {
@@ -72,8 +73,25 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                     }
                 }
             });
-            $('#simImport').onWrap('click', function(event) {
-                SIM.importImage();
+
+            $('#simScore').onWrap('click', function(event) {
+                if ($('#simScore').hasClass('typcn-star')) {
+                    $('#simScore').addClass('typcn-star-outline').removeClass('typcn-star');
+                    SIM.score(true);
+                } else {
+                    $('#simScore').addClass('typcn-star').removeClass('typcn-star-outline');
+                    SIM.score(false);
+                }
+            }, 'simImport clicked');
+
+            $('#simFLowControl').onWrap('click', function(event) {
+                if ($('#simFLowControl').hasClass('typcn-flash')) {
+                    $('#simFLowControl').addClass('typcn-flash-outline').removeClass('typcn-flash');
+                    SIM.sim(false);
+                } else {
+                    $('#simFLowControl').addClass('typcn-flash').removeClass('typcn-flash-outline');
+                    SIM.sim(true);
+                }
             }, 'simImport clicked');
 
             $('#simButtonsCollapse').collapse({
@@ -131,11 +149,13 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                 if ($('#debugMode').attr('data-original-title') === Blockly.Msg.MENU_DEBUG_START_TOOLTIP) {
                     $('#debugMode').attr('data-original-title', Blockly.Msg.MENU_DEBUG_STOP_TOOLTIP);
                     $('#simControlBreakPoint,#simControlStepOver,#simControlStepInto,#simVariables').show();
+                    $('#debugMode').addClass('typcn-spanner-outline').removeClass('typcn-spanner');
                     SIM.updateDebugMode(true);
 
                 } else {
                     $('#debugMode').attr('data-original-title', Blockly.Msg.MENU_DEBUG_START_TOOLTIP);
                     $('#simControlBreakPoint,#simControlStepOver,#simControlStepInto,#simVariables').hide();
+                    $('#debugMode').addClass('typcn-spanner').removeClass('typcn-spanner-outline');
                     SIM.endDebugging();
                 }
 
