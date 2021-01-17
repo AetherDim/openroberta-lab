@@ -1,4 +1,4 @@
-define(["require", "exports", "webfontloader", "./Random", "./Util"], function (require, exports, WebFont, Random_1, Util_1) {
+define(["require", "exports", "webfontloader", "./Random", "./Util", "./pixijs"], function (require, exports, WebFont, Random_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SharedAssetLoader = exports.MultiAsset = exports.FontAsset = exports.Asset = void 0;

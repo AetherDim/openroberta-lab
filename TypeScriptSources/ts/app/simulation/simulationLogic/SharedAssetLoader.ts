@@ -1,4 +1,5 @@
 import * as WebFont from 'webfontloader'
+import './pixijs'
 import Texture = PIXI.Texture;
 import {randomIntBetween} from "./Random";
 import { Util } from "./Util"
