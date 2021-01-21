@@ -18,9 +18,9 @@ export class WaypointsManager<W extends Waypoint> {
 	 */
 	private waypointIndex?: number
 
-	private waypointEvent: (waypoint: W) => void
+	private waypointEvent: (waypointIndex: number, waypoint: W) => void
 
-	constructor(waypointList: WaypointList<W> = new WaypointList([]), waypointEvent: (waypoint: W) => void = _ => {}) {
+	constructor(waypointList: WaypointList<W> = new WaypointList([]), waypointEvent: (waypointIndex: number, waypoint: W) => void = _ => {}) {
 		this.waypointList = waypointList
 		this.waypointEvent = waypointEvent
 	}
@@ -30,7 +30,7 @@ export class WaypointsManager<W extends Waypoint> {
 	 * @param waypointList 
 	 * @param waypointEvent 
 	 */
-	resetListAndEvent(waypointList: WaypointList<W>, waypointEvent: (waypoint: W) => void) {
+	resetListAndEvent(waypointList: WaypointList<W>, waypointEvent: (waypointIndex: number, waypoint: W) => void) {
 		this.waypointList = waypointList
 		this.waypointEvent = waypointEvent
 		this.reset()
@@ -55,7 +55,7 @@ export class WaypointsManager<W extends Waypoint> {
 
 		if (Util.vectorDistanceSquared(waypoint.position, objectPosition) <= waypoint.maxDistance * waypoint.maxDistance) {
 			this.waypointIndex = nextWaypointIndex
-			this.waypointEvent(waypoint)
+			this.waypointEvent(this.waypointIndex, waypoint)
 		}
 
 	}

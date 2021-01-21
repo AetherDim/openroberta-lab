@@ -262,6 +262,8 @@ export class Scene {
 		this.containerList.forEach(container => {
 			this.clearContainer(container);
 		});
+
+		this.clearContainer(this.scoreContainer); // clear score container
 	}
 
 	//
@@ -280,6 +282,11 @@ export class Scene {
 
 	getScore(): number {
 		return this._score;
+	}
+
+	addToScore(score: number) {
+		this._score += score;
+		this.updateScoreText();
 	}
 
 	//

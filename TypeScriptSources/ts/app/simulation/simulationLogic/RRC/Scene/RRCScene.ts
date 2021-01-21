@@ -24,26 +24,15 @@ export class RRCScene extends Scene {
 	 * @param score The score for reaching the waypoint
 	 * @param maxDistance The maximum distance which still reaches the waypoint (default: 0.05 meters)
 	 */
-	makeWaypoint(position: Vector, score: number, maxDistance: number = 0.05): ScoreWaypoint {
-		return new ScoreWaypoint(this.unit, this.unit.fromPosition(position), maxDistance, score)
-	}
-
-	private endWaypoint?: ScoreWaypoint
-
-	/**
-	 * @param position The position of the waypoint in matter Units
-	 * @param maxDistance The maximum distance which still reaches the waypoint (default: 0.05 meters)
-	 */
-	makeEndWaypoint(position: Vector, score: number, maxDistance: number = 0.05): ScoreWaypoint {
-		this.endWaypoint = new ScoreWaypoint(this.unit, this.unit.fromPosition(position), maxDistance, score)
-		return this.endWaypoint
+	makeWaypoint(position: Vector, score: number, maxDistance: number = 50): ScoreWaypoint {
+		return new ScoreWaypoint(this.unit, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score)
 	}
 	
 	setWaypointList(list: WaypointList<ScoreWaypoint>) {
 		const t = this
-		this.waypointsManager.resetListAndEvent(list, (waypoint) => {
-			t.setScore(t.getScore() + waypoint.score)
-			if (waypoint == this.endWaypoint) {
+		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
+			t.addToScore(waypoint.score)
+			if (idx == list.getLastWaypointIndex()) {
 				t.showScoreScreen(10)
 			}
 		})

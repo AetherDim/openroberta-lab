@@ -18,8 +18,106 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
     var RRCLineFollowingScene = /** @class */ (function (_super) {
         __extends(RRCLineFollowingScene, _super);
         function RRCLineFollowingScene() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.waypointsES = [
+                {
+                    x: 35,
+                    y: 235,
+                    w: 80,
+                    h: 20,
+                    score: 50
+                }, {
+                    x: 165,
+                    y: 70,
+                    w: 20,
+                    h: 80,
+                    score: 0
+                }, {
+                    x: 700,
+                    y: 280,
+                    w: 50,
+                    h: 50,
+                    score: 50
+                }, {
+                    x: 710,
+                    y: 40,
+                    w: 100,
+                    h: 80,
+                    score: 100
+                }
+            ];
+            _this.waypointsMS = [
+                {
+                    x: 35,
+                    y: 350,
+                    w: 80,
+                    h: 20,
+                    score: 25
+                }, {
+                    x: 650,
+                    y: 340,
+                    w: 50,
+                    h: 50,
+                    score: 50
+                }, {
+                    x: 730,
+                    y: 230,
+                    w: 50,
+                    h: 50,
+                    score: 25
+                }, {
+                    x: 710,
+                    y: 40,
+                    w: 100,
+                    h: 80,
+                    score: 100
+                }
+            ];
+            _this.waypointsHS = [
+                {
+                    x: 35,
+                    y: 350,
+                    w: 80,
+                    h: 20,
+                    score: 25
+                }, {
+                    x: 250,
+                    y: 320,
+                    w: 50,
+                    h: 50,
+                    score: 50
+                }, {
+                    x: 650,
+                    y: 330,
+                    w: 50,
+                    h: 50,
+                    score: 50
+                }, {
+                    x: 730,
+                    y: 230,
+                    w: 50,
+                    h: 50,
+                    score: 25
+                }, {
+                    x: 710,
+                    y: 40,
+                    w: 100,
+                    h: 80,
+                    score: 50
+                }
+            ];
+            return _this;
         }
+        RRCLineFollowingScene.prototype.getWaypoints = function () {
+            switch (this.ageGroup) {
+                case AgeGroup_1.AgeGroup.ES:
+                    return this.waypointsES;
+                case AgeGroup_1.AgeGroup.MS:
+                    return this.waypointsMS;
+                case AgeGroup_1.AgeGroup.HS:
+                    return this.waypointsHS;
+            }
+        };
         RRCLineFollowingScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
                 case AgeGroup_1.AgeGroup.ES:
@@ -36,14 +134,20 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             }, this.getAsset());
         };
         RRCLineFollowingScene.prototype.onInit = function (chain) {
+            var _this = this;
             this.initRobot({ position: { x: 62, y: 450 }, rotation: -90 });
             // TODO: Change the waypoints
-            var waypoints = new WaypointList_1.WaypointList([
-                this.makeWaypoint({ x: 62, y: 300 }, 100),
-                this.makeWaypoint({ x: 200, y: 300 }, 100),
-                this.makeEndWaypoint({ x: 200, y: 450 }, 100),
-            ]);
-            this.setWaypointList(waypoints);
+            var waypointList = new WaypointList_1.WaypointList();
+            var waypoints = this.getWaypoints();
+            waypoints.forEach(function (waypoint) {
+                var x = waypoint.x + waypoint.w;
+                var y = waypoint.y + waypoint.h;
+                var r = Math.sqrt(Math.pow(waypoint.w, 2) + Math.pow(waypoint.h, 2));
+                var wp = _this.makeWaypoint({ x: x, y: y }, waypoint.score, r);
+                waypointList.appendWaypoints(wp);
+            });
+            waypointList.appendReversedWaypoints();
+            this.setWaypointList(waypointList);
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);

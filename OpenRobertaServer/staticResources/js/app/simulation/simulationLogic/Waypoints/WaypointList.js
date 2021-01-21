@@ -22,6 +22,12 @@ define(["require", "exports"], function (require, exports) {
         WaypointList.prototype.getLength = function () {
             return this.waypoints.length;
         };
+        WaypointList.prototype.getLastWaypointIndex = function () {
+            return this.waypoints.length - 1;
+        };
+        WaypointList.prototype.getLastWaypoint = function () {
+            return this.waypoints[this.waypoints.length - 1];
+        };
         /**
          * Append (almost) all current waypoints in reverse order to `this`. See `includingTheLast`.
          *

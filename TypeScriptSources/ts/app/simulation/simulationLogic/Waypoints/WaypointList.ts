@@ -25,6 +25,14 @@ export class WaypointList<W extends Waypoint> {
 		return this.waypoints.length
 	}
 
+	getLastWaypointIndex(): number {
+		return this.waypoints.length-1
+	}
+
+	getLastWaypoint(): W {
+		return this.waypoints[this.waypoints.length-1]
+	}
+
 	/**
 	 * Append (almost) all current waypoints in reverse order to `this`. See `includingTheLast`.
 	 * 

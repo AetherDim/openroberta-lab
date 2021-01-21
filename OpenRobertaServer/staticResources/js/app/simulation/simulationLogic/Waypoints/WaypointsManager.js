@@ -39,7 +39,7 @@ define(["require", "exports", "../Util", "./WaypointList"], function (require, e
             var waypoint = this.waypointList.get(nextWaypointIndex);
             if (Util_1.Util.vectorDistanceSquared(waypoint.position, objectPosition) <= waypoint.maxDistance * waypoint.maxDistance) {
                 this.waypointIndex = nextWaypointIndex;
-                this.waypointEvent(waypoint);
+                this.waypointEvent(this.waypointIndex, waypoint);
             }
         };
         return WaypointsManager;

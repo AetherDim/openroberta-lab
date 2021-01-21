@@ -304,6 +304,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.containerList.forEach(function (container) {
                 _this_1.clearContainer(container);
             });
+            this.clearContainer(this.scoreContainer); // clear score container
         };
         Scene.prototype.setScore = function (score) {
             this._score = score;
@@ -311,6 +312,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         };
         Scene.prototype.getScore = function () {
             return this._score;
+        };
+        Scene.prototype.addToScore = function (score) {
+            this._score += score;
+            this.updateScoreText();
         };
         /**
          * Async loading function for fonts and images
