@@ -996,72 +996,16 @@ export class Scene {
 	// #############################################################################
 	//
 
+	private robotUpdateOptions?: RobotUpdateOptions
+
 	getRobotUpdateOptions(): RobotUpdateOptions | undefined {
-		// FIXME: What to do with undefined 'getImageData'?
-		const getImageData = this.getImageData
-		if (getImageData) {
-			const _this = this
-			const allBodies = this.allBodies
-			return new RobotUpdateOptions({
-				dt: this.dt,
-				programPaused: this.programManager.isProgramPaused(),
-				getImageData: getImageData,
-				getNearestPointTo: (point, includePoint) => _this.getNearestPoint(point, includePoint),
-				intersectionPointsWithLine: line => _this.intersectionPointsWithLine(line),
-				bodyIntersectsOther: body => Query.collides(body, allBodies).length > 1 // "collides with itself"
-			})
-		}
-		return undefined
-	}
-
-	private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
-		const bodies: Body[] = this.allBodies
-
-		for (let i = 0; i < bodies.length; i++) {
-			const body = bodies[i];
-			// TODO: Use body.bounds for faster execution
-			for (let j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
-				const part = body.parts[j];
-				code(part.vertices)
-			}
-		}
-	}
-
-	private getNearestPoint(point: Vector, includePoint: (point: Vector) => boolean): Vector | undefined {
-		let nearestPoint: Vector | undefined
-		let minDistanceSquared = Infinity
-
-		this.forEachBodyPartVertices(vertices => {
-			const nearestBodyPoint = new Polygon(vertices).nearestPointToPoint(point, includePoint)
-			if (nearestBodyPoint) {
-				const distanceSquared = Util.vectorDistanceSquared(point, nearestBodyPoint)
-				if (distanceSquared < minDistanceSquared) {
-					minDistanceSquared = distanceSquared
-					nearestPoint = nearestBodyPoint
-				}
-			}
-		})
-
-		return nearestPoint;
-	}
-
-	private intersectionPointsWithLine(line: LineBaseClass): Vector[] {
-		const result: Vector[] = []
-		this.forEachBodyPartVertices(vertices => {
-			const newIntersectionPoints = new Polygon(vertices).intersectionPointsWithLine(line)
-			for (let i = 0; i < newIntersectionPoints.length; i++) {
-				result.push(newIntersectionPoints[i])
-			}
-		})
-		return result
+		return this.robotUpdateOptions
 	}
 
 
 	//
 	// #############################################################################
 	//
-
-	private allBodies: Body[] = []
 
 	protected waypointsManager = new WaypointsManager<ScoreWaypoint>()
 
@@ -1076,7 +1020,18 @@ export class Scene {
 		// update ground every tick: this.updateColorDataFunction()
 		const _this = this
 
-		this.allBodies = Composite.allBodies(this.world)
+		const allBodies = Composite.allBodies(this.world)
+		// FIXME: What to do with undefined 'getImageData'?
+		if (this.getImageData) {
+			this.robotUpdateOptions = new RobotUpdateOptions({
+				dt: this.dt,
+				programPaused: this.programManager.isProgramPaused(),
+				allBodies: allBodies,
+				getImageData: this.getImageData
+			})
+		} else {
+			this.robotUpdateOptions = undefined
+		}
 
 		this.updatableEntities.forEach(entity => entity.update(_this.dt))
 		this.drawablePhysicsEntities.forEach(entity => {

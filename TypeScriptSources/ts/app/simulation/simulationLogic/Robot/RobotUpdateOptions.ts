@@ -1,28 +1,72 @@
-import { Vector, Body } from "matter-js"
+import { Vector, Body, Query } from "matter-js"
 import { LineBaseClass } from "../Geometry/LineBaseClass"
+import { Polygon } from "../Geometry/Polygon"
+import { Util } from "../Util"
 
 export class RobotUpdateOptions {
 	
-	dt: number
-	programPaused: boolean
-	getImageData: (x: number, y: number, w: number, h: number) => ImageData
-	getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | undefined
-	intersectionPointsWithLine: (line: LineBaseClass) => Vector[]
-	bodyIntersectsOther: (body: Body) => boolean
+	readonly dt: number
+	readonly programPaused: boolean
+	readonly getImageData: (x: number, y: number, w: number, h: number) => ImageData
+
+	private readonly allBodies: Body[]
 	
 	constructor(o: {
 		dt: number,
 		programPaused: boolean,
-		getImageData: (x: number, y: number, w: number, h: number) => ImageData,
-		getNearestPointTo: (point: Vector, includePoint: (point: Vector) => boolean) => Vector | undefined,
-		intersectionPointsWithLine: (line: LineBaseClass) => Vector[],
-		bodyIntersectsOther: (body: Body) => boolean
+		allBodies: Body[],
+		getImageData: (x: number, y: number, w: number, h: number) => ImageData
 	}) {
 		this.dt = o.dt
 		this.programPaused = o.programPaused
+		this.allBodies = o.allBodies
 		this.getImageData = o.getImageData
-		this.getNearestPointTo = o.getNearestPointTo
-		this.intersectionPointsWithLine = o.intersectionPointsWithLine
-		this.bodyIntersectsOther = o.bodyIntersectsOther
+	}
+
+	private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
+		const bodies: Body[] = this.allBodies
+
+		for (let i = 0; i < bodies.length; i++) {
+			const body = bodies[i];
+			// TODO: Use body.bounds for faster execution
+			for (let j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+				const part = body.parts[j];
+				code(part.vertices)
+			}
+		}
+	}
+
+	getNearestPointTo(point: Vector, includePoint: (point: Vector) => boolean): Vector | undefined {
+		let nearestPoint: Vector | undefined
+		let minDistanceSquared = Infinity
+
+		this.forEachBodyPartVertices(vertices => {
+			const nearestBodyPoint = new Polygon(vertices).nearestPointToPoint(point, includePoint)
+			if (nearestBodyPoint) {
+				const distanceSquared = Util.vectorDistanceSquared(point, nearestBodyPoint)
+				if (distanceSquared < minDistanceSquared) {
+					minDistanceSquared = distanceSquared
+					nearestPoint = nearestBodyPoint
+				}
+			}
+		})
+
+		return nearestPoint;
+	}
+
+	intersectionPointsWithLine(line: LineBaseClass): Vector[] {
+		const result: Vector[] = []
+		this.forEachBodyPartVertices(vertices => {
+			const newIntersectionPoints = new Polygon(vertices).intersectionPointsWithLine(line)
+			for (let i = 0; i < newIntersectionPoints.length; i++) {
+				result.push(newIntersectionPoints[i])
+			}
+		})
+		return result
+	}
+
+	bodyIntersectsOther(body: Body): boolean {
+		// `body` collides with itself
+		return Query.collides(body, this.allBodies).length > 1
 	}
 }

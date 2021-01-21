@@ -1,4 +1,15 @@
-define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Geometry/Polygon", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, Polygon_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1) {
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -148,7 +159,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             //
             // #############################################################################
             //
-            this.allBodies = [];
             this.waypointsManager = new WaypointsManager_1.WaypointsManager();
             // setup graphic containers
             this.setupContainers();
@@ -772,61 +782,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.onDestroy();
             // TODO
         };
-        //
-        // #############################################################################
-        //
         Scene.prototype.getRobotUpdateOptions = function () {
-            // FIXME: What to do with undefined 'getImageData'?
-            var getImageData = this.getImageData;
-            if (getImageData) {
-                var _this_2 = this;
-                var allBodies_1 = this.allBodies;
-                return new RobotUpdateOptions_1.RobotUpdateOptions({
-                    dt: this.dt,
-                    programPaused: this.programManager.isProgramPaused(),
-                    getImageData: getImageData,
-                    getNearestPointTo: function (point, includePoint) { return _this_2.getNearestPoint(point, includePoint); },
-                    intersectionPointsWithLine: function (line) { return _this_2.intersectionPointsWithLine(line); },
-                    bodyIntersectsOther: function (body) { return matter_js_1.Query.collides(body, allBodies_1).length > 1; } // "collides with itself"
-                });
-            }
-            return undefined;
-        };
-        Scene.prototype.forEachBodyPartVertices = function (code) {
-            var bodies = this.allBodies;
-            for (var i = 0; i < bodies.length; i++) {
-                var body = bodies[i];
-                // TODO: Use body.bounds for faster execution
-                for (var j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
-                    var part = body.parts[j];
-                    code(part.vertices);
-                }
-            }
-        };
-        Scene.prototype.getNearestPoint = function (point, includePoint) {
-            var nearestPoint;
-            var minDistanceSquared = Infinity;
-            this.forEachBodyPartVertices(function (vertices) {
-                var nearestBodyPoint = new Polygon_1.Polygon(vertices).nearestPointToPoint(point, includePoint);
-                if (nearestBodyPoint) {
-                    var distanceSquared = Util_1.Util.vectorDistanceSquared(point, nearestBodyPoint);
-                    if (distanceSquared < minDistanceSquared) {
-                        minDistanceSquared = distanceSquared;
-                        nearestPoint = nearestBodyPoint;
-                    }
-                }
-            });
-            return nearestPoint;
-        };
-        Scene.prototype.intersectionPointsWithLine = function (line) {
-            var result = [];
-            this.forEachBodyPartVertices(function (vertices) {
-                var newIntersectionPoints = new Polygon_1.Polygon(vertices).intersectionPointsWithLine(line);
-                for (var i = 0; i < newIntersectionPoints.length; i++) {
-                    result.push(newIntersectionPoints[i]);
-                }
-            });
-            return result;
+            return this.robotUpdateOptions;
         };
         /**
          * update physics and robots
@@ -836,7 +793,19 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // update robots
             // update ground every tick: this.updateColorDataFunction()
             var _this = this;
-            this.allBodies = matter_js_1.Composite.allBodies(this.world);
+            var allBodies = matter_js_1.Composite.allBodies(this.world);
+            // FIXME: What to do with undefined 'getImageData'?
+            if (this.getImageData) {
+                this.robotUpdateOptions = new RobotUpdateOptions_1.RobotUpdateOptions({
+                    dt: this.dt,
+                    programPaused: this.programManager.isProgramPaused(),
+                    allBodies: allBodies,
+                    getImageData: this.getImageData
+                });
+            }
+            else {
+                this.robotUpdateOptions = undefined;
+            }
             this.updatableEntities.forEach(function (entity) { return entity.update(_this.dt); });
             this.drawablePhysicsEntities.forEach(function (entity) {
                 entity.updateDrawablePosition();
