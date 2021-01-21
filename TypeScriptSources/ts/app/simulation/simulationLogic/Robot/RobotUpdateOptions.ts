@@ -23,11 +23,14 @@ export class RobotUpdateOptions {
 		this.getImageData = o.getImageData
 	}
 
-	private forEachBodyPartVertices(code: (vertices: Vector[]) => void) {
+	private forEachBodyPartVertices(exceptBodies: Body[],code: (vertices: Vector[]) => void) {
 		const bodies: Body[] = this.allBodies
 
 		for (let i = 0; i < bodies.length; i++) {
 			const body = bodies[i];
+			if (exceptBodies.includes(body)) {
+				continue
+			}
 			// TODO: Use body.bounds for faster execution
 			for (let j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
 				const part = body.parts[j];
@@ -36,11 +39,11 @@ export class RobotUpdateOptions {
 		}
 	}
 
-	getNearestPointTo(point: Vector, includePoint: (point: Vector) => boolean): Vector | undefined {
+	getNearestPointTo(point: Vector, exceptBodies: Body[], includePoint: (point: Vector) => boolean): Vector | undefined {
 		let nearestPoint: Vector | undefined
 		let minDistanceSquared = Infinity
 
-		this.forEachBodyPartVertices(vertices => {
+		this.forEachBodyPartVertices(exceptBodies, vertices => {
 			const nearestBodyPoint = new Polygon(vertices).nearestPointToPoint(point, includePoint)
 			if (nearestBodyPoint) {
 				const distanceSquared = Util.vectorDistanceSquared(point, nearestBodyPoint)
@@ -54,9 +57,9 @@ export class RobotUpdateOptions {
 		return nearestPoint;
 	}
 
-	intersectionPointsWithLine(line: LineBaseClass): Vector[] {
+	intersectionPointsWithLine(line: LineBaseClass, exceptBodies: Body[]): Vector[] {
 		const result: Vector[] = []
-		this.forEachBodyPartVertices(vertices => {
+		this.forEachBodyPartVertices(exceptBodies, vertices => {
 			const newIntersectionPoints = new Polygon(vertices).intersectionPointsWithLine(line)
 			for (let i = 0; i < newIntersectionPoints.length; i++) {
 				result.push(newIntersectionPoints[i])
@@ -68,5 +71,17 @@ export class RobotUpdateOptions {
 	bodyIntersectsOther(body: Body): boolean {
 		// `body` collides with itself
 		return Query.collides(body, this.allBodies).length > 1
+	}
+
+	someBodyContains(point: Vector, exceptBodies: Body[]): boolean {
+		const bodies = Query.point(this.allBodies, point)
+		for (let i = 0; i < bodies.length; i++) {
+			const body = bodies[i];
+			if (exceptBodies.includes(body)) {
+				continue
+			}
+			return true
+		}
+		return false
 	}
 }

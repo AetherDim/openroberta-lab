@@ -575,6 +575,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     angle: oldAngle ? oldAngle + gyroRate * updateOptions.dt : this.body.angle * 180 / Math.PI,
                     rate: gyroRate
                 } };
+            var robotBodies = Object.values(this.touchSensors).map(function (touchSensor) { return touchSensor.getPhysicsBody(); })
+                .concat(this.physicsWheelsList, this.body);
             // color
             if (!sensors.color) {
                 sensors.color = {};
@@ -603,29 +605,36 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var _loop_1 = function (port) {
                 var ultrasonicSensor = this_1.ultrasonicSensors[port];
                 var sensorPosition = this_1.getAbsolutePosition(ultrasonicSensor.position);
-                var halfAngle = ultrasonicSensor.angularRange / 2;
-                var rays = [
-                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), halfAngle + this_1.body.angle),
-                    matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), -halfAngle + this_1.body.angle)
-                ]
-                    .map(function (v) { return new Ray_1.Ray(sensorPosition, v); });
-                // (point - sensorPos) * vec > 0
-                var vectors = rays.map(function (r) { return matter_js_1.Vector.perp(r.directionVector); });
-                var dotProducts = vectors.map(function (v) { return matter_js_1.Vector.dot(v, sensorPosition); });
-                var nearestPoint = updateOptions.getNearestPointTo(sensorPosition, function (point) {
-                    return matter_js_1.Vector.dot(point, vectors[0]) < dotProducts[0]
-                        && matter_js_1.Vector.dot(point, vectors[1]) > dotProducts[1];
-                });
-                var minDistanceSquared = nearestPoint ? Util_1.Util.vectorDistanceSquared(nearestPoint, sensorPosition) : Infinity;
-                var intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0]).concat(updateOptions.intersectionPointsWithLine(rays[1]));
-                intersectionPoints.forEach(function (intersectionPoint) {
-                    var distanceSquared = Util_1.Util.vectorDistanceSquared(intersectionPoint, sensorPosition);
-                    if (distanceSquared < minDistanceSquared) {
-                        minDistanceSquared = distanceSquared;
-                        nearestPoint = intersectionPoint;
-                    }
-                });
-                var ultrasonicDistance = nearestPoint ? Util_1.Util.vectorDistance(nearestPoint, sensorPosition) : Infinity;
+                var ultrasonicDistance = void 0;
+                var nearestPoint;
+                if (updateOptions.someBodyContains(sensorPosition, robotBodies)) {
+                    ultrasonicDistance = 0;
+                }
+                else {
+                    var halfAngle = ultrasonicSensor.angularRange / 2;
+                    var rays = [
+                        matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), halfAngle + this_1.body.angle),
+                        matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), -halfAngle + this_1.body.angle)
+                    ]
+                        .map(function (v) { return new Ray_1.Ray(sensorPosition, v); });
+                    // (point - sensorPos) * vec > 0
+                    var vectors_1 = rays.map(function (r) { return matter_js_1.Vector.perp(r.directionVector); });
+                    var dotProducts_1 = vectors_1.map(function (v) { return matter_js_1.Vector.dot(v, sensorPosition); });
+                    nearestPoint = updateOptions.getNearestPointTo(sensorPosition, robotBodies, function (point) {
+                        return matter_js_1.Vector.dot(point, vectors_1[0]) < dotProducts_1[0]
+                            && matter_js_1.Vector.dot(point, vectors_1[1]) > dotProducts_1[1];
+                    });
+                    var minDistanceSquared_1 = nearestPoint ? Util_1.Util.vectorDistanceSquared(nearestPoint, sensorPosition) : Infinity;
+                    var intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0], robotBodies).concat(updateOptions.intersectionPointsWithLine(rays[1], robotBodies));
+                    intersectionPoints.forEach(function (intersectionPoint) {
+                        var distanceSquared = Util_1.Util.vectorDistanceSquared(intersectionPoint, sensorPosition);
+                        if (distanceSquared < minDistanceSquared_1) {
+                            minDistanceSquared_1 = distanceSquared;
+                            nearestPoint = intersectionPoint;
+                        }
+                    });
+                    ultrasonicDistance = nearestPoint ? Util_1.Util.vectorDistance(nearestPoint, sensorPosition) : Infinity;
+                }
                 ultrasonicSensor.setMeasuredDistance(ultrasonicDistance, this_1.updateSensorGraphics);
                 if (this_1.updateSensorGraphics) {
                     // update nearestPoint

@@ -707,6 +707,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			rate: gyroRate
 		}}
 
+		const robotBodies = Object.values(this.touchSensors).map(touchSensor => touchSensor.getPhysicsBody())
+			.concat(this.physicsWheelsList, this.body)
+
 		// color
 		if (!sensors.color) {
 			sensors.color = {}
@@ -736,29 +739,35 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		for (const port in this.ultrasonicSensors) {
 			const ultrasonicSensor = this.ultrasonicSensors[port]
 			const sensorPosition = this.getAbsolutePosition(ultrasonicSensor.position)
-			const halfAngle = ultrasonicSensor.angularRange / 2
-			const rays = [
-				Vector.rotate(Vector.create(1, 0), halfAngle + this.body.angle),
-				Vector.rotate(Vector.create(1, 0), -halfAngle + this.body.angle)]
-				.map(v => new Ray(sensorPosition, v))
-			// (point - sensorPos) * vec > 0
-			const vectors = rays.map(r => Vector.perp(r.directionVector))
-			const dotProducts = vectors.map(v => Vector.dot(v, sensorPosition))
-			let nearestPoint = updateOptions.getNearestPointTo(sensorPosition, point => {
-				return Vector.dot(point, vectors[0]) < dotProducts[0]
-					&& Vector.dot(point, vectors[1]) > dotProducts[1]
-			})
-			let minDistanceSquared = nearestPoint ? Util.vectorDistanceSquared(nearestPoint, sensorPosition) : Infinity
-			const intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0]).concat(updateOptions.intersectionPointsWithLine(rays[1]))
-			intersectionPoints.forEach(intersectionPoint => {
-				const distanceSquared = Util.vectorDistanceSquared(intersectionPoint, sensorPosition)
-				if (distanceSquared < minDistanceSquared) {
-					minDistanceSquared = distanceSquared
-					nearestPoint = intersectionPoint
-				}
-			})
+			let ultrasonicDistance: number
+			let nearestPoint: Vector | undefined
+			if (updateOptions.someBodyContains(sensorPosition, robotBodies)) {
+				ultrasonicDistance = 0
+			} else {
+				const halfAngle = ultrasonicSensor.angularRange / 2
+				const rays = [
+					Vector.rotate(Vector.create(1, 0), halfAngle + this.body.angle),
+					Vector.rotate(Vector.create(1, 0), -halfAngle + this.body.angle)]
+					.map(v => new Ray(sensorPosition, v))
+				// (point - sensorPos) * vec > 0
+				const vectors = rays.map(r => Vector.perp(r.directionVector))
+				const dotProducts = vectors.map(v => Vector.dot(v, sensorPosition))
+				nearestPoint = updateOptions.getNearestPointTo(sensorPosition, robotBodies, point => {
+					return Vector.dot(point, vectors[0]) < dotProducts[0]
+						&& Vector.dot(point, vectors[1]) > dotProducts[1]
+				})
+				let minDistanceSquared = nearestPoint ? Util.vectorDistanceSquared(nearestPoint, sensorPosition) : Infinity
+				const intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0], robotBodies).concat(updateOptions.intersectionPointsWithLine(rays[1], robotBodies))
+				intersectionPoints.forEach(intersectionPoint => {
+					const distanceSquared = Util.vectorDistanceSquared(intersectionPoint, sensorPosition)
+					if (distanceSquared < minDistanceSquared) {
+						minDistanceSquared = distanceSquared
+						nearestPoint = intersectionPoint
+					}
+				})
 
-			let ultrasonicDistance = nearestPoint ? Util.vectorDistance(nearestPoint, sensorPosition) : Infinity
+				ultrasonicDistance = nearestPoint ? Util.vectorDistance(nearestPoint, sensorPosition) : Infinity
+			}
 			ultrasonicSensor.setMeasuredDistance(ultrasonicDistance, this.updateSensorGraphics)
 			if (this.updateSensorGraphics) {
 				// update nearestPoint
