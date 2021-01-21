@@ -787,9 +787,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
          */
         Scene.prototype.update = function () {
             this.onUpdate();
-            // update robots
-            // update ground every tick: this.updateColorDataFunction()
-            var _this = this;
             var allBodies = matter_js_1.Composite.allBodies(this.world);
             // FIXME: What to do with undefined 'getImageData'?
             if (this.getImageData) {
@@ -803,7 +800,12 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             else {
                 this.robotUpdateOptions = undefined;
             }
+            // update physics
+            matter_js_1.Engine.update(this.engine, this.dt);
+            // update entities e.g. robots
+            var _this = this;
             this.updatableEntities.forEach(function (entity) { return entity.update(_this.dt); });
+            // update rendering positions
             this.drawablePhysicsEntities.forEach(function (entity) {
                 entity.updateDrawablePosition();
             });
@@ -812,7 +814,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 this.waypointsManager.update(this.robots[0].body.position);
             }
             this.programManager.update(); // update breakpoints, ...
-            matter_js_1.Engine.update(this.engine, this.dt); // update physics
             // FIX Grid bucket memory consumption
             // Remove empty buckets
             var grid = this.engine.broadphase;
@@ -824,14 +825,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                     delete anyGrid.buckets[key];
                 }
             }
-            // update rendering positions
-            // TODO: switch to scene internal drawable list? better performance???
-            var bodies = matter_js_1.Composite.allBodies(this.world);
-            bodies.forEach(function (body) {
-                if (body.displayable) {
-                    body.displayable.updateFromBody(body);
-                }
-            });
             this.onUpdatePostPhysics();
         };
         // for debugging

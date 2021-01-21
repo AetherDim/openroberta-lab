@@ -1025,10 +1025,6 @@ export class Scene {
 
 		this.onUpdate();
 
-		// update robots
-		// update ground every tick: this.updateColorDataFunction()
-		const _this = this
-
 		const allBodies = Composite.allBodies(this.world)
 		// FIXME: What to do with undefined 'getImageData'?
 		if (this.getImageData) {
@@ -1042,7 +1038,14 @@ export class Scene {
 			this.robotUpdateOptions = undefined
 		}
 
+		// update physics
+		Engine.update(this.engine, this.dt)
+
+		// update entities e.g. robots
+		const _this = this
 		this.updatableEntities.forEach(entity => entity.update(_this.dt))
+		
+		// update rendering positions
 		this.drawablePhysicsEntities.forEach(entity => {
 			entity.updateDrawablePosition()
 		})
@@ -1053,8 +1056,6 @@ export class Scene {
 		}
 
 		this.programManager.update(); // update breakpoints, ...
-
-		Engine.update(this.engine, this.dt); // update physics
 
 
 		// FIX Grid bucket memory consumption
@@ -1068,15 +1069,6 @@ export class Scene {
 				delete anyGrid.buckets[key]
 			}
 		}
-
-		// update rendering positions
-		// TODO: switch to scene internal drawable list? better performance???
-		var bodies = Composite.allBodies(this.world);
-		bodies.forEach(body => {
-			if(body.displayable) {
-				body.displayable.updateFromBody(body);
-			}
-		});
 
 		this.onUpdatePostPhysics();
 	}
