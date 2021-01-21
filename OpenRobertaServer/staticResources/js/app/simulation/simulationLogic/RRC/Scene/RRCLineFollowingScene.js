@@ -140,8 +140,8 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             var waypointList = new WaypointList_1.WaypointList();
             var waypoints = this.getWaypoints();
             waypoints.forEach(function (waypoint) {
-                var x = waypoint.x + waypoint.w;
-                var y = waypoint.y + waypoint.h;
+                var x = waypoint.x + waypoint.w / 2;
+                var y = waypoint.y + waypoint.h / 2;
                 var r = Math.sqrt(Math.pow(waypoint.w, 2) + Math.pow(waypoint.h, 2));
                 var wp = _this.makeWaypoint({ x: x, y: y }, waypoint.score, r);
                 waypointList.appendWaypoints(wp);
