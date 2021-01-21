@@ -118,10 +118,10 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             var y = unit.fromLength(0);
             var w = unit.fromLength(800);
             var h = unit.fromLength(540);
-            var top = Entity_1.PhysicsRectEntity.create(this, x - t, y - t, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
-            var bottom = Entity_1.PhysicsRectEntity.create(this, x - t, y + h, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
-            var left = Entity_1.PhysicsRectEntity.create(this, x - t, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
-            var right = Entity_1.PhysicsRectEntity.create(this, x + w, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: true });
+            var top = Entity_1.PhysicsRectEntity.create(this, x - t, y - t, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
+            var bottom = Entity_1.PhysicsRectEntity.create(this, x - t, y + h, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
+            var left = Entity_1.PhysicsRectEntity.create(this, x - t, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
+            var right = Entity_1.PhysicsRectEntity.create(this, x + w, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
             this.addEntity(top);
             this.addEntity(bottom);
             this.addEntity(left);

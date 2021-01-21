@@ -302,7 +302,7 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                 var y = unit.fromLength(rect.y);
                 var w = unit.fromLength(rect.w);
                 var h = unit.fromLength(rect.h);
-                var bodyEntity = Entity_1.PhysicsRectEntity.create(_this, x, y, w, h, { color: rect.color, strokeColor: rect.color, relativeToCenter: true });
+                var bodyEntity = Entity_1.PhysicsRectEntity.create(_this, x, y, w, h, { color: rect.color, strokeColor: rect.color, relativeToCenter: false });
                 _this.addEntity(bodyEntity);
                 matter_js_1.Body.setStatic(bodyEntity.getPhysicsBody(), true);
             });

@@ -298,7 +298,7 @@ export class RRCLabyrinthScene extends RRCScene {
 			const y = unit.fromLength(rect.y);
 			const w = unit.fromLength(rect.w);
 			const h = unit.fromLength(rect.h);
-			const bodyEntity = PhysicsRectEntity.create(this, x, y, w, h, {color: rect.color, strokeColor: rect.color, relativeToCenter: true});
+			const bodyEntity = PhysicsRectEntity.create(this, x, y, w, h, {color: rect.color, strokeColor: rect.color, relativeToCenter: false});
 			this.addEntity(bodyEntity);
 			Body.setStatic(bodyEntity.getPhysicsBody(), true);
 		});
