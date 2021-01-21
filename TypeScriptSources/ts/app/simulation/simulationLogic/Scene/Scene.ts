@@ -245,11 +245,20 @@ export class Scene {
 	protected removeBaseTexturesOnUnload = true;
 
 	private clearContainer(container: PIXI.Container) {
-		container.children.forEach(child => {
-			child.destroy();
-		});
+		// remove children from parent before destroy
+		// see: https://github.com/pixijs/pixi.js/issues/2800
+		// const children: PIXI.DisplayObject[] = []
+		// for (const child of container.children) {
+		// 	children.push(child)
+		// }
+		container.removeChildren();
 
-		container.removeChildren(0, container.children.length);
+		// FIXME: Should we destroy the children?
+		// Note that e.g. scoreText has to be replaced since it might be destroyed
+
+		// children.forEach(child => {
+		// 	child.destroy();
+		// });
 
 		/*container.destroy({
 			children: true,

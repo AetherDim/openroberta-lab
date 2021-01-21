@@ -1,14 +1,3 @@
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
 define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -299,10 +288,18 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.scoreContainer.visible = visible;
         };
         Scene.prototype.clearContainer = function (container) {
-            container.children.forEach(function (child) {
-                child.destroy();
-            });
-            container.removeChildren(0, container.children.length);
+            // remove children from parent before destroy
+            // see: https://github.com/pixijs/pixi.js/issues/2800
+            // const children: PIXI.DisplayObject[] = []
+            // for (const child of container.children) {
+            // 	children.push(child)
+            // }
+            container.removeChildren();
+            // FIXME: Should we destroy the children?
+            // Note that e.g. scoreText has to be replaced since it might be destroyed
+            // children.forEach(child => {
+            // 	child.destroy();
+            // });
             /*container.destroy({
                 children: true,
                 texture: this.removeTexturesOnUnload,
