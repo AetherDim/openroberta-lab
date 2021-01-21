@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "../../Entity", "matter-js"], function (require, exports, AgeGroup_1, RRCScene_1, RRC, Entity_1, matter_js_1) {
+define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "../../Entity", "matter-js", "../../Waypoints/WaypointList"], function (require, exports, AgeGroup_1, RRCScene_1, RRC, Entity_1, matter_js_1, WaypointList_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCLabyrinthScene = void 0;
@@ -292,8 +292,240 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     rotation: 0,
                     color: 0x000000
                 }];
+            _this.waypointES_MS = [
+                {
+                    x: 700,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 400,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 400,
+                    y: 100,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 600,
+                    y: 100,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 600,
+                    y: 440,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 440,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 500,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 500,
+                    y: 200,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 200,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 200,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 200,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 100,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 100,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 0,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 0,
+                    y: 440,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }
+            ];
+            _this.waypointsHS = [
+                {
+                    x: 700,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 500,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 500,
+                    y: 100,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 600,
+                    y: 100,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 600,
+                    y: 440,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 440,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 500,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 500,
+                    y: 200,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 400,
+                    y: 200,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 400,
+                    y: 100,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 100,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 300,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 200,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 200,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 100,
+                    y: 340,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 100,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 0,
+                    y: 0,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 0,
+                    y: 440,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }
+            ];
             return _this;
         }
+        RRCLabyrinthScene.prototype.getWaypoints = function () {
+            switch (this.ageGroup) {
+                case AgeGroup_1.AgeGroup.ES:
+                    return this.waypointES_MS;
+                case AgeGroup_1.AgeGroup.MS:
+                    return this.waypointES_MS;
+                case AgeGroup_1.AgeGroup.HS:
+                    return this.waypointsHS;
+            }
+        };
         RRCLabyrinthScene.prototype.addLabyrinth = function (labyrinth) {
             var _this = this;
             var unit = this.unit;
@@ -323,6 +555,7 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
             }
         };
         RRCLabyrinthScene.prototype.onInit = function (chain) {
+            var _this = this;
             this.initRobot({ position: { x: 752, y: 490 }, rotation: -90 });
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
@@ -338,6 +571,17 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     this.addLabyrinth(this.MazeObstacleList_HS);
                     break;
             }
+            // TODO: Change the waypoints
+            var waypointList = new WaypointList_1.WaypointList();
+            var waypoints = this.getWaypoints();
+            waypoints.forEach(function (waypoint) {
+                var x = waypoint.x + waypoint.w;
+                var y = waypoint.y + waypoint.h;
+                var r = Math.sqrt(Math.pow(waypoint.w, 2) + Math.pow(waypoint.h, 2));
+                var wp = _this.makeWaypoint({ x: x, y: y }, waypoint.score, r);
+                waypointList.appendWaypoints(wp);
+            });
+            this.setWaypointList(waypointList);
             this.addWalls(true);
             chain.next();
         };
