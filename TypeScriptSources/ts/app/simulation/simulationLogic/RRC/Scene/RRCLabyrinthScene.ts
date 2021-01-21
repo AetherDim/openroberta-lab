@@ -4,6 +4,8 @@ import {RRCScene} from "./RRCScene";
 import * as RRC from '../RRAssetLoader'
 import { PhysicsRectEntity } from "../../Entity";
 import { Body } from "matter-js";
+import {WaypointList} from "../../Waypoints/WaypointList";
+import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint";
 
 class LabyrinthRect {
 	x: number;
@@ -290,6 +292,243 @@ export class RRCLabyrinthScene extends RRCScene {
 		color: 0x000000
 	}];
 
+	readonly waypointES_MS = [
+		{
+			x: 700,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 400,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 400,
+			y: 100,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 600,
+			y: 100,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 600,
+			y: 440,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 440,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 500,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 500,
+			y: 200,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 200,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 200,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 200,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 100,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 100,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 0,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 0,
+			y: 440,
+			w: 100,
+			h: 100,
+			score: 10
+		}
+	]
+
+	readonly waypointsHS = [
+		{
+			x: 700,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 500,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 500,
+			y: 100,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 600,
+			y: 100,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 600,
+			y: 440,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 440,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 500,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 500,
+			y: 200,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 400,
+			y: 200,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 400,
+			y: 100,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 100,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 300,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 200,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 200,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 100,
+			y: 340,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 100,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 0,
+			y: 0,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 0,
+			y: 440,
+			w: 100,
+			h: 100,
+			score: 10
+		}
+	]
+
+	getWaypoints() {
+		switch (this.ageGroup) {
+			case AgeGroup.ES:
+				return this.waypointES_MS;
+
+			case AgeGroup.MS:
+				return this.waypointES_MS;
+
+			case AgeGroup.HS:
+				return this.waypointsHS;
+		}
+	}
+
 
 	addLabyrinth(labyrinth: LabyrinthRect[]) {
 		const unit = this.unit
@@ -347,6 +586,23 @@ export class RRCLabyrinthScene extends RRCScene {
 				this.addLabyrinth(this.MazeObstacleList_HS);
 				break;
 		}
+
+		// TODO: Change the waypoints
+		const waypointList = new WaypointList<ScoreWaypoint>()
+		const waypoints = this.getWaypoints()
+
+		waypoints.forEach(waypoint => {
+			const x = waypoint.x + waypoint.w
+			const y = waypoint.y + waypoint.h
+			const r = Math.sqrt(Math.pow(waypoint.w, 2) + Math.pow(waypoint.h, 2))
+			const wp = this.makeWaypoint({x: x, y: y}, waypoint.score, r)
+			waypointList.appendWaypoints(wp)
+		})
+
+
+		this.setWaypointList(waypointList)
+
+
 
 		this.addWalls(true);
 
