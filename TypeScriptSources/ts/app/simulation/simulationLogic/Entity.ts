@@ -197,15 +197,16 @@ export class DrawSettings {
 
 }
 
-
+export class RectOptions extends DrawSettings {
+	roundingRadius: number = 0
+	relativeToCenter: boolean = true
+}
 
 //
 // Specialized Entities
 //
 
-export class RectEntityOptions extends DrawSettings {
-	roundingRadius: number = 0
-	relativeToCenter: boolean = true
+export class RectEntityOptions extends RectOptions {
 	physics: IChamferableBodyDefinition = {}
 }
 
@@ -213,10 +214,10 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
 
 	protected body: Body;
 
-	protected constructor(scene: Scene, x: number, y: number, width: number, height: number, drawable: Drawable, opts?: Partial<RectEntityOptions>) {
+	protected constructor(scene: Scene, x: number, y: number, width: number, height: number, drawable: Drawable, opts: RectEntityOptions) {
 		super(scene, drawable);
 
-		if(opts?.relativeToCenter) {
+		if(!opts.relativeToCenter) {
 			x += width/2;
 			y += height/2;
 		}
@@ -228,14 +229,10 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
 		return this.body
 	}
 
-	private static createGraphics(x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PIXI.Graphics {
-
-		const options = Util.getOptions(RectEntityOptions, opts);
-		
-		if (!options.relativeToCenter) {
-			x += width / 2
-			y += height / 2
-		}
+	/**
+	 * Create the graphics with center (0,0)
+	 */
+	private static createGraphics(width: number, height: number, options: RectEntityOptions): PIXI.Graphics {
 
 		const graphics = new PIXI.Graphics();
 
@@ -249,23 +246,80 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
 
 	static create(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity<PIXI.Graphics> {
 		[x, y, width, height] = scene.unit.getLengths([x, y, width, height])
-		const graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts)
-		return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts);
+		const options = Util.getOptions(RectEntityOptions, opts);
+		const graphics = PhysicsRectEntity.createGraphics(width, height, options)
+		return new PhysicsRectEntity(scene, x, y, width, height, graphics, options);
 	}
 
 	static createWithContainer(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectEntityOptions>): PhysicsRectEntity<PIXI.Container> {
 		[x, y, width, height] = scene.unit.getLengths([x, y, width, height])
-		const graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts)
+		const options = Util.getOptions(RectEntityOptions, opts);
+		const graphics = PhysicsRectEntity.createGraphics(width, height, options)
 		const container = new PIXI.Container()
 		container.addChild(graphics)
-		return new PhysicsRectEntity<PIXI.Container>(scene, x, y, width, height, graphics, opts);
+		return new PhysicsRectEntity<PIXI.Container>(scene, x, y, width, height, graphics, options);
 	}
 
 
 	static createTexture(scene: Scene, x: number, y: number, texture: PIXI.Texture, alpha: number, relativeToCenter:boolean = false, bodyOptions?: IChamferableBodyDefinition): PhysicsRectEntity<PIXI.DisplayObject> {
-		return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), {physics: bodyOptions});
+		return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), Util.getOptions(RectEntityOptions, {physics: bodyOptions}));
 		// TODO
 	}
 
+
+}
+
+
+class DrawableEntity<Drawable extends PIXI.DisplayObject = PIXI.DisplayObject> implements IDrawableEntity {
+
+	private scene: Scene
+	private parent?: IContainerEntity
+	private drawable: Drawable
+
+	constructor(scene: Scene, drawable: Drawable) {
+		this.scene = scene
+		this.drawable = drawable
+	}
+
+	IEntity(){}
+
+	getScene(): Scene {
+		return this.scene
+	}
+
+	getParent(): IContainerEntity | undefined {
+		return this.parent
+	}
+
+	_setParent(parent: IContainerEntity | undefined) {
+		this.parent = parent
+	}
+
+	IDrawableEntity(){}
+
+	getDrawable(): Drawable {
+		return this.drawable
+	}
+
+	static rect(scene: Scene, x: number, y: number, width: number, height: number, opts?: Partial<RectOptions>): DrawableEntity<PIXI.Graphics> {
+
+		const options = Util.getOptions(RectOptions, opts)
+
+		let graphicsX = 0
+		let graphicsY = 0
+		if (options.relativeToCenter) {
+			graphicsX -= width/2
+			graphicsY -= height/2
+		}
+
+		const graphics = new PIXI.Graphics()
+			.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha, options.strokeAlignment)
+			.beginFill(options.color, options.alpha)
+			.drawRoundedRect(graphicsX, graphicsY, width, height, options.roundingRadius)
+			.endFill()
+		graphics.position.set(x, y)
+		
+		return new DrawableEntity(scene, graphics)
+	}
 
 }

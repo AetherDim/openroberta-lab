@@ -30,7 +30,7 @@ var __read = (this && this.__read) || function (o, n) {
 define(["require", "exports", "matter-js", "./Util"], function (require, exports, matter_js_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PhysicsRectEntity = exports.RectEntityOptions = exports.DrawSettings = exports.DrawablePhysicsEntity = exports.Type = exports.Meta = void 0;
+    exports.PhysicsRectEntity = exports.RectEntityOptions = exports.RectOptions = exports.DrawSettings = exports.DrawablePhysicsEntity = exports.Type = exports.Meta = void 0;
     var Meta = /** @class */ (function () {
         function Meta(name) {
             this.name = name;
@@ -99,6 +99,17 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
         return DrawSettings;
     }());
     exports.DrawSettings = DrawSettings;
+    var RectOptions = /** @class */ (function (_super) {
+        __extends(RectOptions, _super);
+        function RectOptions() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.roundingRadius = 0;
+            _this.relativeToCenter = true;
+            return _this;
+        }
+        return RectOptions;
+    }(DrawSettings));
+    exports.RectOptions = RectOptions;
     //
     // Specialized Entities
     //
@@ -106,19 +117,17 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
         __extends(RectEntityOptions, _super);
         function RectEntityOptions() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.roundingRadius = 0;
-            _this.relativeToCenter = true;
             _this.physics = {};
             return _this;
         }
         return RectEntityOptions;
-    }(DrawSettings));
+    }(RectOptions));
     exports.RectEntityOptions = RectEntityOptions;
     var PhysicsRectEntity = /** @class */ (function (_super) {
         __extends(PhysicsRectEntity, _super);
         function PhysicsRectEntity(scene, x, y, width, height, drawable, opts) {
             var _this = _super.call(this, scene, drawable) || this;
-            if (opts === null || opts === void 0 ? void 0 : opts.relativeToCenter) {
+            if (!opts.relativeToCenter) {
                 x += width / 2;
                 y += height / 2;
             }
@@ -128,12 +137,10 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
         PhysicsRectEntity.prototype.getPhysicsBody = function () {
             return this.body;
         };
-        PhysicsRectEntity.createGraphics = function (x, y, width, height, opts) {
-            var options = Util_1.Util.getOptions(RectEntityOptions, opts);
-            if (!options.relativeToCenter) {
-                x += width / 2;
-                y += height / 2;
-            }
+        /**
+         * Create the graphics with center (0,0)
+         */
+        PhysicsRectEntity.createGraphics = function (width, height, options) {
             var graphics = new PIXI.Graphics();
             graphics.lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha, options.strokeAlignment);
             graphics.beginFill(options.color, options.alpha);
@@ -144,23 +151,62 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
         PhysicsRectEntity.create = function (scene, x, y, width, height, opts) {
             var _a;
             _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
-            var graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts);
-            return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts);
+            var options = Util_1.Util.getOptions(RectEntityOptions, opts);
+            var graphics = PhysicsRectEntity.createGraphics(width, height, options);
+            return new PhysicsRectEntity(scene, x, y, width, height, graphics, options);
         };
         PhysicsRectEntity.createWithContainer = function (scene, x, y, width, height, opts) {
             var _a;
             _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
-            var graphics = PhysicsRectEntity.createGraphics(x, y, width, height, opts);
+            var options = Util_1.Util.getOptions(RectEntityOptions, opts);
+            var graphics = PhysicsRectEntity.createGraphics(width, height, options);
             var container = new PIXI.Container();
             container.addChild(graphics);
-            return new PhysicsRectEntity(scene, x, y, width, height, graphics, opts);
+            return new PhysicsRectEntity(scene, x, y, width, height, graphics, options);
         };
         PhysicsRectEntity.createTexture = function (scene, x, y, texture, alpha, relativeToCenter, bodyOptions) {
             if (relativeToCenter === void 0) { relativeToCenter = false; }
-            return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), { physics: bodyOptions });
+            return new PhysicsRectEntity(scene, x, y, texture.width, texture.height, new PIXI.DisplayObject(), Util_1.Util.getOptions(RectEntityOptions, { physics: bodyOptions }));
             // TODO
         };
         return PhysicsRectEntity;
     }(DrawablePhysicsEntity));
     exports.PhysicsRectEntity = PhysicsRectEntity;
+    var DrawableEntity = /** @class */ (function () {
+        function DrawableEntity(scene, drawable) {
+            this.scene = scene;
+            this.drawable = drawable;
+        }
+        DrawableEntity.prototype.IEntity = function () { };
+        DrawableEntity.prototype.getScene = function () {
+            return this.scene;
+        };
+        DrawableEntity.prototype.getParent = function () {
+            return this.parent;
+        };
+        DrawableEntity.prototype._setParent = function (parent) {
+            this.parent = parent;
+        };
+        DrawableEntity.prototype.IDrawableEntity = function () { };
+        DrawableEntity.prototype.getDrawable = function () {
+            return this.drawable;
+        };
+        DrawableEntity.rect = function (scene, x, y, width, height, opts) {
+            var options = Util_1.Util.getOptions(RectOptions, opts);
+            var graphicsX = 0;
+            var graphicsY = 0;
+            if (options.relativeToCenter) {
+                graphicsX -= width / 2;
+                graphicsY -= height / 2;
+            }
+            var graphics = new PIXI.Graphics()
+                .lineStyle(options.strokeWidth, options.strokeColor, options.strokeAlpha, options.strokeAlignment)
+                .beginFill(options.color, options.alpha)
+                .drawRoundedRect(graphicsX, graphicsY, width, height, options.roundingRadius)
+                .endFill();
+            graphics.position.set(x, y);
+            return new DrawableEntity(scene, graphics);
+        };
+        return DrawableEntity;
+    }());
 });
