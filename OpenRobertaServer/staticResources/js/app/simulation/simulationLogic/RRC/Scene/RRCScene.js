@@ -11,6 +11,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -19,6 +30,7 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         __extends(RRCScene, _super);
         function RRCScene(ageGroup) {
             var _this = _super.call(this) || this;
+            _this.addWaypointGraphics = false;
             _this.scoreTextContainer = new PIXI.Container();
             _this.ageGroup = ageGroup;
             return _this;
@@ -26,13 +38,32 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         /**
          * @param position The position of the waypoint in matter Units
          * @param score The score for reaching the waypoint
-         * @param maxDistance The maximum distance which still reaches the waypoint (default: 0.05 meters)
+         * @param maxDistance The maximum distance in matter units which still reaches the waypoint (default: 50 matter units)
          */
         RRCScene.prototype.makeWaypoint = function (position, score, maxDistance) {
             if (maxDistance === void 0) { maxDistance = 50; }
             return new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score);
         };
         RRCScene.prototype.setWaypointList = function (list) {
+            var e_1, _a;
+            if (this.addWaypointGraphics) {
+                try {
+                    for (var _b = __values(list.waypoints), _c = _b.next(); !_c.done; _c = _b.next()) {
+                        var waypoint = _c.value;
+                        this.addEntity(Entity_1.DrawableEntity.rect(this, waypoint.position.x, waypoint.position.y, waypoint.maxDistance * 2, waypoint.maxDistance * 2, {
+                            color: 0xFF0000,
+                            alpha: 0.5
+                        }));
+                    }
+                }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                    }
+                    finally { if (e_1) throw e_1.error; }
+                }
+            }
             var t = this;
             this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
                 t.addToScore(waypoint.score);

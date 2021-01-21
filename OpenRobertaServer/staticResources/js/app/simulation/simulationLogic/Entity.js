@@ -30,7 +30,7 @@ var __read = (this && this.__read) || function (o, n) {
 define(["require", "exports", "matter-js", "./Util"], function (require, exports, matter_js_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PhysicsRectEntity = exports.RectEntityOptions = exports.RectOptions = exports.DrawSettings = exports.DrawablePhysicsEntity = exports.Type = exports.Meta = void 0;
+    exports.DrawableEntity = exports.PhysicsRectEntity = exports.RectEntityOptions = exports.RectOptions = exports.DrawSettings = exports.DrawablePhysicsEntity = exports.Type = exports.Meta = void 0;
     var Meta = /** @class */ (function () {
         function Meta(name) {
             this.name = name;
@@ -209,4 +209,5 @@ define(["require", "exports", "matter-js", "./Util"], function (require, exports
         };
         return DrawableEntity;
     }());
+    exports.DrawableEntity = DrawableEntity;
 });

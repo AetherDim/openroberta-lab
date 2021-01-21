@@ -5,13 +5,14 @@ import {Robot} from "../../Robot/Robot";
 import {Body, Vector, World} from "matter-js";
 import { Unit } from "../../Unit";
 import {Scene} from "../../Scene/Scene";
-import {PhysicsRectEntity} from "../../Entity";
+import { PhysicsRectEntity, DrawableEntity } from "../../Entity";
 import { ScoreWaypoint } from "../../Waypoints/ScoreWaypoint"
 import { WaypointList } from "../../Waypoints/WaypointList";
 
 export class RRCScene extends Scene {
 
 	readonly ageGroup: AgeGroup;
+	private addWaypointGraphics = false
 
 	constructor(ageGroup: AgeGroup) {
 		super();
@@ -22,13 +23,21 @@ export class RRCScene extends Scene {
 	/**
 	 * @param position The position of the waypoint in matter Units
 	 * @param score The score for reaching the waypoint
-	 * @param maxDistance The maximum distance which still reaches the waypoint (default: 0.05 meters)
+	 * @param maxDistance The maximum distance in matter units which still reaches the waypoint (default: 50 matter units)
 	 */
 	makeWaypoint(position: Vector, score: number, maxDistance: number = 50): ScoreWaypoint {
 		return new ScoreWaypoint(this.unit, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score)
 	}
 	
 	setWaypointList(list: WaypointList<ScoreWaypoint>) {
+		if (this.addWaypointGraphics) {
+			for (const waypoint of list.waypoints) {
+				this.addEntity(DrawableEntity.rect(this, waypoint.position.x, waypoint.position.y, waypoint.maxDistance*2, waypoint.maxDistance*2, {
+					color: 0xFF0000,
+					alpha: 0.5
+				}))
+			}
+		}
 		const t = this
 		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
 			t.addToScore(waypoint.score)

@@ -270,7 +270,7 @@ export class PhysicsRectEntity<Drawable extends PIXI.DisplayObject = PIXI.Displa
 }
 
 
-class DrawableEntity<Drawable extends PIXI.DisplayObject = PIXI.DisplayObject> implements IDrawableEntity {
+export class DrawableEntity<Drawable extends PIXI.DisplayObject = PIXI.DisplayObject> implements IDrawableEntity {
 
 	private scene: Scene
 	private parent?: IContainerEntity
