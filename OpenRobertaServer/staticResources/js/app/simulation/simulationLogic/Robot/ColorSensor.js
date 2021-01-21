@@ -17,8 +17,17 @@ define(["require", "exports"], function (require, exports) {
             this.position = unit.getPosition(position);
             this.updateGraphics();
         }
+        /**
+         * Returns the color in rgb values from 0 to 255
+         */
         ColorSensor.prototype.getDetectedColor = function () {
             return this.detectedColor;
+        };
+        /**
+         * Returns the brightness as a value from 0 to 1
+         */
+        ColorSensor.prototype.getDetectedBrightness = function () {
+            return (this.detectedColor.red + this.detectedColor.green + this.detectedColor.blue) / 3 / 255;
         };
         /**
          * Sets the `detectedColor` and updates its graphics

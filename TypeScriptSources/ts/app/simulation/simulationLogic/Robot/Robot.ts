@@ -678,6 +678,37 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		// }
 	};
 
+	addHTMLSensorValuesTo(list: {label: string, value: any}[]) {
+		const s = this.scene
+		const appendAny = (label: string, value: any) => { list.push({ label: label, value: value }) }
+		const append = (label: string, value: number, end?: string) => {
+			list.push({ label: label, value: Math.round(value * 100)/100 + (end ?? "")})
+		}
+
+		const sensors = this.robotBehaviour?.getHardwareStateSensors()
+		if (sensors == undefined) {
+			return
+		}
+		append("Robot X", this.body.position.x)
+		append("Robot Y", this.body.position.y)
+		append("Robot θ", this.body.angle * 180 / Math.PI, "°")
+		append("Motor left", sensors.encoder?.left ?? 0, "°")
+		append("Motor right", sensors.encoder?.right ?? 0, "°")
+		for (const port in this.touchSensors) {
+			appendAny("Touch Sensor "+port, this.touchSensors[port].getIsTouched())
+		}
+		for (const port in this.colorSensors) {
+			append("Light Sensor "+port, this.colorSensors[port].getDetectedBrightness() * 100, "%")
+		}
+		for (const port in this.colorSensors) {
+			appendAny("Color Sensor "+port, JSON.stringify(this.colorSensors[port].getDetectedColor()))
+		}
+		for (const port in this.ultrasonicSensors) {
+			append("Ultra Sensor "+port, 100 * s.unit.fromLength(this.ultrasonicSensors[port].getMeasuredDistance()), "cm")
+		}
+        
+	}
+
 	/**
 	 * Returns the absolute position relative to `this.body`
 	 */

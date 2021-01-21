@@ -11,7 +11,7 @@ export class UltrasonicSensor {
 	/**
 	 * The measured distance in matter units
 	 */
-	measuredDistance = Infinity
+	private measuredDistance = Infinity
 
 	/**
 	 * The maximum distance which can be measured by the ultrasonic sensor in matter units
@@ -36,6 +36,9 @@ export class UltrasonicSensor {
 		this.updateGraphics()
 	}
 
+	getMeasuredDistance(): number {
+		return this.measuredDistance
+	}
 
 	/**
 	 * @param distance distance in meters

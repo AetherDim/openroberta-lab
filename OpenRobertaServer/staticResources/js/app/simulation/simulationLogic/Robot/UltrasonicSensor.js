@@ -16,6 +16,9 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             this.setMaximumMeasurableDistanceInMeters(2.5);
             this.updateGraphics();
         }
+        UltrasonicSensor.prototype.getMeasuredDistance = function () {
+            return this.measuredDistance;
+        };
         /**
          * @param distance distance in meters
          */

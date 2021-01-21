@@ -25,8 +25,18 @@ export class ColorSensor {
 		this.updateGraphics()
 	}
 
+	/**
+	 * Returns the color in rgb values from 0 to 255
+	 */
 	getDetectedColor() {
 		return this.detectedColor
+	}
+
+	/**
+	 * Returns the brightness as a value from 0 to 1
+	 */
+	getDetectedBrightness(): number {
+		return (this.detectedColor.red + this.detectedColor.green + this.detectedColor.blue) / 3 / 255
 	}
 
 	/**

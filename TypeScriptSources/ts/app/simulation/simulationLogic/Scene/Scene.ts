@@ -1,12 +1,9 @@
 import { Robot } from '../Robot/Robot';
-import { createDisplayableFromBody } from '../Displayable';
-import { Engine, Mouse, World, Render, MouseConstraint, Composite, Vector, Events, Body, Constraint, IEventComposite, Sleeping, Bounds, Vertices, Query } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices, Query } from 'matter-js';
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
 import { ProgramManager } from '../ProgramManager';
-import { Polygon } from '../Geometry/Polygon';
-import { LineBaseClass } from '../Geometry/LineBaseClass';
 import { RobotUpdateOptions } from '../Robot/RobotUpdateOptions';
 import { IDrawablePhysicsEntity, IEntity, IUpdatableEntity, Type } from "../Entity";
 import { Unit } from '../Unit';
@@ -24,6 +21,8 @@ export class Scene {
 	 * @protected
 	 */
 	protected numberOfRobots = 1;
+
+	private showRobotSensorValues = true
 
 	private _unit = new Unit({})
 	get unit(): Unit {
@@ -1011,6 +1010,10 @@ export class Scene {
 		return this.robotUpdateOptions
 	}
 
+	private htmlSensorValues(label: String, value: any): string {
+		return `<div><label>${label}</label><span>${value}</span></div>`
+	}
+
 
 	//
 	// #############################################################################
@@ -1068,6 +1071,16 @@ export class Scene {
 			if (anyGrid.buckets[key].length == 0) {
 				delete anyGrid.buckets[key]
 			}
+		}
+
+		// update sensor value html
+		if (this.showRobotSensorValues) {
+			const htmlElement = $('#notConstantValue')
+			htmlElement.html('');
+			const elementList: { label: string, value: any }[] = []
+			this.robots.forEach(robot => robot.addHTMLSensorValuesTo(elementList))
+			const htmlString = elementList.map(element => this.htmlSensorValues(element.label, element.value)).join("")
+			htmlElement.append(htmlString)
 		}
 
 		this.onUpdatePostPhysics();

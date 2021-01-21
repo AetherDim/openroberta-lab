@@ -549,6 +549,35 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             // }
         };
         ;
+        Robot.prototype.addHTMLSensorValuesTo = function (list) {
+            var _a, _b, _c, _d, _e;
+            var s = this.scene;
+            var appendAny = function (label, value) { list.push({ label: label, value: value }); };
+            var append = function (label, value, end) {
+                list.push({ label: label, value: Math.round(value * 100) / 100 + (end !== null && end !== void 0 ? end : "") });
+            };
+            var sensors = (_a = this.robotBehaviour) === null || _a === void 0 ? void 0 : _a.getHardwareStateSensors();
+            if (sensors == undefined) {
+                return;
+            }
+            append("Robot X", this.body.position.x);
+            append("Robot Y", this.body.position.y);
+            append("Robot θ", this.body.angle * 180 / Math.PI, "°");
+            append("Motor left", (_c = (_b = sensors.encoder) === null || _b === void 0 ? void 0 : _b.left) !== null && _c !== void 0 ? _c : 0, "°");
+            append("Motor right", (_e = (_d = sensors.encoder) === null || _d === void 0 ? void 0 : _d.right) !== null && _e !== void 0 ? _e : 0, "°");
+            for (var port in this.touchSensors) {
+                appendAny("Touch Sensor " + port, this.touchSensors[port].getIsTouched());
+            }
+            for (var port in this.colorSensors) {
+                append("Light Sensor " + port, this.colorSensors[port].getDetectedBrightness() * 100, "%");
+            }
+            for (var port in this.colorSensors) {
+                appendAny("Color Sensor " + port, JSON.stringify(this.colorSensors[port].getDetectedColor()));
+            }
+            for (var port in this.ultrasonicSensors) {
+                append("Ultra Sensor " + port, 100 * s.unit.fromLength(this.ultrasonicSensors[port].getMeasuredDistance()), "cm");
+            }
+        };
         /**
          * Returns the absolute position relative to `this.body`
          */

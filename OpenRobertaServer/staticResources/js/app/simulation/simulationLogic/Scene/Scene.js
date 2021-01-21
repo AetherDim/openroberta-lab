@@ -13,6 +13,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
              * @protected
              */
             this.numberOfRobots = 1;
+            this.showRobotSensorValues = true;
             this._unit = new Unit_1.Unit({});
             /**
              * All programmable robots within the scene.
@@ -782,10 +783,14 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.getRobotUpdateOptions = function () {
             return this.robotUpdateOptions;
         };
+        Scene.prototype.htmlSensorValues = function (label, value) {
+            return "<div><label>" + label + "</label><span>" + value + "</span></div>";
+        };
         /**
          * update physics and robots
          */
         Scene.prototype.update = function () {
+            var _this_1 = this;
             this.onUpdate();
             var allBodies = matter_js_1.Composite.allBodies(this.world);
             // FIXME: What to do with undefined 'getImageData'?
@@ -824,6 +829,15 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 if (anyGrid.buckets[key].length == 0) {
                     delete anyGrid.buckets[key];
                 }
+            }
+            // update sensor value html
+            if (this.showRobotSensorValues) {
+                var htmlElement = $('#notConstantValue');
+                htmlElement.html('');
+                var elementList_1 = [];
+                this.robots.forEach(function (robot) { return robot.addHTMLSensorValuesTo(elementList_1); });
+                var htmlString = elementList_1.map(function (element) { return _this_1.htmlSensorValues(element.label, element.value); }).join("");
+                htmlElement.append(htmlString);
             }
             this.onUpdatePostPhysics();
         };
