@@ -1,4 +1,4 @@
-define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1) {
+define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneHandle = void 0;
@@ -93,7 +93,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     //
     new SceneHandle('Test Scene', 'TestScene', 'Test scene with all sim features', function () {
         return new TestScene_1.TestScene();
-    }), new SceneHandle('Empty Scene', 'EmptyScene', 'Empty Scene', function () {
+    }), new SceneHandle("Test Scene 2", "TestScene2", "T", function () { return new TestScene2_1.TestScene2(AgeGroup_1.AgeGroup.ES); }), new SceneHandle('Empty Scene', 'EmptyScene', 'Empty Scene', function () {
         return new Scene_1.Scene();
     }), new SceneHandle('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function () {
         return new RRCScene_1.RRCScene(AgeGroup_1.AgeGroup.ES);

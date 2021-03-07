@@ -5,6 +5,7 @@ import {AgeGroup} from "./RRC/AgeGroup";
 import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
 import {Scene} from "./Scene/Scene";
 import {TestScene} from "./Scene/TestScene";
+import {TestScene2} from "./Scene/TestScene2"
 import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 import {RRCScene} from "./RRC/Scene/RRCScene";
 import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
@@ -119,6 +120,11 @@ sceneManager.registerScene(
 	() => {
 			return new TestScene();
 		}
+	),
+
+	new SceneHandle(
+		"Test Scene 2", "TestScene2", "T", 
+		() => new TestScene2(AgeGroup.ES)
 	),
 
 	new SceneHandle(
