@@ -520,6 +520,8 @@ export class Scene {
 			return;
 		}
 
+		 this.hideScore();
+
 		this.currentlyLoading = true; // this flag will start loading animation update
 		this.hasFinishedLoading = false;
 
