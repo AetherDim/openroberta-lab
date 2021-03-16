@@ -22,7 +22,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -140,6 +140,29 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             robot.setPose(this.unit.getPosition(position), (opt === null || opt === void 0 ? void 0 : opt.rotation) || 0, false);
             robot.body.enableMouseInteraction = true;
             this.addRobot(robot);
+        };
+        /**
+         * Adds a static physics body rectangle where the coordinates are given in pixels
+         *
+         * @param x x coordinate of upper left corner
+         * @param y y coordinate of upper left corner
+         * @param w width of rectangle
+         * @param h height of rectangle
+         * @param options options for 'RectEntityOptions'
+         */
+        RRCScene.prototype.addStaticWallInPixels = function (x, y, w, h, options) {
+            var unit = this.getUnitConverter();
+            x = unit.fromLength(x);
+            y = unit.fromLength(y);
+            w = unit.fromLength(w);
+            h = unit.fromLength(h);
+            var opts = Util_1.Util.getOptions(Entity_1.RectEntityOptions, options);
+            if ((options === null || options === void 0 ? void 0 : options.relativeToCenter) == undefined) {
+                opts.relativeToCenter = false;
+            }
+            var entity = Entity_1.PhysicsRectEntity.create(this, x, y, w, h, opts);
+            matter_js_1.Body.setStatic(entity.getPhysicsBody(), true);
+            this.addEntity(entity);
         };
         RRCScene.prototype.addWalls = function (visible) {
             if (visible === void 0) { visible = false; }
