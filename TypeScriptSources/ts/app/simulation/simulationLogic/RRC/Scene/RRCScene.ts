@@ -5,9 +5,10 @@ import {Robot} from "../../Robot/Robot";
 import {Body, Vector, World} from "matter-js";
 import { Unit } from "../../Unit";
 import {Scene} from "../../Scene/Scene";
-import { PhysicsRectEntity, DrawableEntity } from "../../Entity";
+import { PhysicsRectEntity, DrawableEntity, RectEntityOptions } from "../../Entity";
 import { ScoreWaypoint } from "../../Waypoints/ScoreWaypoint"
 import { WaypointList } from "../../Waypoints/WaypointList";
+import { Util } from "../../Util";
 
 export class RRCScene extends Scene {
 
@@ -149,6 +150,31 @@ export class RRCScene extends Scene {
 		robot.setPose(this.unit.getPosition(position), opt?.rotation || 0, false)
 		robot.body.enableMouseInteraction = true;
 		this.addRobot(robot)
+	}
+
+	/**
+	 * Adds a static physics body rectangle where the coordinates are given in pixels
+	 * 
+	 * @param x x coordinate of upper left corner
+	 * @param y y coordinate of upper left corner
+	 * @param w width of rectangle
+	 * @param h height of rectangle
+	 * @param options options for 'RectEntityOptions'
+	 */
+	addStaticWallInPixels(x: number, y: number, w: number, h: number, options?: Partial<RectEntityOptions>) {
+		const unit = this.getUnitConverter()
+		x = unit.fromLength(x)
+		y = unit.fromLength(y)
+		w = unit.fromLength(w)
+		h = unit.fromLength(h)
+
+		const opts = Util.getOptions(RectEntityOptions , options)
+		if (options?.relativeToCenter == undefined) {
+			opts.relativeToCenter = false
+		}
+		const entity = PhysicsRectEntity.create(this, x, y, w, h, opts)
+		Body.setStatic(entity.getPhysicsBody(), true)
+		this.addEntity(entity)
 	}
 
 	addWalls(visible: boolean = false) {
