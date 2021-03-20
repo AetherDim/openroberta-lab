@@ -594,7 +594,7 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
         });
 
         $('#img-nepo').onWrap('click', function() {
-            //$("#show-startup-message").modal("show");
+            $("#show-startup-message").modal("show");
             // disable popup selection window
         }, 'logo was clicked');
 
