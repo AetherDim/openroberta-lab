@@ -34,6 +34,20 @@ limitations under the License.
 <link rel="stylesheet" type="text/css" href="/css/enjoyhint.css"></link>
 <link rel="stylesheet" type="text/css" href="/css/prettify.css"></link>
 <link rel="stylesheet" type="text/css" href="/css/roberta.css"></link>
+
+<!-- internet explorer redirect -->
+<!-- Due to a bug we cannot support IE -->
+<script>
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE ");
+
+    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))  // If Internet Explorer, return version number
+    {
+        alert("Sorry, Internet Explorer is not supported :(\n please use another browser like Firefox, Chrome or Edge");
+        window.location.href = "https://www.roborave.de/";
+    }
+</script>
+
 <!-- Make sure css files are loaded before js files -->
 <script data-main="js/main" src="js/require.js"></script>
 <link rel="manifest" href="manifest.webapp.json"></link>
@@ -151,7 +165,7 @@ limitations under the License.
                             <li><a href="https://www.roborave.de/de/privacy" target="_blank" class="typcn typcn-info-large DE">Datenschutzerklärung</a>
                                 <a href="https://www.roborave.de/en/privacy" target="_blank" class="typcn typcn-info-large EN">privacy policy</a></li>
                             <li><a href="https://www.roborave.de/de/imprint" target="_blank" class="typcn typcn-info-large DE">Impressum</a> <a
-                                href="https://github.com/AetherDim/openroberta-lab" target="_blank" class="typcn typcn-info-large EN">publishing notes</a></li>
+                                href="https://www.roborave.de/en/imprint" target="_blank" class="typcn typcn-info-large EN">publishing notes</a></li>
                             <li><a href="#" data-toggle="modal" class="typcn typcn-info-large" data-target="#shortcut">Keyboard Shortcuts</a></li>   
                         </ul></li>
                     <!--   Menu User -->
@@ -1183,7 +1197,7 @@ limitations under the License.
                     <br />
                     <div class="googleLogo imgFloatLeft"></div>
                     <span lkey="Blockly.Msg.POPUP_ABOUT_TEXT_GOOG">Entwickelt vom Open Roberta Team ...</span> </br> </br> <a href="https://www.roborave.de/de/imprint"
-                        target="_blank" class="DE">Impressum</a> <a href="https://github.com/AetherDim/openroberta-lab" target="_blank" class="EN">Publishing
+                        target="_blank" class="DE">Impressum</a> <a href="https://www.roborave.de/en/imprint" target="_blank" class="EN">Publishing
                         notes</a>
                     <div style="overflow: auto; width: 100%"></div>
                     <br />
@@ -1330,7 +1344,7 @@ limitations under the License.
             <div class="modal-content" style="padding-top: 10px;">
                 <a href="https://github.com/AetherDim/openroberta-lab/releases" class="modal-body" target="_blank">Release <span id="startupVersion"font-size: 18px;">
                         2.0.0 </span></a> <a href="https://www.roborave.de/de/imprint" target="_blank" class="DE modal-body" style="float: right;">Impressum</a> <a
-                    href="https://github.com/AetherDim/openroberta-lab/releases" target="_blank" class="EN modal-body" style="float: right;">Publishing notes</a> </br> <a
+                    href="https://www.roborave.de/en/imprint" target="_blank" class="EN modal-body" style="float: right;">Publishing notes</a> </br> <a
                     href="https://www.roborave.de/de/privacy" target="_blank" class="modal-body DE" style="float: right;">Datenschutzerklärung</a> <a
                     href="https://www.roborave.de/en/privacy" target="_blank" class="modal-body EN" style="float: right;">privacy policy</a>
                 <div class="modal-header" style="text-align: center; font-size: 18px;">
