@@ -71,6 +71,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	programCode: any = null;
 
 	interpreter?: Interpreter
+
+	private delay = 0
 	
 	/**
 	 * robot type
@@ -367,9 +369,14 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		// update sensors
 		this.updateRobotBehaviourHardwareStateSensors(updateOptions)
 
-		if(!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
-			const delay = this.interpreter.runNOperations(1000) / 1000;
+		if(this.delay > 0) {
+			this.delay -= this.scene.unit.getTime(dt); // reduce delay by dt each tick
+		} else {
+			if(!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
+				this.delay = this.interpreter.runNOperations(1000) / 1000;
+			}
 		}
+
 
 		let speed = { left: 0, right: 0 }
 

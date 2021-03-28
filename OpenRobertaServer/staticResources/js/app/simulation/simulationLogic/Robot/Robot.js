@@ -19,6 +19,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             this.touchSensors = {};
             this.configuration = null;
             this.programCode = null;
+            this.delay = 0;
             /**
              * robot type
              */
@@ -250,8 +251,14 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             }
             // update sensors
             this.updateRobotBehaviourHardwareStateSensors(updateOptions);
-            if (!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
-                var delay = this.interpreter.runNOperations(1000) / 1000;
+            if (this.delay > 0) {
+                console.log(this.delay);
+                this.delay -= dt; // reduce delay by dt each tick
+            }
+            else {
+                if (!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
+                    this.delay = this.interpreter.runNOperations(1000) / 1000;
+                }
             }
             var speed = { left: 0, right: 0 };
             var t = this;
