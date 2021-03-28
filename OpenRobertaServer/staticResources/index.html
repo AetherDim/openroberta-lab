@@ -49,7 +49,10 @@ limitations under the License.
 </script>
 
 <!-- Make sure css files are loaded before js files -->
-<script data-main="js/main" src="js/require.js"></script>
+<script data-main="js/imports" src="js/require.js">
+
+</script>
+    <script>require(["main"])</script>
 <link rel="manifest" href="manifest.webapp.json"></link>
 <link rel="SHORTCUT ICON" href="../css/img/img.png" type="image/vnd.microsoft.icon"></link>
 <link rel="apple-touch-icon" sizes="144x144" href="https://www.roborave.de/images/content/RoboRAVE_Cyberspace_Logo.png" />

@@ -1,7 +1,12 @@
 define(["require", "simulation.simulation", "exports"], function (require, SIM, exports) {
     //This file contains function which allow the interpreter to communicate with the simulation.
     function getBlockById(id) {
-        return Blockly.getMainWorkspace().getBlockById(id);
+        const ws = Blockly.getMainWorkspace();
+        if(ws) {
+            return ws.getBlockById(id);
+        } else {
+            return null;
+        }
     }
     exports.getBlockById = getBlockById;
     function setSimBreak() {

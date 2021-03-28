@@ -472,6 +472,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 console.warn('Already loading scene... !');
                 return;
             }
+            this.hideScore();
             this.currentlyLoading = true; // this flag will start loading animation update
             this.hasFinishedLoading = false;
             // should not run while loading running
