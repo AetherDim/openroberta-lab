@@ -628,10 +628,14 @@ export class Scene {
 	}
 
 	/**
-	 * current delta time for the physics simulation
+	 * current delta time for the physics simulation (SI-Unit)
 	 */
 	private dt = 0.016;
 
+	/**
+	 * Sets the simulation DT in seconds (SI-Unit)
+	 * @param dt
+	 */
 	setDT(dt: number) {
 		this.dt = dt;
 	}
@@ -643,9 +647,9 @@ export class Scene {
 	//
 
 	/**
-	 * sleep time before calling update
+	 * sleep time before calling update (SI-Unit)
 	 */
-	private simSleepTime = 1/30;
+	private simSleepTime = this.dt;
 
 	/**
 	 * simulation ticker/timer
@@ -664,6 +668,10 @@ export class Scene {
 		}
 	}
 
+	/**
+	 * Sets the sim sleep time in seconds.
+	 * @param simSleepTime
+	 */
 	setSimSleepTime(simSleepTime: number) {
 		this.simSleepTime = simSleepTime;
 		this.simTicker.sleepTime = simSleepTime;

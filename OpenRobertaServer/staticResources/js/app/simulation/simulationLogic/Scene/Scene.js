@@ -124,7 +124,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.engine = matter_js_1.Engine.create();
             this.world = this.engine.world;
             /**
-             * current delta time for the physics simulation
+             * current delta time for the physics simulation (SI-Unit)
              */
             this.dt = 0.016;
             this.autostartSim = true;
@@ -132,9 +132,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // #############################################################################
             //
             /**
-             * sleep time before calling update
+             * sleep time before calling update (SI-Unit)
              */
-            this.simSleepTime = 1 / 30;
+            this.simSleepTime = this.dt;
             //
             // #############################################################################
             //
@@ -534,6 +534,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.getWorld = function () {
             return this.world;
         };
+        /**
+         * Sets the simulation DT in seconds (SI-Unit)
+         * @param dt
+         */
         Scene.prototype.setDT = function (dt) {
             this.dt = dt;
         };
@@ -547,6 +551,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 this.simTicker.stop();
             }
         };
+        /**
+         * Sets the sim sleep time in seconds.
+         * @param simSleepTime
+         */
         Scene.prototype.setSimSleepTime = function (simSleepTime) {
             this.simSleepTime = simSleepTime;
             this.simTicker.sleepTime = simSleepTime;

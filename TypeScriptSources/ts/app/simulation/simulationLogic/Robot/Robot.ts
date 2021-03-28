@@ -370,7 +370,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.updateRobotBehaviourHardwareStateSensors(updateOptions)
 
 		if(this.delay > 0) {
-			this.delay -= this.scene.unit.getTime(dt); // reduce delay by dt each tick
+			this.delay -= dt; // reduce delay by dt each tick
 		} else {
 			if(!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
 				this.delay = this.interpreter.runNOperations(1000) / 1000;

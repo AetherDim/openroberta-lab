@@ -252,7 +252,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             // update sensors
             this.updateRobotBehaviourHardwareStateSensors(updateOptions);
             if (this.delay > 0) {
-                console.log(this.delay);
                 this.delay -= dt; // reduce delay by dt each tick
             }
             else {
