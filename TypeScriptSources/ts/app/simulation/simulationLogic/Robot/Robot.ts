@@ -18,6 +18,14 @@ import { Util } from '../Util'
 
 type StringMap<V> = { [key: string]: V }
 type NumberMap<V> = { [key: number]: V }
+const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
+	// german description: "HT Infrarotsensor"
+	"IRSEEKER",
+	// does not work in RobertaLab?!
+	"HT_COLOR",
+] as const
+type SensorType = typeof sensorTypeStrings[number]
+
 export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompositeEntity {
 
 	/**
@@ -67,7 +75,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 	robotBehaviour?: RobotSimBehaviour
 
-	configuration: any = null;
+	configuration?: StringMap<SensorType> = undefined;
 	programCode: any = null;
 
 	interpreter?: Interpreter
@@ -299,7 +307,13 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	setProgram(program: any, breakpoints: any[]): Interpreter {
 		const _this = this;
 		this.programCode = JSON.parse(program.javaScriptProgram);
-		this.configuration = program.javaScriptConfiguration
+		this.configuration = program.javaScriptConfiguration as StringMap<SensorType>
+		const allKeys = Object.keys(this.configuration)
+		const allValues = Object.values(this.configuration)
+		const wrongValueCount = allValues.find((e)=>!sensorTypeStrings.includes(e))?.length ?? 0
+		if (wrongValueCount > 0 || allKeys.filter((e) => typeof e === "number").length > 0) {
+			console.error(`The 'configuration' has not the expected type: ${this.configuration}`)
+		}
 		this.robotBehaviour = new RobotSimBehaviour(this.scene.unit);
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
 			_this.programTerminated();

@@ -2,6 +2,12 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
+    var sensorTypeStrings = ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
+        // german description: "HT Infrarotsensor"
+        "IRSEEKER",
+        // does not work in RobertaLab?!
+        "HT_COLOR",
+    ];
     var Robot = /** @class */ (function () {
         function Robot(robot) {
             this.updateSensorGraphics = true;
@@ -17,7 +23,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              * The touch sensors of the robot
              */
             this.touchSensors = {};
-            this.configuration = null;
+            this.configuration = undefined;
             this.programCode = null;
             this.delay = 0;
             /**
@@ -203,9 +209,16 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             return matter_js_1.Vector.dot(body.velocity, this.vectorAlongBody(body));
         };
         Robot.prototype.setProgram = function (program, breakpoints) {
+            var _a, _b;
             var _this = this;
             this.programCode = JSON.parse(program.javaScriptProgram);
             this.configuration = program.javaScriptConfiguration;
+            var allKeys = Object.keys(this.configuration);
+            var allValues = Object.values(this.configuration);
+            var wrongValueCount = (_b = (_a = allValues.find(function (e) { return !sensorTypeStrings.includes(e); })) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0;
+            if (wrongValueCount > 0 || allKeys.filter(function (e) { return typeof e === "number"; }).length > 0) {
+                console.error("The 'configuration' has not the expected type: " + this.configuration);
+            }
             this.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour(this.scene.unit);
             this.interpreter = new interpreter_interpreter_1.Interpreter(this.programCode, this.robotBehaviour, function () {
                 _this.programTerminated();
