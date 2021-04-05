@@ -1,6 +1,6 @@
-#Extended README
+# Extended README
 
-##Setup
+## Setup
 
 - Clone Repository
 - Open IntelliJ (but not the cloned project)
@@ -30,7 +30,7 @@
     - `npm install --save @types/dat-gui` installs typescript types for dat.gui
 
 
-##Working with the project
+## Working with the project
 
 When changing something in `openroberta-lab/TypeScriptSources/ts` in VSCode:
 - In the terminal. Type and press enter: `tsc` which compiles the TypeScript source files to `openroberta-lab/OpenRobertaServer/staticResources/js/...`
