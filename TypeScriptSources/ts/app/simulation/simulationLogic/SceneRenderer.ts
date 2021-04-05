@@ -103,6 +103,17 @@ export class SceneRender {
 		return this.app.renderer.extract.canvas(object)
 	}
 
+	zoomIn() {
+		this.scrollView.zoomCenter(Math.sqrt(2))
+	}
+
+	zoomOut() {
+		this.scrollView.zoomCenter(1/Math.sqrt(2))
+	}
+
+	zoomReset() {
+		this.scrollView.reset()
+	}
 
 	switchScene(scene?: Scene, noLoad: boolean = false) {
 		if(!scene) {

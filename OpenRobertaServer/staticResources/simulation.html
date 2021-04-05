@@ -85,14 +85,6 @@ limitations under the License.
 
 <!-- ################## HEAD NAVIGATION ################## -->
 
-    <!--  Brand and toggle get grouped for better mobile display -->
-
-    <!-- Roberta-Logo -->
-    <div class="logo">
-        <img href="#" id="img-nepo" class="img-nepo" src="/assets/RoboRAVE_Cyberspace_Logo.png" />
-    </div>
-    <!-- Toasts -->
-
 <div id="simDiv" style="position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; background-color: #bbb;">
     <div id="canvasDiv">
         <canvas id="sceneCanvas" class="canvasSim"></canvas>
@@ -108,10 +100,19 @@ limitations under the License.
 
 
 
-        <button id="simResetPose" type="button" class="simLocation blbtn typcn typcn-location-outline" lkey="Blockly.Msg.MENU_SIM_POSE_TOOLTIP"
-                rel="tooltip" data-original-title="" title=""></button>
+        <button id="simResetPose" type="button" class="simLocation blbtn typcn typcn-refresh-outline" lkey="Blockly.Msg.MENU_SIM_POSE_TOOLTIP"
+                rel="tooltip" data-original-title="" title="" style="-moz-transform: scale(-1, 1);-webkit-transform: scale(-1, 1);-o-transform: scale(-1, 1);-ms-transform: scale(-1, 1);transform: scale(-1, 1);"></button>
 
-        <button id="simVariables" type="button" class="simVariables blbtn typcn typcn-variable" lkey="Blockly.Msg.MENU_SIM_VARIABLES_TOOLTIP" rel="tooltip"
+        <button id="simValues" type="button" class="simValues blbtn typcn typcn-sensor" lkey="Blockly.Msg.MENU_SIM_VALUES_TOOLTIP" rel="tooltip"
+                data-original-title="" title=""></button>
+
+        <button id="zoomIn" type="button" class="blbtn typcn typcn-zoom-in" rel="tooltip"
+                data-original-title="" title="" style="margin-left:1.5cm;"></button>
+
+        <button id="zoomOut" type="button" class="blbtn typcn typcn-zoom-out" rel="tooltip"
+                data-original-title="" title=""></button>
+
+        <button id="zoomReset" type="button" class="blbtn typcn typcn-radar" rel="tooltip"
                 data-original-title="" title=""></button>
 
     </div>

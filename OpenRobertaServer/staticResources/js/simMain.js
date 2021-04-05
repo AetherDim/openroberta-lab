@@ -186,20 +186,17 @@ function initEvents() {
         SIM.resetPose();
     }, 'simResetPose clicked');
 
-    $('#simVariables').onWrap('click', function(event) {
-        $("#simVariablesModal").modal("toggle");
-        var position = $("#simDiv").position();
-        position.top += 12;
-        $("#simVariablesModal").css({
-            top: position.top,
-            right: 12,
-            left: 'initial',
-            bottom: 'inherit'
-        });
-        $('#simVariablesModal').draggable();
+    $('#zoomIn').onWrap('click', function(event) {
+        SIM.zoomIn();
+    }, 'zoomIn clicked');
 
-        $("#simButtonsCollapse").collapse('hide');
-    }, 'simVariables clicked');
+    $('#zoomOut').onWrap('click', function(event) {
+        SIM.zoomOut();
+    }, 'zoomOut clicked');
+
+    $('#zoomReset').onWrap('click', function(event) {
+        SIM.zoomReset();
+    }, 'zoomOut clicked');
 }
 
 /**

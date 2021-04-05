@@ -494,6 +494,10 @@ export class ScrollView extends PIXI.Container {
 		this.scale.y *= delta;
 	}
 
+	zoomCenter(delta: number) {
+		this.zoom(delta, {x: this.renderer.width/2, y: this.renderer.height/2})
+	}
+
 
 	//
 	// Events

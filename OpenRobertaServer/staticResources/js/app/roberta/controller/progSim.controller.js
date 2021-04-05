@@ -145,6 +145,18 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                 SIM.resetPose();
             }, 'simResetPose clicked');
 
+            $('#zoomIn').onWrap('click', function(event) {
+                SIM.zoomIn();
+            }, 'zoomIn clicked');
+
+            $('#zoomOut').onWrap('click', function(event) {
+                SIM.zoomOut();
+            }, 'zoomOut clicked');
+
+            $('#zoomReset').onWrap('click', function(event) {
+                SIM.zoomReset();
+            }, 'zoomOut clicked');
+
             $('#debugMode').onWrap('click', function(event) {
                 if ($('#debugMode').attr('data-original-title') === Blockly.Msg.MENU_DEBUG_START_TOOLTIP) {
                     $('#debugMode').attr('data-original-title', Blockly.Msg.MENU_DEBUG_STOP_TOOLTIP);

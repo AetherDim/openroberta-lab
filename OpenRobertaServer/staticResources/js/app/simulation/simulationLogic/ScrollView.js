@@ -409,6 +409,9 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.scale.x *= delta;
             this.scale.y *= delta;
         };
+        ScrollView.prototype.zoomCenter = function (delta) {
+            this.zoom(delta, { x: this.renderer.width / 2, y: this.renderer.height / 2 });
+        };
         //
         // Events
         //

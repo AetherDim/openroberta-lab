@@ -369,3 +369,15 @@ export function score(score: boolean) {
 		engine.getScene().hideScore();
 	}
 }
+
+export function zoomIn() {
+	engine.zoomIn()
+}
+
+export function zoomOut() {
+	engine.zoomOut()
+}
+
+export function zoomReset() {
+	engine.zoomReset()
+}

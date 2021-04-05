@@ -76,6 +76,15 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
         SceneRender.prototype.getCanvasFromDisplayObject = function (object) {
             return this.app.renderer.extract.canvas(object);
         };
+        SceneRender.prototype.zoomIn = function () {
+            this.scrollView.zoomCenter(Math.sqrt(2));
+        };
+        SceneRender.prototype.zoomOut = function () {
+            this.scrollView.zoomCenter(1 / Math.sqrt(2));
+        };
+        SceneRender.prototype.zoomReset = function () {
+            this.scrollView.reset();
+        };
         SceneRender.prototype.switchScene = function (scene, noLoad) {
             if (noLoad === void 0) { noLoad = false; }
             if (!scene) {
