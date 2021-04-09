@@ -592,7 +592,7 @@ export class Scene {
 
 	private getImageData?: (x: number, y: number, w: number, h: number) => ImageData
 
-	private updateImageDataFunction() {
+	updateImageDataFunction() {
 		const canvas = this.getRenderer()?.getCanvasFromDisplayObject(this.groundContainer)
 		const renderingContext = canvas?.getContext("2d")
 		const bounds = this.groundContainer.getBounds()
@@ -628,14 +628,10 @@ export class Scene {
 	}
 
 	/**
-	 * current delta time for the physics simulation (SI-Unit)
+	 * current delta time for the physics simulation
 	 */
 	private dt = 0.016;
 
-	/**
-	 * Sets the simulation DT in seconds (SI-Unit)
-	 * @param dt
-	 */
 	setDT(dt: number) {
 		this.dt = dt;
 	}
@@ -647,9 +643,9 @@ export class Scene {
 	//
 
 	/**
-	 * sleep time before calling update (SI-Unit)
+	 * sleep time before calling update
 	 */
-	private simSleepTime = this.dt;
+	private simSleepTime = 1/30;
 
 	/**
 	 * simulation ticker/timer
@@ -668,10 +664,6 @@ export class Scene {
 		}
 	}
 
-	/**
-	 * Sets the sim sleep time in seconds.
-	 * @param simSleepTime
-	 */
 	setSimSleepTime(simSleepTime: number) {
 		this.simSleepTime = simSleepTime;
 		this.simTicker.sleepTime = simSleepTime;
@@ -1031,13 +1023,7 @@ export class Scene {
 
 	protected waypointsManager = new WaypointsManager<ScoreWaypoint>()
 
-	/**
-	 * update physics and robots
-	 */
-	private update() {
-
-		this.onUpdate();
-
+	updateRobotOptions(){
 		const allBodies = Composite.allBodies(this.world)
 		// FIXME: What to do with undefined 'getImageData'?
 		if (this.getImageData) {
@@ -1050,6 +1036,15 @@ export class Scene {
 		} else {
 			this.robotUpdateOptions = undefined
 		}
+	}
+
+	/**
+	 * update physics and robots
+	 */
+	private update() {
+
+		this.onUpdate();
+		this.updateRobotOptions()
 
 		// update physics
 		Engine.update(this.engine, this.dt)
