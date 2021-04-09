@@ -160,12 +160,12 @@ export class RRCScene extends Scene {
 	 * @param h height of rectangle
 	 * @param options options for 'RectEntityOptions'
 	 */
-	addStaticWallInPixels(x: number, y: number, w: number, h: number, options?: Partial<RectEntityOptions>) {
+	addStaticWallInPixels(wall: {x: number, y: number, w: number, h: number,}, options?: Partial<RectEntityOptions>) {
 		const unit = this.getUnitConverter()
-		x = unit.fromLength(x)
-		y = unit.fromLength(y)
-		w = unit.fromLength(w)
-		h = unit.fromLength(h)
+		let x = unit.fromLength(wall.x)
+		let y = unit.fromLength(wall.y)
+		let w = unit.fromLength(wall.w)
+		let h = unit.fromLength(wall.h)
 
 		const opts = Util.getOptions(RectEntityOptions, options)
 		if (options?.relativeToCenter == undefined) {

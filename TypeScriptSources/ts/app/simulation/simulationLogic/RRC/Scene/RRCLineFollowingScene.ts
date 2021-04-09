@@ -7,6 +7,7 @@ import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint";
 
 export class RRCLineFollowingScene extends RRCScene {
 
+	// Waypoints
 	readonly waypointsES = [
 		{
 			x: 35,
@@ -97,6 +98,28 @@ export class RRCLineFollowingScene extends RRCScene {
 		}
 	]
 
+	// Walls
+	readonly wallES = {
+		x: 720,
+		y: 50,
+		w: 70,
+		h: 25
+	}
+
+	readonly wallMS = {
+		x: 720,
+		y: 50,
+		w: 70,
+		h: 25
+	}
+
+	readonly wallHS = {
+		x: 720,
+		y: 50,
+		w: 70,
+		h: 25
+	}
+
 	getWaypoints() {
 		switch (this.ageGroup) {
 			case AgeGroup.ES:
@@ -110,6 +133,16 @@ export class RRCLineFollowingScene extends RRCScene {
 		}
 	}
 
+	getWall() {
+		switch (this.ageGroup) {
+			case AgeGroup.ES:
+				return this.wallES
+			case AgeGroup.MS:
+				return this.wallMS
+			case AgeGroup.HS:
+				return this.wallHS
+		}
+	}
 
 	getAsset() {
 		switch (this.ageGroup) {
@@ -123,6 +156,7 @@ export class RRCLineFollowingScene extends RRCScene {
 				return RRC.LINE_FOLLOWING_BACKGROUND_HS;
 		}
 	}
+
 
 	onLoadAssets(chain: AsyncChain) {
 		RRC.loader.load(() => {
@@ -157,10 +191,10 @@ export class RRCLineFollowingScene extends RRCScene {
 
 		this.groundContainer.addChild(this.goalSprite);
 
+		this.addStaticWallInPixels(this.getWall())
+
 		this.addWalls(true);
 
 		chain.next();
 	}
-
-
 }
