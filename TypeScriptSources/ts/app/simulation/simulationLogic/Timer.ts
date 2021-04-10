@@ -7,6 +7,7 @@ export class Timer {
 	shallStop = false;
 	lastCall: number = 0;
 	callTime: number = 0;
+	lastDT: number = 0
 
 	userFunction: (dt: number) => void;
 
@@ -54,9 +55,9 @@ export class Timer {
 
 	private callUserFunction(): boolean {
 		var now = Date.now();
-
+		this.lastDT = now - this.lastCall
 		try {
-			this.userFunction(now - this.lastCall);
+			this.userFunction(this.lastDT);
 		} catch (error) {
 			console.trace(error);
 		}

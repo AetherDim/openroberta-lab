@@ -78,7 +78,6 @@ export class SceneRender {
 
 				if(this.resizeTo && (this.app.view.width != this.resizeTo.clientWidth || this.app.view.height != this.resizeTo.clientHeight)) {
 					this.app.queueResize()
-					console.log('resize')
 				}
 
 			}
@@ -172,6 +171,10 @@ export class SceneRender {
 
 	remove(displayable: PIXI.DisplayObject) {
 		this.scrollView.removeChild(displayable);
+	}
+
+	setSpeedUpFactor(speedup: number) {
+		this.scene?.setSpeedUpFactor(speedup)
 	}
 
 }

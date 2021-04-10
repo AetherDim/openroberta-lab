@@ -94,6 +94,16 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                 }
             }, 'simImport clicked');
 
+            $('#simSpeedUp').onWrap('click', function(event) {
+                if ($('#simSpeedUp').hasClass('typcn-media-fast-forward')) {
+                    $('#simSpeedUp').addClass('typcn-media-fast-forward-outline').removeClass('typcn-media-fast-forward');
+                    SIM.setSimSpeed(1);
+                } else {
+                    $('#simSpeedUp').addClass('typcn-media-fast-forward').removeClass('typcn-media-fast-forward-outline');
+                    SIM.setSimSpeed(4);
+                }
+            }, 'simImport clicked');
+
             $('#simButtonsCollapse').collapse({
                 'toggle': false
             });

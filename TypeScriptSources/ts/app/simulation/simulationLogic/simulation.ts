@@ -385,3 +385,7 @@ export function zoomOut() {
 export function zoomReset() {
 	engine.zoomReset()
 }
+
+export function setSimSpeed(speedup: number) {
+	engine.setSpeedUpFactor(speedup)
+}

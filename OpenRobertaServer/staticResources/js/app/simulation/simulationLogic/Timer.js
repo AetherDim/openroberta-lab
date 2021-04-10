@@ -9,6 +9,7 @@ define(["require", "exports"], function (require, exports) {
             this.shallStop = false;
             this.lastCall = 0;
             this.callTime = 0;
+            this.lastDT = 0;
             this.selfCallingFunc = function () { };
             this.sleepTime = sleepTime;
             this.userFunction = userFunction;
@@ -44,8 +45,9 @@ define(["require", "exports"], function (require, exports) {
         };
         Timer.prototype.callUserFunction = function () {
             var now = Date.now();
+            this.lastDT = now - this.lastCall;
             try {
-                this.userFunction(now - this.lastCall);
+                this.userFunction(this.lastDT);
             }
             catch (error) {
                 console.trace(error);

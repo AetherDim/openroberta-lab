@@ -55,7 +55,6 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                     _this.scene.renderTick(dt);
                     if (_this.resizeTo && (_this.app.view.width != _this.resizeTo.clientWidth || _this.app.view.height != _this.resizeTo.clientHeight)) {
                         _this.app.queueResize();
-                        console.log('resize');
                     }
                 }
             }, this);
@@ -125,6 +124,10 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
         };
         SceneRender.prototype.remove = function (displayable) {
             this.scrollView.removeChild(displayable);
+        };
+        SceneRender.prototype.setSpeedUpFactor = function (speedup) {
+            var _a;
+            (_a = this.scene) === null || _a === void 0 ? void 0 : _a.setSpeedUpFactor(speedup);
         };
         return SceneRender;
     }());

@@ -656,6 +656,7 @@ export class Scene {
 	 * sleep time before calling update (SI-Unit)
 	 */
 	private simSleepTime = this.dt;
+	private simSpeedupFactor = 1;
 
 	/**
 	 * simulation ticker/timer
@@ -680,7 +681,20 @@ export class Scene {
 	 */
 	setSimSleepTime(simSleepTime: number) {
 		this.simSleepTime = simSleepTime;
-		this.simTicker.sleepTime = simSleepTime;
+		this.simTicker.sleepTime = this.simSleepTime;
+	}
+
+	setSpeedUpFactor(speedup: number) {
+		speedup = Math.round(speedup)
+		if(speedup < 1) {
+			console.error("Sim speed needs to be greater than 0!")
+			return
+		}
+		this.simSpeedupFactor = speedup
+	}
+
+	getCurrentSimTickRate(): number {
+		return Math.round(1000/this.simTicker.lastDT) * this.simSpeedupFactor
 	}
 
 	//
@@ -783,7 +797,6 @@ export class Scene {
 	// #############################################################################
 	//
 
-
 	constructor() {
 
 		// setup graphic containers
@@ -805,7 +818,9 @@ export class Scene {
 
 		this.simTicker = new Timer(this.simSleepTime, (delta) => {
 			// delta is the time from last render call
-			_this.update();
+			for(let i = 0; i < _this.simSpeedupFactor; i++) {
+				_this.update();
+			}
 		});
 
 		this.blocklyTicker = new Timer(this.blocklyUpdateSleepTime, (delta) => {
@@ -1099,9 +1114,7 @@ export class Scene {
 			htmlElement.html('');
 			const elementList: { label: string, value: any }[] = []
 
-			const time = Date.now() | 0
-			elementList.push({label: 'Simulation FPS:', value: Math.round(1000/(time-this.lastTime))})
-			this.lastTime = time
+			elementList.push({label: 'Simulation tick rate:', value: this.getCurrentSimTickRate()})
 
 			this.robots.forEach(robot => robot.addHTMLSensorValuesTo(elementList))
 			const htmlString = elementList.map(element => this.htmlSensorValues(element.label, element.value)).join("")
@@ -1110,8 +1123,6 @@ export class Scene {
 
 		this.onUpdatePostPhysics();
 	}
-
-	lastTime: number = Date.now() | 0
 
 	// for debugging
 	setupDebugRenderer(canvas: string | HTMLElement, wireframes: boolean=false, enableMouse: boolean=true) {

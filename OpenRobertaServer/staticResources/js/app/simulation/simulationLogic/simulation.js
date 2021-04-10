@@ -1,7 +1,7 @@
 define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneHandle = void 0;
+    exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneHandle = void 0;
     // TODO: check whether this has to be defined in here
     // probably not
     var SceneHandle = /** @class */ (function () {
@@ -259,4 +259,8 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
         engine.zoomReset();
     }
     exports.zoomReset = zoomReset;
+    function setSimSpeed(speedup) {
+        engine.setSpeedUpFactor(speedup);
+    }
+    exports.setSimSpeed = setSimSpeed;
 });

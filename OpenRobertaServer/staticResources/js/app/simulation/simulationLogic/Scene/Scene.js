@@ -135,6 +135,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
              * sleep time before calling update (SI-Unit)
              */
             this.simSleepTime = this.dt;
+            this.simSpeedupFactor = 1;
             //
             // #############################################################################
             //
@@ -150,7 +151,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // #############################################################################
             //
             this.waypointsManager = new WaypointsManager_1.WaypointsManager();
-            this.lastTime = Date.now() | 0;
             // setup graphic containers
             this.setupContainers();
             // setup container for loading animation
@@ -165,7 +165,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // });
             this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
                 // delta is the time from last render call
-                _this.update();
+                for (var i = 0; i < _this.simSpeedupFactor; i++) {
+                    _this.update();
+                }
             });
             this.blocklyTicker = new Timer_1.Timer(this.blocklyUpdateSleepTime, function (delta) {
                 // update blockly
@@ -564,7 +566,15 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
          */
         Scene.prototype.setSimSleepTime = function (simSleepTime) {
             this.simSleepTime = simSleepTime;
-            this.simTicker.sleepTime = simSleepTime;
+            this.simTicker.sleepTime = this.simSleepTime;
+        };
+        Scene.prototype.setSpeedUpFactor = function (speedup) {
+            speedup = Math.round(speedup);
+            if (speedup < 1) {
+                console.error("Sim speed needs to be greater than 0!");
+                return;
+            }
+            this.simSpeedupFactor = speedup;
         };
         Scene.prototype.startBlocklyUpdate = function () {
             this.blocklyTicker.start();
@@ -855,9 +865,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 var htmlElement = $('#notConstantValue');
                 htmlElement.html('');
                 var elementList_1 = [];
-                var time = Date.now() | 0;
-                elementList_1.push({ label: 'Simulation FPS:', value: Math.round(1000 / (time - this.lastTime)) });
-                this.lastTime = time;
+                elementList_1.push({ label: 'Simulation tick rate:', value: Math.round(1000 / this.simTicker.lastDT) * this.simSpeedupFactor });
                 this.robots.forEach(function (robot) { return robot.addHTMLSensorValuesTo(elementList_1); });
                 var htmlString = elementList_1.map(function (element) { return _this_1.htmlSensorValues(element.label, element.value); }).join("");
                 htmlElement.append(htmlString);
