@@ -58,7 +58,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                     }
                 }
             }, this);
-            this.app.ticker.maxFPS = 30;
+            //this.app.ticker.maxFPS = 30
         }
         SceneRender.prototype.getScene = function () {
             return this.scene;

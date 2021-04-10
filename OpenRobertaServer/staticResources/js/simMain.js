@@ -151,7 +151,7 @@ function initEvents() {
             SIM.setSimSpeed(1);
         } else {
             $('#simSpeedUp').addClass('typcn-media-fast-forward').removeClass('typcn-media-fast-forward-outline');
-            SIM.setSimSpeed(4);
+            SIM.setSimSpeed(10);
         }
     }, 'simImport clicked');
 

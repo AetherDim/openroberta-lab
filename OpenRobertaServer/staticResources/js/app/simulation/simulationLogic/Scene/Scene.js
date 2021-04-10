@@ -576,6 +576,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             }
             this.simSpeedupFactor = speedup;
         };
+        Scene.prototype.getCurrentSimTickRate = function () {
+            return Math.round(1000 / this.simTicker.lastDT) * this.simSpeedupFactor;
+        };
         Scene.prototype.startBlocklyUpdate = function () {
             this.blocklyTicker.start();
         };
@@ -865,7 +868,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 var htmlElement = $('#notConstantValue');
                 htmlElement.html('');
                 var elementList_1 = [];
-                elementList_1.push({ label: 'Simulation tick rate:', value: Math.round(1000 / this.simTicker.lastDT) * this.simSpeedupFactor });
+                elementList_1.push({ label: 'Simulation tick rate:', value: this.getCurrentSimTickRate() });
                 this.robots.forEach(function (robot) { return robot.addHTMLSensorValuesTo(elementList_1); });
                 var htmlString = elementList_1.map(function (element) { return _this_1.htmlSensorValues(element.label, element.value); }).join("");
                 htmlElement.append(htmlString);

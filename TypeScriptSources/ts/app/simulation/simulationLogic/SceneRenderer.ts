@@ -82,7 +82,7 @@ export class SceneRender {
 
 			}
 		}, this);
-		this.app.ticker.maxFPS = 30
+		//this.app.ticker.maxFPS = 30
 
 	}
 
