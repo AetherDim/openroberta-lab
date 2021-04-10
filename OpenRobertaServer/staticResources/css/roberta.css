@@ -1345,15 +1345,15 @@ table [data-toggle="collapse"].collapsed:after {
     margin-right: 2px;
     margin-left: 0;
     margin-bottom: 6px;
-    background-color: #fff;
-    color: #333;
+    background-color: rgba(162, 162, 162, 0.67);
     font-size: 0;
+    color: #0f0f0f;
     border: none;
     border-radius: 2px;
     -webkit-box-shadow: none;
     box-shadow: none;
     cursor: pointer;
-    box-shadow: none;
+    #opacity: 0.8;
 }
 
 .blbtn:hover {
