@@ -162,10 +162,10 @@ export class RRCScene extends Scene {
 	 */
 	addStaticWallInPixels(wall: {x: number, y: number, w: number, h: number,}, options?: Partial<RectEntityOptions>) {
 		const unit = this.getUnitConverter()
-		let x = unit.fromLength(wall.x)
-		let y = unit.fromLength(wall.y)
-		let w = unit.fromLength(wall.w)
-		let h = unit.fromLength(wall.h)
+		const x = unit.fromLength(wall.x)
+		const y = unit.fromLength(wall.y)
+		const w = unit.fromLength(wall.w)
+		const h = unit.fromLength(wall.h)
 
 		const opts = Util.getOptions(RectEntityOptions, options)
 		if (options?.relativeToCenter == undefined) {
@@ -177,7 +177,7 @@ export class RRCScene extends Scene {
 	}
 
 	addWalls(visible: boolean = false) {
-		let unit = this.getUnitConverter();
+		const unit = this.getUnitConverter();
 
 		const t = unit.fromLength(100);
 		const x = unit.fromLength(0);
@@ -185,30 +185,17 @@ export class RRCScene extends Scene {
 		const w = unit.fromLength(800);
 		const h = unit.fromLength(540);
 
-		const top = PhysicsRectEntity.create(this, x - t, y - t, w + 2 * t, t, {
+		const options = {
 			color: 0x000000,
 			strokeColor: 0x000000,
 			alpha: 0.2,
 			relativeToCenter: false
-		});
-		const bottom = PhysicsRectEntity.create(this, x - t, y + h, w + 2 * t, t, {
-			color: 0x000000,
-			strokeColor: 0x000000,
-			alpha: 0.2,
-			relativeToCenter: false
-		});
-		const left = PhysicsRectEntity.create(this, x - t, y, t, h, {
-			color: 0x000000,
-			strokeColor: 0x000000,
-			alpha: 0.2,
-			relativeToCenter: false
-		});
-		const right = PhysicsRectEntity.create(this, x + w, y, t, h, {
-			color: 0x000000,
-			strokeColor: 0x000000,
-			alpha: 0.2,
-			relativeToCenter: false
-		});
+		}
+
+		const top = PhysicsRectEntity.create(this, x - t, y - t, w + 2 * t, t, options);
+		const bottom = PhysicsRectEntity.create(this, x - t, y + h, w + 2 * t, t, options);
+		const left = PhysicsRectEntity.create(this, x - t, y, t, h, options);
+		const right = PhysicsRectEntity.create(this, x + w, y, t, h, options);
 
 		this.addEntity(top);
 		this.addEntity(bottom);

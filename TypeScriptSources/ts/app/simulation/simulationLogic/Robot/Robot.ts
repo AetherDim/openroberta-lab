@@ -80,6 +80,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 	interpreter?: Interpreter
 
+	/**
+	 * Time to wait until the next command should be executed (in internal units)
+	 */
 	private delay = 0
 	
 	/**
@@ -361,6 +364,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 	IUpdatableEntity(){}
 
+	/**
+	 * Updates the robot with time step 'dt'.
+	 * @param dt The time step in internal units
+	 */
 	update(dt: number) {
 
 		const updateOptions = this.scene.getRobotUpdateOptions()
@@ -387,7 +394,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			this.delay -= dt; // reduce delay by dt each tick
 		} else {
 			if(!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
-				this.delay = this.interpreter.runNOperations(1000) / 1000;
+				// get delay from operation and convert seconds to internal time unit
+				this.delay = this.scene.getUnitConverter().getTime(this.interpreter.runNOperations(1000) / 1000);
 			}
 		}
 

@@ -124,7 +124,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.engine = matter_js_1.Engine.create();
             this.world = this.engine.world;
             /**
-             * current delta time for the physics simulation
+             * current delta time for the physics simulation (internal units)
              */
             this.dt = 0.016;
             this.autostartSim = true;
@@ -535,7 +535,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             return this.world;
         };
         Scene.prototype.setDT = function (dt) {
-            this.dt = dt;
+            this.dt = this.getUnitConverter().getTime(dt);
         };
         Scene.prototype.startSim = function () {
             if (this.hasFinishedLoading) {

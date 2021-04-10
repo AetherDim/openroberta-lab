@@ -25,6 +25,9 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             this.touchSensors = {};
             this.configuration = undefined;
             this.programCode = null;
+            /**
+             * Time to wait until the next command should be executed (in internal units)
+             */
             this.delay = 0;
             /**
              * robot type
@@ -247,6 +250,10 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         };
         // IUpdatableEntity
         Robot.prototype.IUpdatableEntity = function () { };
+        /**
+         * Updates the robot with time step 'dt'.
+         * @param dt The time step in internal units
+         */
         Robot.prototype.update = function (dt) {
             var updateOptions = this.scene.getRobotUpdateOptions();
             if (updateOptions == undefined) {
@@ -269,7 +276,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             }
             else {
                 if (!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
-                    this.delay = this.interpreter.runNOperations(1000) / 1000;
+                    // get delay from operation and convert seconds to internal time unit
+                    this.delay = this.scene.getUnitConverter().getTime(this.interpreter.runNOperations(1000) / 1000);
                 }
             }
             var speed = { left: 0, right: 0 };
