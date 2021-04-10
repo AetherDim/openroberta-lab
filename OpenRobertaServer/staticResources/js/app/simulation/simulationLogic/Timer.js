@@ -22,7 +22,7 @@ define(["require", "exports"], function (require, exports) {
             var _this = this;
             this.selfCallingFunc = function () {
                 if (_this.callUserFunction()) {
-                    setTimeout(_this.selfCallingFunc, _this.sleepTime);
+                    setTimeout(_this.selfCallingFunc, _this.sleepTime * 1000);
                 }
                 else {
                     _this.running = false;

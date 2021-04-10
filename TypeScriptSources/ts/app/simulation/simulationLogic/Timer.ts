@@ -29,7 +29,7 @@ export class Timer {
 		const _this = this;
 		this.selfCallingFunc = function(){
 			if(_this.callUserFunction()) {
-				setTimeout(_this.selfCallingFunc, _this.sleepTime);
+				setTimeout(_this.selfCallingFunc, _this.sleepTime*1000);
 			} else {
 				_this.running = false;
 				console.log('Timer stopped!');

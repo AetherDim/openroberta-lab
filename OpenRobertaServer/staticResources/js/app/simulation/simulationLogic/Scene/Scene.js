@@ -150,6 +150,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // #############################################################################
             //
             this.waypointsManager = new WaypointsManager_1.WaypointsManager();
+            this.lastTime = Date.now() | 0;
             // setup graphic containers
             this.setupContainers();
             // setup container for loading animation
@@ -848,11 +849,15 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                     delete anyGrid.buckets[key];
                 }
             }
+            // TODO: refactor this, the simulation should not have a html/div dependency
             // update sensor value html
             if (this.showRobotSensorValues) {
                 var htmlElement = $('#notConstantValue');
                 htmlElement.html('');
                 var elementList_1 = [];
+                var time = Date.now() | 0;
+                elementList_1.push({ label: 'Simulation FPS:', value: Math.round(1000 / (time - this.lastTime)) });
+                this.lastTime = time;
                 this.robots.forEach(function (robot) { return robot.addHTMLSensorValuesTo(elementList_1); });
                 var htmlString = elementList_1.map(function (element) { return _this_1.htmlSensorValues(element.label, element.value); }).join("");
                 htmlElement.append(htmlString);

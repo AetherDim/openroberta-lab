@@ -1092,11 +1092,17 @@ export class Scene {
 			}
 		}
 
+		// TODO: refactor this, the simulation should not have a html/div dependency
 		// update sensor value html
 		if (this.showRobotSensorValues) {
 			const htmlElement = $('#notConstantValue')
 			htmlElement.html('');
 			const elementList: { label: string, value: any }[] = []
+
+			const time = Date.now() | 0
+			elementList.push({label: 'Simulation FPS:', value: Math.round(1000/(time-this.lastTime))})
+			this.lastTime = time
+
 			this.robots.forEach(robot => robot.addHTMLSensorValuesTo(elementList))
 			const htmlString = elementList.map(element => this.htmlSensorValues(element.label, element.value)).join("")
 			htmlElement.append(htmlString)
@@ -1104,7 +1110,8 @@ export class Scene {
 
 		this.onUpdatePostPhysics();
 	}
-	
+
+	lastTime: number = Date.now() | 0
 
 	// for debugging
 	setupDebugRenderer(canvas: string | HTMLElement, wireframes: boolean=false, enableMouse: boolean=true) {
