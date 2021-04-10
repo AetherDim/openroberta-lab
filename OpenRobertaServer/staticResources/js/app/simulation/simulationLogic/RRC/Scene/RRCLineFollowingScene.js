@@ -19,6 +19,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
         __extends(RRCLineFollowingScene, _super);
         function RRCLineFollowingScene() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
+            // Waypoints
             _this.waypointsES = [
                 {
                     x: 35,
@@ -106,6 +107,25 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
                     score: 50
                 }
             ];
+            // Walls
+            _this.wallES = {
+                x: 720,
+                y: 50,
+                w: 70,
+                h: 25
+            };
+            _this.wallMS = {
+                x: 720,
+                y: 50,
+                w: 70,
+                h: 25
+            };
+            _this.wallHS = {
+                x: 720,
+                y: 50,
+                w: 70,
+                h: 25
+            };
             return _this;
         }
         RRCLineFollowingScene.prototype.getWaypoints = function () {
@@ -116,6 +136,16 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
                     return this.waypointsMS;
                 case AgeGroup_1.AgeGroup.HS:
                     return this.waypointsHS;
+            }
+        };
+        RRCLineFollowingScene.prototype.getWall = function () {
+            switch (this.ageGroup) {
+                case AgeGroup_1.AgeGroup.ES:
+                    return this.wallES;
+                case AgeGroup_1.AgeGroup.MS:
+                    return this.wallMS;
+                case AgeGroup_1.AgeGroup.HS:
+                    return this.wallHS;
             }
         };
         RRCLineFollowingScene.prototype.getAsset = function () {
@@ -151,6 +181,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.groundContainer.addChild(this.goalSprite);
+            this.addStaticWallInPixels(this.getWall());
             this.addWalls(true);
             chain.next();
         };

@@ -124,7 +124,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.engine = matter_js_1.Engine.create();
             this.world = this.engine.world;
             /**
-             * current delta time for the physics simulation (SI-Unit)
+             * current delta time for the physics simulation
              */
             this.dt = 0.016;
             this.autostartSim = true;
@@ -132,9 +132,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // #############################################################################
             //
             /**
-             * sleep time before calling update (SI-Unit)
+             * sleep time before calling update
              */
-            this.simSleepTime = this.dt;
+            this.simSleepTime = 1 / 30;
             //
             // #############################################################################
             //
@@ -534,10 +534,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.getWorld = function () {
             return this.world;
         };
-        /**
-         * Sets the simulation DT in seconds (SI-Unit)
-         * @param dt
-         */
         Scene.prototype.setDT = function (dt) {
             this.dt = dt;
         };
@@ -551,10 +547,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 this.simTicker.stop();
             }
         };
-        /**
-         * Sets the sim sleep time in seconds.
-         * @param simSleepTime
-         */
         Scene.prototype.setSimSleepTime = function (simSleepTime) {
             this.simSleepTime = simSleepTime;
             this.simTicker.sleepTime = simSleepTime;
@@ -795,12 +787,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
         Scene.prototype.htmlSensorValues = function (label, value) {
             return "<div><label>" + label + "</label><span>" + value + "</span></div>";
         };
-        /**
-         * update physics and robots
-         */
-        Scene.prototype.update = function () {
-            var _this_1 = this;
-            this.onUpdate();
+        Scene.prototype.updateRobotOptions = function () {
             var allBodies = matter_js_1.Composite.allBodies(this.world);
             // FIXME: What to do with undefined 'getImageData'?
             if (this.getImageData) {
@@ -814,6 +801,14 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             else {
                 this.robotUpdateOptions = undefined;
             }
+        };
+        /**
+         * update physics and robots
+         */
+        Scene.prototype.update = function () {
+            var _this_1 = this;
+            this.onUpdate();
+            this.updateRobotOptions();
             // update physics
             matter_js_1.Engine.update(this.engine, this.dt);
             // update entities e.g. robots

@@ -312,6 +312,15 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             event.cancelEvent = this.cancelEvent;
             return event;
         };
+        /**
+         * Sets all things pressed to false
+         */
+        EventData.prototype.clear = function () {
+            this.pressed = false;
+            for (var i = 0; i < this.buttons.length; i++) {
+                this.buttons[i] = false;
+            }
+        };
         return EventData;
     }());
     exports.EventData = EventData;
@@ -337,6 +346,10 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
              * A full cycle means, each touch position has been updated.
              */
             _this.fireOnlyMergeTouchEvents = false;
+            /**
+             * Inverts zoom behaviour
+             */
+            _this.invertZoom = false;
             //
             // Event Data
             //
@@ -368,6 +381,9 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
         ScrollView.prototype.reset = function () {
             var initialZoom = 1 / this.getPixelRatio();
             this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
+            // to fix any touch/mouse issues
+            this.touchEventDataMap.clear();
+            this.mouseEventData.clear();
         };
         /**
          * update hitbox for mouse interactions
@@ -410,7 +426,8 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.scale.y *= delta;
         };
         ScrollView.prototype.zoomCenter = function (delta) {
-            this.zoom(delta, { x: this.renderer.width / 2, y: this.renderer.height / 2 });
+            var ratio = this.getPixelRatio();
+            this.zoom(delta, { x: this.renderer.screen.width / 2 / ratio, y: this.renderer.screen.height / 2 / ratio });
         };
         //
         // Events
@@ -428,7 +445,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev interaction data
          */
         ScrollView.prototype.onDown = function (ev) {
-            console.log('down ' + this.touchEventDataMap.size);
+            //console.log('down ' + this.touchEventDataMap.size);
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
@@ -450,7 +467,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev interaction data
          */
         ScrollView.prototype.onUp = function (ev) {
-            console.log('up ' + this.touchEventDataMap.size);
+            //console.log('up ' + this.touchEventDataMap.size);
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
@@ -484,8 +501,8 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev  interaction data
          */
         ScrollView.prototype.onMove = function (ev) {
+            //console.log('move');
             var _a, _b;
-            console.log('move');
             if (isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
                 return;
             }
@@ -619,7 +636,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param ev  interaction data
          */
         ScrollView.prototype.onWheel = function (ev) {
-            console.log('wheel');
+            //console.log('wheel');
             var pixelRatio = this.getPixelRatio();
             var data;
             if (ev.type == "wheel") {
@@ -666,6 +683,10 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                         console.error('Unknown mouse wheel delta mode!');
                         break;
                 }
+                if (!this.invertZoom) {
+                    zoomFactor = 1 / zoomFactor;
+                }
+                // TODO: include event data into invertZoom???
                 data.delta = { x: ev.deltaX, y: ev.deltaY };
                 var cancel = this.fireEvent(data, EventType.ZOOM);
                 if (!cancel) {
@@ -682,7 +703,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param e event data
          */
         ScrollView.prototype.onZoom = function (e) {
-            console.log('zoom');
+            //console.log('zoom');
             // TODO: we could use this for other browsers if there is another with support
             if (this.browser.isSafariEvent(e)) {
                 if (this.lastTouchDistance > 0) {
@@ -704,7 +725,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
                 }
             }
             else {
-                console.log('Zoom from non Safari browser!');
+                console.error('Zoom from non Safari browser!');
             }
             e.preventDefault();
         };
@@ -713,7 +734,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          * @param e event data
          */
         ScrollView.prototype.onZoomBegin = function (e) {
-            console.log('safari zoom');
+            //console.log('safari zoom');
             if (this.browser.isSafariEvent(e)) {
                 this.lastTouchDistance = e.scale;
             }
@@ -738,22 +759,31 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.viewport.on('pointercancel', this.onUp, this);
             this.viewport.on('pointerout', this.onUp, this);
             this.viewport.on('onpointerleave', this.onUp, this);
+            var view = this.renderer.view;
             // 2017 recommended event
-            this.renderer.view.addEventListener("wheel", function (e) { return _this.onWheel(e); });
+            view.addEventListener("wheel", function (e) { return _this.onWheel(e); });
             // Before 2017, IE9, Chrome, Safari, Opera
-            this.renderer.view.addEventListener("mousewheel", function (e) {
+            view.addEventListener("mousewheel", function (e) {
                 console.error('Scroll/Zoom: mousewheel (old Chrome, Safari, Opera?)');
                 e.preventDefault();
             });
             // Old versions of Firefox
-            this.renderer.view.addEventListener("DOMMouseScroll", function (e) {
+            view.addEventListener("DOMMouseScroll", function (e) {
                 console.error('Scroll/Zoom: DOM scroll event (old Firefox?)');
                 e.preventDefault();
             }); // disable scroll behaviour);
+            // for Safari
+            view.addEventListener('click', function (e) {
+                //if (e.ctrlKey) return;
+                e.preventDefault();
+            });
+            view.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+            });
             // new Safari only (probably)
-            this.renderer.view.addEventListener('gesturestart', function (e) { return _this.onZoomBegin(e); });
-            this.renderer.view.addEventListener('gesturechange', function (e) { return _this.onZoom(e); });
-            this.renderer.view.addEventListener('gestureend', function (e) { return _this.onZoomEnd(e); });
+            view.addEventListener('gesturestart', function (e) { return _this.onZoomBegin(e); });
+            view.addEventListener('gesturechange', function (e) { return _this.onZoom(e); });
+            view.addEventListener('gestureend', function (e) { return _this.onZoomEnd(e); });
         };
         // TODO: optimize for shorter function
         ScrollView.prototype.unregisterEventListeners = function () {

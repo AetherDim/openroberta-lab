@@ -368,6 +368,16 @@ export class EventData {
 		return event;
 	}
 
+	/**
+	 * Sets all things pressed to false
+	 */
+	clear() {
+		this.pressed = false
+		for (let i = 0; i < this.buttons.length; i++) {
+			this.buttons[i] = false;
+		}
+	}
+
 }
 
 interface SafariEvent {
@@ -409,6 +419,12 @@ export class ScrollView extends PIXI.Container {
 	fireOnlyMergeTouchEvents = false;
 
 
+	/**
+	 * Inverts zoom behaviour
+	 */
+	invertZoom = false;
+
+
 
 	//
 	// Event Data
@@ -448,6 +464,10 @@ export class ScrollView extends PIXI.Container {
 	reset() {
 		const initialZoom = 1 / this.getPixelRatio()
 		this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
+
+		// to fix any touch/mouse issues
+		this.touchEventDataMap.clear()
+		this.mouseEventData.clear()
 	}
 
 	/**
@@ -495,7 +515,8 @@ export class ScrollView extends PIXI.Container {
 	}
 
 	zoomCenter(delta: number) {
-		this.zoom(delta, {x: this.renderer.width/2, y: this.renderer.height/2})
+		const ratio = this.getPixelRatio()
+		this.zoom(delta, {x: this.renderer.screen.width/2/ratio, y: this.renderer.screen.height/2/ratio})
 	}
 
 
@@ -517,7 +538,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev interaction data
 	 */
 	private onDown(ev: PIXI.InteractionEvent) {
-		console.log('down ' + this.touchEventDataMap.size);
+		//console.log('down ' + this.touchEventDataMap.size);
 
 		let data: EventData;
 
@@ -545,7 +566,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev interaction data
 	 */
 	private onUp(ev: PIXI.InteractionEvent) {
-		console.log('up ' + this.touchEventDataMap.size);
+		//console.log('up ' + this.touchEventDataMap.size);
 		
 		let data: EventData;
 
@@ -584,7 +605,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev  interaction data
 	 */
 	private onMove(ev: PIXI.InteractionEvent) {
-		console.log('move');
+		//console.log('move');
 
 		if(isNaN(ev.data.global.x) || isNaN(ev.data.global.y)) {
 			return;
@@ -753,7 +774,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param ev  interaction data
 	 */
 	private onWheel(ev: WheelEvent) {
-		console.log('wheel');
+		//console.log('wheel');
 
 		let pixelRatio = this.getPixelRatio(); 
 
@@ -809,6 +830,10 @@ export class ScrollView extends PIXI.Container {
 					break;
 			}
 
+			if(!this.invertZoom) {
+				zoomFactor = 1/zoomFactor
+			}
+			// TODO: include event data into invertZoom???
 			data.delta = {x: ev.deltaX, y: ev.deltaY};
 
 			let cancel: boolean = this.fireEvent(data, EventType.ZOOM);
@@ -835,7 +860,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param e event data
 	 */
 	private onZoom(e: Event) {
-		console.log('zoom');
+		//console.log('zoom');
 
 		// TODO: we could use this for other browsers if there is another with support
 		if(this.browser.isSafariEvent(e)) {
@@ -845,7 +870,7 @@ export class ScrollView extends PIXI.Container {
 				const pixelRatio = this.getPixelRatio()
 
 				// calculate distance change between fingers
-				var delta = e.scale / this.lastTouchDistance
+				const delta = e.scale / this.lastTouchDistance
 				this.mouseEventData.delta = {x: delta, y: 0};
 				if (this.browser.isTouchSafari()) {
 					this.mouseEventData.setNewPosition({x: e.layerX / pixelRatio, y: e.layerY / pixelRatio })
@@ -865,7 +890,7 @@ export class ScrollView extends PIXI.Container {
 			}
 			
 		} else {
-			console.log('Zoom from non Safari browser!');
+			console.error('Zoom from non Safari browser!');
 		}
 
 		e.preventDefault();
@@ -876,7 +901,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param e event data
 	 */
 	private onZoomBegin(e: Event) {
-		console.log('safari zoom');
+		//console.log('safari zoom');
 		if (this.browser.isSafariEvent(e)) {
 			this.lastTouchDistance = e.scale;
 		}
@@ -893,36 +918,46 @@ export class ScrollView extends PIXI.Container {
 	}
 
 	private registerEventListeners() {
-			this.viewport.interactive = true;
+		this.viewport.interactive = true;
 
-			this.renderer.on('resize', this.onResize, this);
+		this.renderer.on('resize', this.onResize, this);
 
-			this.viewport.on('pointerdown', this.onDown, this);
-			this.viewport.on('pointermove', this.onMove, this);
-			this.viewport.on('pointerup', this.onUp, this);
-			this.viewport.on('pointerupoutside', this.onUp, this);
-			this.viewport.on('pointercancel', this.onUp, this);
-			this.viewport.on('pointerout', this.onUp, this);
-			this.viewport.on('onpointerleave', this.onUp, this);
+		this.viewport.on('pointerdown', this.onDown, this);
+		this.viewport.on('pointermove', this.onMove, this);
+		this.viewport.on('pointerup', this.onUp, this);
+		this.viewport.on('pointerupoutside', this.onUp, this);
+		this.viewport.on('pointercancel', this.onUp, this);
+		this.viewport.on('pointerout', this.onUp, this);
+		this.viewport.on('onpointerleave', this.onUp, this);
 
-			
-			// 2017 recommended event
-			this.renderer.view.addEventListener("wheel", (e) => this.onWheel(e));
-			// Before 2017, IE9, Chrome, Safari, Opera
-			this.renderer.view.addEventListener("mousewheel", (e) =>  {
-				console.error('Scroll/Zoom: mousewheel (old Chrome, Safari, Opera?)');
-				e.preventDefault();
-			});
-			// Old versions of Firefox
-			this.renderer.view.addEventListener("DOMMouseScroll", (e) =>  {
-				console.error('Scroll/Zoom: DOM scroll event (old Firefox?)');
-				e.preventDefault();
-			}); // disable scroll behaviour);
+		const view = this.renderer.view;
 
-			// new Safari only (probably)
-			this.renderer.view.addEventListener('gesturestart', (e) => this.onZoomBegin(e));
-			this.renderer.view.addEventListener('gesturechange', (e) => this.onZoom(e));
-			this.renderer.view.addEventListener('gestureend', (e) => this.onZoomEnd(e));
+		// 2017 recommended event
+		view.addEventListener("wheel", (e) => this.onWheel(e));
+		// Before 2017, IE9, Chrome, Safari, Opera
+		view.addEventListener("mousewheel", (e) =>  {
+			console.error('Scroll/Zoom: mousewheel (old Chrome, Safari, Opera?)');
+			e.preventDefault();
+		});
+		// Old versions of Firefox
+		view.addEventListener("DOMMouseScroll", (e) =>  {
+			console.error('Scroll/Zoom: DOM scroll event (old Firefox?)');
+			e.preventDefault();
+		}); // disable scroll behaviour);
+
+		// for Safari
+		view.addEventListener('click', function(e) {
+			//if (e.ctrlKey) return;
+			e.preventDefault();
+		});
+		view.addEventListener('contextmenu', function(e) {
+			e.preventDefault();
+		});
+
+		// new Safari only (probably)
+		view.addEventListener('gesturestart', (e) => this.onZoomBegin(e));
+		view.addEventListener('gesturechange', (e) => this.onZoom(e));
+		view.addEventListener('gestureend', (e) => this.onZoomEnd(e));
 	}
 
 

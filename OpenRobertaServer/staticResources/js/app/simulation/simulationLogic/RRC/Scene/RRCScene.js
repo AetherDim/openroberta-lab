@@ -30,7 +30,7 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         __extends(RRCScene, _super);
         function RRCScene(ageGroup) {
             var _this = _super.call(this) || this;
-            _this.addWaypointGraphics = false;
+            _this.addWaypointGraphics = true;
             _this.scoreTextContainer = new PIXI.Container();
             _this.ageGroup = ageGroup;
             return _this;
@@ -150,12 +150,12 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
          * @param h height of rectangle
          * @param options options for 'RectEntityOptions'
          */
-        RRCScene.prototype.addStaticWallInPixels = function (x, y, w, h, options) {
+        RRCScene.prototype.addStaticWallInPixels = function (wall, options) {
             var unit = this.getUnitConverter();
-            x = unit.fromLength(x);
-            y = unit.fromLength(y);
-            w = unit.fromLength(w);
-            h = unit.fromLength(h);
+            var x = unit.fromLength(wall.x);
+            var y = unit.fromLength(wall.y);
+            var w = unit.fromLength(wall.w);
+            var h = unit.fromLength(wall.h);
             var opts = Util_1.Util.getOptions(Entity_1.RectEntityOptions, options);
             if ((options === null || options === void 0 ? void 0 : options.relativeToCenter) == undefined) {
                 opts.relativeToCenter = false;
@@ -172,10 +172,30 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             var y = unit.fromLength(0);
             var w = unit.fromLength(800);
             var h = unit.fromLength(540);
-            var top = Entity_1.PhysicsRectEntity.create(this, x - t, y - t, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
-            var bottom = Entity_1.PhysicsRectEntity.create(this, x - t, y + h, w + 2 * t, t, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
-            var left = Entity_1.PhysicsRectEntity.create(this, x - t, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
-            var right = Entity_1.PhysicsRectEntity.create(this, x + w, y, t, h, { color: 0x000000, strokeColor: 0x000000, alpha: 0.2, relativeToCenter: false });
+            var top = Entity_1.PhysicsRectEntity.create(this, x - t, y - t, w + 2 * t, t, {
+                color: 0x000000,
+                strokeColor: 0x000000,
+                alpha: 0.2,
+                relativeToCenter: false
+            });
+            var bottom = Entity_1.PhysicsRectEntity.create(this, x - t, y + h, w + 2 * t, t, {
+                color: 0x000000,
+                strokeColor: 0x000000,
+                alpha: 0.2,
+                relativeToCenter: false
+            });
+            var left = Entity_1.PhysicsRectEntity.create(this, x - t, y, t, h, {
+                color: 0x000000,
+                strokeColor: 0x000000,
+                alpha: 0.2,
+                relativeToCenter: false
+            });
+            var right = Entity_1.PhysicsRectEntity.create(this, x + w, y, t, h, {
+                color: 0x000000,
+                strokeColor: 0x000000,
+                alpha: 0.2,
+                relativeToCenter: false
+            });
             this.addEntity(top);
             this.addEntity(bottom);
             this.addEntity(left);
