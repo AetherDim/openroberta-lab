@@ -434,9 +434,15 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             console.log('Finished loading!');
             chain.next(); // technically we don't need this
         };
+        /**
+         * Reloads the whole scene and force reloads the assets
+         */
         Scene.prototype.fullReset = function () {
             this.load(true);
         };
+        /**
+         * Reloads the whole scene without reloading the assets
+         */
         Scene.prototype.reset = function () {
             this.load();
         };

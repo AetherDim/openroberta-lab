@@ -179,9 +179,13 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
         alert('info');
     }
     exports.setInfo = setInfo;
+    /**
+     * Reset robot position and zoom of ScrollView
+     */
     function resetPose() {
         var _a;
         (_a = engine.getScene()) === null || _a === void 0 ? void 0 : _a.reset();
+        engine.zoomReset();
         //engine.getScene()?.fullReset();
     }
     exports.resetPose = resetPose;

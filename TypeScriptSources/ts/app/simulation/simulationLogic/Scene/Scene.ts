@@ -474,10 +474,16 @@ export class Scene {
 		chain.next(); // technically we don't need this
 	}
 
+	/**
+	 * Reloads the whole scene and force reloads the assets
+	 */
 	fullReset() {
 		this.load(true);
 	}
 
+	/**
+	 * Reloads the whole scene without reloading the assets
+	 */
 	reset() {
 		this.load();
 	}

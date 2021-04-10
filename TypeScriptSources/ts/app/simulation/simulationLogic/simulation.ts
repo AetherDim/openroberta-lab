@@ -307,8 +307,12 @@ export function setInfo() {
 	alert('info');
 }
 
+/**
+ * Reset robot position and zoom of ScrollView
+ */
 export function resetPose() {
 	engine.getScene()?.reset();
+	engine.zoomReset()
 	//engine.getScene()?.fullReset();
 }
 
