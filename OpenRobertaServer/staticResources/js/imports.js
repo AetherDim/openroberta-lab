@@ -138,6 +138,9 @@ require.config({
         'main': 'main',
         'mainSim': 'mainSim',
 
+        'dat.gui': 'libs/datgui/dat.gui.min',
+        'GlobalDebug': 'app/helper/GlobalDebug',
+
 
     },[
         'SceneRenderer',
