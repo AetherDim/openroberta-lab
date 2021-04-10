@@ -195,8 +195,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		this.hardwareState.actions.tone = {};
 		this.hardwareState.actions.tone.frequency = frequency;
 		this.hardwareState.actions.tone.duration = duration;
-		this.setBlocking(true);
-		return 0;
+		//this.setBlocking(true);
+		return duration;
 	}
 
 	public playFileAction(file: string): number {
@@ -243,7 +243,8 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		this.hardwareState.actions.sayText.text = text;
 		this.hardwareState.actions.sayText.speed = speed;
 		this.hardwareState.actions.sayText.pitch = pitch;
-		this.setBlocking(true);
+		// TODO: Implement
+		//this.setBlocking(true);
 		return 0;
 	}
 
@@ -505,7 +506,9 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		U.debug('***** show "' + showText + '" *****');
 		this.hardwareState.actions.display = {};
 		this.hardwareState.actions.display[mode.toLowerCase()] = showText;
-		this.setBlocking(true);
+		// FIXME: Remove? Since for "ev3" this method is not called
+		console.error("This should not be called")
+		//this.setBlocking(true);
 		return 0;
 	}
 

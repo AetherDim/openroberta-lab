@@ -299,7 +299,13 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		return Vector.dot(body.velocity, this.vectorAlongBody(body))
 	}
 
+	/**
+	 * The torque multiplier for the left wheel
+	 */
 	leftForce = 0
+	/**
+	 * The torque multiplier for the right wheel
+	 */
 	rightForce = 0
 
 	encoder = {
@@ -321,7 +327,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
 			_this.programTerminated();
 		}, breakpoints);
-		this.resetVariables()
+		this.resetInternalState()
 		
 		return this.interpreter;
 	}
@@ -351,13 +357,14 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	private needsNewCommands = true
 	private endEncoder: { left: number, right: number } | null = null
 
-	private resetVariables() {
+	/**
+	 * Reset the internal state of the robot. E.g. `endEncoder`, `leftForce`
+	 */
+	private resetInternalState() {
 		this.needsNewCommands = true
 		this.endEncoder = null
-	}
-
-	reset() {
-		
+		this.leftForce = 0
+		this.rightForce = 0
 	}
 
 	// IUpdatableEntity
@@ -393,14 +400,14 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		if(this.delay > 0) {
 			this.delay -= dt; // reduce delay by dt each tick
 		} else {
-			if(!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
+			if (this.interpreter.isTerminated()) {
+				this.resetInternalState()
+			} else if(!updateOptions.programPaused && this.needsNewCommands) {
 				// get delay from operation and convert seconds to internal time unit
 				this.delay = this.scene.getUnitConverter().getTime(this.interpreter.runNOperations(1000) / 1000);
 			}
 		}
 
-
-		let speed = { left: 0, right: 0 }
 
 		const t = this
 		/**
@@ -423,8 +430,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				t.robotBehaviour?.resetCommands()
 				t.needsNewCommands = true
 			} else {
-				speed.left = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft)
-				speed.right = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight)
+				t.leftForce = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft)
+				t.rightForce = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight)
 			}
 		}
 
@@ -443,9 +450,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				}
 				useEndEncoder(driveData.speed.left, driveData.speed.right)
 			}
-			if (driveData.speed && !driveData.distance && !driveData.distance) {
-				speed.left = driveData.speed.left
-				speed.right = driveData.speed.right
+			if (driveData.speed && driveData.distance == undefined) {
+				this.leftForce = driveData.speed.left
+				this.rightForce = driveData.speed.right
 				this.robotBehaviour.drive = undefined
 			}
 		}
@@ -469,18 +476,15 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			} else {
 				const rotationSpeed = Math.abs(rotateData.speed)
 				if (rotateData.rotateLeft) {
-					speed.left = -rotationSpeed
-					speed.right = rotationSpeed
+					this.leftForce = -rotationSpeed
+					this.rightForce = rotationSpeed
 				} else {
-					speed.left = rotationSpeed
-					speed.right = -rotationSpeed
+					this.leftForce = rotationSpeed
+					this.rightForce = -rotationSpeed
 				}
 				this.robotBehaviour.rotate = undefined
 			}
 		}
-
-		this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), speed.left)
-		this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), speed.right)
 
 		// update pose
 		let motors = this.robotBehaviour.getActionState("motors", true);
@@ -505,6 +509,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				this.rightForce = right * maxForce;
 			}
 		}
+
+		this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), this.leftForce)
+		this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), this.rightForce)
 
 		// this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
 		// this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)

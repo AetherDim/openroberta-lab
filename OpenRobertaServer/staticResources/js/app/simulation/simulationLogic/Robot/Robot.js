@@ -34,7 +34,13 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              */
             this.type = 'default';
             this.children = [];
+            /**
+             * The torque multiplier for the left wheel
+             */
             this.leftForce = 0;
+            /**
+             * The torque multiplier for the right wheel
+             */
             this.rightForce = 0;
             this.encoder = {
                 left: 0,
@@ -226,7 +232,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             this.interpreter = new interpreter_interpreter_1.Interpreter(this.programCode, this.robotBehaviour, function () {
                 _this.programTerminated();
             }, breakpoints);
-            this.resetVariables();
+            this.resetInternalState();
             return this.interpreter;
         };
         Robot.prototype.programTerminated = function () {
@@ -242,11 +248,14 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             // force/mass * dt
             matter_js_1.Body.applyForce(wheel, wheel.position, matter_js_1.Vector.mult(velocityChange, wheel.mass / dt));
         };
-        Robot.prototype.resetVariables = function () {
+        /**
+         * Reset the internal state of the robot. E.g. `endEncoder`, `leftForce`
+         */
+        Robot.prototype.resetInternalState = function () {
             this.needsNewCommands = true;
             this.endEncoder = null;
-        };
-        Robot.prototype.reset = function () {
+            this.leftForce = 0;
+            this.rightForce = 0;
         };
         // IUpdatableEntity
         Robot.prototype.IUpdatableEntity = function () { };
@@ -275,12 +284,14 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 this.delay -= dt; // reduce delay by dt each tick
             }
             else {
-                if (!updateOptions.programPaused && !this.interpreter.isTerminated() && this.needsNewCommands) {
+                if (this.interpreter.isTerminated()) {
+                    this.resetInternalState();
+                }
+                else if (!updateOptions.programPaused && this.needsNewCommands) {
                     // get delay from operation and convert seconds to internal time unit
                     this.delay = this.scene.getUnitConverter().getTime(this.interpreter.runNOperations(1000) / 1000);
                 }
             }
-            var speed = { left: 0, right: 0 };
             var t = this;
             /**
              * Uses `encoder` to reach the values of `endEncoder` by setting the appropriate values
@@ -304,8 +315,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     t.needsNewCommands = true;
                 }
                 else {
-                    speed.left = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft);
-                    speed.right = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight);
+                    t.leftForce = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft);
+                    t.rightForce = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight);
                 }
             }
             var driveData = this.robotBehaviour.drive;
@@ -323,9 +334,9 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     }
                     useEndEncoder(driveData.speed.left, driveData.speed.right);
                 }
-                if (driveData.speed && !driveData.distance && !driveData.distance) {
-                    speed.left = driveData.speed.left;
-                    speed.right = driveData.speed.right;
+                if (driveData.speed && driveData.distance == undefined) {
+                    this.leftForce = driveData.speed.left;
+                    this.rightForce = driveData.speed.right;
                     this.robotBehaviour.drive = undefined;
                 }
             }
@@ -349,18 +360,16 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 else {
                     var rotationSpeed = Math.abs(rotateData.speed);
                     if (rotateData.rotateLeft) {
-                        speed.left = -rotationSpeed;
-                        speed.right = rotationSpeed;
+                        this.leftForce = -rotationSpeed;
+                        this.rightForce = rotationSpeed;
                     }
                     else {
-                        speed.left = rotationSpeed;
-                        speed.right = -rotationSpeed;
+                        this.leftForce = rotationSpeed;
+                        this.rightForce = -rotationSpeed;
                     }
                     this.robotBehaviour.rotate = undefined;
                 }
             }
-            this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), speed.left);
-            this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), speed.right);
             // update pose
             var motors = this.robotBehaviour.getActionState("motors", true);
             if (motors) {
@@ -386,6 +395,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     this.rightForce = right * maxForce;
                 }
             }
+            this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), this.leftForce);
+            this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), this.rightForce);
             // this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
             // this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
             // this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(), this.leftForce)
