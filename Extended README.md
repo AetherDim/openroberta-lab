@@ -35,11 +35,11 @@
 When changing something in `openroberta-lab/TypeScriptSources/ts` in VSCode:
 - In the terminal. Type and press enter: `tsc` which compiles the TypeScript source files to `openroberta-lab/OpenRobertaServer/staticResources/js/...`
 - If files were added/removed
-    - Open `openroberta-lab/OpenRobertaServer/staticResources/js/main.js`
+    - Open `openroberta-lab/OpenRobertaServer/staticResources/js/imports.js`
     - The second argument of `addPaths({...}, [...])` has to reflect the directory structure of `openroberta-lab/OpenRobertaServer/staticResources/js/app/simulation/simulationLogic/`
 - When running `tsc` and the error occurs e.g. `Cannot find module ...` you might have to execute `npm install` first
 
 When you want to add a new library using npm:
 - Install the library using npm
 - Copy the minified build of the library to `OpenRobertaServer/staticResources/js/libs/[library name]/[minified library js file]`
-- Add the library to `main.js`
+- Add the library to `imports.js` in the second argument of `addPaths({...}, [...])`
