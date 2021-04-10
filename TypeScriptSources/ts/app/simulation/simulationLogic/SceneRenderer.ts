@@ -15,6 +15,8 @@ export class SceneRender {
 	readonly scrollView: ScrollView;
 
 	readonly allowBlocklyAccess: boolean = false;
+
+	private readonly resizeTo: HTMLElement|null;
 	
 
 	constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, autoResizeTo?: HTMLElement | string, scene?: Scene) {
@@ -39,6 +41,8 @@ export class SceneRender {
 				resizeTo = <HTMLElement> document.getElementById(autoResizeTo);
 			}
 		}
+
+		this.resizeTo = resizeTo;
 
 		// The application will create a renderer using WebGL, if possible,
 		// with a fallback to a canvas render. It will also setup the ticker
@@ -71,9 +75,15 @@ export class SceneRender {
 		this.app.ticker.add(dt => {
 			if(this.scene) {
 				this.scene.renderTick(dt);
-				this.app.queueResize(); // allow auto resize
+
+				if(this.resizeTo && (this.app.view.width != this.resizeTo.clientWidth || this.app.view.height != this.resizeTo.clientHeight)) {
+					this.app.queueResize()
+					console.log('resize')
+				}
+
 			}
 		}, this);
+		this.app.ticker.maxFPS = 30
 
 	}
 

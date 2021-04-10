@@ -304,7 +304,7 @@ export class ProgramManager {
 			}
 		}
 
-		if(this.allowBlocklyUpdate) {
+		if(this.allowBlocklyUpdate && Blockly.getMainWorkspace()) {
 			let _this = this;
 			Blockly.getMainWorkspace().getAllBlocks(false).forEach((block:any) => {
 				if (block.inTask && !block.disabled && !block.getInheritedDisabled()) {

@@ -25,6 +25,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                     resizeTo = document.getElementById(autoResizeTo);
                 }
             }
+            this.resizeTo = resizeTo;
             // The application will create a renderer using WebGL, if possible,
             // with a fallback to a canvas render. It will also setup the ticker
             // and the root stage PIXI.Container
@@ -52,9 +53,13 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
                     _this.scene.renderTick(dt);
-                    _this.app.queueResize(); // allow auto resize
+                    if (_this.resizeTo && (_this.app.view.width != _this.resizeTo.clientWidth || _this.app.view.height != _this.resizeTo.clientHeight)) {
+                        _this.app.queueResize();
+                        console.log('resize');
+                    }
                 }
             }, this);
+            this.app.ticker.maxFPS = 30;
         }
         SceneRender.prototype.getScene = function () {
             return this.scene;

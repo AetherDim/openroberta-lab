@@ -261,7 +261,7 @@ define(["require", "exports", "blockly", "./simulation.constants"], function (re
                     }
                 }
             }
-            if (this.allowBlocklyUpdate) {
+            if (this.allowBlocklyUpdate && Blockly.getMainWorkspace()) {
                 var _this = this;
                 Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (block) {
                     if (block.inTask && !block.disabled && !block.getInheritedDisabled()) {
