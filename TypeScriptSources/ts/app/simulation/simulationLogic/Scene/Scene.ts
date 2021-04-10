@@ -790,6 +790,11 @@ export class Scene {
 			}
 		}
 
+		// update rendering positions
+		this.drawablePhysicsEntities.forEach(entity => {
+			entity.updateDrawablePosition()
+		})
+
 		this.onRenderTick(dt);
 	}
 
@@ -827,6 +832,10 @@ export class Scene {
 			// update blockly
 			_this.programManager.updateBreakpointEvent();
 		});
+
+		// simulation defaults
+		// TODO: Gravity scale may depend on the chosen units
+		this.engine.world.gravity = { scale: 1, x: 0, y: 0};
 	}
 
 
@@ -1081,11 +1090,6 @@ export class Scene {
 		// update entities e.g. robots
 		const _this = this
 		this.updatableEntities.forEach(entity => entity.update(_this.dt))
-		
-		// update rendering positions
-		this.drawablePhysicsEntities.forEach(entity => {
-			entity.updateDrawablePosition()
-		})
 
 		// TODO: Handle multiple robots and waypoints
 		if (this.robots.length >= 1) {

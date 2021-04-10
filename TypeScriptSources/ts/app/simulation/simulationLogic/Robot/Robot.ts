@@ -718,7 +718,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		const s = this.scene
 		const appendAny = (label: string, value: any) => { list.push({ label: label, value: value }) }
 		const append = (label: string, value: number, end?: string) => {
-			list.push({ label: label, value: Math.round(value * 100)/100 + (end ?? "")})
+			list.push({ label: label, value: Math.round(value * 1000000)/1000000 + (end ?? "")})
 		}
 
 		const sensors = this.robotBehaviour?.getHardwareStateSensors()

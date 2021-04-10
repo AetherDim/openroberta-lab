@@ -592,7 +592,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var s = this.scene;
             var appendAny = function (label, value) { list.push({ label: label, value: value }); };
             var append = function (label, value, end) {
-                list.push({ label: label, value: Math.round(value * 100) / 100 + (end !== null && end !== void 0 ? end : "") });
+                list.push({ label: label, value: Math.round(value * 1000000) / 1000000 + (end !== null && end !== void 0 ? end : "") });
             };
             var sensors = (_a = this.robotBehaviour) === null || _a === void 0 ? void 0 : _a.getHardwareStateSensors();
             if (sensors == undefined) {

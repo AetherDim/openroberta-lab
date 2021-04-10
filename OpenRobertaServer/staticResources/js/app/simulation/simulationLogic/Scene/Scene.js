@@ -173,6 +173,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 // update blockly
                 _this.programManager.updateBreakpointEvent();
             });
+            // simulation defaults
+            // TODO: Gravity scale may depend on the chosen units
+            this.engine.world.gravity = { scale: 1, x: 0, y: 0 };
         }
         Object.defineProperty(Scene.prototype, "unit", {
             get: function () {
@@ -627,6 +630,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                     this.hideScore();
                 }
             }
+            // update rendering positions
+            this.drawablePhysicsEntities.forEach(function (entity) {
+                entity.updateDrawablePosition();
+            });
             this.onRenderTick(dt);
         };
         Scene.prototype.interactionEvent = function (ev) {
@@ -842,10 +849,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // update entities e.g. robots
             var _this = this;
             this.updatableEntities.forEach(function (entity) { return entity.update(_this.dt); });
-            // update rendering positions
-            this.drawablePhysicsEntities.forEach(function (entity) {
-                entity.updateDrawablePosition();
-            });
             // TODO: Handle multiple robots and waypoints
             if (this.robots.length >= 1) {
                 this.waypointsManager.update(this.robots[0].body.position);

@@ -6,5 +6,8 @@ define(["require", "exports", "dat.gui"], function (require, exports, dat) {
     // Creating a GUI and a subfolder.
     exports.DebugGui = new dat.GUI({ name: 'My GUI', autoPlace: !HIDE_DATGUI });
     exports.DebugGui.close();
-    exports.DebugGui.domElement.parentElement.style.zIndex = '1000000';
+    var parent = exports.DebugGui.domElement.parentElement;
+    if (parent) {
+        parent.style.zIndex = '1000000';
+    }
 });
