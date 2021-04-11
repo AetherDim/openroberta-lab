@@ -43,3 +43,10 @@ When you want to add a new library using npm:
 - Install the library using npm
 - Copy the minified build of the library to `OpenRobertaServer/staticResources/js/libs/[library name]/[minified library js file]`
 - Add the library to `imports.js` in the second argument of `addPaths({...}, [...])`
+
+
+## Error messages and possible fixes
+
+When compiling TypeScript using `tsc`
+- `Cannot find module ...`: Checkout the latest commit and run `npm update`
+
