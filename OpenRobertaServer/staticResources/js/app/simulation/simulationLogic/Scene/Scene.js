@@ -470,6 +470,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.drawablePhysicsEntities.length = 0;
             // set score to 0
             this.setScore(0);
+            this.hideScore();
             chain.next();
         };
         /**

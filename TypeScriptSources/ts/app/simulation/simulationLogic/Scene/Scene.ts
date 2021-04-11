@@ -513,6 +513,7 @@ export class Scene {
 
 		// set score to 0
 		this.setScore(0)
+		this.hideScore()
 
 		chain.next();
 	}
@@ -529,7 +530,7 @@ export class Scene {
 
 		clearDebugGui() // if debug gui exist, clear it
 
-		 this.hideScore();
+		this.hideScore();
 
 		this.currentlyLoading = true; // this flag will start loading animation update
 		this.hasFinishedLoading = false;
