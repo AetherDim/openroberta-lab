@@ -53,8 +53,9 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
                     _this.scene.renderTick(dt);
-                    if (_this.resizeTo && (_this.app.view.width != _this.resizeTo.clientWidth || _this.app.view.height != _this.resizeTo.clientHeight)) {
+                    if (_this.resizeTo && (_this.app.view.clientWidth != _this.resizeTo.clientWidth || _this.app.view.clientHeight != _this.resizeTo.clientHeight)) {
                         _this.app.queueResize();
+                        console.log("resize");
                     }
                 }
             }, this);

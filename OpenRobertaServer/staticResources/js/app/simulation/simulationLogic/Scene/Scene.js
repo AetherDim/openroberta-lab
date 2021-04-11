@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1) {
+define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../ProgramManager", "../Robot/RobotUpdateOptions", "../Entity", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager", "./../GlobalDebug"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, ProgramManager_1, RobotUpdateOptions_1, Entity_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1, GlobalDebug_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -484,6 +484,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
                 console.warn('Already loading scene... !');
                 return;
             }
+            GlobalDebug_1.clearDebugGui(); // if debug gui exist, clear it
             this.hideScore();
             this.currentlyLoading = true; // this flag will start loading animation update
             this.hasFinishedLoading = false;

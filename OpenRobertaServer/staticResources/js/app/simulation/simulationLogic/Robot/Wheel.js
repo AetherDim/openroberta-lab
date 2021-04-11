@@ -236,6 +236,10 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
             this.angularVelocity += torque * dt / this.momentOfInertia;
             this.wheelAngle += this.angularVelocity * dt;
         };
+        Wheel.prototype._addDebugGui = function (gui) {
+            gui.add(this, 'rollingFriction', 0);
+            gui.add(this, 'slideFriction', 0);
+        };
         return Wheel;
     }(Entity_1.DrawablePhysicsEntity));
     exports.Wheel = Wheel;

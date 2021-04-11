@@ -76,8 +76,9 @@ export class SceneRender {
 			if(this.scene) {
 				this.scene.renderTick(dt);
 
-				if(this.resizeTo && (this.app.view.width != this.resizeTo.clientWidth || this.app.view.height != this.resizeTo.clientHeight)) {
+				if(this.resizeTo && (this.app.view.clientWidth != this.resizeTo.clientWidth || this.app.view.clientHeight != this.resizeTo.clientHeight)) {
 					this.app.queueResize()
+					console.log("resize")
 				}
 
 			}

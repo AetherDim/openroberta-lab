@@ -11,6 +11,7 @@ import { Util } from '../Util';
 import { AsyncChain } from "./AsyncChain";
 import { WaypointsManager } from '../Waypoints/WaypointsManager';
 import { ScoreWaypoint } from '../Waypoints/ScoreWaypoint';
+import {clearDebugGui} from "./../GlobalDebug";
 
 export class Scene {
 
@@ -525,6 +526,8 @@ export class Scene {
 			console.warn('Already loading scene... !');
 			return;
 		}
+
+		clearDebugGui() // if debug gui exist, clear it
 
 		 this.hideScore();
 

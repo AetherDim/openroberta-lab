@@ -10,11 +10,6 @@ import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 import {RRCScene} from "./RRC/Scene/RRCScene";
 import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 
-// Dat Gui
-import {DebugGui} from "./GlobalDebug";
-
-DebugGui.addFolder('Flow Field');
-
 // TODO: check whether this has to be defined in here
 // probably not
 export class SceneHandle {

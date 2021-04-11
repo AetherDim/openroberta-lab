@@ -15,6 +15,9 @@ import { TouchSensor } from './TouchSensor'
 import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, PhysicsRectEntity } from '../Entity'
 import { Scene } from '../Scene/Scene'
 import { Util } from '../Util'
+// Dat Gui
+import {DebugGui, DEBUG} from "./../GlobalDebug";
+import dat = require('dat.gui')
 
 type StringMap<V> = { [key: string]: V }
 type NumberMap<V> = { [key: number]: V }
@@ -114,6 +117,37 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.addChild(this.bodyEntity)
 		const t = this
 		this.wheelsList.forEach(wheel => t.addChild(wheel))
+
+		this.addDebugSettings()
+	}
+
+	private addDebugSettings() {
+
+		if(DebugGui) {
+			const robotFolder = DebugGui.addFolder('Robot')
+
+			const wheelFolder = robotFolder.addFolder('Wheels')
+
+			const control = {
+				rollingFriction: this.wheelsList[0].rollingFriction,
+				slideFriction: this.wheelsList[0].slideFriction
+			}
+
+			wheelFolder.add(control, 'rollingFriction').onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.rollingFriction = value)
+				wheelFolder.updateDisplay()
+			})
+
+			wheelFolder.add(control, 'slideFriction').onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.slideFriction = value)
+				wheelFolder.updateDisplay()
+			})
+
+			this.wheelsList[0]._addDebugGui(wheelFolder.addFolder('Wheel Left'))
+			this.wheelsList[1]._addDebugGui(wheelFolder.addFolder('Wheel Right'))
+			this.wheelsList[2]._addDebugGui(wheelFolder.addFolder('Wheel Back'))
+		}
+
 	}
 
 	private updatePhysicsObject() {

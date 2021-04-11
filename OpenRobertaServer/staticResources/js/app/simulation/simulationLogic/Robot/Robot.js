@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1) {
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "./../GlobalDebug", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1, GlobalDebug_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -63,10 +63,33 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             this.addChild(this.bodyEntity);
             var t = this;
             this.wheelsList.forEach(function (wheel) { return t.addChild(wheel); });
+            this.addDebugSettings();
         }
         Robot.prototype.setRobotType = function (type) {
             this.type = type;
             // TODO: change things
+        };
+        Robot.prototype.addDebugSettings = function () {
+            var _this_1 = this;
+            if (GlobalDebug_1.DebugGui) {
+                var robotFolder = GlobalDebug_1.DebugGui.addFolder('Robot');
+                var wheelFolder_1 = robotFolder.addFolder('Wheels');
+                var control = {
+                    rollingFriction: this.wheelsList[0].rollingFriction,
+                    slideFriction: this.wheelsList[0].slideFriction
+                };
+                wheelFolder_1.add(control, 'rollingFriction').onChange(function (value) {
+                    _this_1.wheelsList.forEach(function (wheel) { return wheel.rollingFriction = value; });
+                    wheelFolder_1.updateDisplay();
+                });
+                wheelFolder_1.add(control, 'slideFriction').onChange(function (value) {
+                    _this_1.wheelsList.forEach(function (wheel) { return wheel.slideFriction = value; });
+                    wheelFolder_1.updateDisplay();
+                });
+                this.wheelsList[0]._addDebugGui(wheelFolder_1.addFolder('Wheel Left'));
+                this.wheelsList[1]._addDebugGui(wheelFolder_1.addFolder('Wheel Right'));
+                this.wheelsList[2]._addDebugGui(wheelFolder_1.addFolder('Wheel Back'));
+            }
         };
         Robot.prototype.updatePhysicsObject = function () {
             var _this_1 = this;

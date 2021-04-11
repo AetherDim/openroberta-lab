@@ -5,6 +5,7 @@ import { Unit } from "../Unit"
 import { DrawablePhysicsEntity, PhysicsRectEntity } from "../Entity"
 import { Scene } from "../Scene/Scene"
 import { Util } from "../Util"
+import {GUI} from "dat.gui";
 
 export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	
@@ -267,6 +268,12 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	private updateWithTorque(torque: number, dt: number) {
 		this.angularVelocity += torque * dt / this.momentOfInertia
 		this.wheelAngle += this.angularVelocity * dt
+	}
+
+
+	_addDebugGui(gui: GUI) {
+		gui.add(this, 'rollingFriction', 0)
+		gui.add(this, 'slideFriction', 0)
 	}
 
 }
