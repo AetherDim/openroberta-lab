@@ -24,7 +24,7 @@ const addFolderFunc = dat.GUI.prototype.addFolder
 
 function addFolderToGUI(gui: dat.GUI, name: string, i: number): dat.GUI {
 	const newName = name + ' ' + i
-	if(this.__folders[newName]) {
+	if(gui.__folders[newName]) {
 		return addFolderToGUI(gui, name, i+1)
 	} else {
 		return addFolderFunc.apply(gui, [newName])

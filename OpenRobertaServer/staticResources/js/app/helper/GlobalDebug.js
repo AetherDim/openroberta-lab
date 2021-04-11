@@ -20,7 +20,7 @@ define(["require", "exports", "dat.gui"], function (require, exports, dat) {
     var addFolderFunc = dat.GUI.prototype.addFolder;
     function addFolderToGUI(gui, name, i) {
         var newName = name + ' ' + i;
-        if (this.__folders[newName]) {
+        if (gui.__folders[newName]) {
             return addFolderToGUI(gui, name, i + 1);
         }
         else {
