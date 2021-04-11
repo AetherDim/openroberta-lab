@@ -57,11 +57,11 @@ export class RRCScene extends Scene {
 		);
 	}
 
-	protected goalSprite: PIXI.Sprite;
+	protected goalSprite?: PIXI.Sprite;
 
-	scoreText2: PIXI.Text;
-	scoreText3: PIXI.Text;
-	scoreTextContainer: PIXI.Container = new PIXI.Container();
+	scoreText2 = new PIXI.Text("")
+	scoreText3 = new PIXI.Text("")
+	scoreTextContainer: PIXI.Container = new PIXI.Container()
 
 	initScoreContainer(chain: AsyncChain) {
 		this.scoreContainer.zIndex = this.scoreContainerZ;
@@ -103,10 +103,12 @@ export class RRCScene extends Scene {
 	}
 
 	updateScoreAnimation(dt: number) {
-		this.scoreTextContainer.x = this.goalSprite.width / 2;
-		this.scoreTextContainer.y = this.goalSprite.height / 2;
+		if (this.goalSprite != undefined) {
+			this.scoreTextContainer.x = this.goalSprite.width / 2;
+			this.scoreTextContainer.y = this.goalSprite.height / 2;
 
-		this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
+			this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
+		}
 	}
 
 	updateScoreText() {

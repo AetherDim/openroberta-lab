@@ -31,6 +31,8 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         function RRCScene(ageGroup) {
             var _this = _super.call(this) || this;
             _this.addWaypointGraphics = true;
+            _this.scoreText2 = new PIXI.Text("");
+            _this.scoreText3 = new PIXI.Text("");
             _this.scoreTextContainer = new PIXI.Container();
             _this.ageGroup = ageGroup;
             return _this;
@@ -103,9 +105,11 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             chain.next();
         };
         RRCScene.prototype.updateScoreAnimation = function (dt) {
-            this.scoreTextContainer.x = this.goalSprite.width / 2;
-            this.scoreTextContainer.y = this.goalSprite.height / 2;
-            this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
+            if (this.goalSprite != undefined) {
+                this.scoreTextContainer.x = this.goalSprite.width / 2;
+                this.scoreTextContainer.y = this.goalSprite.height / 2;
+                this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
+            }
         };
         RRCScene.prototype.updateScoreText = function () {
             var text = "Score: " + this.getScore();
