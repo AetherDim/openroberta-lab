@@ -122,7 +122,7 @@ sceneManager.registerScene(
 	),
 
 	new SceneHandle(
-		"Test Scene 2", "TestScene2", "T", 
+		"Test Scene 2", "TestScene2", "T",
 		() => new TestScene2(AgeGroup.ES)
 	),
 

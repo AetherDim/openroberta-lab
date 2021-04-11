@@ -594,7 +594,7 @@ export class RRCLabyrinthScene extends RRCScene {
 		waypoints.forEach(waypoint => {
 			const x = waypoint.x + waypoint.w/2
 			const y = waypoint.y + waypoint.h/2
-			const r = Math.sqrt(Math.pow(waypoint.w, 2) + Math.pow(waypoint.h, 2)) * 0.5
+			const r = Math.sqrt(Math.pow(waypoint.w, 2) + Math.pow(waypoint.h, 2))*0.5
 			const wp = this.makeWaypoint({x: x, y: y}, waypoint.score, r)
 			waypointList.appendWaypoints(wp)
 		})
