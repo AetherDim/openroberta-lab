@@ -11,15 +11,299 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "../../Random"], function (require, exports, RRCScene_1, AgeGroup_1, RRC, Random_1) {
+define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "../../Random", "../../Waypoints/WaypointList"], function (require, exports, RRCScene_1, AgeGroup_1, RRC, Random_1, WaypointList_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCRainbowScene = void 0;
     var RRCRainbowScene = /** @class */ (function (_super) {
         __extends(RRCRainbowScene, _super);
         function RRCRainbowScene() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            // colours
+            _this.red = {
+                r: 228,
+                g: 3,
+                b: 3
+            };
+            _this.orange = {
+                r: 255,
+                g: 140,
+                b: 0
+            };
+            _this.yellow = {
+                r: 255,
+                g: 237,
+                b: 0
+            };
+            _this.green = {
+                r: 0,
+                g: 128,
+                b: 38
+            };
+            _this.blue = {
+                r: 0,
+                g: 77,
+                b: 255
+            };
+            _this.purple = {
+                r: 117,
+                g: 7,
+                b: 135
+            };
+            // colour order
+            _this.colourES_MS = [
+                _this.red,
+                _this.yellow,
+                _this.green,
+                _this.blue
+            ];
+            _this.colourHS = [
+                _this.red,
+                _this.orange,
+                _this.yellow,
+                _this.green,
+                _this.blue,
+                _this.purple
+            ];
+            // Waypoints for MS and ES
+            _this.topWaypoints = [
+                {
+                    x: 390,
+                    y: 160,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                }, {
+                    x: 680,
+                    y: 165,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                }
+            ];
+            _this.rightWaypoints = [
+                {
+                    x: 485,
+                    y: 250,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                },
+                {
+                    x: 470,
+                    y: 440,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                }
+            ];
+            _this.downWaypoints = [
+                {
+                    x: 400,
+                    y: 350,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                }, {
+                    x: 230,
+                    y: 340,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                }
+            ];
+            _this.leftWaypoints = [
+                {
+                    x: 270,
+                    y: 250,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                }, {
+                    x: 170,
+                    y: 195,
+                    w: 40,
+                    h: 40,
+                    score: 10
+                }
+            ];
+            _this.waypointListES_MS = [
+                _this.topWaypoints,
+                _this.rightWaypoints,
+                _this.downWaypoints,
+                _this.leftWaypoints
+            ];
+            // Waypoints for HS
+            _this.topLeftWaypoints = [
+                {
+                    x: 310,
+                    y: 175,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                },
+                {
+                    x: 382,
+                    y: 95,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                }
+            ];
+            _this.topRightWaypoints = [
+                {
+                    x: 445,
+                    y: 175,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                },
+                {
+                    x: 565,
+                    y: 57,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                }
+            ];
+            _this.downLeftWaypoints = [
+                {
+                    x: 345,
+                    y: 385,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                },
+                {
+                    x: 245,
+                    y: 403,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                }
+            ];
+            _this.downRightWaypoints = [
+                {
+                    x: 470,
+                    y: 363,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                },
+                {
+                    x: 470,
+                    y: 450,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                }
+            ];
+            _this.middleLeftWaypoints = [
+                {
+                    x: 278,
+                    y: 263,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                },
+                {
+                    x: 64,
+                    y: 245,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                }
+            ];
+            _this.middleRightWaypoint = [
+                {
+                    x: 490,
+                    y: 265,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                },
+                {
+                    x: 660,
+                    y: 265,
+                    w: 20,
+                    h: 20,
+                    score: 10
+                }
+            ];
+            _this.waypointListHS = [
+                _this.topLeftWaypoints,
+                _this.topRightWaypoints,
+                _this.downLeftWaypoints,
+                _this.downRightWaypoints,
+                _this.middleLeftWaypoints,
+                _this.middleRightWaypoint
+            ];
+            return _this;
         }
+        /**
+         * creates a the Waypoint list in the correct order
+         */
+        RRCRainbowScene.prototype.sortColour = function () {
+            var _this = this;
+            var finalWaypointList = new WaypointList_1.WaypointList();
+            this.getColourOrder().forEach(function (colour) {
+                var waypointList = new WaypointList_1.WaypointList();
+                _this.getWaypoints().forEach(function (waypoint) {
+                    var waypointColour = _this.getColourFromPosition({ x: waypoint[0].x, y: waypoint[0].y });
+                    var waypoints = _this.topWaypoints;
+                    if (waypointColour != undefined) {
+                        if (colour.r == waypointColour[0] && colour.g == waypointColour[1] && colour.b == waypointColour[2]) {
+                            waypoints = waypoint;
+                            waypoints.forEach(function (waypoint) {
+                                var x = waypoint.x + waypoint.w / 2;
+                                var y = waypoint.y + waypoint.h / 2;
+                                var wp = _this.makeWaypoint({ x: x, y: y }, waypoint.score);
+                                waypointList.appendWaypoints(wp);
+                            });
+                            waypointList.appendReversedWaypoints();
+                        }
+                    }
+                });
+                finalWaypointList.append(waypointList);
+            });
+            this.setWaypointList(finalWaypointList);
+        };
+        /**
+         * @returns a one-dimensional array of the colour order for each division
+         */
+        RRCRainbowScene.prototype.getColourOrder = function () {
+            switch (this.ageGroup) {
+                case AgeGroup_1.AgeGroup.ES:
+                    return this.colourES_MS;
+                case AgeGroup_1.AgeGroup.MS:
+                    return this.colourES_MS;
+                case AgeGroup_1.AgeGroup.HS:
+                    return this.colourHS;
+            }
+        };
+        /**
+         * @returns a one-dimensional array of the waypoints
+         */
+        RRCRainbowScene.prototype.getWaypoints = function () {
+            switch (this.ageGroup) {
+                case AgeGroup_1.AgeGroup.ES:
+                    return this.waypointListES_MS;
+                case AgeGroup_1.AgeGroup.MS:
+                    return this.waypointListES_MS;
+                case AgeGroup_1.AgeGroup.HS:
+                    return this.waypointListHS;
+            }
+        };
+        /**
+         * @param pos of the pixel that should be read
+         * @returns returns one-dimensional array of the colour (red, green, blue) at pos
+         */
+        RRCRainbowScene.prototype.getColourFromPosition = function (pos) {
+            var updateOptions = this.getRobotUpdateOptions();
+            if (updateOptions != undefined) {
+                return (updateOptions.getImageData(pos.x, pos.y, 1, 1).data);
+            }
+        };
         RRCRainbowScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
                 case AgeGroup_1.AgeGroup.ES:
@@ -53,6 +337,11 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 this.goalSprite = new PIXI.Sprite(goal);
                 this.groundContainer.addChild(this.goalSprite);
             }
+            this.groundContainer.visible = true;
+            this.updateImageDataFunction();
+            this.updateRobotOptions();
+            this.groundContainer.visible = false;
+            this.sortColour();
             this.addWalls(true);
             chain.next();
         };
