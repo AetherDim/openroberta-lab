@@ -1,5 +1,13 @@
 # Extended README
 
+
+## Best practices
+
+- Use `npm ci` instead of `npm install`
+- Do not call `npm update` unless you want to update all packages (and know what you are doing). This changes the `package-lock.json` file.
+
+
+
 ## Setup
 
 - Clone Repository
@@ -23,6 +31,8 @@
     - `File -> Open… -> 'openroberta-lab/TypeScriptSources'`
     - `Terminal -> New Terminal`
 - **Setup TypeScript and other packages** using the terminal
+    - `npm ci` installs all necessary packages
+- Manual installation (normally not required)
     - `npm install -g typescript` **g**lobally installs TypeScript
     - `npm install matter-js` installs matter.js which is the physics engine
     - `npm install tslib` installs tslib which is the helper library
@@ -42,11 +52,11 @@ When changing something in `openroberta-lab/TypeScriptSources/ts` in VSCode:
 When you want to add a new library using npm:
 - Install the library using npm
 - Copy the minified build of the library to `OpenRobertaServer/staticResources/js/libs/[library name]/[minified library js file]`
-- Add the library to `imports.js` in the second argument of `addPaths({...}, [...])`
+- Add the library to `imports.js` in the first argument of `addPaths({...}, [...])`
 
 
 ## Error messages and possible fixes
 
 When compiling TypeScript using `tsc`
-- `Cannot find module ...`: Checkout the latest commit and run `npm update`
+- `Cannot find module ...`: Checkout the latest commit and run `npm ci`
 
