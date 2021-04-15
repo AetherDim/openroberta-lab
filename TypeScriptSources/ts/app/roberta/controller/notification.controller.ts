@@ -61,7 +61,7 @@ export function reloadNotifications() {
 export function showNotificationModal() {
     notificationModel.getNotifications(function(result) {
         setFileDownloadContent(result.notifications);
-        $('#modal-notifications').modal("show");
+        ($('#modal-notifications') as any).modal("show");
     });
 }
 
