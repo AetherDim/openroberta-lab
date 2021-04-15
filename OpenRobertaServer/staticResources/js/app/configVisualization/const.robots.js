@@ -97,6 +97,41 @@ define(["require", "exports"], function (require, exports) {
         "arduino_nano": {
             "ports": [
                 { name: 'LED_BUILTIN', position: { x: 28.9, y: 91.4 } },
+                { name: 'RESET', position: { x: 200.3, y: 5.6 } },
+                { name: 'GND', position: { x: 186.1, y: 5.6 } },
+                { name: '0', position: { x: 214.6, y: 5.6 } },
+                { name: '1', position: { x: 228.9, y: 5.6 } },
+                { name: '2', position: { x: 171.8, y: 5.6 } },
+                { name: '3', position: { x: 157.5, y: 5.6 } },
+                { name: '4', position: { x: 143.2, y: 5.6 } },
+                { name: '5', position: { x: 128.9, y: 5.6 } },
+                { name: '6', position: { x: 114.6, y: 5.6 } },
+                { name: '7', position: { x: 100.3, y: 5.6 }, },
+                { name: '8', position: { x: 86.1, y: 5.6 } },
+                { name: '9', position: { x: 71.8, y: 5.6 } },
+                { name: '10', position: { x: 57.5, y: 5.6 } },
+                { name: '11', position: { x: 43.2, y: 5.6 } },
+                { name: '12', position: { x: 28.9, y: 5.6 } },
+                { name: 'VIN', position: { x: 228.9, y: 91.4 } },
+                { name: 'GND', position: { x: 214.6, y: 91.4 } },
+                { name: 'RESET', position: { x: 200.3, y: 91.4 } },
+                { name: '5V', position: { x: 186.1, y: 91.4 } },
+                { name: 'A7', position: { x: 171.8, y: 91.4 } },
+                { name: 'A6', position: { x: 157.5, y: 91.4 } },
+                { name: 'A5', position: { x: 143.2, y: 91.4 } },
+                { name: 'A4', position: { x: 128.9, y: 91.4 } },
+                { name: 'A3', position: { x: 114.6, y: 91.4 } },
+                { name: 'A2', position: { x: 100.3, y: 91.4 } },
+                { name: 'A1', position: { x: 86.1, y: 91.4 } },
+                { name: 'A0', position: { x: 71.8, y: 91.4 } },
+                { name: 'REF', position: { x: 57.5, y: 91.4 } },
+                { name: '3V3', position: { x: 43.2, y: 91.4 } },
+                { name: '13', position: { x: 28.9, y: 91.4 } }
+            ], "width": "253px", "height": "100px"
+        },
+        "nano33ble": {
+            "ports": [
+                { name: 'LED_BUILTIN', position: { x: 28.9, y: 91.4 } },
                 { name: 'TX1', position: { x: 228.9, y: 5.6 } },
                 { name: 'RX0', position: { x: 214.6, y: 5.6 } },
                 { name: 'RESET', position: { x: 200.3, y: 5.6 } },
@@ -208,7 +243,7 @@ define(["require", "exports"], function (require, exports) {
                 { name: 'motor A', position: { x: 153.8, y: 210 } },
                 { name: 'motor B', position: { x: 145, y: 209 } },
                 { name: 'ultrasonic 1', position: { x: 245.7, y: 79.5 } },
-                { name: 'callibot', position: { x: 245.7, y: 79.5 } },
+                { name: 'callibot', position: { x: 73.0, y: 79.5 } },
                 // Adressable pins
                 { name: '0', position: { x: 16.5, y: 139.2 } },
                 { name: '1', position: { x: 88, y: 262 } },
@@ -245,7 +280,7 @@ define(["require", "exports"], function (require, exports) {
                 { name: 'compass', position: { x: 91.5, y: 130.3 } },
                 { name: 'gyro', position: { x: 97, y: 130.3 } },
                 { name: 'sound', position: { x: 214.0, y: 90.2 } },
-            ], "width": "322", "height": "283"
+            ], "width": "322px", "height": "283px"
         },
         "microbit": {
             "ports": [
@@ -280,6 +315,41 @@ define(["require", "exports"], function (require, exports) {
                 { name: 'accelerometer', position: { x: 238.2, y: 99.5 } },
                 { name: 'compass', position: { x: 238.2, y: 104.7 } },
             ], "width": "435px", "height": "172px"
+        },
+        "sensebox": {
+            "ports": [
+                // Digital Pins
+                { name: '1', position: { x: 151, y: 104 } },
+                { name: '2', position: { x: 160, y: 104 } },
+                { name: '3', position: { x: 151, y: 63 } },
+                { name: '4', position: { x: 160, y: 63 } },
+                { name: '5', position: { x: 151, y: 21 } },
+                { name: '6', position: { x: 160, y: 21 } },
+                { name: '7', position: { x: 22, y: 117 } },
+                { name: '8', position: { x: 14, y: 117 } },
+                // special pins and ports
+                { name: 'XBEE1', position: { x: 73, y: 203 } },
+                { name: 'XBEE2', position: { x: 320, y: 203 } },
+                { name: 'I2C', position: { x: 323, y: 21 } },
+                { name: 'I2C', position: { x: 289, y: 63 } },
+                { name: 'I2C', position: { x: 354, y: 63 } },
+                { name: 'I2C', position: { x: 289, y: 104 } },
+                { name: 'I2C', position: { x: 354, y: 104 } },
+                { name: 'Serial1', position: { x: 220, y: 105 } },
+                { name: 'Serial2', position: { x: 220, y: 63 } },
+                // base pins
+                { name: 'GND', position: { x: 133, y: 104 } },
+                { name: 'GND', position: { x: 133, y: 63 } },
+                { name: 'GND', position: { x: 133, y: 21 } },
+                { name: 'GND', position: { x: 50, y: 21 } },
+                { name: '5V', position: { x: 141, y: 104 } },
+                { name: '5V', position: { x: 141, y: 63 } },
+                { name: '5V', position: { x: 141, y: 21 } },
+                { name: '5V', position: { x: 59, y: 21 } },
+                //build in
+                { name: 'accelerometer', position: { x: 187, y: 207 } },
+                { name: 'sensebox', position: { x: 187, y: 207 } },
+            ], "width": "398px", "height": "303px"
         }
     };
 });

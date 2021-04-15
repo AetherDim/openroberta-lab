@@ -56,15 +56,16 @@ public class UserGroupProcessor extends AbstractProcessor {
      *
      * @param groupName The name of the user group
      * @param groupOwner The owner of the user group
+     * @param isLogin TODO
      * @return The user group, or null, if no such user group exists.
      */
-    public UserGroup getGroup(String groupName, User groupOwner) {
+    public UserGroup getGroup(String groupName, User groupOwner, boolean isLogin) {
         if ( groupOwner == null || groupName == null ) {
             this.setStatus(ProcessorStatus.FAILED, Key.GROUP_GET_ONE_ERROR, new HashMap<>());
             return null;
         }
 
-        if ( !this.canOwnGroup(groupOwner) ) {
+        if ( !this.canOwnGroup(groupOwner) && !isLogin ) {
             this.setStatus(ProcessorStatus.FAILED, Key.GROUP_ERROR_MISSING_RIGHTS_TO_BE_GROUP_OWNER, new HashMap<>());
             return null;
         }
@@ -294,8 +295,7 @@ public class UserGroupProcessor extends AbstractProcessor {
     }
 
     /**
-     * Checks for a given user if he can own a user group.
-     * Includes a null check.<br/>
+     * Checks for a given user if he can own a user group. Includes a null check.<br/>
      * A user can own a group, if:<br/>
      * - he is not a member of another group <br/>
      * - is associated with a validated email address.
@@ -308,8 +308,7 @@ public class UserGroupProcessor extends AbstractProcessor {
     }
 
     /**
-     * Checks if a given string is a valid name for a user group.
-     * Includes a null check.<br/>
+     * Checks if a given string is a valid name for a user group. Includes a null check.<br/>
      * A valid group name can <b>not</b>:<br/>
      * - be empty, <br/>
      * - start or end with a space <br/>
@@ -326,9 +325,8 @@ public class UserGroupProcessor extends AbstractProcessor {
     }
 
     /**
-     * Checks whether or not the given string is a valid name of any user group member.
-     * Includes a null check.
-     * A string is a valid name of any user group member, if it contains a colon ":", which is otherwise an illegal character for a user name.<br/>
+     * Checks whether or not the given string is a valid name of any user group member. Includes a null check. A string is a valid name of any user group
+     * member, if it contains a colon ":", which is otherwise an illegal character for a user name.<br/>
      * Does <strong>not</strong> check if a user group member with the given name exists or not!
      *
      * @param userAccount The string that shall be checked.

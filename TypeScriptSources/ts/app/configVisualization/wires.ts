@@ -26,11 +26,38 @@ class WirePoint {
     }
 }
 
+function distance(first: number, second: number) {
+    return Math.abs(first - second);
+}
+
+function chooseByDistance(selectBetween: [number, number], comparisonPoint: number,
+    comparator: (x1: number, x2: number) => boolean = (x1, x2) => x1 > x2): number {
+
+    const comparison = comparator(distance(selectBetween[0], comparisonPoint), distance(selectBetween[1], comparisonPoint));
+    if (comparison) {
+        return selectBetween[0];
+    }
+    return selectBetween[1];
+}
+
+
 export default class WireDrawer {
 
-    head: WirePoint;
+    public static readonly SEPARATOR = 6
 
-    constructor(origin, destination) {
+    private head: WirePoint;
+    private readonly blockCorners: {
+        upperLeft: Point,
+        lowerRight: Point
+    };
+    private readonly portIndex: number;
+    private readonly left: boolean;
+
+    constructor(origin, destination, portIndex, blockCorners?) {
+        this.blockCorners = blockCorners;
+        if (blockCorners) this.left = this.blockCorners.upperLeft.x === origin.x;
+
+        this.portIndex = portIndex;
         this.head = new WirePoint(origin);
         this.head.next = new WirePoint(destination);
         this.toOrthoLines_();
@@ -43,16 +70,39 @@ export default class WireDrawer {
     }
 
     toOrthoLines_() {
-        const { x: x1, y: y1 } = this.head.pos;
-        const { x: x2, y: y2 } = this.head.next.pos;
+        const { x: originX, y: originY } = this.head.pos;
+        const { x: destinationX, y: destinationY } = this.head.next.pos;
 
-        if (x1 === x2 || y1 === y2)
+        if (originX === destinationX || originY === destinationY)
             return;
 
-        const x = x1 < x2 ? Math.max(x1, x2) : Math.min(x1, x2);
-        const y = y1 < y2 ? Math.min(y1, y2) : Math.max(y1, y2);
+        let x = originX < destinationX ? Math.max(originX, destinationX) : Math.min(originX, destinationX);
+        let y = originY < destinationY ? Math.min(originY, destinationY) : Math.max(originY, destinationY);
+
+        if (!this.blockCorners) {
+            this.addPoint_(this.head, { x, y });
+            return
+        }
+
+        // Adjust path around block
+
+        const { lowerRight, upperLeft } = this.blockCorners;
+
+        const separatorByPortIndex = (this.portIndex + 1) * WireDrawer.SEPARATOR;
+        y = chooseByDistance([lowerRight.y + separatorByPortIndex, upperLeft.y - separatorByPortIndex], destinationY, (x, y) => x < y);
+        const xExtra = this.left ? originX - separatorByPortIndex : originX + separatorByPortIndex;
 
         this.addPoint_(this.head, { x, y });
+
+        this.addPoint_(this.head, {
+            x: xExtra,
+            y: y
+        });
+
+        this.addPoint_(this.head, {
+            x: xExtra,
+            y: originY
+        });
     }
 
     get path() {

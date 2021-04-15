@@ -85,10 +85,8 @@ define(['exports', 'util', 'message', 'guiState.model', 'progHelp.controller', '
     exports.setInitialState = setInitialState;
 
     /**
-     * Set gui state
+     * Check if a program is a standard program or not
      * 
-     * @param {result}
-     *            result of server call
      */
     function isProgramStandard() {
         return GUISTATE.program.name == 'NEPOprog';
@@ -1110,10 +1108,8 @@ define(['exports', 'util', 'message', 'guiState.model', 'progHelp.controller', '
     exports.setProgram = setProgram;
 
     /**
-     * Set program name
-     * 
-     * @param {name}
-     *            Name to be set
+     * Set configuration
+     * @param {*} result 
      */
     function setConfiguration(result) {
         if (result) {
@@ -1129,10 +1125,10 @@ define(['exports', 'util', 'message', 'guiState.model', 'progHelp.controller', '
     function checkSim() {
         if (GUISTATE.gui.sim == true) {
             $('#menuRunSim').parent().parent().removeClass('disabled');
-            $('#simButton').show();
+            $('#simButton, #simDebugButton').show();
         } else {
             $('#menuRunSim').parent().parent().addClass('disabled');
-            $('#simButton').hide();
+            $('#simButton, #simDebugButton').hide();
         }
         if (GUISTATE.gui.multipleSim == true) {
             $('#menuRunMulipleSim').parent().parent().removeClass('unavailable');

@@ -3,6 +3,8 @@ import { ROBOTS } from "./const.robots";
 import { createRobotBlock } from "./robotBlock";
 import { Port } from "./port";
 
+import * as $ from 'jquery'
+
 const SEP = 2.5;
 const STROKE = 1.8;
 
@@ -15,9 +17,18 @@ if (!('remove' in Element.prototype)) {
     };
 }
 
+interface Connection {
+    blockId: string;
+    blockPort: Port;
+    connectedTo: string;
+    name?: string;
+    position: any;
+    wireSvg: any
+}
+
 export class CircuitVisualization {
     components: {};
-    connections: any;
+    connections: Connection[];
     robot: any;
     robotXml: Node;
     wireGroup: any;
@@ -25,6 +36,7 @@ export class CircuitVisualization {
     dom: any;
     workspace: any;
     scale: number = 1;
+    observers: MutationObserver[] = [];
 
     constructor(workspace: any, dom: string) {
         this.dom = dom;
@@ -37,20 +49,8 @@ export class CircuitVisualization {
         this.currentRobot = this.workspace.device + "_" + this.workspace.subDevice;
         this.injectRobotBoard();
         this.workspace.addChangeListener(this.onChangeListener);
-        this.wireGroup = (<any>window).Blockly.createSvgElement('g', {}, this.workspace.svgGroup_);
-        document.getElementById("bricklyDiv").addEventListener('mousemove', this.handler);
-        document.getElementById("bricklyDiv").addEventListener('click', this.handler);
-        document.getElementById("bricklyDiv").addEventListener('touchmove', this.handler);
+        this.wireGroup = (<any>window).Blockly.createSvgElement('g', { id: "wireGroup" }, this.workspace.getCanvas());
     }
-    handler = (function(event) {
-        if ((<any>window).Blockly.dragMode_ == (<any>window).Blockly.DRAG_FREE || this.workspace.isScrolling) {
-            this.renderConnections();
-        }
-        if (this.workspace.scale !== this.scale) {
-            this.scale = this.workspace.scale;
-            this.renderConnections();
-        }
-    }).bind(this);
 
     static domToWorkspace(dom, workspace) {
         const confVis = new CircuitVisualization(workspace, dom);
@@ -78,35 +78,32 @@ export class CircuitVisualization {
 
     refresh(): void {
         this.workspace.getAllBlocks().forEach(block => {
-            this.renderBlockBackground(block);
             this.updateBlockPorts(block);
-            this.renderConnections();
+            this.renderConnections(this.connections);
         });
     }
 
     dispose(): void {
         this.workspace.removeChangeListener(this.onChangeListener);
-        document.getElementById("bricklyDiv").removeEventListener('mousemove', this.handler);
-        document.getElementById("bricklyDiv").removeEventListener('touchmove', this.handler);
-        document.getElementById("bricklyDiv").removeEventListener('click', this.handler);
         this.wireGroup.remove();
+        this.observers.forEach(observer => observer.disconnect());
+        this.observers = [];
     }
 
     getXml(): string {
-        const xml = (<any>window).Blockly.Xml.workspaceToDom(this.workspace);
-        xml.querySelector('block[type=robot]').parentNode.remove();
-        return xml;
+        return (<any>window).Blockly.Xml.workspaceToDom(this.workspace);
     }
 
     injectRobotBoard(): void {
-        if (this.robotXml) {
-            (this.robotXml as any).remove();
+        (<any>window).Blockly.Blocks['robConf_robot'] = createRobotBlock(this.currentRobot);
+
+        if (!this.dom.querySelector("block[type=robConf_robot]")) {
+            const robotXml = `<instance x="250" y="250"><block type="robConf_robot" id="robot"></block></instance>`;
+            const oParser = new DOMParser();
+            const robotElement = oParser.parseFromString(robotXml, 'text/xml').firstChild;
+            this.dom.appendChild(robotElement);
         }
-        (<any>window).Blockly.Blocks['robot'] = createRobotBlock(this.currentRobot);
-        const robotXml = `<instance x="250" y="250"><block type="robot" id="robot"></block></instance>`;
-        const oParser = new DOMParser();
-        this.robotXml = oParser.parseFromString(robotXml, 'text/xml').firstChild;
-        this.dom.appendChild(this.robotXml);
+
         (<any>window).Blockly.Xml.domToWorkspace(this.dom, this.workspace);
         this.robot = this.workspace.getBlockById('robot');
     }
@@ -118,21 +115,21 @@ export class CircuitVisualization {
     }
 
     onChangeListener = (event) => {
-        this.renderConnections();
         if (!event.blockId) {
             return;
         }
         const block = this.workspace.getBlockById(event.blockId);
 
-        if (event.type !== (<any>window).Blockly.Events.UI)
-            this.renderBlockBackground(block);
         switch (event.type) {
             case (<any>window).Blockly.Events.CREATE:
                 this.createBlockPorts(block);
+                this.initEventListeners(block);
+                this.renderBlockConnections(block);
                 break;
             case (<any>window).Blockly.Events.CHANGE:
                 this.updateBlockPorts(block);
                 this.updateConnections(block);
+                this.renderBlockConnections(block);
                 break;
             case (<any>window).Blockly.Events.DELETE:
                 this.deleteConnections(event.blockId);
@@ -143,52 +140,114 @@ export class CircuitVisualization {
         }
     }
 
-    renderConnections(): void {
-        if (this.connections.length === 0) {
+    private initEventListeners(block) {
+        const observer = new MutationObserver(() => {
+            return this.renderBlockConnections(block);
+        });
+
+        observer.observe(block.svgGroup_, {
+            childList: false,
+            subtree: false,
+            attributes: true,
+            attributeFilter: ["transform"]
+        })
+
+        this.observers.push(observer);
+    }
+
+    private renderBlockConnections(block: any) {
+        if (block.id !== "robot") {
+            return this.renderConnections(this.connections.filter(({ blockId }) => blockId === block.id));
+        }
+        return this.renderConnections(this.connections);
+    }
+
+    private renderConnections(connections: Connection[]): void {
+        if (connections.length === 0) {
             return;
         }
         const robotPosition = this.robot.getRelativeToSurfaceXY();
-        const { matrix } = this.workspace.getCanvas().transform.baseVal.getItem(0);
-        this.connections.forEach(({ blockId, position, connectedTo, wireSvg }) => {
+        connections.forEach(({ blockId, position, connectedTo, wireSvg, blockPort }) => {
             const block = this.workspace.getBlockById(blockId);
             if (!block) {
                 return;
             }
+            if (this.needToUpdateBlockPorts(block, position, connectedTo)) {
+                this.updateBlockPorts(block);
+                position.x = this.calculatePortPosition(block, connectedTo);
+            }
             const blockPosition = block.getRelativeToSurfaceXY();
             const origin = {
-                x: matrix.e + this.workspace.scale * (blockPosition.x + position.x + SEP),
-                y: matrix.f + this.workspace.scale * (blockPosition.y + position.y + SEP),
-            }
+                x: blockPosition.x + position.x + SEP,
+                y: blockPosition.y + position.y + SEP,
+            };
             const robotConnection = this.robot.getPortByName(connectedTo)
             if (!robotConnection) {
                 return;
             }
             const destination = {
-                x: matrix.e + this.workspace.scale * (robotPosition.x + robotConnection.position.x + SEP),
-                y: matrix.f + this.workspace.scale * (robotPosition.y + robotConnection.position.y + SEP),
-            }
-            const drawer = new WireDrawer(origin, destination);
+                x: robotPosition.x + robotConnection.position.x + SEP,
+                y: robotPosition.y + robotConnection.position.y + SEP
+            };
+
+            const wireShouldWrap = this.shouldWireWrap(block, destination);
+            const drawer = new WireDrawer(origin, destination, block.ports.indexOf(blockPort), wireShouldWrap ? this.calculateBlockCorners(block) : undefined);
+
             wireSvg.setAttribute('d', drawer.path);
-            wireSvg.setAttribute('stroke-width', STROKE * this.workspace.scale);
+            wireSvg.setAttribute('stroke-width', STROKE);
         });
+        $(this.wireGroup).remove().appendTo(this.workspace.getCanvas());
     }
-    
+
+    private shouldWireWrap(block, destination) {
+        const { lowerRight: { x: rightEdge, y: lowerEdge }, upperLeft: { x: leftEdge, y: upperEdge } } = this.calculateBlockCorners(block)
+
+        return (leftEdge - WireDrawer.SEPARATOR) <= destination.x && destination.x <= (rightEdge + WireDrawer.SEPARATOR);
+    }
+
+    private calculateBlockCorners(block) {
+        const relativeUpperLeft = block.getRelativeToSurfaceXY();
+        return {
+            upperLeft: relativeUpperLeft,
+            lowerRight: {
+                x: relativeUpperLeft.x + block.width,
+                y: relativeUpperLeft.y + block.height
+            }
+        };
+    }
+
+    private needToUpdateBlockPorts(block: any, portPosition: any, connectedTo: any): boolean {
+        if (connectedTo) {
+            return portPosition.x !== this.calculatePortPosition(block, connectedTo);
+        }
+    }
+
     updateBlockPorts = (block) => {
-        const positionX = block.width + 4;
         block.ports.forEach(port => {
             const position = port.position;
-            port.moveTo({ ...position, x: positionX });
+            port.moveTo({ ...position, x: this.calculatePortPosition(block, port.connectedTo) });
         });
 
-        this.connections = this.connections.map(({ position, ...others }) => {
+        this.connections = this.connections.map(({ position, connectedTo, ...others }) => {
             if (others.blockId !== block.id) {
-                return { position, ...others };
+                return { position, connectedTo, ...others };
             }
             return {
-                position: { ...position, x: positionX },
+                position: { ...position, x: this.calculatePortPosition(block, connectedTo) },
+                connectedTo,
                 ...others,
             };
         });
+    }
+
+    private calculatePortPosition(block, connectedTo) {
+        const blockPosition = (block.getRelativeToSurfaceXY().x) + (block.width / 2);
+        const robotPortPosition = (this.robot.getRelativeToSurfaceXY().x) + (this.robot.getPortByName(connectedTo).position.x);
+
+        if (blockPosition < robotPortPosition) {
+            return block.width - SEP;
+        }
+        return -SEP;
     }
 
     createBlockPorts = (block) => {
@@ -214,8 +273,11 @@ export class CircuitVisualization {
 
     appendPortAndConnection = (block, svgElement, name, connectedTo) => {
         const { matrix } = svgElement.transform.baseVal.getItem(0);
-        const position = { x: block.width + 4, y: matrix.f + 6 };
-        const port = new Port(block.getSvgRoot(), name, position);
+        const position = {
+            x: this.calculatePortPosition(block, connectedTo),
+            y: matrix.f + 6
+        };
+        const port = new Port(block.getSvgRoot(), name, position, connectedTo);
         block.ports.push(port);
         const wireColor = WireDrawer.getColor(block, name);
         const wireSvg = (<any>window).Blockly.createSvgElement('path', {
@@ -229,6 +291,7 @@ export class CircuitVisualization {
         this.connections.push({
             blockId: block.id,
             connectedTo: connectedTo,
+            blockPort: port,
             name,
             position,
             wireSvg,
@@ -244,7 +307,6 @@ export class CircuitVisualization {
         }));
         this.connections = this.connections.filter(connection => connection.blockId !== block.id);
         this.connections = [...this.connections, ...connections];
-        this.renderConnections();
     }
 
     deleteConnections = (blockId) => {
@@ -255,15 +317,5 @@ export class CircuitVisualization {
             }
             return true;
         });
-    }
-
-    renderBlockBackground = (block) => {
-        if (!block) {
-            return;
-        }
-        const newWidth = block.width + 16;
-        let path = block.svgPath_.getAttribute('d');
-        path = path.replace(block.width.toString(), newWidth.toString());
-        block.svgPath_.setAttribute('d', path);
     }
 }

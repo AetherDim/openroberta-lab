@@ -24,8 +24,23 @@ define(["require", "exports"], function (require, exports) {
         });
         return WirePoint;
     }());
+    function distance(first, second) {
+        return Math.abs(first - second);
+    }
+    function chooseByDistance(selectBetween, comparisonPoint, comparator) {
+        if (comparator === void 0) { comparator = function (x1, x2) { return x1 > x2; }; }
+        var comparison = comparator(distance(selectBetween[0], comparisonPoint), distance(selectBetween[1], comparisonPoint));
+        if (comparison) {
+            return selectBetween[0];
+        }
+        return selectBetween[1];
+    }
     var WireDrawer = /** @class */ (function () {
-        function WireDrawer(origin, destination) {
+        function WireDrawer(origin, destination, portIndex, blockCorners) {
+            this.blockCorners = blockCorners;
+            if (blockCorners)
+                this.left = this.blockCorners.upperLeft.x === origin.x;
+            this.portIndex = portIndex;
             this.head = new WirePoint(origin);
             this.head.next = new WirePoint(destination);
             this.toOrthoLines_();
@@ -36,13 +51,30 @@ define(["require", "exports"], function (require, exports) {
             prevPoint.next = newPoint;
         };
         WireDrawer.prototype.toOrthoLines_ = function () {
-            var _a = this.head.pos, x1 = _a.x, y1 = _a.y;
-            var _b = this.head.next.pos, x2 = _b.x, y2 = _b.y;
-            if (x1 === x2 || y1 === y2)
+            var _a = this.head.pos, originX = _a.x, originY = _a.y;
+            var _b = this.head.next.pos, destinationX = _b.x, destinationY = _b.y;
+            if (originX === destinationX || originY === destinationY)
                 return;
-            var x = x1 < x2 ? Math.max(x1, x2) : Math.min(x1, x2);
-            var y = y1 < y2 ? Math.min(y1, y2) : Math.max(y1, y2);
+            var x = originX < destinationX ? Math.max(originX, destinationX) : Math.min(originX, destinationX);
+            var y = originY < destinationY ? Math.min(originY, destinationY) : Math.max(originY, destinationY);
+            if (!this.blockCorners) {
+                this.addPoint_(this.head, { x: x, y: y });
+                return;
+            }
+            // Adjust path around block
+            var _c = this.blockCorners, lowerRight = _c.lowerRight, upperLeft = _c.upperLeft;
+            var separatorByPortIndex = (this.portIndex + 1) * WireDrawer.SEPARATOR;
+            y = chooseByDistance([lowerRight.y + separatorByPortIndex, upperLeft.y - separatorByPortIndex], destinationY, function (x, y) { return x < y; });
+            var xExtra = this.left ? originX - separatorByPortIndex : originX + separatorByPortIndex;
             this.addPoint_(this.head, { x: x, y: y });
+            this.addPoint_(this.head, {
+                x: xExtra,
+                y: y
+            });
+            this.addPoint_(this.head, {
+                x: xExtra,
+                y: originY
+            });
         };
         Object.defineProperty(WireDrawer.prototype, "path", {
             get: function () {
@@ -75,6 +107,7 @@ define(["require", "exports"], function (require, exports) {
         WireDrawer.getColor = function (block, name) {
             return DEFAULT_COLORS[name] ? DEFAULT_COLORS[name] : WireDrawer.darken(block.colour_);
         };
+        WireDrawer.SEPARATOR = 6;
         return WireDrawer;
     }());
     exports.default = WireDrawer;

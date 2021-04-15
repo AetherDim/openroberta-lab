@@ -18,7 +18,7 @@
     "include": ["ts/**/*"],
     //"include": ["ts/app/simulation/simulationLogic/**/*"],
     "exclude": [
-        "**/node_modules",
+        "**/node_modules/",
         "**/interpreter.runStackMachineJson.ts"
     ],
     "compileOnSave": false,
