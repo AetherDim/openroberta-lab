@@ -37,3 +37,30 @@ dat.GUI.prototype.addFolder = function (name: string): dat.GUI {
 	}
 	return addFolderFunc.apply(this, [name])
 }
+
+
+
+
+
+declare module 'dat.gui' {
+
+	export interface GUI {
+
+		addDownloadButton(name: string, filename: string, dataCallback: () => BlobPart[])
+
+	}
+
+}
+
+
+dat.GUI.prototype.addDownloadButton = function (name: string, filename: string, dataCallback: () => BlobPart[]) {
+	const func = {}
+	func[name] = () => {
+		const blob = new Blob(dataCallback(), {type: "application/pdf"});
+		const link = document.createElement('a');
+		link.href = window.URL.createObjectURL(blob);
+		link.download = filename;
+		link.click();
+	}
+	this.add(func, name)
+}

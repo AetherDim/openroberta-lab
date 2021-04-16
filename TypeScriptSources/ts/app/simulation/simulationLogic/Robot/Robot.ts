@@ -146,6 +146,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			this.wheelsList[0]._addDebugGui(wheelFolder.addFolder('Wheel Left'))
 			this.wheelsList[1]._addDebugGui(wheelFolder.addFolder('Wheel Right'))
 			this.wheelsList[2]._addDebugGui(wheelFolder.addFolder('Wheel Back'))
+
+			DebugGui.addDownloadButton('testDownload', 'test.csv', () => ['1, 2, 3'])
 		}
 
 	}

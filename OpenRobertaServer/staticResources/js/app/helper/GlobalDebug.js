@@ -33,4 +33,15 @@ define(["require", "exports", "dat.gui"], function (require, exports, dat) {
         }
         return addFolderFunc.apply(this, [name]);
     };
+    dat.GUI.prototype.addDownloadButton = function (name, filename, dataCallback) {
+        var func = {};
+        func[name] = function () {
+            var blob = new Blob(dataCallback(), { type: "application/pdf" });
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        };
+        this.add(func, name);
+    };
 });
