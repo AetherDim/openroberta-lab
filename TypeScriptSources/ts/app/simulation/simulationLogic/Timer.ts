@@ -1,6 +1,11 @@
+import {AsyncChain, AsyncListener} from "./Scene/AsyncChain";
+import {time} from "d3";
 
 
 export class Timer {
+
+
+	readonly TICKER_STOP_POLL_TIME = 0.1
 
 	running = false;
 	sleepTime = 100;
@@ -19,16 +24,16 @@ export class Timer {
 	}
 
 	start() {
-		this.shallStop = false;
 
 		if(this.running) {
 			return;
 		}
 
+		this.shallStop = false;
 		this.running = true;
 
 		const _this = this;
-		this.selfCallingFunc = function(){
+		this.selfCallingFunc = function() {
 			if(_this.callUserFunction()) {
 				setTimeout(_this.selfCallingFunc, _this.sleepTime*1000);
 			} else {
@@ -45,16 +50,27 @@ export class Timer {
 		this.shallStop = true;
 	}
 
-	waitForStop() {
+	generateAsyncStopListener(timeout: number = 1): AsyncListener {
+		return {func: (chain: AsyncChain) => this.asyncStop(chain, timeout, Date.now()), thisContext: this}
+	}
+
+	private asyncStop(chain: AsyncChain, timeout: number = 0.2, startTime: number) {
 		if(this.running) {
-			stop();
-			const _this = this;
-			setTimeout(_this.waitForStop, 200)
+			this.stop()
+
+			if(startTime + timeout*1000  < Date.now()) {
+				console.warn("Unable to stop ticker!")
+				chain.next()
+			} else {
+				setTimeout(() => this.asyncStop(chain, timeout, startTime), this.TICKER_STOP_POLL_TIME*1000)
+			}
+		} else {
+			chain.next()
 		}
 	}
 
 	private callUserFunction(): boolean {
-		var now = Date.now();
+		const now = Date.now();
 		this.lastDT = now - this.lastCall
 		try {
 			this.userFunction(this.lastDT);
@@ -63,7 +79,7 @@ export class Timer {
 		}
 
 		// error check for too long function call
-		var now2 = Date.now();
+		const now2 = Date.now();
 
 		this.callTime = now2 - now;
 		this.lastCall = now2;

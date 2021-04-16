@@ -456,7 +456,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             // we could do this again if we need to
             if (this.simTicker.running) {
                 console.warn('sim timer is still running!!!');
-                this.simTicker.waitForStop();
             }
             // remove robots
             this.robots.splice(0, this.robots.length);
@@ -499,7 +498,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Prog
             this.loadingChain = new AsyncChain_1.AsyncChain();
             if (this.hasBeenInitialized) {
                 // unload old things
-                this.loadingChain.push({ func: this.unload, thisContext: this }, // unload scene (pixi/robots/matterjs)
+                this.loadingChain.push(this.simTicker.generateAsyncStopListener(), { func: this.unload, thisContext: this }, // unload scene (pixi/robots/matterjs)
                 { func: this.onDeInit, thisContext: this }, // deinit scene
                 { func: function (chain) { _this_1.hasBeenInitialized = false; chain.next(); }, thisContext: this });
             }

@@ -4,6 +4,7 @@ define(["require", "exports"], function (require, exports) {
     exports.Timer = void 0;
     var Timer = /** @class */ (function () {
         function Timer(sleepTime, userFunction) {
+            this.TICKER_STOP_POLL_TIME = 0.1;
             this.running = false;
             this.sleepTime = 100;
             this.shallStop = false;
@@ -15,10 +16,10 @@ define(["require", "exports"], function (require, exports) {
             this.userFunction = userFunction;
         }
         Timer.prototype.start = function () {
-            this.shallStop = false;
             if (this.running) {
                 return;
             }
+            this.shallStop = false;
             this.running = true;
             var _this = this;
             this.selfCallingFunc = function () {
@@ -36,11 +37,26 @@ define(["require", "exports"], function (require, exports) {
         Timer.prototype.stop = function () {
             this.shallStop = true;
         };
-        Timer.prototype.waitForStop = function () {
+        Timer.prototype.generateAsyncStopListener = function (timeout) {
+            var _this_1 = this;
+            if (timeout === void 0) { timeout = 1; }
+            return { func: function (chain) { return _this_1.asyncStop(chain, timeout, Date.now()); }, thisContext: this };
+        };
+        Timer.prototype.asyncStop = function (chain, timeout, startTime) {
+            var _this_1 = this;
+            if (timeout === void 0) { timeout = 0.2; }
             if (this.running) {
-                stop();
-                var _this = this;
-                setTimeout(_this.waitForStop, 200);
+                this.stop();
+                if (startTime + timeout * 1000 < Date.now()) {
+                    console.warn("Unable to stop ticker!");
+                    chain.next();
+                }
+                else {
+                    setTimeout(function () { return _this_1.asyncStop(chain, timeout, startTime); }, this.TICKER_STOP_POLL_TIME * 1000);
+                }
+            }
+            else {
+                chain.next();
             }
         };
         Timer.prototype.callUserFunction = function () {

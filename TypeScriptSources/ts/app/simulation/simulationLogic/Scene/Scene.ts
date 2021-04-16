@@ -494,7 +494,6 @@ export class Scene {
 		// we could do this again if we need to
 		if(this.simTicker.running) {
 			console.warn('sim timer is still running!!!');
-			this.simTicker.waitForStop();
 		}
 
 		// remove robots
@@ -552,6 +551,7 @@ export class Scene {
 		if(this.hasBeenInitialized) {
 			// unload old things
 			this.loadingChain.push(
+				this.simTicker.generateAsyncStopListener(),
 				{func: this.unload, thisContext: this}, // unload scene (pixi/robots/matterjs)
 				{func: this.onDeInit, thisContext: this}, // deinit scene
 				{func: chain => {this.hasBeenInitialized = false; chain.next()}, thisContext: this}, // reset flag
