@@ -46,21 +46,26 @@ declare module 'dat.gui' {
 
 	export interface GUI {
 
-		addDownloadButton(name: string, filename: string, dataCallback: () => BlobPart[])
+		addButton(name: string, callback: () => void)
 
 	}
 
 }
 
-
-dat.GUI.prototype.addDownloadButton = function (name: string, filename: string, dataCallback: () => BlobPart[]) {
+dat.GUI.prototype.addButton = function (name: string, callback: () => void) {
 	const func = {}
-	func[name] = () => {
-		const blob = new Blob(dataCallback(), {type: "application/pdf"});
-		const link = document.createElement('a');
-		link.href = window.URL.createObjectURL(blob);
-		link.download = filename;
-		link.click();
-	}
+	func[name] = callback
 	this.add(func, name)
+}
+
+export function downloadFile(filename: string, data: BlobPart[], options?: BlobPropertyBag) {
+	const blob = new Blob(data, options);
+	const link = document.createElement('a');
+	link.href = window.URL.createObjectURL(blob);
+	link.download = filename;
+	link.click();
+}
+
+export function downloadJSONFile(filename: string, data: any) {
+	downloadFile(filename, [JSON.stringify(data)])
 }

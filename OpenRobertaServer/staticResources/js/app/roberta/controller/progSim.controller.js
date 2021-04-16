@@ -168,14 +168,11 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
             }, 'zoomOut clicked');
 
             $('#debugMode').onWrap('click', function(event) {
-                if ($('#debugMode').attr('data-original-title') === Blockly.Msg.MENU_DEBUG_START_TOOLTIP) {
-                    $('#debugMode').attr('data-original-title', Blockly.Msg.MENU_DEBUG_STOP_TOOLTIP);
+                if ($('#debugMode').hasClass('typcn-spanner')) {
                     $('#simControlBreakPoint,#simControlStepOver,#simControlStepInto,#simVariables').show();
                     $('#debugMode').addClass('typcn-spanner-outline').removeClass('typcn-spanner');
                     SIM.updateDebugMode(true);
-
                 } else {
-                    $('#debugMode').attr('data-original-title', Blockly.Msg.MENU_DEBUG_START_TOOLTIP);
                     $('#simControlBreakPoint,#simControlStepOver,#simControlStepInto,#simVariables').hide();
                     $('#debugMode').addClass('typcn-spanner').removeClass('typcn-spanner-outline');
                     SIM.endDebugging();

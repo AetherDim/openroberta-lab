@@ -1,3 +1,7 @@
+/**
+ * This is essentially an implementation of a simple promise.
+ * TODO: switch to actual promises?
+ */
 define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });

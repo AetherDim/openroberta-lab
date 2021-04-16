@@ -1,7 +1,7 @@
 define(["require", "exports", "dat.gui"], function (require, exports, dat) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.clearDebugGui = exports.DebugGui = exports.DEBUG = void 0;
+    exports.downloadJSONFile = exports.downloadFile = exports.clearDebugGui = exports.DebugGui = exports.DEBUG = void 0;
     exports.DEBUG = true;
     clearDebugGui();
     function clearDebugGui() {
@@ -33,15 +33,21 @@ define(["require", "exports", "dat.gui"], function (require, exports, dat) {
         }
         return addFolderFunc.apply(this, [name]);
     };
-    dat.GUI.prototype.addDownloadButton = function (name, filename, dataCallback) {
+    dat.GUI.prototype.addButton = function (name, callback) {
         var func = {};
-        func[name] = function () {
-            var blob = new Blob(dataCallback(), { type: "application/pdf" });
-            var link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-        };
+        func[name] = callback;
         this.add(func, name);
     };
+    function downloadFile(filename, data, options) {
+        var blob = new Blob(data, options);
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
+    exports.downloadFile = downloadFile;
+    function downloadJSONFile(filename, data) {
+        downloadFile(filename, [JSON.stringify(data)]);
+    }
+    exports.downloadJSONFile = downloadJSONFile;
 });

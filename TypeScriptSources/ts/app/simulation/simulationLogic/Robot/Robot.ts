@@ -16,7 +16,7 @@ import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, P
 import { Scene } from '../Scene/Scene'
 import { Util } from '../Util'
 // Dat Gui
-import {DebugGui, DEBUG} from "./../GlobalDebug";
+import {DebugGui, downloadJSONFile} from "./../GlobalDebug";
 import dat = require('dat.gui')
 
 type StringMap<V> = { [key: string]: V }
@@ -147,7 +147,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			this.wheelsList[1]._addDebugGui(wheelFolder.addFolder('Wheel Right'))
 			this.wheelsList[2]._addDebugGui(wheelFolder.addFolder('Wheel Back'))
 
-			DebugGui.addDownloadButton('testDownload', 'test.csv', () => ['1, 2, 3'])
+			DebugGui.addButton('DownloadTest', () => downloadJSONFile('test.json', [1, 2, 3]))
 		}
 
 	}

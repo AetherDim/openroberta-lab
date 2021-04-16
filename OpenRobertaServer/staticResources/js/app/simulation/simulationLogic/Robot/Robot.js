@@ -89,7 +89,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 this.wheelsList[0]._addDebugGui(wheelFolder_1.addFolder('Wheel Left'));
                 this.wheelsList[1]._addDebugGui(wheelFolder_1.addFolder('Wheel Right'));
                 this.wheelsList[2]._addDebugGui(wheelFolder_1.addFolder('Wheel Back'));
-                GlobalDebug_1.DebugGui.addDownloadButton('testDownload', 'test.csv', function () { return ['1, 2, 3']; });
+                GlobalDebug_1.DebugGui.addButton('DownloadTest', function () { return GlobalDebug_1.downloadJSONFile('test.json', [1, 2, 3]); });
             }
         };
         Robot.prototype.updatePhysicsObject = function () {
