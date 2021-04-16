@@ -62,3 +62,5 @@ When you want to add a new library using npm:
 When compiling TypeScript using `tsc`
 - `Cannot find module ...`: Checkout the latest commit and run `npm ci`
 
+When compiling the server
+- A java package cannot be found: Go to the `'Maven tab'` press `Reload All Maven Projects` and rebuild
