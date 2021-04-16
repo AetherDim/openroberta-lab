@@ -1,4 +1,5 @@
 import './pixijs'
+import { Util } from './Util'
 
 export class Browser {
 
@@ -462,7 +463,7 @@ export class ScrollView extends PIXI.Container {
 	}
 
 	reset() {
-		const initialZoom = 1 / this.getPixelRatio()
+		const initialZoom = 1 / Util.getPixelRatio()
 		this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
 
 		// to fix any touch/mouse issues
@@ -495,13 +496,6 @@ export class ScrollView extends PIXI.Container {
 	}
 
 	/**
-	 * returns the pixel ratio of this device
-	 */
-	private getPixelRatio() {
-		return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
-	}
-
-	/**
 	 * zoom into position
 	 * @param delta zoom delta
 	 * @param pos position
@@ -515,7 +509,7 @@ export class ScrollView extends PIXI.Container {
 	}
 
 	zoomCenter(delta: number) {
-		const ratio = this.getPixelRatio()
+		const ratio = Util.getPixelRatio()
 		this.zoom(delta, {x: this.renderer.screen.width/2/ratio, y: this.renderer.screen.height/2/ratio})
 	}
 
@@ -776,7 +770,7 @@ export class ScrollView extends PIXI.Container {
 	private onWheel(ev: WheelEvent) {
 		//console.log('wheel');
 
-		let pixelRatio = this.getPixelRatio(); 
+		let pixelRatio = Util.getPixelRatio(); 
 
 		let data: EventData;
 
@@ -867,7 +861,7 @@ export class ScrollView extends PIXI.Container {
 
 			if(this.lastTouchDistance > 0) {
 
-				const pixelRatio = this.getPixelRatio()
+				const pixelRatio = Util.getPixelRatio()
 
 				// calculate distance change between fingers
 				const delta = e.scale / this.lastTouchDistance

@@ -1,4 +1,4 @@
-define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollView", "./pixijs"], function (require, exports, $, Scene_1, Color_1, ScrollView_1) {
+define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollView", "./Util", "./pixijs"], function (require, exports, $, Scene_1, Color_1, ScrollView_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SceneRender = void 0;
@@ -53,7 +53,8 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
                     _this.scene.renderTick(dt);
-                    if (_this.resizeTo && (_this.app.view.clientWidth != _this.resizeTo.clientWidth || _this.app.view.clientHeight != _this.resizeTo.clientHeight)) {
+                    if (_this.resizeTo && (_this.app.view.clientWidth != Util_1.Util.getPixelRatio() * _this.resizeTo.clientWidth ||
+                        _this.app.view.clientHeight != Util_1.Util.getPixelRatio() * _this.resizeTo.clientHeight)) {
                         _this.app.queueResize();
                         console.log("resize");
                     }

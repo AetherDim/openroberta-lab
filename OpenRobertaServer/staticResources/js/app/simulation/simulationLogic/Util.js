@@ -73,6 +73,12 @@ define(["require", "exports"], function (require, exports) {
             var dy = v1.y - v2.y;
             return dx * dx + dy * dy;
         };
+        /**
+         * returns the pixel ratio of this device
+         */
+        Util.getPixelRatio = function () {
+            return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
+        };
         return Util;
     }());
     exports.Util = Util;

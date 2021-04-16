@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "./pixijs"], function (require, exports) {
+define(["require", "exports", "./Util", "./pixijs"], function (require, exports, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScrollView = exports.EventData = exports.ScrollViewEvent = exports.cloneVectorOrUndefined = exports.cloneVector = exports.MouseButton = exports.EventType = exports.getBrowser = exports.Browser = void 0;
@@ -379,7 +379,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             return _this;
         }
         ScrollView.prototype.reset = function () {
-            var initialZoom = 1 / this.getPixelRatio();
+            var initialZoom = 1 / Util_1.Util.getPixelRatio();
             this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
             // to fix any touch/mouse issues
             this.touchEventDataMap.clear();
@@ -409,12 +409,6 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             return data;
         };
         /**
-         * returns the pixel ratio of this device
-         */
-        ScrollView.prototype.getPixelRatio = function () {
-            return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
-        };
-        /**
          * zoom into position
          * @param delta zoom delta
          * @param pos position
@@ -426,7 +420,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             this.scale.y *= delta;
         };
         ScrollView.prototype.zoomCenter = function (delta) {
-            var ratio = this.getPixelRatio();
+            var ratio = Util_1.Util.getPixelRatio();
             this.zoom(delta, { x: this.renderer.screen.width / 2 / ratio, y: this.renderer.screen.height / 2 / ratio });
         };
         //
@@ -637,7 +631,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
          */
         ScrollView.prototype.onWheel = function (ev) {
             //console.log('wheel');
-            var pixelRatio = this.getPixelRatio();
+            var pixelRatio = Util_1.Util.getPixelRatio();
             var data;
             if (ev.type == "wheel") {
                 var type = void 0;
@@ -707,7 +701,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             // TODO: we could use this for other browsers if there is another with support
             if (this.browser.isSafariEvent(e)) {
                 if (this.lastTouchDistance > 0) {
-                    var pixelRatio = this.getPixelRatio();
+                    var pixelRatio = Util_1.Util.getPixelRatio();
                     // calculate distance change between fingers
                     var delta = e.scale / this.lastTouchDistance;
                     this.mouseEventData.delta = { x: delta, y: 0 };

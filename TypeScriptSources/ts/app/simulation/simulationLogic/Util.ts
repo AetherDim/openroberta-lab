@@ -56,6 +56,13 @@ export class Util {
 		return dx*dx + dy*dy
 	}
 
+	/**
+	 * returns the pixel ratio of this device
+	 */
+	static getPixelRatio() {
+		return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
+	}
+
 }
 
 type ObjectKeys<T> = 

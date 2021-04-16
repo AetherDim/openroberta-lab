@@ -3,6 +3,7 @@ import * as $ from "jquery";
 import { Scene } from './Scene/Scene';
 import { rgbToNumber } from './Color'
 import { ScrollView, ScrollViewEvent } from './ScrollView';
+import { Util } from './Util';
 
 
 
@@ -76,7 +77,10 @@ export class SceneRender {
 			if(this.scene) {
 				this.scene.renderTick(dt);
 
-				if(this.resizeTo && (this.app.view.clientWidth != this.resizeTo.clientWidth || this.app.view.clientHeight != this.resizeTo.clientHeight)) {
+				if(this.resizeTo && (
+					this.app.view.clientWidth != Util.getPixelRatio()*this.resizeTo.clientWidth ||
+					this.app.view.clientHeight != Util.getPixelRatio()*this.resizeTo.clientHeight
+					)) {
 					this.app.queueResize()
 					console.log("resize")
 				}
