@@ -15,7 +15,9 @@
     - File -> New -> Open from existing sources
     - Choose `Maven`
     - If there is some IntelliJ which says `load maven configuration`, then click on it
-    - Go to `'Maven tab' -> OpenRobertaParent (root) -> Lifecycle` and click `clean` and then `install`
+    - Go to `'Maven tab'`
+      - Press `Reload All Maven Projects`
+      - Got to `OpenRobertaParent (root) -> Lifecycle` and click `clean` and then `install`
     - Go to `Module Settings`
       - Go to `Project` and set the `ProjectSDK` to `Java 1.8`
       - Go to `Modules -> OpenRobertaServer -> Dependencies` and set the `scope` of all directories from `Test` to `Compile` (the directories have not 'Maven' in their name and a folder symbol)
