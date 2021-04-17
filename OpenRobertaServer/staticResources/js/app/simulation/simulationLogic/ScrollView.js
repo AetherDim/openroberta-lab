@@ -249,6 +249,19 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             this.previousPosition = this.currentPosition;
             this.currentPosition = cloneVector(position);
         };
+        EventData.prototype.isButtonPressed = function (id) {
+            if (id < this.buttons.length && id >= 0) {
+                return this.buttons[id];
+            }
+            else {
+                return false;
+            }
+        };
+        EventData.prototype.setButtonPressed = function (id, pressed) {
+            if (id < this.buttons.length && id >= 0) {
+                this.buttons[id] = pressed;
+            }
+        };
         /**
          * Checks for any mouse button press. This is not necessary because
          * this.pressed will contain this information.
@@ -444,7 +457,7 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
                 data.pressed = true;
-                data.buttons[ev.data.button] = true;
+                data.setButtonPressed(ev.data.button, true);
                 data.setNewPosition(ev.data.global);
             }
             else {
@@ -465,7 +478,7 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             var data;
             if (ev.data.pointerType == 'mouse') {
                 data = this.mouseEventData;
-                data.buttons[ev.data.button] = false;
+                data.setButtonPressed(ev.data.button, false);
                 data.pressed = data.isAnyButtonPressed();
             }
             else {

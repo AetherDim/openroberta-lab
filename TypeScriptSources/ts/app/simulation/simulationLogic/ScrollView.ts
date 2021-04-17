@@ -227,7 +227,7 @@ export class EventData {
 	 * currently pressed mouse button with length 5
 	 * index by using the MouseButton enum
 	 */
-	buttons: boolean[] = [false, false, false, false, false];
+	private buttons: boolean[] = [false, false, false, false, false];
 
 	/**
 	 * the id of the touch event
@@ -297,6 +297,20 @@ export class EventData {
 
 		this.previousPosition = this.currentPosition;
 		this.currentPosition = cloneVector(position);
+	}
+
+	isButtonPressed(id: number): boolean {
+		if(id < this.buttons.length && id >= 0) {
+			return this.buttons[id]
+		} else {
+			return false
+		}
+	}
+
+	setButtonPressed(id: number, pressed: boolean) {
+		if(id < this.buttons.length && id >= 0) {
+			this.buttons[id] = pressed
+		}
 	}
 
 	/**
@@ -539,7 +553,7 @@ export class ScrollView extends PIXI.Container {
 		if(ev.data.pointerType == 'mouse') {
 			data = this.mouseEventData;
 			data.pressed = true;
-			data.buttons[ev.data.button] = true;
+			data.setButtonPressed(ev.data.button, true);
 			data.setNewPosition(ev.data.global);
 		} else {
 			// creates new touch data
@@ -566,7 +580,7 @@ export class ScrollView extends PIXI.Container {
 
 		if(ev.data.pointerType == 'mouse') {
 			data = this.mouseEventData;
-			data.buttons[ev.data.button] = false;
+			data.setButtonPressed(ev.data.button, false);
 			data.pressed = data.isAnyButtonPressed();
 		} else {
 			// find and remove touch data
