@@ -277,7 +277,7 @@ export function init(programs: any[], refresh: boolean, robotType: string) {
 
 
 export function getNumRobots(): number {
-	return engine.getScene().getNumberOfRobots();
+	return engine.getScene().getRobotManager().getNumberOfRobots();
 }
 
 
@@ -367,9 +367,9 @@ export function sim(run: boolean) {
 
 export function score(score: boolean) {
 	if(score) {
-		engine.getScene().showScoreScreen(0);
+		//engine.getScene().showScoreScreen(0);
 	} else {
-		engine.getScene().hideScore();
+		//engine.getScene().hideScore();
 	}
 }
 

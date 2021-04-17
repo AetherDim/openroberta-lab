@@ -60,7 +60,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
             textures.forEach(function (texture) {
                 var sprite = new PIXI.Sprite(texture);
                 sprite.position.set(Random_1.randomIntBetween(0, 300), Random_1.randomIntBetween(0, 300));
-                _this.groundContainer.addChild(sprite);
+                _this.getContainers().groundContainer.addChild(sprite);
             });
             var waypointList = new WaypointList_1.WaypointList([
                 this.makeWaypoint({ x: 100, y: 200 }, 10),

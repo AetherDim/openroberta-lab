@@ -151,7 +151,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     }
     exports.init = init;
     function getNumRobots() {
-        return engine.getScene().getNumberOfRobots();
+        return engine.getScene().getRobotManager().getNumberOfRobots();
     }
     exports.getNumRobots = getNumRobots;
     function setPause(pause) {
@@ -240,10 +240,10 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     exports.sim = sim;
     function score(score) {
         if (score) {
-            engine.getScene().showScoreScreen(0);
+            //engine.getScene().showScoreScreen(0);
         }
         else {
-            engine.getScene().hideScore();
+            //engine.getScene().hideScore();
         }
     }
     exports.score = score;

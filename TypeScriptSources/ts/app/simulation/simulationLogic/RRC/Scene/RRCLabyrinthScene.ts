@@ -571,7 +571,7 @@ export class RRCLabyrinthScene extends RRCScene {
 		let goal = RRC.loader.get(this.getAsset()).texture;
 		this.goalSprite = new PIXI.Sprite(goal);
 
-		this.groundContainer.addChild(this.goalSprite);
+		this.getContainers().groundContainer.addChild(this.goalSprite);
 
 		switch (this.ageGroup) {
 			case AgeGroup.ES:

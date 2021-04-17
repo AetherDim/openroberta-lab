@@ -28,10 +28,9 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
          * @override from Scene
          */
         TestScene.prototype.onLoadAssets = function (chain) {
-            var _this = this;
             setTimeout(function () {
-                _this.setScore(266);
-                _this.showScoreScreen(10);
+                //this.setScore(266);
+                //this.showScoreScreen(10);
                 chain.next();
             }, 0);
         };
@@ -59,7 +58,7 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
             // (<any>Constraint)._minLength = 0.000001 * scale;
             //this.sceneRenderer.setRenderingScaleAndOffset(1 / scale, Vector.create())
             // add some background elements
-            this.groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill());
+            this.getContainers().groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill());
             var useEV3 = true;
             var robot = useEV3 ? Robot_1.Robot.EV3(this) : Robot_1.Robot.default(this, scale);
             this.addRobot(robot);
@@ -98,7 +97,7 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
             var intersectionPointGraphics = [];
             var container = new PIXI.Container();
             container.addChild(polygonGraphics, nearestPointGraphics, mousePointGraphics, lineSegmentGraphics);
-            this.topContainer.addChild(container);
+            this.getContainers().topContainer.addChild(container);
             this.interactionEventHandlers.push(function (event) {
                 var mousePosData = event.data.getCurrentLocalPosition();
                 var mousePos = matter_js_1.Vector.create(mousePosData.x, mousePosData.y);

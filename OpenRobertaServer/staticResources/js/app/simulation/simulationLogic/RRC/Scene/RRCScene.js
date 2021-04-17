@@ -68,10 +68,10 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             }
             var t = this;
             this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
-                t.addToScore(waypoint.score);
+                /*t.addToScore(waypoint.score)
                 if (idx == list.getLastWaypointIndex()) {
-                    t.showScoreScreen(10);
-                }
+                    t.showScoreScreen(10)
+                }*/
             });
         };
         RRCScene.prototype.loadScoreAssets = function (chain) {
@@ -80,28 +80,40 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             }, RRC.PROGGY_TINY_FONT, RRC.GOAL_BACKGROUND);
         };
         RRCScene.prototype.initScoreContainer = function (chain) {
-            this.scoreContainer.zIndex = this.scoreContainerZ;
-            var goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
+            /*this.scoreContainer.zIndex = this.scoreContainerZ;
+    
+            let goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
             this.goalSprite = new PIXI.Sprite(goal);
+    
             this.scoreContainer.addChild(this.goalSprite);
+    
+    
             // text
-            this.scoreText = new PIXI.Text("", {
-                fontFamily: 'ProggyTiny',
-                fontSize: 160,
-                fill: 0xf48613
-            });
-            this.scoreText2 = new PIXI.Text("", {
-                fontFamily: 'ProggyTiny',
-                fontSize: 160,
-                fill: 0xc00001
-            });
-            this.scoreText3 = new PIXI.Text("", {
-                fontFamily: 'ProggyTiny',
-                fontSize: 160,
-                fill: 0x00cb01
-            });
+    
+            this.scoreText = new PIXI.Text("",
+                {
+                    fontFamily: 'ProggyTiny',
+                    fontSize: 160,
+                    fill: 0xf48613
+                });
+    
+            this.scoreText2 = new PIXI.Text("",
+                {
+                    fontFamily: 'ProggyTiny',
+                    fontSize: 160,
+                    fill: 0xc00001
+                });
+    
+            this.scoreText3 = new PIXI.Text("",
+                {
+                    fontFamily: 'ProggyTiny',
+                    fontSize: 160,
+                    fill: 0x00cb01
+                });
+    
             this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText);
-            this.scoreContainer.addChild(this.scoreTextContainer);
+    
+            this.scoreContainer.addChild(this.scoreTextContainer);*/
             chain.next();
         };
         RRCScene.prototype.updateScoreAnimation = function (dt) {
@@ -112,13 +124,15 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             }
         };
         RRCScene.prototype.updateScoreText = function () {
-            var text = "Score: " + this.getScore();
+            /*let text = "Score: " + this.getScore();
             this.scoreText.text = text;
             this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
+    
             this.scoreText2.text = text;
             this.scoreText2.position.set(-this.scoreText.width / 2 - 3, -this.scoreText.height / 2);
+    
             this.scoreText3.text = text;
-            this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);
+            this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
         };
         RRCScene.prototype.getUnitConverter = function () {
             // approx 60px = 20cm
@@ -126,8 +140,8 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         };
         RRCScene.prototype.onInit = function (chain) {
             this.initRobot();
-            this.setScore(266);
-            this.showScoreScreen(100);
+            //this.setScore(266);
+            //this.showScoreScreen(100);
             chain.next();
         };
         /**

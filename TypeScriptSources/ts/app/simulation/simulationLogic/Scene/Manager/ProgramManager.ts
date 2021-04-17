@@ -1,12 +1,12 @@
 import Blockly = require("blockly");
-import * as CONSTANTS from "./simulation.constants";
-import { Interpreter } from "./interpreter.interpreter";
-import { Robot } from "./Robot/Robot";
-import { Scene } from "./Scene/Scene";
+import * as CONSTANTS from "../../simulation.constants";
+import { Robot } from "../../Robot/Robot";
+import {RobotManager} from "./RobotManager";
+import {Interpreter} from "./../../interpreter.interpreter";
 
 export class ProgramManager {
 	
-	readonly scene: Scene;
+	readonly robotManager: RobotManager;
 	readonly robots: Robot[];
 
 	private programPaused: boolean = true;
@@ -30,9 +30,9 @@ export class ProgramManager {
 		return this.initialized;
 	}
 
-	constructor(scene: Scene) {
-		this.scene = scene;
-		this.robots = scene.getRobots();
+	constructor(robotManager: RobotManager) {
+		this.robotManager = robotManager;
+		this.robots = robotManager.getRobots();
 	}
 
 	setPrograms(programs: any[], refresh: boolean = false, robotType?: string) {

@@ -40,10 +40,10 @@ export class RRCScene extends Scene {
 		}
 		const t = this
 		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
-			t.addToScore(waypoint.score)
+			/*t.addToScore(waypoint.score)
 			if (idx == list.getLastWaypointIndex()) {
 				t.showScoreScreen(10)
-			}
+			}*/
 		})
 	}
 
@@ -64,7 +64,7 @@ export class RRCScene extends Scene {
 	scoreTextContainer: PIXI.Container = new PIXI.Container()
 
 	initScoreContainer(chain: AsyncChain) {
-		this.scoreContainer.zIndex = this.scoreContainerZ;
+		/*this.scoreContainer.zIndex = this.scoreContainerZ;
 
 		let goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
 		this.goalSprite = new PIXI.Sprite(goal);
@@ -97,7 +97,7 @@ export class RRCScene extends Scene {
 
 		this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText);
 
-		this.scoreContainer.addChild(this.scoreTextContainer);
+		this.scoreContainer.addChild(this.scoreTextContainer);*/
 
 		chain.next();
 	}
@@ -112,7 +112,7 @@ export class RRCScene extends Scene {
 	}
 
 	updateScoreText() {
-		let text = "Score: " + this.getScore();
+		/*let text = "Score: " + this.getScore();
 		this.scoreText.text = text;
 		this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
 
@@ -120,7 +120,7 @@ export class RRCScene extends Scene {
 		this.scoreText2.position.set(-this.scoreText.width / 2 - 3, -this.scoreText.height / 2);
 
 		this.scoreText3.text = text;
-		this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);
+		this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
 	}
 
 	getUnitConverter(): Unit {
@@ -130,8 +130,8 @@ export class RRCScene extends Scene {
 
 	onInit(chain: AsyncChain) {
 		this.initRobot();
-		this.setScore(266);
-		this.showScoreScreen(100);
+		//this.setScore(266);
+		//this.showScoreScreen(100);
 		chain.next();
 	}
 

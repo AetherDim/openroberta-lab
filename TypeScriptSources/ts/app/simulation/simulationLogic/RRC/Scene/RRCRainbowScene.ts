@@ -311,10 +311,8 @@ export class RRCRainbowScene extends RRCScene {
 	 * @returns returns one-dimensional array of the colour (red, green, blue) at pos
 	 */
 	getColourFromPosition(pos: { x: number, y: number }) {
-		const updateOptions = this.getRobotUpdateOptions();
-		if (updateOptions != undefined) {
-			return (updateOptions.getImageData(pos.x, pos.y, 1, 1).data);
-		}
+
+		return this.getContainers().getGroundImageData(pos.x, pos.y, 1, 1).data
 	}
 
 	getAsset() {
@@ -352,15 +350,13 @@ export class RRCRainbowScene extends RRCScene {
 	onInit(chain: AsyncChain) {
 		this.initRobot({position: {x: 402, y: 270}, rotation: -90});
 
+		const containers = this.getContainers()
+
 		if (this.backgroundAsset) {
 			let goal = RRC.loader.get(this.backgroundAsset).texture;
 			this.goalSprite = new PIXI.Sprite(goal);
-			this.groundContainer.addChild(this.goalSprite);
+			containers.groundContainer.addChild(this.goalSprite);
 		}
-		this.groundContainer.visible = true
-		this.updateImageDataFunction();
-		this.updateRobotOptions();
-		this.groundContainer.visible = false
 
 		this.sortColour();
 

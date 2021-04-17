@@ -299,10 +299,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
          * @returns returns one-dimensional array of the colour (red, green, blue) at pos
          */
         RRCRainbowScene.prototype.getColourFromPosition = function (pos) {
-            var updateOptions = this.getRobotUpdateOptions();
-            if (updateOptions != undefined) {
-                return (updateOptions.getImageData(pos.x, pos.y, 1, 1).data);
-            }
+            return this.getContainers().getGroundImageData(pos.x, pos.y, 1, 1).data;
         };
         RRCRainbowScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
@@ -332,15 +329,12 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
         };
         RRCRainbowScene.prototype.onInit = function (chain) {
             this.initRobot({ position: { x: 402, y: 270 }, rotation: -90 });
+            var containers = this.getContainers();
             if (this.backgroundAsset) {
                 var goal = RRC.loader.get(this.backgroundAsset).texture;
                 this.goalSprite = new PIXI.Sprite(goal);
-                this.groundContainer.addChild(this.goalSprite);
+                containers.groundContainer.addChild(this.goalSprite);
             }
-            this.groundContainer.visible = true;
-            this.updateImageDataFunction();
-            this.updateRobotOptions();
-            this.groundContainer.visible = false;
             this.sortColour();
             this.addWalls(true);
             chain.next();

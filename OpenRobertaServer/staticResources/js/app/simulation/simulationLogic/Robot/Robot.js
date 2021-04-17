@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "./../GlobalDebug", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1, GlobalDebug_1) {
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -147,7 +147,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             (_a = child.getParent()) === null || _a === void 0 ? void 0 : _a.removeChild(child);
             child._setParent(this);
             this.children.push(child);
-            if (this.scene.containsEntity(this)) {
+            if (this.scene.getEntityManager().containsEntity(this)) {
                 this.scene.addEntity(child);
             }
         };
@@ -288,10 +288,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          * @param dt The time step in internal units
          */
         Robot.prototype.update = function (dt) {
-            var updateOptions = this.scene.getRobotUpdateOptions();
-            if (updateOptions == undefined) {
-                return;
-            }
             // update wheels velocities
             var gravitationalAcceleration = this.scene.unit.getAcceleration(9.81);
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
@@ -303,7 +299,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 return;
             }
             // update sensors
-            this.updateRobotBehaviourHardwareStateSensors(updateOptions);
+            this.updateRobotBehaviourHardwareStateSensors();
             if (this.delay > 0) {
                 this.delay -= dt; // reduce delay by dt each tick
             }
@@ -311,7 +307,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 if (this.interpreter.isTerminated()) {
                     this.resetInternalState();
                 }
-                else if (!updateOptions.programPaused && this.needsNewCommands) {
+                else if (!this.scene.getProgramManager().isProgramPaused() && this.needsNewCommands) {
                     // get delay from operation and convert seconds to internal time unit
                     this.delay = this.scene.getUnitConverter().getTime(this.interpreter.runNOperations(1000) / 1000);
                 }
@@ -646,7 +642,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         Robot.prototype.getAbsolutePosition = function (relativePosition) {
             return Util_1.Util.vectorAdd(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
         };
-        Robot.prototype.updateRobotBehaviourHardwareStateSensors = function (updateOptions) {
+        Robot.prototype.updateRobotBehaviourHardwareStateSensors = function () {
             var _a;
             if (!this.robotBehaviour) {
                 return;
@@ -663,7 +659,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var gyroRate = this.body.angularVelocity * 180 / Math.PI;
             var oldAngle = (_a = sensors.gyro) === null || _a === void 0 ? void 0 : _a[2].angle;
             sensors.gyro = { 2: {
-                    angle: oldAngle ? oldAngle + gyroRate * updateOptions.dt : this.body.angle * 180 / Math.PI,
+                    angle: oldAngle ? oldAngle + gyroRate * this.scene.getDT() : this.body.angle * 180 / Math.PI,
                     rate: gyroRate
                 } };
             var robotBodies = Object.values(this.touchSensors).map(function (touchSensor) { return touchSensor.getPhysicsBody(); })
@@ -676,7 +672,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 var colorSensor = this.colorSensors[port];
                 var colorSensorPosition = this.getAbsolutePosition(colorSensor.position);
                 // the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
-                var color = updateOptions.getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
+                var color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
                 colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics);
                 sensors.color[port] = {
                     ambientlight: 0,
@@ -686,6 +682,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     rgb: [color[0], color[1], color[2]]
                 };
             }
+            var allBodies = this.scene.getAllPhysicsBodies();
             // ultrasonic sensor
             if (!sensors.ultrasonic) {
                 sensors.ultrasonic = {};
@@ -698,7 +695,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 var sensorPosition = this_1.getAbsolutePosition(ultrasonicSensor.position);
                 var ultrasonicDistance = void 0;
                 var nearestPoint;
-                if (updateOptions.someBodyContains(sensorPosition, robotBodies)) {
+                if (BodyHelper_1.BodyHelper.someBodyContains(sensorPosition, allBodies, robotBodies)) {
                     ultrasonicDistance = 0;
                 }
                 else {
@@ -711,12 +708,12 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     // (point - sensorPos) * vec > 0
                     var vectors_1 = rays.map(function (r) { return matter_js_1.Vector.perp(r.directionVector); });
                     var dotProducts_1 = vectors_1.map(function (v) { return matter_js_1.Vector.dot(v, sensorPosition); });
-                    nearestPoint = updateOptions.getNearestPointTo(sensorPosition, robotBodies, function (point) {
+                    nearestPoint = BodyHelper_1.BodyHelper.getNearestPointTo(sensorPosition, allBodies, robotBodies, function (point) {
                         return matter_js_1.Vector.dot(point, vectors_1[0]) < dotProducts_1[0]
                             && matter_js_1.Vector.dot(point, vectors_1[1]) > dotProducts_1[1];
                     });
                     var minDistanceSquared_1 = nearestPoint ? Util_1.Util.vectorDistanceSquared(nearestPoint, sensorPosition) : Infinity;
-                    var intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0], robotBodies).concat(updateOptions.intersectionPointsWithLine(rays[1], robotBodies));
+                    var intersectionPoints = BodyHelper_1.BodyHelper.intersectionPointsWithLine(rays[0], allBodies, robotBodies).concat(BodyHelper_1.BodyHelper.intersectionPointsWithLine(rays[1], allBodies, robotBodies));
                     intersectionPoints.forEach(function (intersectionPoint) {
                         var distanceSquared = Util_1.Util.vectorDistanceSquared(intersectionPoint, sensorPosition);
                         if (distanceSquared < minDistanceSquared_1) {
@@ -767,7 +764,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             }
             for (var port in this.touchSensors) {
                 var touchSensor = this.touchSensors[port];
-                touchSensor.setIsTouched(updateOptions.bodyIntersectsOther(touchSensor.physicsBody));
+                touchSensor.setIsTouched(BodyHelper_1.BodyHelper.bodyIntersectsOther(touchSensor.physicsBody, allBodies));
                 sensors.touch[port] = touchSensor.getIsTouched();
             }
         };

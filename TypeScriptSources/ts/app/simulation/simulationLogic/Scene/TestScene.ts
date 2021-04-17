@@ -21,8 +21,8 @@ export class TestScene extends Scene {
 	 */
 	onLoadAssets(chain: AsyncChain) {
 		setTimeout(() => {
-			this.setScore(266);
-			this.showScoreScreen(10);
+			//this.setScore(266);
+			//this.showScoreScreen(10);
 			chain.next();
 		}, 0);
 	}
@@ -60,7 +60,7 @@ export class TestScene extends Scene {
 		//this.sceneRenderer.setRenderingScaleAndOffset(1 / scale, Vector.create())
 		
 		// add some background elements
-		this.groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill())
+		this.getContainers().groundContainer.addChild(new PIXI.Graphics().beginFill(0xFF0000).drawRect(100, 200, 30, 60).endFill())
 
 		const useEV3 = true
 		const robot = useEV3 ? Robot.EV3(this) : Robot.default(this, scale)
@@ -109,7 +109,7 @@ export class TestScene extends Scene {
 
 		const container = new PIXI.Container()
 		container.addChild(polygonGraphics, nearestPointGraphics, mousePointGraphics, lineSegmentGraphics)
-		this.topContainer.addChild(container)
+		this.getContainers().topContainer.addChild(container)
 
 		this.interactionEventHandlers.push(event => {
 			const mousePosData = event.data.getCurrentLocalPosition()

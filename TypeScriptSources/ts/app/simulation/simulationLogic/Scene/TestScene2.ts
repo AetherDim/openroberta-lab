@@ -35,7 +35,7 @@ export class TestScene2 extends RRCScene {
 		textures.forEach(texture => {
 			const sprite = new PIXI.Sprite(texture)
 			sprite.position.set(randomIntBetween(0, 300), randomIntBetween(0, 300))
-			this.groundContainer.addChild(sprite)
+			this.getContainers().groundContainer.addChild(sprite)
 		})
 
 		const waypointList = new WaypointList([

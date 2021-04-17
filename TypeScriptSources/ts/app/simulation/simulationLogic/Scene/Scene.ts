@@ -3,427 +3,68 @@ import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constra
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
-import { ProgramManager } from '../ProgramManager';
-import { RobotUpdateOptions } from '../Robot/RobotUpdateOptions';
-import { IDrawablePhysicsEntity, IEntity, IUpdatableEntity, Type } from "../Entity";
+import { IEntity } from "../Entity";
 import { Unit } from '../Unit';
 import { Util } from '../Util';
 import { AsyncChain } from "./AsyncChain";
 import { WaypointsManager } from '../Waypoints/WaypointsManager';
 import { ScoreWaypoint } from '../Waypoints/ScoreWaypoint';
-import {clearDebugGui} from "./../GlobalDebug";
+import { clearDebugGui } from "./../GlobalDebug";
+import {EntityManager} from "./Manager/EntityManager";
+import {ContainerManager} from "./Manager/ContainerManager";
+import {RobotManager} from "./Manager/RobotManager";
 
 export class Scene {
 
 
-	/**
-	 * Represents the nuber of robots after this scene has been initialized.
-	 * The GUI needs this information before the scene has finished loading.
-	 * @protected
-	 */
-	protected numberOfRobots = 1;
+	readonly robotManager = new RobotManager(this)
+	readonly entityManager = new EntityManager(this)
+	readonly containerManager = new ContainerManager(this)
 
-	private showRobotSensorValues = true
-
-	private _unit = new Unit({})
-	get unit(): Unit {
-		return this._unit
+	getContainers() {
+		return this.containerManager
 	}
 
-	/**
-	 * All programmable robots within the scene.
-	 * The program flow manager will use the robots internally.
-	 */
-	private readonly robots: Array<Robot> = new Array<Robot>();
-
-	readonly programManager = new ProgramManager(this);
-
-	getProgramManager(): ProgramManager {
-		return this.programManager;
+	getEntityManager() {
+		return this.entityManager
 	}
 
-	getRobots(): Robot[] {
-		return this.robots;
+	getRobotManager() {
+		return this.robotManager
 	}
 
-	/**
-	 * Adds `robot` to scene (to `robots` array and entities)
-	 */
-	addRobot(robot: Robot) {
-		this.robots.push(robot)
-		this.addEntity(robot)
-	}
-
-	getNumberOfRobots(): number {
-		return this.numberOfRobots;
+	getProgramManager() {
+		return this.getRobotManager().getProgramManager()
 	}
 
 	//
 	// #############################################################################
 	//
 
-	private readonly entities: IEntity[] = []
-	private readonly updatableEntities: IUpdatableEntity[] = []
-	private readonly drawablePhysicsEntities: IDrawablePhysicsEntity[] = []
-
-	containsEntity(entity: IEntity): boolean {
-		return this.entities.includes(entity)
-	}
-
 	addEntities(...entities: IEntity[]) {
-		entities.forEach(entity => this.addEntity(entity));
+		this.getEntityManager().addEntities(...entities)
 	}
 
 	addEntity(entity: IEntity) {
-		if (entity.getScene() != this) {
-			console.warn(`Entity ${entity} is not in this (${this}) scene`)
-		}
-		if(!this.entities.includes(entity)) {
-			this.entities.push(entity);
-
-			// register physics and graphics
-
-			if (Type.IUpdatableEntity.isSupertypeOf(entity)) {
-				this.updatableEntities.push(entity)
-			}
-
-			if (Type.IDrawableEntity.isSupertypeOf(entity)) {
-				const container = entity.getContainer?.() ?? this.entityContainer;
-				container.addChild(entity.getDrawable())
-			}
-
-			// TODO: Think about this. There might be wrapper types.
-			// Only add entities with no parents to the physics world.
-			// A parent should imply a physics `Composite` which only has to be added once.
-			if (entity.getParent() == undefined && Type.IPhysicsEntity.isSupertypeOf(entity)) {
-				Composite.add(this.world, entity.getPhysicsObject())
-			}
-
-			if (Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
-				this.drawablePhysicsEntities.push(entity)
-			}
-
-			if (Type.IContainerEntity.isSupertypeOf(entity)) {
-				const t = this
-				entity.getChildren().forEach(entity => t.addEntity(entity))
-			}
-
-		}
+		this.getEntityManager().addEntity(entity)
 	}
 
 	removeEntity(entity: IEntity) {
-		if (entity.getScene() != this) {
-			console.warn(`Entity ${entity} is not in this (${this}) scene`)
-		}
-		if(Util.removeFromArray(this.entities, entity)) {
-
-			// remove from parent
-			const parentEntity = entity.getParent()
-			if (parentEntity != undefined) {
-				parentEntity.removeChild(entity)
-			}
-
-			// remove physics and graphics
-
-			if (Type.IUpdatableEntity.isSupertypeOf(entity)) {
-				Util.removeFromArray(this.updatableEntities, entity)
-			}
-
-			if (Type.IDrawableEntity.isSupertypeOf(entity)) {
-				entity.getContainer?.().removeChild(entity.getDrawable())
-			}
-
-			if (Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
-				Util.removeFromArray(this.drawablePhysicsEntities, entity)
-			}
-
-			if (Type.IContainerEntity.isSupertypeOf(entity)) {
-				const children = entity.getChildren()
-				for (let i = 0; i < children.length; i++) {
-					entity.removeChild(children[i])
-				}
-			}
-
-		}
+		this.getEntityManager().removeEntity(entity)
 	}
 
-
-	//
-	// #############################################################################
-	//
-
-	/**
-	 * layer 0: ground
-	 */
-	readonly groundContainer = new PIXI.Container();
-	/**
-	 * z-index for PIXI, this will define the rendering layer
-	 */
-	readonly groundContainerZ = 0;
-	
-	/**
-	 * layer 1: ground animation
-	 */
-	readonly groundAnimationContainer = new PIXI.Container()
-	/**
-	 * z-index for PIXI, this will define the rendering layer
-	 */
-	readonly groundAnimationContainerZ = 10;
-	
-	/**
-	 * layer 2: entity bottom layer (shadorws/effects/...)
-	 */
-	readonly entityBottomContainer = new PIXI.Container()
-	/**
-	 * z-index for PIXI, this will define the rendering layer
-	 */
-	readonly entityBottomContainerZ = 20;
-
-	/**
-	 * layer 3: physics/other things <- robots
-	 */
-	readonly entityContainer = new PIXI.Container()
-	/**
-	 * z-index for PIXI, this will define the rendering layer
-	 */
-	readonly entityContainerZ = 30;
-
-	/**
-	 * layer 4: for entity descriptions/effects
-	 */
-	readonly entityTopContainer = new PIXI.Container()
-	/**
-	 * z-index for PIXI, this will define the rendering layer
-	 */
-	readonly entityTopContainerZ = 40;
-	
-	/**
-	 * layer 5: top/text/menus
-	 */
-	readonly topContainer = new PIXI.Container()
-	readonly topContainerZ = 50;
-
-
-	readonly containerList: PIXI.Container[] = [
-	  this.groundContainer,
-	  this.groundAnimationContainer,
-	  this.entityBottomContainer,
-	  this.entityContainer,
-	  this.entityTopContainer,
-	  this.topContainer
-	];
-
-	protected setupContainers() {
-		this.groundContainer.zIndex = this.groundContainerZ;
-		this.groundAnimationContainer.zIndex = this.groundAnimationContainerZ;
-		this.entityBottomContainer.zIndex = this.entityBottomContainerZ;
-		this.entityContainer.zIndex = this.entityContainerZ;
-		this.entityTopContainer.zIndex = this.entityTopContainerZ;
-		this.topContainer.zIndex = this.topContainerZ;
-	}
-
-	protected registerContainersToEngine() {
-		if (!this.sceneRenderer) {
-			console.warn('No renderer to register containers to!');
-			return
-		}
-		const renderer = this.sceneRenderer
-		this.containerList.forEach(container => {
-			renderer.add(container);
-		});
-	}
-
-	protected setContainerVisibility(visible: boolean) {
-		this.containerList.forEach(container => {
-			container.visible = visible;
-		});
-		this.scoreContainer.visible = visible;
-	}
-
-
-	protected removeTexturesOnUnload = true;
-	protected removeBaseTexturesOnUnload = true;
-
-	private clearContainer(container: PIXI.Container) {
-		// remove children from parent before destroy
-		// see: https://github.com/pixijs/pixi.js/issues/2800
-		// const children: PIXI.DisplayObject[] = []
-		// for (const child of container.children) {
-		// 	children.push(child)
-		// }
-		container.removeChildren();
-
-		// FIXME: Should we destroy the children?
-		// Note that e.g. scoreText has to be replaced since it might be destroyed
-
-		// children.forEach(child => {
-		// 	child.destroy();
-		// });
-
-		/*container.destroy({
-			children: true,
-			texture: this.removeTexturesOnUnload,
-			baseTexture: this.removeBaseTexturesOnUnload
-		});*/
-	}
-
-	private clearAllContainers() {
-		this.containerList.forEach(container => {
-			this.clearContainer(container);
-		});
-
-		this.clearContainer(this.scoreContainer); // clear score container
+	addRobot(robot: Robot) {
+		this.getRobotManager().addRobot(robot)
 	}
 
 	//
 	// #############################################################################
 	//
 
-	/**
-	 * The score of the scene. Use getter and setter methods.
-	 */
-	private _score: number = 0;
+	private _unit = new Unit({})
 
-	setScore(score: number) {
-		this._score = score;
-		this.updateScoreText();
-	}
-
-	getScore(): number {
-		return this._score;
-	}
-
-	addToScore(score: number) {
-		this._score += score;
-		this.updateScoreText();
-	}
-
-	//
-	// #############################################################################
-	//
-
-	readonly scoreContainer = new PIXI.Container();
-	readonly scoreContainerZ = 60;
-
-	protected endScoreTime: number = Date.now();
-	protected scoreEndless: boolean = false;
-	protected showScore: boolean = false;
-
-	protected scoreText = new PIXI.Text("");
-
-	/**
-	 * Async loading function for fonts and images
-	 * TODO: only start onLoad if this has succeeded
-	 */
-	protected loadScoreAssets(chain: AsyncChain) {
-		chain.next();
-	}
-
-	protected unloadScoreAssets(chain: AsyncChain) {
-		chain.next();
-	}
-
-	protected initScoreContainer(chain: AsyncChain) {
-		this.scoreContainer.zIndex = this.scoreContainerZ;
-
-		this.scoreText.style = new PIXI.TextStyle({
-			fontFamily : 'Arial',
-			fontSize: 60,
-			fill : 0x6e750e // olive
-		});
-
-		this.scoreContainer.addChild(this.scoreText);
-
-		this.scoreContainer.x = 200;
-		this.scoreContainer.y = 200;
-
-		this.updateScoreText();
-
-		chain.next();
-	}
-
-	updateScoreText() {
-		this.scoreText.text = "Score: " + this.getScore();
-	}
-
-	updateScoreAnimation(dt: number) {
-		
-	}
-
-	/**
-	 * shows the score for a number of seconds
-	 * if the time is <= 0 -> show the score forever
-	 * @param seconds
-	 */
-	showScoreScreen(seconds: number) {
-
-		this.scoreEndless = (seconds <= 0);
-		this.endScoreTime = Date.now() + seconds*1000;
-
-		if(!this.showScore) {
-			this.showScore = true;
-			this.sceneRenderer?.add(this.scoreContainer);
-		}
-
-	}
-
-	hideScore()
-	{
-		if(this.showScore) {
-			this.sceneRenderer?.remove(this.scoreContainer);
-			this.showScore = false;
-		}
-	}
-
-	//
-	// #############################################################################
-	//
-
-	readonly loadingContainer = new PIXI.Container();
-	readonly loadingContainerZ = 60;
-	protected loadingText?: PIXI.DisplayObject;
-	protected loadingAnimation?: PIXI.DisplayObject;
-	
-	protected initLoadingContainer() {
-		this.loadingContainer.zIndex = this.loadingContainerZ;
-
-		this.loadingText = new PIXI.Text("Loading ...",
-		{
-			fontFamily : 'Arial',
-			fontSize: 60,
-			fill : 0x000000
-		});
-
-		const container = new PIXI.Container();
-		this.loadingAnimation = container;
-		const ae = new PIXI.Text("æ",
-		{
-			fontFamily : 'Arial',
-			fontSize: 100,
-			fill : 0xfd7e14
-		});
-
-		// fix text center
-		ae.x = -ae.width/2;
-		ae.y = -ae.height/2;
-
-		container.addChild(ae);
-
-		this.loadingContainer.addChild(this.loadingText);
-		this.loadingContainer.addChild(this.loadingAnimation);
-	}
-
-	private updateLoadingAnimation(dt: number) {
-		if (!this.loadingText || !this.sceneRenderer || !this.loadingAnimation) {
-			return
-		}
-		// This calculations are relative to the viewport width and height and give an interesting bounce effect
-		this.loadingText.x = this.sceneRenderer.getViewWidth() * 0.1 + this.sceneRenderer.getWidth() * 0.2;
-		this.loadingText.y = this.sceneRenderer.getViewHeight() * 0.45 + this.sceneRenderer.getHeight() * 0.3;
-
-		this.loadingAnimation.x = this.sceneRenderer.getViewWidth() * 0.7 + this.sceneRenderer.getWidth() * 0.3;
-		this.loadingAnimation.y = this.sceneRenderer.getViewHeight() * 0.5 + this.sceneRenderer.getHeight() * 0.3;
-		this.loadingAnimation.rotation += 0.05*dt;
+	get unit(): Unit {
+		return this._unit
 	}
 
 	//
@@ -436,14 +77,14 @@ export class Scene {
 	private hasFinishedLoading = false;
 
 	private loadingStartTime: number = 0;
-	private minLoadTime = 500;
+	private minLoadTime = 0;
 
 	private loadingChain?: AsyncChain;
 
 	private finishedLoading(chain: AsyncChain) {
 
 		// fake longer loading time for smooth animation
-		var loadingTime = Date.now() - this.loadingStartTime;
+		const loadingTime = Date.now() - this.loadingStartTime;
 		if(loadingTime < this.minLoadTime) {
 			const _this = this;
 			setTimeout(() => {
@@ -456,14 +97,11 @@ export class Scene {
 		this.hasFinishedLoading = true;
 		this.hasBeenInitialized = true;
 
-		// remove loading animation
-		this.sceneRenderer?.remove(this.loadingContainer);
-
 		// make container visibility
-		this.setContainerVisibility(true);
+		this.getContainers().setVisibility(true);
 
 		// update image for rgb sensor
-		this.updateImageDataFunction();
+		this.getContainers().updateGroundImageDataFunction();
 
 		if(this.autostartSim) {
 			// auto start simulation
@@ -497,22 +135,16 @@ export class Scene {
 		}
 
 		// remove robots
-		this.robots.splice(0, this.robots.length);
+		this.getRobotManager().clear()
 
 		// remove all physic bodies
-		Composite.clear(this.world, false, true);
+		Composite.clear(this.getWorld(), false, true);
 
 		// remove all drawables from the containers
-		this.clearAllContainers();
+		this.getContainers().clear();
 
 		// remove entities
-		this.entities.length = 0
-		this.updatableEntities.length = 0
-		this.drawablePhysicsEntities.length = 0
-
-		// set score to 0
-		this.setScore(0)
-		this.hideScore()
+		this.getEntityManager().clear()
 
 		chain.next();
 	}
@@ -529,41 +161,35 @@ export class Scene {
 
 		clearDebugGui() // if debug gui exist, clear it
 
-		this.hideScore();
-
 		this.currentlyLoading = true; // this flag will start loading animation update
 		this.hasFinishedLoading = false;
 
-		// should not run while loading running
-		this.stopSim();
-
 		// hide rendering containers
-		this.setContainerVisibility(false);
-
-		// start loading animation
-		this.sceneRenderer?.addDisplayable(this.loadingContainer);
-
+		this.getContainers().setVisibility(false);
 
 		// build new async chain
 		this.loadingChain = new AsyncChain();
 
 
+		// 1. stop simulation
+		this.loadingChain.push(this.simTicker.generateAsyncStopListener())
+
+		// 2. if initialized, unload + deinit
 		if(this.hasBeenInitialized) {
 			// unload old things
 			this.loadingChain.push(
-				this.simTicker.generateAsyncStopListener(),
 				{func: this.unload, thisContext: this}, // unload scene (pixi/robots/matterjs)
 				{func: this.onDeInit, thisContext: this}, // deinit scene
 				{func: chain => {this.hasBeenInitialized = false; chain.next()}, thisContext: this}, // reset flag
 			);
 		}
 
+		// 3. unload and/or reload assets
 		if(!this.resourcesLoaded || forceLoadAssets) {
 
 			if(this.resourcesLoaded) {
 				// unload resources
 				this.loadingChain.push(
-					{func: this.unloadScoreAssets, thisContext: this}, // unload score assets
 					{func: this.onUnloadAssets, thisContext: this}, // unload user assets
 					{func: chain => {this.resourcesLoaded = false; chain.next()}, thisContext: this}, // reset flag
 				)
@@ -571,17 +197,15 @@ export class Scene {
 
 			// load resources
 			this.loadingChain.push(
-				{func: this.loadScoreAssets, thisContext: this}, // load score assets for this scene
 				{func: this.onLoadAssets, thisContext: this}, // load user assets
 				// set resource loaded flag
 				{func: chain => {this.resourcesLoaded = true; chain.next();}, thisContext: this},
 			);
 		}
 
-		// finish loading
+		// 4. init scene and finish loading
 		this.loadingChain.push(
 			{func: chain => { this._unit = this.getUnitConverter(); chain.next() }, thisContext: this },
-			{func: this.initScoreContainer, thisContext: this}, // init score container
 			{func: this.onInit, thisContext: this}, // init scene
 			// swap from loading to scene, remove loading animation, cleanup, ...
 			{func: this.finishedLoading, thisContext: this},
@@ -600,34 +224,12 @@ export class Scene {
 	// #############################################################################
 	//
 
-	private getImageData?: (x: number, y: number, w: number, h: number) => ImageData
-
-	updateImageDataFunction() {
-		const canvas = this.getRenderer()?.getCanvasFromDisplayObject(this.groundContainer)
-		const renderingContext = canvas?.getContext("2d")
-		const bounds = this.groundContainer.getBounds()
-		if (renderingContext) {
-			const scaleX = 1 / this.groundContainer.parent.scale.x
-			const scaleY = 1 / this.groundContainer.parent.scale.y
-			bounds.x *= scaleX
-			bounds.y *= scaleY
-			bounds.width *= scaleX
-			bounds.height *= scaleY
-			this.getImageData = (x, y, w, h) => renderingContext.getImageData(
-				x - bounds.x,
-				y - bounds.y, w, h)
-		}
-	}
-
-	//
-	// #############################################################################
-	//
-
 	/**
 	 * Physics engine used by the scene
 	 */
 	readonly engine: Engine = Engine.create();
 	readonly world: World = this.engine.world;
+	public autostartSim = true;
 
 	getEngine(): Engine {
 		return this.engine;
@@ -650,7 +252,44 @@ export class Scene {
 		this.dt = this.getUnitConverter().getTime(dt);
 	}
 
-	autostartSim = true;
+	getDT() {
+		return this.dt
+	}
+
+	getAllPhysicsBodies() {
+		return Composite.allBodies(this.world)
+	}
+
+	/**
+	 * Returns all bodies containing the given point
+	 * @param position position to check for bodies
+	 * @param singleBody whether to return only one body
+	 */
+	getBodiesAt(position: PIXI.IPointData, singleBody:boolean = false): Body[] {
+		let intersected:Body[] = []
+		let bodies: Body[] = Composite.allBodies(this.world);
+
+		// code borrowed from Matterjs MouseConstraint
+		for (let i = 0; i < bodies.length; i++) {
+			let body = bodies[i];
+			if (Bounds.contains(body.bounds, position) && body.enableMouseInteraction) {
+				for (let j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+					let part = body.parts[j];
+					if (Vertices.contains(part.vertices, position)) {
+						intersected.push(body);
+
+						if(singleBody) {
+							return intersected;
+						}
+
+						break;
+					}
+				}
+			}
+		}
+
+		return intersected;
+	}
 
 	//
 	// #############################################################################
@@ -761,17 +400,19 @@ export class Scene {
 			if(sceneRenderer) {
 				sceneRenderer.switchScene(this); // this will remove all registered rendering containers
 
-				this.registerContainersToEngine(); // register rendering containers
+				this.getContainers().registerToEngine(); // register rendering containers
 
 				// tell the program manager whether we are allowed to do a blockly breakpoint update
 				// this will be allowed if there is a blockly instance for us to use
-				this.programManager._setAllowBlocklyUpdate(allowBlocklyUpdate);
+				this.getProgramManager()._setAllowBlocklyUpdate(allowBlocklyUpdate);
 				if(allowBlocklyUpdate) {
 					this.startBlocklyUpdate(); // enable blockly update timer
+				} else {
+					this.stopBlocklyUpdate(); // stop it if this task is running
 				}
 			} else {
 				// disable blockly breakpoint update because we have no scene
-				this.programManager._setAllowBlocklyUpdate(false);
+				this.getProgramManager()._setAllowBlocklyUpdate(false);
 				this.stopBlocklyUpdate();
 			}
 
@@ -783,23 +424,13 @@ export class Scene {
 	}
 
 	renderTick(dt: number) {
-		if(this.currentlyLoading) {
-			this.updateLoadingAnimation(dt);
-		}
-
-		if(this.showScore) {
-			this.updateScoreAnimation(dt);
-			if(!this.scoreEndless && (Date.now() > this.endScoreTime)) {
-				this.hideScore();
-			}
-		}
-
 		// update rendering positions
-		this.drawablePhysicsEntities.forEach(entity => {
-			entity.updateDrawablePosition()
-		})
+		this.getEntityManager().updateDrawablePosition()
 
-		this.onRenderTick(dt);
+		// update sensor data overlay
+		this.getRobotManager().updateSensorValueView()
+
+		this.onRenderTick(dt)
 	}
 
 	//
@@ -808,22 +439,8 @@ export class Scene {
 
 	constructor() {
 
-		// setup graphic containers
-		this.setupContainers();
-
-		// setup container for loading animation
-		this.initLoadingContainer();
-
 		// register events
 		const _this = this;
-		// Events.on(this.world, "beforeAdd", (e: IEventComposite<Composite>) => {
-		//     _this.addPhysics(e.object);
-		// });
-
-		// Events.on(this.world, "afterRemove", (e: IEventComposite<Composite>) => {
-		//     _this.removePhysics(e.object);
-		// });
-
 
 		this.simTicker = new Timer(this.simSleepTime, (delta) => {
 			// delta is the time from last render call
@@ -834,15 +451,13 @@ export class Scene {
 
 		this.blocklyTicker = new Timer(this.blocklyUpdateSleepTime, (delta) => {
 			// update blockly
-			_this.programManager.updateBreakpointEvent();
+			_this.getProgramManager().updateBreakpointEvent();
 		});
 
 		// simulation defaults
 		// TODO: Gravity scale may depend on the chosen units
 		this.engine.world.gravity = { scale: 1, x: 0, y: 0};
 	}
-
-
 
 	//
 	// #############################################################################
@@ -901,207 +516,28 @@ export class Scene {
 	// #############################################################################
 	//
 
-	/**
-	 * Returns all bodies containing the given point
-	 * @param position position to check for bodies
-	 * @param singleBody whether to return only one body
-	 */
-	getBodiesAt(position: PIXI.IPointData, singleBody:boolean = false): Body[] {
-		let intersected:Body[] = []
-		let bodies: Body[] = Composite.allBodies(this.world);
-
-		// code borrowed from Matterjs MouseConstraint
-		for (let i = 0; i < bodies.length; i++) {
-			let body = bodies[i];
-			if (Bounds.contains(body.bounds, position) && body.enableMouseInteraction) {
-				for (let j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
-					let part = body.parts[j];
-					if (Vertices.contains(part.vertices, position)) {
-						intersected.push(body);
-
-						if(singleBody) {
-							return intersected;
-						}
-
-						break;
-					}
-				}
-			}
-		}
-
-		return intersected;
-	}
-
-	/*
-	private addPhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
-
-		if(!obj) {
-			return;
-		}
-
-		const element  = <Body | Composite | Constraint><any>obj;
-
-		if(element.type) {
-
-			switch (element.type) {
-				case 'body':
-					var body = <Body>element;
-	
-					if(body.displayable) {
-						this.entityContainer.addChild(body.displayable.displayObject);
-					}
-					
-					if(this.debugPixiRendering) {
-	
-						if(!body.debugDisplayable) {
-							body.debugDisplayable = createDisplayableFromBody(body);
-						}
-						
-						this.entityContainer.addChild(body.debugDisplayable.displayObject);
-						
-					}
-					break;
-	
-				case 'composite':
-					Composite.allBodies(<Composite>element).forEach((e) => {
-						this.addPhysics(e);
-					});
-					break;
-	
-				case "mouseConstraint":
-				case 'constraint':
-					// TODO: Maybe add constraint as PIXI graphics
-					break;
-			
-				default:
-					console.error("unknown type: " + element.type);
-					break;
-			}
-	
-		} else if(Array.isArray(obj)) {
-			const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
-			const _this = this;
-			array.forEach((e: Body | Composite | Constraint) => _this.addPhysics(e));
-		} else {
-			console.error('unknown type: ' + obj);
-		}
-
-		
-	}
-
-	private removePhysics(obj: Body | Array<Body> | Composite | Array<Composite> | Constraint | Array<Constraint> | MouseConstraint) {
-
-		if(!obj) {
-			return;
-		}
-
-		const element  = <Body | Composite | Constraint><any>obj;
-
-		if(element.type) {
-			switch (element.type) {
-				case 'body':
-					var body = <Body>element;
-					if(body.displayable) {
-						this.entityContainer.removeChild(body.displayable.displayObject);
-					}
-					if(body.debugDisplayable) {
-						this.entityContainer.removeChild(body.debugDisplayable.displayObject);
-					}
-					break;
-
-				case 'composite':
-					Composite.allBodies(<Composite>element).forEach((e) => {
-						this.removePhysics(e);
-					});
-					break;
-
-				case "mouseConstraint":
-				case 'constraint':
-					// TODO: Maybe remove constraint PIXI graphics
-					break;
-			
-				default:
-					console.error("unknown type: " + element.type);
-					break;
-			}
-		} else if(Array.isArray(obj)) {
-			const array =  <Array<Body> | Array<Composite> | Array<Constraint>>obj;
-			const _this = this;
-			array.forEach((e: Body | Composite | Constraint) => _this.removePhysics(e));
-		} else {
-			console.error('unknown type: ' + obj);
-		}
-
-	}
-	*/
-
-	//
-	// #############################################################################
-	//
-
-	destroy() {
-		this.onDestroy();
-		// TODO
-	}
-
-	//
-	// #############################################################################
-	//
-
-	private robotUpdateOptions?: RobotUpdateOptions
-
-	getRobotUpdateOptions(): RobotUpdateOptions | undefined {
-		return this.robotUpdateOptions
-	}
-
-	private htmlSensorValues(label: String, value: any): string {
-		return `<div><label>${label}</label><span>${value}</span></div>`
-	}
-
-
-	//
-	// #############################################################################
-	//
-
 	protected waypointsManager = new WaypointsManager<ScoreWaypoint>()
-
-	updateRobotOptions(){
-		const allBodies = Composite.allBodies(this.world)
-		// FIXME: What to do with undefined 'getImageData'?
-		if (this.getImageData) {
-			this.robotUpdateOptions = new RobotUpdateOptions({
-				dt: this.dt,
-				programPaused: this.programManager.isProgramPaused(),
-				allBodies: allBodies,
-				getImageData: this.getImageData
-			})
-		} else {
-			this.robotUpdateOptions = undefined
-		}
-	}
 
 	/**
 	 * update physics and robots
 	 */
 	private update() {
 
-		this.onUpdate();
-		this.updateRobotOptions()
+		this.onUpdatePrePhysics();
 
 		// update physics
 		Engine.update(this.engine, this.dt)
 
 		// update entities e.g. robots
-		const _this = this
-		this.updatableEntities.forEach(entity => entity.update(_this.dt))
+		this.getEntityManager().update()
+
 
 		// TODO: Handle multiple robots and waypoints
-		if (this.robots.length >= 1) {
-			this.waypointsManager.update(this.robots[0].body.position)
-		}
+		//if (this.robots.length >= 1) {
+		//	this.waypointsManager.update(this.robots[0].body.position)
+		//}
 
-		this.programManager.update(); // update breakpoints, ...
-
+		this.getProgramManager().update(); // update breakpoints, ...
 
 		// FIX Grid bucket memory consumption
 		// Remove empty buckets
@@ -1113,20 +549,6 @@ export class Scene {
 			if (anyGrid.buckets[key].length == 0) {
 				delete anyGrid.buckets[key]
 			}
-		}
-
-		// TODO: refactor this, the simulation should not have a html/div dependency
-		// update sensor value html
-		if (this.showRobotSensorValues) {
-			const htmlElement = $('#notConstantValue')
-			htmlElement.html('');
-			const elementList: { label: string, value: any }[] = []
-
-			elementList.push({label: 'Simulation tick rate:', value: this.getCurrentSimTickRate()})
-
-			this.robots.forEach(robot => robot.addHTMLSensorValuesTo(elementList))
-			const htmlString = elementList.map(element => this.htmlSensorValues(element.label, element.value)).join("")
-			htmlElement.append(htmlString)
 		}
 
 		this.onUpdatePostPhysics();
@@ -1243,17 +665,9 @@ export class Scene {
 	}
 
 	/**
-	 * destroy this scene
-	 * destroy all loaded textures
-	 */
-	onDestroy() {
-		console.log('on destroy');
-	}
-
-	/**
 	 * called before updating physics and robots
 	 */
-	onUpdate() {
+	onUpdatePrePhysics() {
 
 	}
 
@@ -1279,8 +693,6 @@ export class Scene {
 	onInteractionEvent(ev: ScrollViewEvent) {
 
 	}
-
-
 
 
 }

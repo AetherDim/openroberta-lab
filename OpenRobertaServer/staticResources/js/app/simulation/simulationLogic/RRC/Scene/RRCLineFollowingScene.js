@@ -180,7 +180,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             this.setWaypointList(waypointList);
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
-            this.groundContainer.addChild(this.goalSprite);
+            this.getContainers().groundContainer.addChild(this.goalSprite);
             this.addStaticWallInPixels(this.getWall());
             this.addWalls(true);
             chain.next();

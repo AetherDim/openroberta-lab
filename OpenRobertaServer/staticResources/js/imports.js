@@ -93,7 +93,6 @@ require.config({
         'program.model': 'app/roberta/models/program.model',
         'progTutorial.controller': 'app/roberta/controller/progTutorial.controller',
         'progShare.controller': 'app/roberta/controller/progShare.controller',
-        'progSim.controller': 'app/roberta/controller/progSim.controller',
         'robot.controller': 'app/roberta/controller/robot.controller',
         'robot.model': 'app/roberta/models/robot.model',
         'tour.controller': 'app/roberta/controller/tour.controller',
@@ -150,7 +149,6 @@ require.config({
         'Color',
         'Unit',
         'ScrollView',
-        'ProgramManager',
         'SharedAssetLoader',
         'Random',
         'Util',
@@ -160,6 +158,12 @@ require.config({
                 'TestScene',
                 'TestScene2',
                 'AsyncChain',
+                { 'Manager' : [
+                        'ContainerManager',
+                        'EntityManager',
+                        'ProgramManager',
+                        'RobotManager',
+                    ]}
             ]},
         { 'Geometry': [
                 'Line',
@@ -175,7 +179,7 @@ require.config({
                 'Wheel',
                 'RobotHardwareStateSensors',
                 'ColorSensor',
-                'RobotUpdateOptions',
+                'BodyHelper',
                 'UltrasonicSensor',
                 'TouchSensor'
             ]},

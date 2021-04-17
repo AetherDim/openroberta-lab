@@ -8,7 +8,6 @@ import { RobotSimBehaviour } from './RobotSimBehaviour'
 import { Unit } from '../Unit'
 import { Wheel } from './Wheel'
 import { ColorSensor } from './ColorSensor'
-import { RobotUpdateOptions } from './RobotUpdateOptions'
 import { UltrasonicSensor } from './UltrasonicSensor'
 import { Ray } from '../Geometry/Ray'
 import { TouchSensor } from './TouchSensor'
@@ -18,6 +17,7 @@ import { Util } from '../Util'
 // Dat Gui
 import {DebugGui, downloadJSONFile} from "./../GlobalDebug";
 import dat = require('dat.gui')
+import {BodyHelper} from "./BodyHelper";
 
 type StringMap<V> = { [key: string]: V }
 type NumberMap<V> = { [key: number]: V }
@@ -227,7 +227,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		child.getParent()?.removeChild(child)
 		child._setParent(this)
 		this.children.push(child)
-		if (this.scene.containsEntity(this)) {
+		if (this.scene.getEntityManager().containsEntity(this)) {
 			this.scene.addEntity(child)
 		}
 	}
@@ -413,11 +413,6 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 */
 	update(dt: number) {
 
-		const updateOptions = this.scene.getRobotUpdateOptions()
-		if (updateOptions == undefined) {
-			return
-		}
-
 		// update wheels velocities
 		const gravitationalAcceleration = this.scene.unit.getAcceleration(9.81)
 		const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
@@ -431,14 +426,14 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		}
 
 		// update sensors
-		this.updateRobotBehaviourHardwareStateSensors(updateOptions)
+		this.updateRobotBehaviourHardwareStateSensors()
 
 		if(this.delay > 0) {
 			this.delay -= dt; // reduce delay by dt each tick
 		} else {
 			if (this.interpreter.isTerminated()) {
 				this.resetInternalState()
-			} else if(!updateOptions.programPaused && this.needsNewCommands) {
+			} else if(!this.scene.getProgramManager().isProgramPaused() && this.needsNewCommands) {
 				// get delay from operation and convert seconds to internal time unit
 				this.delay = this.scene.getUnitConverter().getTime(this.interpreter.runNOperations(1000) / 1000);
 			}
@@ -788,7 +783,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		return Util.vectorAdd(this.body.position, Vector.rotate(relativePosition, this.body.angle))
 	}
 
-	private updateRobotBehaviourHardwareStateSensors(updateOptions: RobotUpdateOptions) {
+	private updateRobotBehaviourHardwareStateSensors() {
 		if (!this.robotBehaviour) {
 			return
 		}
@@ -806,7 +801,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		const gyroRate = this.body.angularVelocity * 180 / Math.PI
 		const oldAngle = sensors.gyro?.[2].angle;
 		sensors.gyro = { 2: {
-			angle: oldAngle ? oldAngle + gyroRate * updateOptions.dt : this.body.angle * 180 / Math.PI,
+			angle: oldAngle ? oldAngle + gyroRate * this.scene.getDT() : this.body.angle * 180 / Math.PI,
 			rate: gyroRate
 		}}
 
@@ -821,7 +816,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			const colorSensor = this.colorSensors[port]
 			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
-			const color = updateOptions.getImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
+			const color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
 			colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics)
 			sensors.color[port] = {
 				ambientlight: 0,
@@ -831,6 +826,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				rgb: [color[0], color[1], color[2]]
 			}
 		}
+
+		const allBodies = this.scene.getAllPhysicsBodies()
 
 		// ultrasonic sensor
 		if (!sensors.ultrasonic) {
@@ -844,7 +841,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			const sensorPosition = this.getAbsolutePosition(ultrasonicSensor.position)
 			let ultrasonicDistance: number
 			let nearestPoint: Vector | undefined
-			if (updateOptions.someBodyContains(sensorPosition, robotBodies)) {
+			if (BodyHelper.someBodyContains(sensorPosition, allBodies, robotBodies)) {
 				ultrasonicDistance = 0
 			} else {
 				const halfAngle = ultrasonicSensor.angularRange / 2
@@ -855,12 +852,12 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				// (point - sensorPos) * vec > 0
 				const vectors = rays.map(r => Vector.perp(r.directionVector))
 				const dotProducts = vectors.map(v => Vector.dot(v, sensorPosition))
-				nearestPoint = updateOptions.getNearestPointTo(sensorPosition, robotBodies, point => {
+				nearestPoint = BodyHelper.getNearestPointTo(sensorPosition, allBodies, robotBodies, point => {
 					return Vector.dot(point, vectors[0]) < dotProducts[0]
 						&& Vector.dot(point, vectors[1]) > dotProducts[1]
 				})
 				let minDistanceSquared = nearestPoint ? Util.vectorDistanceSquared(nearestPoint, sensorPosition) : Infinity
-				const intersectionPoints = updateOptions.intersectionPointsWithLine(rays[0], robotBodies).concat(updateOptions.intersectionPointsWithLine(rays[1], robotBodies))
+				const intersectionPoints = BodyHelper.intersectionPointsWithLine(rays[0], allBodies, robotBodies).concat(BodyHelper.intersectionPointsWithLine(rays[1], allBodies, robotBodies))
 				intersectionPoints.forEach(intersectionPoint => {
 					const distanceSquared = Util.vectorDistanceSquared(intersectionPoint, sensorPosition)
 					if (distanceSquared < minDistanceSquared) {
@@ -909,7 +906,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		}
 		for (const port in this.touchSensors) {
 			const touchSensor = this.touchSensors[port]
-			touchSensor.setIsTouched(updateOptions.bodyIntersectsOther(touchSensor.physicsBody))
+			touchSensor.setIsTouched(BodyHelper.bodyIntersectsOther(touchSensor.physicsBody, allBodies))
 			sensors.touch[port] = touchSensor.getIsTouched()
 		}
 	}
