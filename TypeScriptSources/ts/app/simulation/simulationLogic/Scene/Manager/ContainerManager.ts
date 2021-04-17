@@ -124,11 +124,16 @@ export class ContainerManager {
     }
 
 
-
-    getGroundImageData(x: number, y: number, w: number, h: number): ImageData {
+    private _initialGroundDataFunction(x: number, y: number, w: number, h: number): ImageData {
         this.updateGroundImageDataFunction()
         return this.getGroundImageData(x, y, w, h) // very hacky
     }
+
+    resetGroundDataFunction() {
+        this.getGroundImageData = this._initialGroundDataFunction
+    }
+
+    getGroundImageData: (x: number, y: number, w: number, h: number) => ImageData = this._initialGroundDataFunction
 
     updateGroundImageDataFunction() {
         const groundVisible = this.groundContainer.visible

@@ -57,6 +57,7 @@ define(["require", "exports"], function (require, exports) {
                 this.entityTopContainer,
                 this.topContainer
             ];
+            this.getGroundImageData = this._initialGroundDataFunction;
             this.scene = scene;
             // setup graphic containers
             this.setupContainers();
@@ -105,9 +106,12 @@ define(["require", "exports"], function (require, exports) {
                 baseTexture: this.removeBaseTexturesOnUnload
             });*/
         };
-        ContainerManager.prototype.getGroundImageData = function (x, y, w, h) {
+        ContainerManager.prototype._initialGroundDataFunction = function (x, y, w, h) {
             this.updateGroundImageDataFunction();
             return this.getGroundImageData(x, y, w, h); // very hacky
+        };
+        ContainerManager.prototype.resetGroundDataFunction = function () {
+            this.getGroundImageData = this._initialGroundDataFunction;
         };
         ContainerManager.prototype.updateGroundImageDataFunction = function () {
             var _a;

@@ -143,6 +143,9 @@ export class Scene {
 		// remove all drawables from the containers
 		this.getContainers().clear();
 
+		// reset function for rgb sensor
+		this.getContainers().resetGroundDataFunction()
+
 		// remove entities
 		this.getEntityManager().clear()
 

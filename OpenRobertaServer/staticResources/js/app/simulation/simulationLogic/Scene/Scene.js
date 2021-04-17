@@ -182,6 +182,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             matter_js_1.Composite.clear(this.getWorld(), false, true);
             // remove all drawables from the containers
             this.getContainers().clear();
+            // reset function for rgb sensor
+            this.getContainers().resetGroundDataFunction();
             // remove entities
             this.getEntityManager().clear();
             chain.next();
