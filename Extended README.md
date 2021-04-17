@@ -63,4 +63,7 @@ When compiling TypeScript using `tsc`
 - `Cannot find module ...`: Checkout the latest commit and run `npm ci`
 
 When compiling the server
-- A java package cannot be found: Go to the `'Maven tab'` press `Reload All Maven Projects` and rebuild
+- A java package cannot be found:
+    - Go to the `'Maven tab'` press `Reload All Maven Projects`
+    - Go to `Module Settings -> Modules -> OpenRobertaServer -> Dependencies` and set the `scope` of all directories from `Test` to `Compile` (the directories have not 'Maven' in their name and a folder symbol)
+    - Recompile the project
