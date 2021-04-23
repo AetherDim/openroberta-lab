@@ -46,8 +46,9 @@ define(["require", "exports", "dat.gui"], function (require, exports, dat) {
         link.click();
     }
     exports.downloadFile = downloadFile;
-    function downloadJSONFile(filename, data) {
-        downloadFile(filename, [JSON.stringify(data)]);
+    function downloadJSONFile(filename, data, prettify) {
+        if (prettify === void 0) { prettify = true; }
+        downloadFile(filename, [JSON.stringify(data, undefined, prettify ? "\t" : undefined)]);
     }
     exports.downloadJSONFile = downloadJSONFile;
 });

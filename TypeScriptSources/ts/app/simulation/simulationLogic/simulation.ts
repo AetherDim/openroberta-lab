@@ -9,6 +9,8 @@ import {TestScene2} from "./Scene/TestScene2"
 import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 import {RRCScene} from "./RRC/Scene/RRCScene";
 import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
+import { TestScene3 } from './Scene/TestScene3';
+import { Util } from './Util';
 
 // TODO: check whether this has to be defined in here
 // probably not
@@ -124,6 +126,11 @@ sceneManager.registerScene(
 	new SceneHandle(
 		"Test Scene 2", "TestScene2", "T",
 		() => new TestScene2(AgeGroup.ES)
+	),
+
+	new SceneHandle(
+		"Test Scene 3", "TestScene3", "Test scene for testing the robot",
+		() => new TestScene3()
 	),
 
 	new SceneHandle(
@@ -253,20 +260,14 @@ var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNext
 
 
 
-
-// store old programs
-let storedPrograms:any[];
-let storedRobotType:string;
-
-
 /**
  * @param programs 
  * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
  * @param robotType 
  */
 export function init(programs: any[], refresh: boolean, robotType: string) {
-	storedPrograms = programs;
-	storedRobotType = robotType;
+	Util.simulation.storedPrograms = programs;
+	Util.simulation.storedRobotType = robotType;
 
 	//$('simScene').hide();
 
@@ -286,7 +287,7 @@ export function setPause(pause:boolean) {
 }
 
 export function run(refresh:boolean, robotType: any) {
-	init(storedPrograms, refresh, robotType);
+	init(Util.simulation.storedPrograms, refresh, robotType);
 }
 
 /**
@@ -295,7 +296,7 @@ export function run(refresh:boolean, robotType: any) {
 export function stopProgram() {
 	// TODO: reset robot?
 	engine.getScene().getProgramManager().stopProgram();
-	init(storedPrograms, false, storedRobotType);
+	init(Util.simulation.storedPrograms, false, Util.simulation.storedRobotType);
 }
 
 export function importImage() {

@@ -15,7 +15,7 @@ import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, P
 import { Scene } from '../Scene/Scene'
 import { Util } from '../Util'
 // Dat Gui
-import {DebugGui, downloadJSONFile} from "./../GlobalDebug";
+import {DebugGui, downloadFile, downloadJSONFile} from "./../GlobalDebug";
 import dat = require('dat.gui')
 import {BodyHelper} from "./BodyHelper";
 
@@ -76,7 +76,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 */
 	private touchSensors: StringMap<TouchSensor> = {}
 
-	robotBehaviour?: RobotSimBehaviour
+	private robotBehaviour?: RobotSimBehaviour
 
 	configuration?: StringMap<SensorType> = undefined;
 	programCode: any = null;
@@ -148,6 +148,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			this.wheelsList[2]._addDebugGui(wheelFolder.addFolder('Wheel Back'))
 
 			DebugGui.addButton('DownloadTest', () => downloadJSONFile('test.json', [1, 2, 3]))
+			DebugGui.addButton("Download Program (JSON)", () => 
+				downloadFile("program.json", [JSON.stringify(this.programCode, undefined, "\t")])
+			)
 		}
 
 	}

@@ -41,7 +41,7 @@ export class AsyncChain {
 
 		//console.log('Chain Index: ' + this.index);
 
-		listener.func.call(listener.thisContext, this);
+		setTimeout(() => listener.func.call(listener.thisContext, this), 0)
 	}
 
 	hasFinished() {

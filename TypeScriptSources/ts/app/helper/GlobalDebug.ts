@@ -66,6 +66,6 @@ export function downloadFile(filename: string, data: BlobPart[], options?: BlobP
 	link.click();
 }
 
-export function downloadJSONFile(filename: string, data: any) {
-	downloadFile(filename, [JSON.stringify(data)])
+export function downloadJSONFile(filename: string, data: any, prettify: boolean = true) {
+	downloadFile(filename, [JSON.stringify(data, undefined, prettify ? "\t" : undefined)])
 }

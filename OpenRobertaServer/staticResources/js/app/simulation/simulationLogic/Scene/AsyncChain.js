@@ -34,13 +34,14 @@ define(["require", "exports"], function (require, exports) {
             });
         };
         AsyncChain.prototype.next = function () {
+            var _this = this;
             if (this.listeners.length <= this.index) {
                 return;
             }
             var listener = this.listeners[this.index];
             this.index++;
             //console.log('Chain Index: ' + this.index);
-            listener.func.call(listener.thisContext, this);
+            setTimeout(function () { return listener.func.call(listener.thisContext, _this); }, 0);
         };
         AsyncChain.prototype.hasFinished = function () {
             return this.listeners.length <= this.index;

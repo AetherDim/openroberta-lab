@@ -1,7 +1,252 @@
 import { Vector } from "matter-js"
+import { lutimesSync } from "node:fs";
+import { TestScene3 } from "./Scene/TestScene3"
 
+
+export type UnpackArray<T> = T extends readonly (infer U)[] ? U : never
+export type UnpackArrayProperties<T> = { [k in keyof T]: UnpackArray<T[k]> }
+
+/**
+ * expands object types one level deep
+ * 
+ * see https://stackoverflow.com/questions/57683303/how-can-i-see-the-full-expanded-contract-of-a-typescript-type
+ */
+export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+
+/**
+ * expands object types recursively
+ * 
+ * see https://stackoverflow.com/questions/57683303/how-can-i-see-the-full-expanded-contract-of-a-typescript-type
+ */
+export type ExpandRecursively<T> = T extends object
+  ? T extends infer O ? { [K in keyof O]: ExpandRecursively<O[K]> } : never
+  : T;
+
+
+export type Equal<T, U> =
+	T extends U
+		? U extends T
+			? unknown
+			: never
+		: never
+
+export type NotEqual<T, U> =
+	T extends U
+		? U extends T
+			? never
+			: unknown
+		: unknown
+
+// see https://stackoverflow.com/questions/57016728/is-there-a-way-to-define-type-for-array-with-unique-items-in-typescript
+export type TupleContains<A extends readonly unknown[], E> =
+	{
+		[k in keyof A]: Equal<A[k], E>
+	}[number]
+
+export type Invalid<T> = Error & { __errorMessage: T }
+
+export type UniqueTupleElements<A extends ReadonlyArray<any>> = {
+	[k1 in keyof A]:
+		unknown extends {
+			[k2 in keyof A]:
+				k1 extends k2
+					? never
+					: Equal<A[k1], A[k2]>
+		}[number] ? Invalid<[A[k1], "is repeated"]> : A[k1]
+}
+
+export type AsUniqueArray<
+  A extends ReadonlyArray<any>,
+  B extends ReadonlyArray<any>
+> = {
+  [I in keyof A]: unknown extends {
+    [J in keyof B]: J extends I ? never : B[J] extends A[I] ? unknown : never
+  }[number]
+    ? Invalid<[A[I], "is repeated"]>
+    : A[I]
+};
+
+export type Narrowable =
+  | string
+  | number
+  | boolean
+  | object
+  | null
+  | undefined
+  | symbol;
+
+export const asUniqueArray = <
+  N extends Narrowable,
+  A extends [] | ReadonlyArray<N> & AsUniqueArray<A, A>
+>(
+  a: A
+) => a;
+
+
+function applyRestrictedKey<T, KeyType>(type: T, key: RestrictedKeys<T, KeyType>): KeyType {
+	return type[key] as unknown as KeyType
+}
+
+
+/**
+ * Converts a tuple of array types to a tuple of the normal types [string[], number[], "test"[]] to [string, number, test]
+ */
+export type TupleUnpackArray<T extends readonly any[]> = { [k in keyof T]: UnpackArray<T[k]>} 
+// // equivalent implementation
+// export type TupleUnpackArray<T extends readonly any[]> =
+// 	T extends [infer First, ... infer Rest]
+// 		? [UnpackArray<First>, ...TupleUnpackArray<Rest>]
+// 		: T extends [infer First]
+// 			? UnpackArray<First>
+// 			: []
+
+/**
+ * Returns a type which describes all keys of `T` which extend `KeyType`
+ * 
+ * adapted from https://stackoverflow.com/questions/46139715/typescript-keyof-extra-type-condition
+ */ 
+type RestrictedKeys<T, KeyType> = { [k in keyof T]: T[k] extends KeyType ? k : never }[keyof T]
+type RestrictedKeysType<T, KeyType> = { [k in keyof T]: T[k] extends KeyType ? T[k] : never }
 
 export class Util {
+
+	static simulation: {
+		storedPrograms: any[],
+		storedRobotType: string
+	} = {
+		storedPrograms: [],
+		storedRobotType: ""
+	}
+
+	/**
+	 * Returns an array of numbers starting from 'start' to (inclusive) 'end' with a step size 'step' 
+	 * 
+	 * @param start inclusive start of range
+	 * @param end inclusive end of range
+	 * @param step the step size of the range
+	 */
+	static range(start: number, end: number, step: number = 1.0) {
+		var ans = [];
+		for (let i = start; i <= end; i += step) {
+			ans.push(i);
+		}
+		return ans;
+	}
+
+	/**
+	 * Generate a unique ID.  This should be globally unique.
+	 * 87 characters ^ 20 length > 128 bits (better than a UUID).
+	 * @return {string} A globally unique ID string.
+	 */
+	static genUid(): string {
+		const length = 20;
+		const soupLength = Util.soup_.length;
+		const id: string[] = [];
+		for (let i = 0; i < length; i++) {
+			id[i] = Util.soup_.charAt(Math.random() * soupLength);
+		}
+		return id.join('');
+	};
+  
+	/**
+	 * Legal characters for the unique ID.  Should be all on a US keyboard.
+	 * No characters that conflict with XML or JSON.  Requests to remove additional
+	 * 'problematic' characters from this soup will be denied.  That's your failure
+	 * to properly escape in your own environment.  Issues #251, #625, #682, #1304.
+	 * @private
+	 */
+	private static soup_ = '!#$%()*+,-./:;=?@[]^_`{|}~' +
+		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+	static flattenArray<T>(array: T[][]): T[] {
+		return ([] as T[]).concat.apply([], array)
+	}
+
+	// // unique tuple elements
+	// static test<
+	// 	N extends Narrowable,
+	// 	A extends ReadonlyArray<N> & UniqueTupleElements<A>
+	// >(key: A) {
+
+	// }
+
+	/**
+	 * Returns a list of all possible tuples/lists whose i-th element is from `list[i]`.
+	 * 
+	 * i.e.`[[list[0][0],list[1][0], list[2][0],...], [list[0][1],list[1][0], list[2][0],...], ...]`
+	 */
+	static anyTuples(list: any[][]): any[][] {
+		if (list.length == 0) {
+			return list
+		} else if (list.length == 1) {
+			return list[0].map(e => [e])
+		} else {
+			const result: any[][] = []
+			for (const value of list[list.length - 1]) {
+				let val = Util.anyTuples(list.slice(0, -1)).map(tuple =>
+					tuple.concat(value)
+				)
+				result.push.apply(result, val)
+			}
+			return result
+		}
+	}
+
+	/**
+	 * Returns a list of all possible tuples/lists whose i-th element is from `list[i]`.
+	 * 
+	 * i.e.`[[list[0][0],list[1][0], list[2][0],...], [list[0][1],list[1][0], list[2][0],...], ...]`
+	 */
+	static tuples<T extends readonly (readonly any[])[]>(list: T): TupleUnpackArray<T>[] {
+		return Util.anyTuples(list as any as any[][]) as any as TupleUnpackArray<T>[]
+	}
+
+	static strictPropertiesTuples<
+		T, 
+		Key extends RestrictedKeys<T, any[]>,
+		Keys extends [] | ReadonlyArray<Key> & UniqueTupleElements<Keys>
+	>(type: T, keys: Keys): Expand<UnpackArrayProperties<Pick<T, Key>>>[] {
+		for (let i = 0; i < keys.length; i++) {
+			for (let j = i + 1; j < keys.length; j++) {
+				if (keys[i] === keys[j]) {
+					console.error("The property name ("+keys[i]+") is duplicate")
+				}
+			}
+		}
+		const values = (keys as Key[]).map(key => applyRestrictedKey<T, any[]>(type, key))
+		const tuples = Util.anyTuples(values)
+		return tuples.map(tuple => {
+			const obj: any = {}
+			for (let i = 0; i < keys.length; i++) {
+				obj[keys[i]] = tuple[i]
+			}
+			return obj as Expand<UnpackArrayProperties<Pick<T, Key>>>
+		})
+	}
+
+	static propertiesTuples<T, Keys extends RestrictedKeys<T, any[]>>(type: T, keys: Keys[]): Expand<UnpackArrayProperties<Pick<T, Keys>>>[] {
+		for (let i = 0; i < keys.length; i++) {
+			for (let j = i + 1; j < keys.length; j++) {
+				if (keys[i] === keys[j]) {
+					console.error("The property name ("+keys[i]+") is duplicate")
+				}
+			}
+		}
+		const values = keys.map(key => applyRestrictedKey<T, any[]>(type, key))
+		const tuples = Util.anyTuples(values)
+		return tuples.map(tuple => {
+			const obj: any = {}
+			for (let i = 0; i < keys.length; i++) {
+				obj[keys[i]] = tuple[i]
+			}
+			return obj as Expand<UnpackArrayProperties<Pick<T, Keys>>>
+		})
+	}
+
+	static allPropertiesTuples<T extends { [k in keyof T]: any[] }>(type: T): Expand<UnpackArrayProperties<T>>[] {
+		const keys = Object.keys(type) as RestrictedKeys<T, any[]>[]
+		return Util.propertiesTuples(type, keys)
+	}
 
 	static mapNotNull<T, U>(array: T[], transform: (element: T) => (U | null | undefined)): U[] {
 		const result: U[] = []
@@ -34,6 +279,14 @@ export class Util {
 			return true
 		}
 		return false
+	}
+
+	static stringReplaceAll(string: string, searchValue: string | RegExp, replacement: string): string {
+		return string.split(searchValue).join(string)
+	}
+
+	static vectorEqual(v1: Vector, v2: Vector): boolean {
+		return v1.x === v2.x && v1.y === v2.y
 	}
 
 	static vectorAdd(v1: Vector, v2: Vector): Vector {

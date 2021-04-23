@@ -84,6 +84,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
                 // delta is the time from last render call
                 for (var i = 0; i < _this.simSpeedupFactor; i++) {
+                    if (_this.simTicker.shallStop) {
+                        break;
+                    }
                     _this.update();
                 }
             });
@@ -199,6 +202,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 console.warn('Already loading scene... !');
                 return;
             }
+            // stop the simulation
+            this.stopSim();
             GlobalDebug_1.clearDebugGui(); // if debug gui exist, clear it
             this.currentlyLoading = true; // this flag will start loading animation update
             this.hasFinishedLoading = false;
@@ -287,11 +292,12 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             if (this.hasFinishedLoading) {
                 this.simTicker.start();
             }
+            else {
+                console.warn("'startSim()' is called during the loading process.");
+            }
         };
         Scene.prototype.stopSim = function () {
-            if (this.hasFinishedLoading) {
-                this.simTicker.stop();
-            }
+            this.simTicker.stop();
         };
         /**
          * Sets the sim sleep time in seconds.

@@ -1,4 +1,4 @@
-define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1) {
+define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./Util", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneHandle = void 0;
@@ -93,7 +93,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     //
     new SceneHandle('Test Scene', 'TestScene', 'Test scene with all sim features', function () {
         return new TestScene_1.TestScene();
-    }), new SceneHandle("Test Scene 2", "TestScene2", "T", function () { return new TestScene2_1.TestScene2(AgeGroup_1.AgeGroup.ES); }), new SceneHandle('Empty Scene', 'EmptyScene', 'Empty Scene', function () {
+    }), new SceneHandle("Test Scene 2", "TestScene2", "T", function () { return new TestScene2_1.TestScene2(AgeGroup_1.AgeGroup.ES); }), new SceneHandle("Test Scene 3", "TestScene3", "Test scene for testing the robot", function () { return new TestScene3_1.TestScene3(); }), new SceneHandle('Empty Scene', 'EmptyScene', 'Empty Scene', function () {
         return new Scene_1.Scene();
     }), new SceneHandle('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function () {
         return new RRCScene_1.RRCScene(AgeGroup_1.AgeGroup.ES);
@@ -134,17 +134,14 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     var engine = new SceneRenderer_1.SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNextScene());
     //engine.getScene().setupDebugRenderer('notConstantValue');
     //engine.getScene().setupDebugRenderer('simDiv');
-    // store old programs
-    var storedPrograms;
-    var storedRobotType;
     /**
      * @param programs
      * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
      * @param robotType
      */
     function init(programs, refresh, robotType) {
-        storedPrograms = programs;
-        storedRobotType = robotType;
+        Util_1.Util.simulation.storedPrograms = programs;
+        Util_1.Util.simulation.storedRobotType = robotType;
         //$('simScene').hide();
         // TODO: prevent clicking run twice
         engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
@@ -159,7 +156,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     }
     exports.setPause = setPause;
     function run(refresh, robotType) {
-        init(storedPrograms, refresh, robotType);
+        init(Util_1.Util.simulation.storedPrograms, refresh, robotType);
     }
     exports.run = run;
     /**
@@ -168,7 +165,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     function stopProgram() {
         // TODO: reset robot?
         engine.getScene().getProgramManager().stopProgram();
-        init(storedPrograms, false, storedRobotType);
+        init(Util_1.Util.simulation.storedPrograms, false, Util_1.Util.simulation.storedRobotType);
     }
     exports.stopProgram = stopProgram;
     function importImage() {

@@ -157,6 +157,7 @@ require.config({
                 'Scene',
                 'TestScene',
                 'TestScene2',
+                'TestScene3',
                 'AsyncChain',
                 { 'Manager' : [
                         'ContainerManager',
@@ -174,6 +175,7 @@ require.config({
             ]},
         { 'Robot': [
                 'Robot',
+                'RobotTester',
                 'ElectricMotor',
                 'RobotSimBehaviour',
                 'Wheel',

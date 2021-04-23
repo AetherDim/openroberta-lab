@@ -162,6 +162,9 @@ export class Scene {
 			return;
 		}
 
+		// stop the simulation
+		this.stopSim()
+
 		clearDebugGui() // if debug gui exist, clear it
 
 		this.currentlyLoading = true; // this flag will start loading animation update
@@ -312,13 +315,13 @@ export class Scene {
 	startSim() {
 		if(this.hasFinishedLoading) {
 			this.simTicker.start();
+		} else {
+			console.warn("'startSim()' is called during the loading process.")
 		}
 	}
 
 	stopSim() {
-		if(this.hasFinishedLoading) {
-			this.simTicker.stop();
-		}
+		this.simTicker.stop();
 	}
 
 	/**
@@ -448,6 +451,9 @@ export class Scene {
 		this.simTicker = new Timer(this.simSleepTime, (delta) => {
 			// delta is the time from last render call
 			for(let i = 0; i < _this.simSpeedupFactor; i++) {
+				if (_this.simTicker.shallStop) {
+					break
+				}
 				_this.update();
 			}
 		});
