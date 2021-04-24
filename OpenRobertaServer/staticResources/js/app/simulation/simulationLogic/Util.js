@@ -52,7 +52,19 @@ define(["require", "exports"], function (require, exports) {
         };
         ;
         Util.flattenArray = function (array) {
-            return [].concat.apply([], array);
+            var result = [];
+            for (var i = 0; i < array.length; i++) {
+                var count = array[i].length;
+                for (var j = 0; j < count; j++) {
+                    result.push(array[i][j]);
+                }
+            }
+            return result;
+        };
+        Util.pushAll = function (array, otherArray) {
+            for (var i = 0; i < otherArray.length; i++) {
+                array.push(otherArray[i]);
+            }
         };
         // // unique tuple elements
         // static test<
@@ -79,7 +91,7 @@ define(["require", "exports"], function (require, exports) {
                     var val = Util.anyTuples(list.slice(0, -1)).map(function (tuple) {
                         return tuple.concat(value);
                     });
-                    result.push.apply(result, val);
+                    Util.pushAll(result, val);
                 };
                 try {
                     for (var _b = __values(list[list.length - 1]), _c = _b.next(); !_c.done; _c = _b.next()) {
@@ -145,8 +157,54 @@ define(["require", "exports"], function (require, exports) {
             var keys = Object.keys(type);
             return Util.propertiesTuples(type, keys);
         };
-        Util.mapNotNull = function (array, transform) {
+        /**
+         * @param time in seconds
+         * @see https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
+         * @returns A string of the format "HH:MM:SS"
+         */
+        Util.toHHMMSS = function (time) {
+            var sec_num = time;
+            var hours = Math.floor(sec_num / 3600);
+            var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+            var seconds = sec_num - (hours * 3600) - (minutes * 60);
+            return [hours, minutes, seconds].map(function (t) { return t < 10 ? "0" + t : String(t); }).join(":");
+        };
+        /**
+         * @param time in seconds
+         * @returns A string of the form "4d 5h 6m 7.8s"
+         */
+        Util.toTimeString = function (time) {
             var e_2, _a;
+            var sec = time;
+            var days = Math.floor(sec / 86400);
+            sec -= days * 86400;
+            var hours = Math.floor(sec / 3600);
+            sec -= hours * 3600;
+            var minutes = Math.floor(sec / 60);
+            sec -= minutes * 60;
+            var seconds = sec;
+            var string = "";
+            var forceAdd = false;
+            try {
+                for (var _b = __values([[days, "d "], [hours, "h "], [minutes, "m "], [seconds, "s"]]), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var value = _c.value;
+                    if (value[0] != 0 || forceAdd) {
+                        forceAdd = true;
+                        string += value[0] + value[1];
+                    }
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            return string;
+        };
+        Util.mapNotNull = function (array, transform) {
+            var e_3, _a;
             var result = [];
             try {
                 for (var array_1 = __values(array), array_1_1 = array_1.next(); !array_1_1.done; array_1_1 = array_1.next()) {
@@ -157,12 +215,12 @@ define(["require", "exports"], function (require, exports) {
                     }
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
                     if (array_1_1 && !array_1_1.done && (_a = array_1.return)) _a.call(array_1);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return result;
         };

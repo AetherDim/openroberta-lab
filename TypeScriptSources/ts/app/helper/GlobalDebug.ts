@@ -1,6 +1,11 @@
 import dat = require('dat.gui');
 
 export const DEBUG = true
+export const SEND_LOG = false
+/**
+ * Used in 'wrap.js' to print the error before it is wrapped
+ */
+export const PRINT_NON_WRAPPED_ERROR = true
 
 // Creating a GUI and a subfolder.
 export let DebugGui: dat.GUI|undefined;

@@ -288,6 +288,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             }
             return intersected;
         };
+        Scene.prototype.setSimTickerStopPollTime = function (pollTime) {
+            this.simTicker.setTickerStopPollTime(pollTime);
+        };
         Scene.prototype.startSim = function () {
             if (this.hasFinishedLoading) {
                 this.simTicker.start();

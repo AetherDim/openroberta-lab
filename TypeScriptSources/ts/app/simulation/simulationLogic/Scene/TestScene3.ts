@@ -69,8 +69,10 @@ function driveForwardProgram(speed: number, distance: number): any[] {
 }
 
 class KeyData {
-	rollingFriction = Util.range(0.05, 0.3, 0.05)
-	slideFriction = Util.range(0.4, 1.0, 0.05)
+	// (0.05, 0.5, 0.05)
+	rollingFriction = Util.range(0.01, 0.1, 0.01)
+	// (0.05, 1.0, 0.05)
+	slideFriction = Util.range(0.01, 0.1, 0.01)
 
 	otherRollingFriction = Util.range(0.03, 0.03, 0.01)
 	otherSlideFriction = Util.range(0.05, 0.05, 0.01)
@@ -87,6 +89,11 @@ export class TestScene3 extends Scene {
 	robotTester: RobotTester
 
 	time = 0.0
+
+	/**
+	 * A timeout for this simulation test in internal simulation time
+	 */
+	simulationTestTimeout = 20.0
 
 	/**
 	 * Time since start of test in sections
@@ -112,6 +119,10 @@ export class TestScene3 extends Scene {
 		this.robot = Robot.EV3(this)
 		this.robotTester = new RobotTester(this.robot)
 		
+		// set poll sim ticker time to 0
+		// TODO: Maybe set it always to 0 and remove timeout argument for `Timer.asyncStop`
+		this.setSimTickerStopPollTime(0)
+
 		this.keyValues = Util.allPropertiesTuples(this.keyData)
 	}
 
@@ -134,12 +145,14 @@ export class TestScene3 extends Scene {
 		DebugGui?.addButton("Download data", () => downloadJSONFile("data.json", this.data))
 		DebugGui?.addButton("Reset", () => this.resetData())
 		DebugGui?.addButton("Speeeeeed!!!!!", () => this.setSpeedUpFactor(1000))
+		const testTime = Date.now()/1000 - this.startWallTime
 		DebugGui?.add({ "progress" : this.keyIndex + "/" + this.keyValues.length }, "progress")
+		DebugGui?.add({ "ETA" : Util.toTimeString(testTime/this.keyIndex*(this.keyValues.length - this.keyIndex))}, "ETA")
 
 		if (this.keyIndex == 0) {
 			this.startWallTime = Date.now()/1000
 		}
-		DebugGui?.add({ "test timing" : String(Date.now()/1000 - this.startWallTime)  }, "test timing")
+		DebugGui?.add({ "test timing" : String(testTime)  }, "test timing")
 		
 		
 		this.time = 0.0
@@ -175,6 +188,20 @@ export class TestScene3 extends Scene {
 		asyncChain.next()
 	}
 
+	pushDataAndResetWithTimeout(didTimeOut: boolean) {
+		this.data.push({
+			key: this.keyValues[this.keyIndex],
+			value: this.unit.fromLength(Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
+			didTimeOut: didTimeOut,
+			simulationTime: this.time
+		})
+		
+		// reset scene and automatically call 'onInit'
+		this.keyIndex += 1
+		this.reset()
+		this.shouldWait = true
+	}
+
 	onUpdatePostPhysics() {
 
 		if (this.shouldWait) {
@@ -182,20 +209,19 @@ export class TestScene3 extends Scene {
 		}
 
 		this.time += this.getDT()
-		if (this.getProgramManager().allInterpretersTerminated()
-			&& this.keyIndex < this.keyValues.length
-		) {
-			if (Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy) {
-				// program terminated and robot does not move
-				this.data.push({
-					key: this.keyValues[this.keyIndex],
-					value: this.unit.fromLength(Util.vectorDistance(this.initialPosition, this.prevRobotPosition))
-				})
-				
-				// reset scene and automatically call 'onInit'
-				this.keyIndex += 1
-				this.reset()
-				this.shouldWait = true
+		if (this.keyIndex < this.keyValues.length) {
+			// there is still some 'keyValue' left
+
+			if (this.time > this.simulationTestTimeout) {
+				// timeout
+				this.pushDataAndResetWithTimeout(true)
+			}
+			if (this.getProgramManager().allInterpretersTerminated()) {
+				// program terminated
+				if (Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy) {
+					// program terminated and robot does not move
+					this.pushDataAndResetWithTimeout(false)
+				}
 			}
 		}
 		this.prevRobotPosition.x = this.robot.body.position.x

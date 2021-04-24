@@ -312,6 +312,10 @@ export class Scene {
 	 */
 	private readonly simTicker: Timer;
 
+	setSimTickerStopPollTime(pollTime: number) {
+		this.simTicker.setTickerStopPollTime(pollTime)
+	}
+
 	startSim() {
 		if(this.hasFinishedLoading) {
 			this.simTicker.start();

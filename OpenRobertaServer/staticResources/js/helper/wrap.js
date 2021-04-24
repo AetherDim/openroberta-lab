@@ -1,4 +1,4 @@
-define([ 'exports', 'comm', 'log', 'jquery' ], function(exports, COMM, LOG, $) {
+define([ 'exports', 'comm', 'log', 'jquery', 'GlobalDebug' ], function(exports, COMM, LOG, $, GlobalDebug) {
     /**
      * wrap a function with up to 3 parameters (!) to catch and display errors.
      * An not undefined 2nd parameter is a messages that activates time
@@ -18,6 +18,9 @@ define([ 'exports', 'comm', 'log', 'jquery' ], function(exports, COMM, LOG, $) {
                     LOG.text(elapsed + " msec: " + message, markerTIMER);
                 }
             } catch (e) {
+                if (GlobalDebug.PRINT_NON_WRAPPED_ERROR) {
+		            console.error("Error to server:", e)
+                }
                 var err = new Error();
                 if (message !== undefined) {
                     var elapsed = new Date() - start;

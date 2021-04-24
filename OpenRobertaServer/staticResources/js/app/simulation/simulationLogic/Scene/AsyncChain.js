@@ -41,6 +41,7 @@ define(["require", "exports"], function (require, exports) {
             var listener = this.listeners[this.index];
             this.index++;
             //console.log('Chain Index: ' + this.index);
+            //listener.func.call(listener.thisContext, this)
             setTimeout(function () { return listener.func.call(listener.thisContext, _this); }, 0);
         };
         AsyncChain.prototype.hasFinished = function () {

@@ -159,7 +159,20 @@ export class Util {
 		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	static flattenArray<T>(array: T[][]): T[] {
-		return ([] as T[]).concat.apply([], array)
+		const result: T[] = []
+		for (let i = 0; i < array.length; i++) {
+			const count = array[i].length
+			for (let j = 0; j < count; j++) {
+				result.push(array[i][j])
+			}
+		}
+		return result
+	}
+
+	static pushAll<T>(array: T[], otherArray: T[]) {
+		for (let i = 0; i < otherArray.length; i++) {
+			array.push(otherArray[i])
+		}
 	}
 
 	// // unique tuple elements
@@ -186,7 +199,7 @@ export class Util {
 				let val = Util.anyTuples(list.slice(0, -1)).map(tuple =>
 					tuple.concat(value)
 				)
-				result.push.apply(result, val)
+				Util.pushAll(result, val)
 			}
 			return result
 		}
@@ -246,6 +259,45 @@ export class Util {
 	static allPropertiesTuples<T extends { [k in keyof T]: any[] }>(type: T): Expand<UnpackArrayProperties<T>>[] {
 		const keys = Object.keys(type) as RestrictedKeys<T, any[]>[]
 		return Util.propertiesTuples(type, keys)
+	}
+
+	/**
+	 * @param time in seconds
+	 * @see https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
+	 * @returns A string of the format "HH:MM:SS"
+	 */
+	static toHHMMSS(time: number): string {
+		const sec_num = time
+		const hours = Math.floor(sec_num / 3600)
+		const minutes = Math.floor((sec_num - (hours * 3600)) / 60)
+		const seconds = sec_num - (hours * 3600) - (minutes * 60)
+	
+		return [hours, minutes, seconds].map(t => t < 10 ? "0" + t : String(t)).join(":")
+	}
+
+	/**
+	 * @param time in seconds
+	 * @returns A string of the form "4d 5h 6m 7.8s"
+	 */
+	static toTimeString(time: number): string {
+		let sec = time
+		const days = Math.floor(sec / 86400)
+		sec -= days * 86400
+		const hours = Math.floor(sec / 3600)
+		sec -= hours * 3600
+		const minutes = Math.floor(sec / 60)
+		sec -= minutes * 60
+		const seconds = sec
+
+		let string = ""
+		let forceAdd = false
+		for (const value of [[days, "d "], [hours, "h "], [minutes, "m "], [seconds, "s"]] as const) {
+			if (value[0] != 0 || forceAdd) {
+				forceAdd = true
+				string += value[0] + value[1]
+			}
+		}
+		return string
 	}
 
 	static mapNotNull<T, U>(array: T[], transform: (element: T) => (U | null | undefined)): U[] {

@@ -1,4 +1,4 @@
-define([ 'exports', 'jquery', 'bootstrap-table' ], function(exports, $) {
+define([ 'exports', 'jquery', 'bootstrap-table', 'GlobalDebug' ], function(exports, $, bootstrapTable, GlobalDebug) {
 
     // switches for logging:
     var logToLog = true; // log to HTML-list with id #log
@@ -67,7 +67,13 @@ define([ 'exports', 'jquery', 'bootstrap-table' ], function(exports, $) {
         if (typeof obj === 'object') {
             obj = JSON.stringify(obj);
         }
-        logQueue.push(marker + obj);
+        if (GlobalDebug.SEND_LOG) {
+            logQueue.push(marker + obj);
+        } else if (marker == markerERROR) {
+            console.error(marker + obj)
+        } else {
+            console.log(marker + obj)
+        }
     }
 
     /**

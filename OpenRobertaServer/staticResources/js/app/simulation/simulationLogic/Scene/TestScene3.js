@@ -76,8 +76,10 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     }
     var KeyData = /** @class */ (function () {
         function KeyData() {
-            this.rollingFriction = Util_1.Util.range(0.05, 0.3, 0.05);
-            this.slideFriction = Util_1.Util.range(0.4, 1.0, 0.05);
+            // (0.05, 0.5, 0.05)
+            this.rollingFriction = Util_1.Util.range(0.01, 0.1, 0.01);
+            // (0.05, 1.0, 0.05)
+            this.slideFriction = Util_1.Util.range(0.01, 0.1, 0.01);
             this.otherRollingFriction = Util_1.Util.range(0.03, 0.03, 0.01);
             this.otherSlideFriction = Util_1.Util.range(0.05, 0.05, 0.01);
             this.driveForwardSpeed = Util_1.Util.range(30, 30, 10);
@@ -90,6 +92,10 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
         function TestScene3() {
             var _this = _super.call(this) || this;
             _this.time = 0.0;
+            /**
+             * A timeout for this simulation test in internal simulation time
+             */
+            _this.simulationTestTimeout = 20.0;
             /**
              * Time since start of test in sections
              */
@@ -104,6 +110,9 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             _this.shouldWait = false;
             _this.robot = Robot_1.Robot.EV3(_this);
             _this.robotTester = new RobotTester_1.RobotTester(_this.robot);
+            // set poll sim ticker time to 0
+            // TODO: Maybe set it always to 0 and remove timeout argument for `Timer.asyncStop`
+            _this.setSimTickerStopPollTime(0);
             _this.keyValues = Util_1.Util.allPropertiesTuples(_this.keyData);
             return _this;
         }
@@ -121,11 +130,13 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.addButton("Download data", function () { return GlobalDebug_1.downloadJSONFile("data.json", _this.data); });
             GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.addButton("Reset", function () { return _this.resetData(); });
             GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.addButton("Speeeeeed!!!!!", function () { return _this.setSpeedUpFactor(1000); });
+            var testTime = Date.now() / 1000 - this.startWallTime;
             GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.add({ "progress": this.keyIndex + "/" + this.keyValues.length }, "progress");
+            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.add({ "ETA": Util_1.Util.toTimeString(testTime / this.keyIndex * (this.keyValues.length - this.keyIndex)) }, "ETA");
             if (this.keyIndex == 0) {
                 this.startWallTime = Date.now() / 1000;
             }
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.add({ "test timing": String(Date.now() / 1000 - this.startWallTime) }, "test timing");
+            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.add({ "test timing": String(testTime) }, "test timing");
             this.time = 0.0;
             this.robot = Robot_1.Robot.EV3(this);
             this.robotTester = new RobotTester_1.RobotTester(this.robot);
@@ -153,23 +164,35 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             }
             asyncChain.next();
         };
+        TestScene3.prototype.pushDataAndResetWithTimeout = function (didTimeOut) {
+            this.data.push({
+                key: this.keyValues[this.keyIndex],
+                value: this.unit.fromLength(Util_1.Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
+                didTimeOut: didTimeOut,
+                simulationTime: this.time
+            });
+            // reset scene and automatically call 'onInit'
+            this.keyIndex += 1;
+            this.reset();
+            this.shouldWait = true;
+        };
         TestScene3.prototype.onUpdatePostPhysics = function () {
             if (this.shouldWait) {
                 return;
             }
             this.time += this.getDT();
-            if (this.getProgramManager().allInterpretersTerminated()
-                && this.keyIndex < this.keyValues.length) {
-                if (Util_1.Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy) {
-                    // program terminated and robot does not move
-                    this.data.push({
-                        key: this.keyValues[this.keyIndex],
-                        value: this.unit.fromLength(Util_1.Util.vectorDistance(this.initialPosition, this.prevRobotPosition))
-                    });
-                    // reset scene and automatically call 'onInit'
-                    this.keyIndex += 1;
-                    this.reset();
-                    this.shouldWait = true;
+            if (this.keyIndex < this.keyValues.length) {
+                // there is still some 'keyValue' left
+                if (this.time > this.simulationTestTimeout) {
+                    // timeout
+                    this.pushDataAndResetWithTimeout(true);
+                }
+                if (this.getProgramManager().allInterpretersTerminated()) {
+                    // program terminated
+                    if (Util_1.Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy) {
+                        // program terminated and robot does not move
+                        this.pushDataAndResetWithTimeout(false);
+                    }
                 }
             }
             this.prevRobotPosition.x = this.robot.body.position.x;

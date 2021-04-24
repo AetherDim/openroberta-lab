@@ -5,7 +5,7 @@ import {time} from "d3";
 export class Timer {
 
 
-	readonly TICKER_STOP_POLL_TIME = 0.1
+	private tickerStopPollTime = 0.1
 
 	running = false;
 	sleepTime = 100;
@@ -21,6 +21,10 @@ export class Timer {
 	constructor(sleepTime: number, userFunction: (dt: number) => void) {
 		this.sleepTime = sleepTime;
 		this.userFunction = userFunction;
+	}
+
+	setTickerStopPollTime(pollTime: number) {
+		this.tickerStopPollTime = pollTime
 	}
 
 	start() {
@@ -62,7 +66,7 @@ export class Timer {
 				console.warn("Unable to stop ticker!")
 				chain.next()
 			} else {
-				setTimeout(() => this.asyncStop(chain, timeout, startTime), this.TICKER_STOP_POLL_TIME*1000)
+				setTimeout(() => this.asyncStop(chain, timeout, startTime), this.tickerStopPollTime*1000)
 			}
 		} else {
 			chain.next()

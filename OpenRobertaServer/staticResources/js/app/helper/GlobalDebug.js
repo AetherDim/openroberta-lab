@@ -1,8 +1,13 @@
 define(["require", "exports", "dat.gui"], function (require, exports, dat) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.downloadJSONFile = exports.downloadFile = exports.clearDebugGui = exports.DebugGui = exports.DEBUG = void 0;
+    exports.downloadJSONFile = exports.downloadFile = exports.clearDebugGui = exports.DebugGui = exports.PRINT_NON_WRAPPED_ERROR = exports.SEND_LOG = exports.DEBUG = void 0;
     exports.DEBUG = true;
+    exports.SEND_LOG = false;
+    /**
+     * Used in 'wrap.js' to print the error before it is wrapped
+     */
+    exports.PRINT_NON_WRAPPED_ERROR = true;
     clearDebugGui();
     function clearDebugGui() {
         if (exports.DEBUG) {

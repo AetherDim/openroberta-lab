@@ -4,7 +4,7 @@ define(["require", "exports"], function (require, exports) {
     exports.Timer = void 0;
     var Timer = /** @class */ (function () {
         function Timer(sleepTime, userFunction) {
-            this.TICKER_STOP_POLL_TIME = 0.1;
+            this.tickerStopPollTime = 0.1;
             this.running = false;
             this.sleepTime = 100;
             this.shallStop = false;
@@ -15,6 +15,9 @@ define(["require", "exports"], function (require, exports) {
             this.sleepTime = sleepTime;
             this.userFunction = userFunction;
         }
+        Timer.prototype.setTickerStopPollTime = function (pollTime) {
+            this.tickerStopPollTime = pollTime;
+        };
         Timer.prototype.start = function () {
             if (this.running) {
                 return;
@@ -52,7 +55,7 @@ define(["require", "exports"], function (require, exports) {
                     chain.next();
                 }
                 else {
-                    setTimeout(function () { return _this_1.asyncStop(chain, timeout, startTime); }, this.TICKER_STOP_POLL_TIME * 1000);
+                    setTimeout(function () { return _this_1.asyncStop(chain, timeout, startTime); }, this.tickerStopPollTime * 1000);
                 }
             }
             else {
