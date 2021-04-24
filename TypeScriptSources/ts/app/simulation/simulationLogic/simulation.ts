@@ -11,6 +11,7 @@ import {RRCScene} from "./RRC/Scene/RRCScene";
 import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 import { TestScene3 } from './Scene/TestScene3';
 import { Util } from './Util';
+import { RobotProgram } from './Robot/RobotProgram';
 
 // TODO: check whether this has to be defined in here
 // probably not
@@ -269,7 +270,7 @@ var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNext
  * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
  * @param robotType 
  */
-export function init(programs: any[], refresh: boolean, robotType: string) {
+export function init(programs: RobotProgram[], refresh: boolean, robotType: string) {
 	Util.simulation.storedPrograms = programs;
 	Util.simulation.storedRobotType = robotType;
 

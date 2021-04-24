@@ -13,21 +13,20 @@ import { Ray } from '../Geometry/Ray'
 import { TouchSensor } from './TouchSensor'
 import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, PhysicsRectEntity } from '../Entity'
 import { Scene } from '../Scene/Scene'
-import { Util } from '../Util'
+import { StringMap, Util } from '../Util'
 // Dat Gui
 import {downloadFile, downloadJSONFile} from "./../GlobalDebug";
 import dat = require('dat.gui')
 import {BodyHelper} from "./BodyHelper";
+import { RobotProgram } from './RobotProgram'
 
-type StringMap<V> = { [key: string]: V }
-type NumberMap<V> = { [key: number]: V }
 const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
 	// german description: "HT Infrarotsensor"
 	"IRSEEKER",
 	// does not work in RobertaLab?!
 	"HT_COLOR",
 ] as const
-type SensorType = typeof sensorTypeStrings[number]
+export type SensorType = typeof sensorTypeStrings[number]
 
 export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompositeEntity {
 
@@ -354,10 +353,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		right: 0
 	};
 
-	setProgram(program: any, breakpoints: any[]): Interpreter {
+	setProgram(program: RobotProgram, breakpoints: any[]): Interpreter {
 		const _this = this;
 		this.programCode = JSON.parse(program.javaScriptProgram);
-		this.configuration = program.javaScriptConfiguration as StringMap<SensorType>
+		this.configuration = program.javaScriptConfiguration
 		const allKeys = Object.keys(this.configuration)
 		const allValues = Object.values(this.configuration)
 		const wrongValueCount = allValues.find((e)=>!sensorTypeStrings.includes(e))?.length ?? 0

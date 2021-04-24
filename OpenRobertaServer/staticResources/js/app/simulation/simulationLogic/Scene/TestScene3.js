@@ -16,7 +16,10 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TestScene3 = void 0;
     function constructProgram(operations) {
-        return { "ops": Util_1.Util.flattenArray(operations) };
+        return {
+            javaScriptConfiguration: { 1: "TOUCH", 2: "GYRO", 3: "COLOR", 4: "ULTRASONIC" },
+            javaScriptProgram: JSON.stringify({ "ops": Util_1.Util.flattenArray(operations) }, undefined, "\t")
+        };
     }
     /**
      * @param speed from 0 to 100 (in %)
@@ -77,13 +80,13 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     var KeyData = /** @class */ (function () {
         function KeyData() {
             // (0.05, 0.5, 0.05)
-            this.rollingFriction = Util_1.Util.range(0.01, 0.1, 0.01);
+            this.rollingFriction = Util_1.Util.range(0.1, 0.1, 0.01);
             // (0.05, 1.0, 0.05)
-            this.slideFriction = Util_1.Util.range(0.01, 0.1, 0.01);
+            this.slideFriction = Util_1.Util.range(0.3, 0.3, 0.01);
             this.otherRollingFriction = Util_1.Util.range(0.03, 0.03, 0.01);
             this.otherSlideFriction = Util_1.Util.range(0.05, 0.05, 0.01);
-            this.driveForwardSpeed = Util_1.Util.range(30, 30, 10);
-            this.driveForwardDistance = Util_1.Util.range(0.2, 0.2, 0.1);
+            this.driveForwardSpeed = Util_1.Util.range(10, 100, 10);
+            this.driveForwardDistance = Util_1.Util.range(0.1, 1.0, 0.1);
         }
         return KeyData;
     }());
@@ -109,6 +112,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             _this.keyValues = [];
             _this.testTime = 0;
             _this.shouldWait = false;
+            _this.autostartSim = false;
             _this.robot = Robot_1.Robot.EV3(_this);
             _this.robotTester = new RobotTester_1.RobotTester(_this.robot);
             // set poll sim ticker time to 0
@@ -117,11 +121,20 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             _this.keyValues = Util_1.Util.allPropertiesTuples(_this.keyData);
             var DebugGui = _this.getDebugGuiStatic();
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Download data", function () { return GlobalDebug_1.downloadJSONFile("data.json", _this.data); });
-            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Reset", function () { return _this.resetData(); });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Speeeeeed!!!!!", function () { return _this.setSpeedUpFactor(1000); });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("progress", function () { return _this.keyIndex + "/" + _this.keyValues.length; });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("ETA", function () { return Util_1.Util.toTimeString(_this.testTime / _this.keyIndex * (_this.keyValues.length - _this.keyIndex)); });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("test timing", function () { return String(_this.testTime); });
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Reset", function () {
+                _this.resetData();
+                _this.autostartSim = false;
+                _this.reset();
+            });
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Restart", function () {
+                _this.resetData();
+                _this.autostartSim = true;
+                _this.reset();
+            });
             return _this;
         }
         TestScene3.prototype.getUnitConverter = function () {
@@ -157,9 +170,12 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                     }
                 });
                 // run(false, undefined)
-                var program = false ? constructProgram([
-                    driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-                ]) : Util_1.Util.simulation.storedPrograms;
+                var program = true ?
+                    [
+                        constructProgram([
+                            driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                        ])
+                    ] : Util_1.Util.simulation.storedPrograms;
                 this.getProgramManager().setPrograms(program, true, undefined);
                 this.getProgramManager().startProgram();
             }
@@ -174,6 +190,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             });
             // reset scene and automatically call 'onInit'
             this.keyIndex += 1;
+            this.autostartSim = this.keyIndex < this.keyValues.length;
             this.reset();
             this.shouldWait = true;
         };

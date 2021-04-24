@@ -175,6 +175,7 @@ require.config({
             ]},
         { 'Robot': [
                 'Robot',
+                'RobotProgram',
                 'RobotTester',
                 'ElectricMotor',
                 'RobotSimBehaviour',

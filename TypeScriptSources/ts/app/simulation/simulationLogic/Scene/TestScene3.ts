@@ -1,21 +1,30 @@
 
 import { downloadJSONFile } from "../GlobalDebug";
 import { Robot } from "../Robot/Robot";
+import { RobotProgram } from "../Robot/RobotProgram";
 import { RobotTester } from "../Robot/RobotTester";
 import { Unit } from "../Unit";
 import { asUniqueArray, TupleContains, UniqueTupleElements, UnpackArrayProperties, TupleUnpackArray, Util, Expand } from "../Util";
 import { AsyncChain } from "./AsyncChain";
 import { Scene } from "./Scene";
 
-function constructProgram(operations: any[][]): any {
-	return { "ops": Util.flattenArray(operations) }
+function constructProgram(operations: OpCode[][]): RobotProgram {
+	return {
+		javaScriptConfiguration: {1: "TOUCH", 2: "GYRO", 3: "COLOR", 4: "ULTRASONIC"},
+		javaScriptProgram: JSON.stringify({ "ops": Util.flattenArray(operations) }, undefined, "\t")
+	}
+}
+
+interface OpCode {
+	opc: string
+	[others: string]: unknown
 }
 
 /**
  * @param speed from 0 to 100 (in %)
  * @param distance in meters
  */
-function driveForwardProgram(speed: number, distance: number): any[] {
+function driveForwardProgram(speed: number, distance: number): OpCode[] {
 	const uuidExpr1 = Util.genUid()
 	const uuidExpr2 = Util.genUid()
 	const uuidDriveAction= Util.genUid()
@@ -70,15 +79,15 @@ function driveForwardProgram(speed: number, distance: number): any[] {
 
 class KeyData {
 	// (0.05, 0.5, 0.05)
-	rollingFriction = Util.range(0.01, 0.1, 0.01)
+	rollingFriction = Util.range(0.1, 0.1, 0.01)
 	// (0.05, 1.0, 0.05)
-	slideFriction = Util.range(0.01, 0.1, 0.01)
+	slideFriction = Util.range(0.3, 0.3, 0.01)
 
 	otherRollingFriction = Util.range(0.03, 0.03, 0.01)
 	otherSlideFriction = Util.range(0.05, 0.05, 0.01)
 
-	driveForwardSpeed = Util.range(30, 30, 10)
-	driveForwardDistance = Util.range(0.2, 0.2, 0.1)
+	driveForwardSpeed = Util.range(10, 100, 10)
+	driveForwardDistance = Util.range(0.1, 1.0, 0.1)
 }
 
 type SubKeyData = Expand<UnpackArrayProperties<KeyData>>
@@ -119,6 +128,8 @@ export class TestScene3 extends Scene {
 	constructor() {
 		super("Test Scene 3")
 
+		this.autostartSim = false
+
 		this.robot = Robot.EV3(this)
 		this.robotTester = new RobotTester(this.robot)
 		
@@ -132,11 +143,22 @@ export class TestScene3 extends Scene {
 		const DebugGui = this.getDebugGuiStatic()
 
 		DebugGui?.addButton("Download data", () => downloadJSONFile("data.json", this.data))
-		DebugGui?.addButton("Reset", () => this.resetData())
+
 		DebugGui?.addButton("Speeeeeed!!!!!", () => this.setSpeedUpFactor(1000))
 		DebugGui?.addUpdatable("progress", () => this.keyIndex + "/" + this.keyValues.length)
 		DebugGui?.addUpdatable("ETA", () => Util.toTimeString(this.testTime/this.keyIndex*(this.keyValues.length - this.keyIndex)))
 		DebugGui?.addUpdatable("test timing", () => String(this.testTime))
+
+		DebugGui?.addButton("Reset", () =>  {
+			this.resetData()
+			this.autostartSim = false
+			this.reset()
+		})
+		DebugGui?.addButton("Restart", () =>  {
+			this.resetData()
+			this.autostartSim = true
+			this.reset()
+		})
 
 	}
 
@@ -186,9 +208,12 @@ export class TestScene3 extends Scene {
 			})
 
 			// run(false, undefined)
-			const program = false ? constructProgram([
-				driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-			]) : Util.simulation.storedPrograms
+			const program = true ? 
+				[
+					constructProgram([
+						driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+					])
+				] : Util.simulation.storedPrograms
 			this.getProgramManager().setPrograms(program, true, undefined)
 			this.getProgramManager().startProgram()
 		}
@@ -206,6 +231,7 @@ export class TestScene3 extends Scene {
 		
 		// reset scene and automatically call 'onInit'
 		this.keyIndex += 1
+		this.autostartSim = this.keyIndex < this.keyValues.length
 		this.reset()
 		this.shouldWait = true
 	}

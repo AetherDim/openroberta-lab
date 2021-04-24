@@ -3,6 +3,7 @@ import * as CONSTANTS from "../../simulation.constants";
 import { Robot } from "../../Robot/Robot";
 import {RobotManager} from "./RobotManager";
 import {Interpreter} from "./../../interpreter.interpreter";
+import { RobotProgram } from "../../Robot/RobotProgram";
 
 export class ProgramManager {
 	
@@ -35,7 +36,7 @@ export class ProgramManager {
 		this.robots = robotManager.getRobots();
 	}
 
-	setPrograms(programs: any[], refresh: boolean = false, robotType?: string) {
+	setPrograms(programs: RobotProgram[], refresh: boolean = false, robotType?: string) {
 		if(programs.length < this.robots.length) {
 			console.warn("Not enough programs!");
 		}

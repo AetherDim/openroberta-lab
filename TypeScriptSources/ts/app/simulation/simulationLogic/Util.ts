@@ -1,7 +1,9 @@
 import { Vector } from "matter-js"
-import { lutimesSync } from "node:fs";
-import { TestScene3 } from "./Scene/TestScene3"
+import { RobotProgram } from "./Robot/RobotProgram"
 
+
+export type StringMap<V> = { [key: string]: V }
+export type NumberMap<V> = { [key: number]: V }
 
 export type UnpackArray<T> = T extends readonly (infer U)[] ? U : never
 export type UnpackArrayProperties<T> = { [k in keyof T]: UnpackArray<T[k]> }
@@ -111,7 +113,7 @@ type RestrictedKeysType<T, KeyType> = { [k in keyof T]: T[k] extends KeyType ? T
 export class Util {
 
 	static simulation: {
-		storedPrograms: any[],
+		storedPrograms: RobotProgram[],
 		storedRobotType: string
 	} = {
 		storedPrograms: [],
