@@ -1,4 +1,3 @@
-import { DebugGui } from "../GlobalDebug";
 import { Robot } from "./Robot";
 import { Wheel } from "./Wheel";
 
@@ -28,7 +27,6 @@ export class RobotTester {
 			}
 		})
 
-		DebugGui?.updateDisplay()
 	}
 
 }

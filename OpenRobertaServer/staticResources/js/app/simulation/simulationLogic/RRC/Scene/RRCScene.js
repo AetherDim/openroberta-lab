@@ -28,8 +28,8 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
     exports.RRCScene = void 0;
     var RRCScene = /** @class */ (function (_super) {
         __extends(RRCScene, _super);
-        function RRCScene(ageGroup) {
-            var _this = _super.call(this) || this;
+        function RRCScene(name, ageGroup) {
+            var _this = _super.call(this, name + " " + ageGroup) || this;
             _this.addWaypointGraphics = true;
             _this.scoreText2 = new PIXI.Text("");
             _this.scoreText3 = new PIXI.Text("");

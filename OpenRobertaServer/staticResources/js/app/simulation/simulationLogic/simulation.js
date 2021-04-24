@@ -1,19 +1,22 @@
 define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./Util", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneHandle = void 0;
+    exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneDescriptor = void 0;
     // TODO: check whether this has to be defined in here
     // probably not
-    var SceneHandle = /** @class */ (function () {
-        function SceneHandle(name, ID, description, creteScene) {
+    var SceneDescriptor = /** @class */ (function () {
+        function SceneDescriptor(name, ID, description, creteScene) {
             this.name = name;
             this.description = description;
             this.ID = ID;
-            this.creteScene = creteScene;
+            this._createScene = creteScene;
         }
-        return SceneHandle;
+        SceneDescriptor.prototype.createScene = function () {
+            return this._createScene(this);
+        };
+        return SceneDescriptor;
     }());
-    exports.SceneHandle = SceneHandle;
+    exports.SceneDescriptor = SceneDescriptor;
     var SceneManager = /** @class */ (function () {
         function SceneManager() {
             this.sceneHandleMap = new Map();
@@ -24,7 +27,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
             if (!scene) {
                 var sceneHandle = this.sceneHandleMap.get(ID);
                 if (sceneHandle) {
-                    scene = sceneHandle.creteScene();
+                    scene = sceneHandle.createScene();
                     this.sceneMap.set(ID, scene);
                 }
             }
@@ -91,42 +94,42 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     //
     // Test
     //
-    new SceneHandle('Test Scene', 'TestScene', 'Test scene with all sim features', function () {
-        return new TestScene_1.TestScene();
-    }), new SceneHandle("Test Scene 2", "TestScene2", "T", function () { return new TestScene2_1.TestScene2(AgeGroup_1.AgeGroup.ES); }), new SceneHandle("Test Scene 3", "TestScene3", "Test scene for testing the robot", function () { return new TestScene3_1.TestScene3(); }), new SceneHandle('Empty Scene', 'EmptyScene', 'Empty Scene', function () {
-        return new Scene_1.Scene();
-    }), new SceneHandle('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function () {
-        return new RRCScene_1.RRCScene(AgeGroup_1.AgeGroup.ES);
+    new SceneDescriptor('Test Scene', 'TestScene', 'Test scene with all sim features', function (descriptor) {
+        return new TestScene_1.TestScene(descriptor.name);
+    }), new SceneDescriptor("Test Scene 2", "TestScene2", "T", function (descriptor) { return new TestScene2_1.TestScene2(descriptor.name, AgeGroup_1.AgeGroup.ES); }), new SceneDescriptor("Test Scene 3", "TestScene3", "Test scene for testing the robot", function (descriptor) { return new TestScene3_1.TestScene3(); }), new SceneDescriptor('Empty Scene', 'EmptyScene', 'Empty Scene', function (descriptor) {
+        return new Scene_1.Scene(descriptor.name);
+    }), new SceneDescriptor('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function (descriptor) {
+        return new RRCScene_1.RRCScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
     }), 
     //
     //  Line Following
     //
-    new SceneHandle('RRC - Line Following - ES', 'RRCLineFollowingES', 'Roborave Cyberspace line following ES', function () {
-        return new RRCLineFollowingScene_1.RRCLineFollowingScene(AgeGroup_1.AgeGroup.ES);
-    }), new SceneHandle('RRC - Line Following - MS', 'RRCLineFollowingMS', 'Roborave Cyberspace line following MS', function () {
-        return new RRCLineFollowingScene_1.RRCLineFollowingScene(AgeGroup_1.AgeGroup.MS);
-    }), new SceneHandle('RRC - Line Following - HS', 'RRCLineFollowingHS', 'Roborave Cyberspace line following HS', function () {
-        return new RRCLineFollowingScene_1.RRCLineFollowingScene(AgeGroup_1.AgeGroup.HS);
+    new SceneDescriptor('RRC - Line Following - ES', 'RRCLineFollowingES', 'Roborave Cyberspace line following ES', function (descriptor) {
+        return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
+    }), new SceneDescriptor('RRC - Line Following - MS', 'RRCLineFollowingMS', 'Roborave Cyberspace line following MS', function (descriptor) {
+        return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
+    }), new SceneDescriptor('RRC - Line Following - HS', 'RRCLineFollowingHS', 'Roborave Cyberspace line following HS', function (descriptor) {
+        return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
     }), 
     //
     // Rainbow
     //
-    new SceneHandle('RRC - Rainbow - ES', 'RRCRainbowES', 'Roborave Cyberspace Rainbow ES', function () {
-        return new RRCRainbowScene_1.RRCRainbowScene(AgeGroup_1.AgeGroup.ES);
-    }), new SceneHandle('RRC - Rainbow - MS', 'RRCRainbowMS', 'Roborave Cyberspace Rainbow MS', function () {
-        return new RRCRainbowScene_1.RRCRainbowScene(AgeGroup_1.AgeGroup.MS);
-    }), new SceneHandle('RRC - Rainbow - HS', 'RRCRainbowHS', 'Roborave Cyberspace Rainbow HS', function () {
-        return new RRCRainbowScene_1.RRCRainbowScene(AgeGroup_1.AgeGroup.HS);
+    new SceneDescriptor('RRC - Rainbow - ES', 'RRCRainbowES', 'Roborave Cyberspace Rainbow ES', function (descriptor) {
+        return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
+    }), new SceneDescriptor('RRC - Rainbow - MS', 'RRCRainbowMS', 'Roborave Cyberspace Rainbow MS', function (descriptor) {
+        return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
+    }), new SceneDescriptor('RRC - Rainbow - HS', 'RRCRainbowHS', 'Roborave Cyberspace Rainbow HS', function (descriptor) {
+        return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
     }), 
     //
     // Labyrinth
     //
-    new SceneHandle('RRC - Labyrinth - ES', 'RRCLabyrinthES', 'Roborave Cyberspace Labyrinth ES', function () {
-        return new RRCLabyrinthScene_1.RRCLabyrinthScene(AgeGroup_1.AgeGroup.ES);
-    }), new SceneHandle('RRC - Labyrinth - MS', 'RRCLabyrinthMS', 'Roborave Cyberspace Labyrinth MS', function () {
-        return new RRCLabyrinthScene_1.RRCLabyrinthScene(AgeGroup_1.AgeGroup.MS);
-    }), new SceneHandle('RRC - Labyrinth - HS', 'RRCLabyrinthHS', 'Roborave Cyberspace Labyrinth HS', function () {
-        return new RRCLabyrinthScene_1.RRCLabyrinthScene(AgeGroup_1.AgeGroup.HS);
+    new SceneDescriptor('RRC - Labyrinth - ES', 'RRCLabyrinthES', 'Roborave Cyberspace Labyrinth ES', function (descriptor) {
+        return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
+    }), new SceneDescriptor('RRC - Labyrinth - MS', 'RRCLabyrinthMS', 'Roborave Cyberspace Labyrinth MS', function (descriptor) {
+        return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
+    }), new SceneDescriptor('RRC - Labyrinth - HS', 'RRCLabyrinthHS', 'Roborave Cyberspace Labyrinth HS', function (descriptor) {
+        return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
     }));
     //
     // create engine

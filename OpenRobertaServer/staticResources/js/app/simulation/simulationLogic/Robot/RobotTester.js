@@ -1,4 +1,4 @@
-define(["require", "exports", "../GlobalDebug"], function (require, exports, GlobalDebug_1) {
+define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RobotTester = void 0;
@@ -20,7 +20,6 @@ define(["require", "exports", "../GlobalDebug"], function (require, exports, Glo
                     _this.setWheelFriction(wheel, options.otherWheels);
                 }
             });
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.updateDisplay();
         };
         return RobotTester;
     }());

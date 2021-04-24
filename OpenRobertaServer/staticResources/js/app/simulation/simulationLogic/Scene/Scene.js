@@ -26,7 +26,11 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         //
         // #############################################################################
         //
-        function Scene() {
+        /**
+         *
+         * @param name if name is an empty string -> disable debug gui
+         */
+        function Scene(name) {
             this.robotManager = new RobotManager_1.RobotManager(this);
             this.entityManager = new EntityManager_1.EntityManager(this);
             this.containerManager = new ContainerManager_1.ContainerManager(this);
@@ -79,6 +83,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             // #############################################################################
             //
             this.waypointsManager = new WaypointsManager_1.WaypointsManager();
+            // set scene name
+            this.name = name;
             // register events
             var _this = this;
             this.simTicker = new Timer_1.Timer(this.simSleepTime, function (delta) {
@@ -97,6 +103,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             // simulation defaults
             // TODO: Gravity scale may depend on the chosen units
             this.engine.world.gravity = { scale: 1, x: 0, y: 0 };
+            // has to be called after the name has been defined
+            // defined 
+            this.debug = new GlobalDebug_1.SceneDebug(this, this.name == "");
         }
         Scene.prototype.getContainers = function () {
             return this.containerManager;
@@ -137,6 +146,15 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             enumerable: false,
             configurable: true
         });
+        Scene.prototype.getDebugGuiStatic = function () {
+            return this.debug.debugGuiStatic;
+        };
+        Scene.prototype.getDebugGuiDynamic = function () {
+            return this.debug.debugGuiDynamic;
+        };
+        Scene.prototype.getName = function () {
+            return this.name;
+        };
         Scene.prototype.finishedLoading = function (chain) {
             var _this_1 = this;
             // fake longer loading time for smooth animation
@@ -204,7 +222,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             }
             // stop the simulation
             this.stopSim();
-            GlobalDebug_1.clearDebugGui(); // if debug gui exist, clear it
+            this.debug.clearDebugGuiDynamic(); // if dynamic debug gui exist, clear it
             this.currentlyLoading = true; // this flag will start loading animation update
             this.hasFinishedLoading = false;
             // hide rendering containers
@@ -523,6 +541,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
          * intit is included in the loading process
          */
         Scene.prototype.onInit = function (chain) {
+            // create dynamic debug gui
+            this.debug.createDebugGuiDynamic();
             console.log('on init');
             chain.next();
         };

@@ -70,7 +70,7 @@ export class SceneRender {
 		if(scene) {
 			this.switchScene(scene);
 		} else {
-			this.switchScene(new Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
+			this.switchScene(new Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
 		}
 
 		this.app.ticker.add(dt => {
@@ -132,7 +132,7 @@ export class SceneRender {
 	switchScene(scene?: Scene, noLoad: boolean = false) {
 		if(!scene) {
 			console.log('undefined scene!')
-			scene = new Scene();
+			scene = new Scene("");
 		}
 
 		if(this.scene == scene) {

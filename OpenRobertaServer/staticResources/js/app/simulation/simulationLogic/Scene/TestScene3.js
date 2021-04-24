@@ -90,7 +90,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     var TestScene3 = /** @class */ (function (_super) {
         __extends(TestScene3, _super);
         function TestScene3() {
-            var _this = _super.call(this) || this;
+            var _this = _super.call(this, "Test Scene 3") || this;
             _this.time = 0.0;
             /**
              * A timeout for this simulation test in internal simulation time
@@ -107,6 +107,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             _this.keyIndex = 0;
             _this.keyData = new KeyData();
             _this.keyValues = [];
+            _this.testTime = 0;
             _this.shouldWait = false;
             _this.robot = Robot_1.Robot.EV3(_this);
             _this.robotTester = new RobotTester_1.RobotTester(_this.robot);
@@ -114,6 +115,13 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             // TODO: Maybe set it always to 0 and remove timeout argument for `Timer.asyncStop`
             _this.setSimTickerStopPollTime(0);
             _this.keyValues = Util_1.Util.allPropertiesTuples(_this.keyData);
+            var DebugGui = _this.getDebugGuiStatic();
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Download data", function () { return GlobalDebug_1.downloadJSONFile("data.json", _this.data); });
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Reset", function () { return _this.resetData(); });
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Speeeeeed!!!!!", function () { return _this.setSpeedUpFactor(1000); });
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("progress", function () { return _this.keyIndex + "/" + _this.keyValues.length; });
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("ETA", function () { return Util_1.Util.toTimeString(_this.testTime / _this.keyIndex * (_this.keyValues.length - _this.keyIndex)); });
+            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("test timing", function () { return String(_this.testTime); });
             return _this;
         }
         TestScene3.prototype.getUnitConverter = function () {
@@ -125,18 +133,11 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.data = [];
         };
         TestScene3.prototype.onInit = function (asyncChain) {
-            var _this = this;
             this.shouldWait = false;
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.addButton("Download data", function () { return GlobalDebug_1.downloadJSONFile("data.json", _this.data); });
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.addButton("Reset", function () { return _this.resetData(); });
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.addButton("Speeeeeed!!!!!", function () { return _this.setSpeedUpFactor(1000); });
-            var testTime = Date.now() / 1000 - this.startWallTime;
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.add({ "progress": this.keyIndex + "/" + this.keyValues.length }, "progress");
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.add({ "ETA": Util_1.Util.toTimeString(testTime / this.keyIndex * (this.keyValues.length - this.keyIndex)) }, "ETA");
+            this.testTime = Date.now() / 1000 - this.startWallTime;
             if (this.keyIndex == 0) {
                 this.startWallTime = Date.now() / 1000;
             }
-            GlobalDebug_1.DebugGui === null || GlobalDebug_1.DebugGui === void 0 ? void 0 : GlobalDebug_1.DebugGui.add({ "test timing": String(testTime) }, "test timing");
             this.time = 0.0;
             this.robot = Robot_1.Robot.EV3(this);
             this.robotTester = new RobotTester_1.RobotTester(this.robot);

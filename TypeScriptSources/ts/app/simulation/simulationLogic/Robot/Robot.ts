@@ -15,7 +15,7 @@ import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, P
 import { Scene } from '../Scene/Scene'
 import { Util } from '../Util'
 // Dat Gui
-import {DebugGui, downloadFile, downloadJSONFile} from "./../GlobalDebug";
+import {downloadFile, downloadJSONFile} from "./../GlobalDebug";
 import dat = require('dat.gui')
 import {BodyHelper} from "./BodyHelper";
 
@@ -122,6 +122,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	private addDebugSettings() {
+
+		const DebugGui = this.scene.getDebugGuiDynamic()
 
 		if(DebugGui) {
 			const robotFolder = DebugGui.addFolder('Robot')

@@ -14,23 +14,27 @@ import { Util } from './Util';
 
 // TODO: check whether this has to be defined in here
 // probably not
-export class SceneHandle {
+export class SceneDescriptor {
 	readonly name: string;
 	readonly description: string;
 	readonly ID: string;
-	readonly creteScene: () => Scene;
+	private readonly _createScene: (descriptor: SceneDescriptor) => Scene;
 
-	constructor(name: string, ID: string, description: string, creteScene: () => Scene) {
+	constructor(name: string, ID: string, description: string, creteScene: (descriptor: SceneDescriptor) => Scene) {
 		this.name = name;
 		this.description = description;
 		this.ID = ID;
-		this.creteScene = creteScene;
+		this._createScene = creteScene;
+	}
+
+	createScene() {
+		return this._createScene(this)
 	}
 
 }
 
 export class SceneManager {
-	private readonly sceneHandleMap = new Map<string, SceneHandle>();
+	private readonly sceneHandleMap = new Map<string, SceneDescriptor>();
 	private readonly sceneMap = new Map<string, Scene>();
 	private currentID?: string;
 
@@ -39,14 +43,14 @@ export class SceneManager {
 		if(!scene) {
 			const sceneHandle = this.sceneHandleMap.get(ID);
 			if(sceneHandle) {
-				scene = sceneHandle.creteScene();
+				scene = sceneHandle.createScene();
 				this.sceneMap.set(ID, scene);
 			}
 		}
 		return scene;
 	}
 
-	registerScene(...sceneHandles: SceneHandle[]) {
+	registerScene(...sceneHandles: SceneDescriptor[]) {
 		sceneHandles.forEach(handle => {
 			if(this.sceneHandleMap.get(handle.ID)) {
 				console.error('Scene with ID: ' + handle.ID + ' already registered!!!');
@@ -56,7 +60,7 @@ export class SceneManager {
 		});
 	}
 
-	getSceneHandleList(): SceneHandle[] {
+	getSceneHandleList(): SceneDescriptor[] {
 		return Array.from(this.sceneHandleMap.values());
 	}
 
@@ -88,7 +92,7 @@ export class SceneManager {
 		return this.getScene(this.currentID);
 	}
 
-	getCurrentHandle(): SceneHandle | undefined {
+	getCurrentHandle(): SceneDescriptor | undefined {
 		if (this.currentID) {
 			return this.sceneHandleMap.get(this.currentID);
 		}
@@ -114,40 +118,40 @@ sceneManager.registerScene(
 	// Test
 	//
 
-	new SceneHandle(
+	new SceneDescriptor(
 	'Test Scene',
 	'TestScene',
 	'Test scene with all sim features',
-	() => {
-			return new TestScene();
+	(descriptor) => {
+			return new TestScene(descriptor.name);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		"Test Scene 2", "TestScene2", "T",
-		() => new TestScene2(AgeGroup.ES)
+		(descriptor) => new TestScene2(descriptor.name, AgeGroup.ES)
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		"Test Scene 3", "TestScene3", "Test scene for testing the robot",
-		() => new TestScene3()
+		(descriptor) => new TestScene3()
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'Empty Scene',
 		'EmptyScene',
 		'Empty Scene',
-		() => {
-			return new Scene();
+		(descriptor) => {
+			return new Scene(descriptor.name);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Test Scene',
 		'RRCTest',
 		'Roborave Cyberspace Test',
-		() => {
-			return new RRCScene(AgeGroup.ES);
+		(descriptor) => {
+			return new RRCScene(descriptor.name, AgeGroup.ES);
 		}
 	),
 
@@ -155,30 +159,30 @@ sceneManager.registerScene(
 	//  Line Following
 	//
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Line Following - ES',
 		'RRCLineFollowingES',
 		'Roborave Cyberspace line following ES',
-		() => {
-			return new RRCLineFollowingScene(AgeGroup.ES);
+		(descriptor) => {
+			return new RRCLineFollowingScene(descriptor.name, AgeGroup.ES);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Line Following - MS',
 		'RRCLineFollowingMS',
 		'Roborave Cyberspace line following MS',
-		() => {
-			return new RRCLineFollowingScene(AgeGroup.MS);
+		(descriptor) => {
+			return new RRCLineFollowingScene(descriptor.name, AgeGroup.MS);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Line Following - HS',
 		'RRCLineFollowingHS',
 		'Roborave Cyberspace line following HS',
-		() => {
-			return new RRCLineFollowingScene(AgeGroup.HS);
+		(descriptor) => {
+			return new RRCLineFollowingScene(descriptor.name, AgeGroup.HS);
 		}
 	),
 
@@ -186,30 +190,30 @@ sceneManager.registerScene(
 	// Rainbow
 	//
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Rainbow - ES',
 		'RRCRainbowES',
 		'Roborave Cyberspace Rainbow ES',
-		() => {
-			return new RRCRainbowScene(AgeGroup.ES);
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.ES);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Rainbow - MS',
 		'RRCRainbowMS',
 		'Roborave Cyberspace Rainbow MS',
-		() => {
-			return new RRCRainbowScene(AgeGroup.MS);
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.MS);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Rainbow - HS',
 		'RRCRainbowHS',
 		'Roborave Cyberspace Rainbow HS',
-		() => {
-			return new RRCRainbowScene(AgeGroup.HS);
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.HS);
 		}
 	),
 
@@ -217,30 +221,30 @@ sceneManager.registerScene(
 	// Labyrinth
 	//
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Labyrinth - ES',
 		'RRCLabyrinthES',
 		'Roborave Cyberspace Labyrinth ES',
-		() => {
-			return new RRCLabyrinthScene(AgeGroup.ES);
+		(descriptor) => {
+			return new RRCLabyrinthScene(descriptor.name, AgeGroup.ES);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Labyrinth - MS',
 		'RRCLabyrinthMS',
 		'Roborave Cyberspace Labyrinth MS',
-		() => {
-			return new RRCLabyrinthScene(AgeGroup.MS);
+		(descriptor) => {
+			return new RRCLabyrinthScene(descriptor.name, AgeGroup.MS);
 		}
 	),
 
-	new SceneHandle(
+	new SceneDescriptor(
 		'RRC - Labyrinth - HS',
 		'RRCLabyrinthHS',
 		'Roborave Cyberspace Labyrinth HS',
-		() => {
-			return new RRCLabyrinthScene(AgeGroup.HS);
+		(descriptor) => {
+			return new RRCLabyrinthScene(descriptor.name, AgeGroup.HS);
 		}
 	),
 
@@ -340,7 +344,7 @@ export function cancel() {
 // Scene selection functions
 //
 
-export function getScenes(): SceneHandle[] {
+export function getScenes(): SceneDescriptor[] {
 	return sceneManager.getSceneHandleList();
 }
 
@@ -351,7 +355,7 @@ export function selectScene(ID: string) {
 	scene?.fullReset();
 }
 
-export function nextScene(): SceneHandle | undefined {
+export function nextScene(): SceneDescriptor | undefined {
 	const scene = sceneManager.getNextScene();
 	engine.switchScene(scene, true);
 	scene?.fullReset();

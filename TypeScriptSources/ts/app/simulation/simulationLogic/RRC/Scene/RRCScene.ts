@@ -15,8 +15,8 @@ export class RRCScene extends Scene {
 	readonly ageGroup: AgeGroup;
 	private addWaypointGraphics = true
 
-	constructor(ageGroup: AgeGroup) {
-		super();
+	constructor(name: string, ageGroup: AgeGroup) {
+		super(name + " " + ageGroup);
 		this.ageGroup = ageGroup;
 	}
 

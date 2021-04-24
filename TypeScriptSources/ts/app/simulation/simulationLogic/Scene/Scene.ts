@@ -9,7 +9,7 @@ import { Util } from '../Util';
 import { AsyncChain } from "./AsyncChain";
 import { WaypointsManager } from '../Waypoints/WaypointsManager';
 import { ScoreWaypoint } from '../Waypoints/ScoreWaypoint';
-import { clearDebugGui } from "./../GlobalDebug";
+import { SceneDebug } from "./../GlobalDebug";
 import {EntityManager} from "./Manager/EntityManager";
 import {ContainerManager} from "./Manager/ContainerManager";
 import {RobotManager} from "./Manager/RobotManager";
@@ -66,6 +66,28 @@ export class Scene {
 	get unit(): Unit {
 		return this._unit
 	}
+
+	//
+	// #############################################################################
+	//
+
+	readonly debug: SceneDebug
+
+	getDebugGuiStatic() {
+		return this.debug.debugGuiStatic
+	}
+
+	getDebugGuiDynamic() {
+		return this.debug.debugGuiDynamic
+	}
+
+
+	readonly name: string
+
+	getName() {
+		return this.name
+	}
+
 
 	//
 	// #############################################################################
@@ -165,7 +187,7 @@ export class Scene {
 		// stop the simulation
 		this.stopSim()
 
-		clearDebugGui() // if debug gui exist, clear it
+		this.debug.clearDebugGuiDynamic() // if dynamic debug gui exist, clear it
 
 		this.currentlyLoading = true; // this flag will start loading animation update
 		this.hasFinishedLoading = false;
@@ -447,8 +469,15 @@ export class Scene {
 	// #############################################################################
 	//
 
-	constructor() {
+	/**
+	 * 
+	 * @param name if name is an empty string -> disable debug gui
+	 */
+	constructor(name: string) {
 
+		// set scene name
+		this.name = name
+		
 		// register events
 		const _this = this;
 
@@ -470,6 +499,10 @@ export class Scene {
 		// simulation defaults
 		// TODO: Gravity scale may depend on the chosen units
 		this.engine.world.gravity = { scale: 1, x: 0, y: 0};
+
+		// has to be called after the name has been defined
+		// defined 
+		this.debug = new SceneDebug(this, this.name == "")
 	}
 
 	//
@@ -665,6 +698,9 @@ export class Scene {
 	 * intit is included in the loading process
 	 */
 	onInit(chain: AsyncChain) {
+		// create dynamic debug gui
+		this.debug.createDebugGuiDynamic()
+		
 		console.log('on init');
 		chain.next();
 	}

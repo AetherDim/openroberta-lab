@@ -1,5 +1,5 @@
 
-import { DebugGui, downloadJSONFile } from "../GlobalDebug";
+import { downloadJSONFile } from "../GlobalDebug";
 import { Robot } from "../Robot/Robot";
 import { RobotTester } from "../Robot/RobotTester";
 import { Unit } from "../Unit";
@@ -113,8 +113,11 @@ export class TestScene3 extends Scene {
 	keyValues: SubKeyData[] = []
 
 
+	testTime: number = 0
+
+
 	constructor() {
-		super()
+		super("Test Scene 3")
 
 		this.robot = Robot.EV3(this)
 		this.robotTester = new RobotTester(this.robot)
@@ -124,6 +127,17 @@ export class TestScene3 extends Scene {
 		this.setSimTickerStopPollTime(0)
 
 		this.keyValues = Util.allPropertiesTuples(this.keyData)
+
+
+		const DebugGui = this.getDebugGuiStatic()
+
+		DebugGui?.addButton("Download data", () => downloadJSONFile("data.json", this.data))
+		DebugGui?.addButton("Reset", () => this.resetData())
+		DebugGui?.addButton("Speeeeeed!!!!!", () => this.setSpeedUpFactor(1000))
+		DebugGui?.addUpdatable("progress", () => this.keyIndex + "/" + this.keyValues.length)
+		DebugGui?.addUpdatable("ETA", () => Util.toTimeString(this.testTime/this.keyIndex*(this.keyValues.length - this.keyIndex)))
+		DebugGui?.addUpdatable("test timing", () => String(this.testTime))
+
 	}
 
 	getUnitConverter(): Unit {
@@ -142,17 +156,11 @@ export class TestScene3 extends Scene {
 
 		this.shouldWait = false
 
-		DebugGui?.addButton("Download data", () => downloadJSONFile("data.json", this.data))
-		DebugGui?.addButton("Reset", () => this.resetData())
-		DebugGui?.addButton("Speeeeeed!!!!!", () => this.setSpeedUpFactor(1000))
-		const testTime = Date.now()/1000 - this.startWallTime
-		DebugGui?.add({ "progress" : this.keyIndex + "/" + this.keyValues.length }, "progress")
-		DebugGui?.add({ "ETA" : Util.toTimeString(testTime/this.keyIndex*(this.keyValues.length - this.keyIndex))}, "ETA")
+		this.testTime = Date.now()/1000 - this.startWallTime
 
 		if (this.keyIndex == 0) {
 			this.startWallTime = Date.now()/1000
 		}
-		DebugGui?.add({ "test timing" : String(testTime)  }, "test timing")
 		
 		
 		this.time = 0.0

@@ -48,7 +48,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 this.switchScene(scene);
             }
             else {
-                this.switchScene(new Scene_1.Scene()); // empty scene as default (call after Engine.create() and renderer init !!!)
+                this.switchScene(new Scene_1.Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
             }
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
@@ -95,7 +95,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             if (noLoad === void 0) { noLoad = false; }
             if (!scene) {
                 console.log('undefined scene!');
-                scene = new Scene_1.Scene();
+                scene = new Scene_1.Scene("");
             }
             if (this.scene == scene) {
                 return;
