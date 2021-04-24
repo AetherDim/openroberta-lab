@@ -48,6 +48,8 @@ define(["require", "exports", "matter-js", "../Entity", "../Geometry/LineSegment
          * @override from Scene
          */
         TestScene.prototype.onInit = function (chain) {
+            // create dynamic debug gui
+            this.initDynamicDebugGui();
             // use 0.001 for EV3
             var scale = 0.001;
             var unit = this.unit;

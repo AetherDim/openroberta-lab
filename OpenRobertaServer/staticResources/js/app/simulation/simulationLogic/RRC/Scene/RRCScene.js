@@ -139,6 +139,8 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             return new Unit_1.Unit({ m: 350 });
         };
         RRCScene.prototype.onInit = function (chain) {
+            // create dynamic debug gui
+            this.initDynamicDebugGui();
             this.initRobot();
             //this.setScore(266);
             //this.showScoreScreen(100);

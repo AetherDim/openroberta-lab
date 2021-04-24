@@ -391,6 +391,19 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             _this.reset();
             return _this;
         }
+        ScrollView.prototype.resetCentered = function (x, y, width, height) {
+            var xp = this.renderer.width / 2 - (x + width / 2);
+            var yp = this.renderer.height / 2 - (y + height / 2);
+            if (isNaN(xp) || isNaN(yp)) {
+                xp = 0;
+                yp = 0;
+            }
+            var initialZoom = 1 / Util_1.Util.getPixelRatio();
+            this.setTransform(xp, yp, initialZoom, initialZoom, 0, 0, 0, 0, 0);
+            // to fix any touch/mouse issues
+            this.touchEventDataMap.clear();
+            this.mouseEventData.clear();
+        };
         ScrollView.prototype.reset = function () {
             var initialZoom = 1 / Util_1.Util.getPixelRatio();
             this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);

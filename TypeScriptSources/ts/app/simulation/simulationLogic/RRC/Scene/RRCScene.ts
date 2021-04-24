@@ -129,6 +129,9 @@ export class RRCScene extends Scene {
 	}
 
 	onInit(chain: AsyncChain) {
+		// create dynamic debug gui
+		this.initDynamicDebugGui()
+
 		this.initRobot();
 		//this.setScore(266);
 		//this.showScoreScreen(100);

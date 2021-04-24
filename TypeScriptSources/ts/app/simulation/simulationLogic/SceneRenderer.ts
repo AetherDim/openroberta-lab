@@ -74,16 +74,25 @@ export class SceneRender {
 			this.switchScene(new Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
 		}
 
+		let oldWidth = 0
+		let oldHeight = 0
+
 		this.app.ticker.add(dt => {
 			if(this.scene) {
+
 				this.scene.renderTick(dt);
 
 				if(this.resizeTo && (
 					this.app.view.clientWidth != Util.getPixelRatio()*this.resizeTo.clientWidth ||
 					this.app.view.clientHeight != Util.getPixelRatio()*this.resizeTo.clientHeight
 					)) {
-					this.app.queueResize()
-					console.log("resize")
+
+					//resize = true
+					oldWidth = this.app.view.clientWidth
+					oldHeight = this.app.view.clientHeight
+					//this.app.queueResize()
+					this.app.resize()
+					this.onResize(oldWidth, oldHeight)
 				}
 
 			}
@@ -92,6 +101,11 @@ export class SceneRender {
 
 		DebugGuiRoot?.addUpdatable('FPS', () => this.app.ticker.FPS)
 
+	}
+
+	private onResize(oldWidth: number, oldHeight: number) {
+		this.scrollView.x += (this.app.view.clientWidth-oldWidth) / 2
+		this.scrollView.y += (this.app.view.clientHeight-oldHeight) / 2
 	}
 
 	getScene(): Scene {
@@ -129,7 +143,10 @@ export class SceneRender {
 	}
 
 	zoomReset() {
-		this.scrollView.reset()
+		// the scene should never be undefined!
+		const size = this.scene!.getSize()
+		const origin = this.scene!.getOrigin()
+		this.scrollView.resetCentered(origin.x, origin.y, size.width, size.height)
 	}
 
 	switchScene(scene?: Scene, noLoad: boolean = false) {
@@ -152,9 +169,6 @@ export class SceneRender {
 			//console.log('Number of children: ' + this.scrollView.children.length);
 			this.scrollView.removeChildren(0, this.scrollView.children.length);
 		}
-
-		// reset rendering scale and offset
-		this.scrollView.reset();
 
 		this.scene = scene;
 

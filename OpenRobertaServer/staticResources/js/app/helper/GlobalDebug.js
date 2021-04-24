@@ -46,7 +46,7 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
             var style = exports.DebugGuiRoot.domElement.style;
             style.position = 'absolute';
             style.left = '0%';
-            style.top = '450';
+            style.top = '500';
         }
     }
     exports.createDebugGuiRoot = createDebugGuiRoot;

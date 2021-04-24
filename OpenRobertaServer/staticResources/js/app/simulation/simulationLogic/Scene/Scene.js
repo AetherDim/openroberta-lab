@@ -41,6 +41,11 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             //
             // #############################################################################
             //
+            this.origin = { x: 0, y: 0 };
+            this.size = { width: 0, height: 0 };
+            //
+            // #############################################################################
+            //
             this.currentlyLoading = false;
             this.resourcesLoaded = false;
             this.hasBeenInitialized = false;
@@ -146,17 +151,49 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             enumerable: false,
             configurable: true
         });
+        // TODO: copy coords
+        Scene.prototype.getSize = function () {
+            return this.size;
+        };
+        Scene.prototype.getOrigin = function () {
+            return this.origin;
+        };
+        Scene.prototype.updateBounds = function () {
+            var _this_1 = this;
+            matter_js_1.Composite.allBodies(this.world).forEach(function (body) {
+                var min = body.bounds.min;
+                var max = body.bounds.max;
+                if (_this_1.origin.x > min.x) {
+                    _this_1.origin.x = min.x;
+                }
+                if (_this_1.origin.y > min.y) {
+                    _this_1.origin.y = min.y;
+                }
+                if (_this_1.size.width < max.x) {
+                    _this_1.size.width = max.x;
+                }
+                if (_this_1.size.height < max.y) {
+                    _this_1.size.height = max.y;
+                }
+            });
+            this.size.width -= this.origin.x;
+            this.size.height -= this.origin.y;
+        };
         Scene.prototype.getDebugGuiStatic = function () {
             return this.debug.debugGuiStatic;
         };
         Scene.prototype.getDebugGuiDynamic = function () {
             return this.debug.debugGuiDynamic;
         };
+        Scene.prototype.initDynamicDebugGui = function () {
+            this.debug.createDebugGuiDynamic();
+        };
         Scene.prototype.getName = function () {
             return this.name;
         };
         Scene.prototype.finishedLoading = function (chain) {
             var _this_1 = this;
+            var _a;
             // fake longer loading time for smooth animation
             var loadingTime = Date.now() - this.loadingStartTime;
             if (loadingTime < this.minLoadTime) {
@@ -169,6 +206,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             this.currentlyLoading = false;
             this.hasFinishedLoading = true;
             this.hasBeenInitialized = true;
+            // update the scene size
+            this.updateBounds();
+            // reset view position
+            (_a = this.getRenderer()) === null || _a === void 0 ? void 0 : _a.zoomReset();
             // make container visibility
             this.getContainers().setVisibility(true);
             // update image for rgb sensor
@@ -542,7 +583,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
          */
         Scene.prototype.onInit = function (chain) {
             // create dynamic debug gui
-            this.debug.createDebugGuiDynamic();
+            this.initDynamicDebugGui();
             console.log('on init');
             chain.next();
         };

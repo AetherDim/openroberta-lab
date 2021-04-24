@@ -157,10 +157,6 @@ export class ContainerManager {
         this.groundContainer.visible = groundVisible
     }
 
-
-
-
-
     /**
      * CLear all containers
      */

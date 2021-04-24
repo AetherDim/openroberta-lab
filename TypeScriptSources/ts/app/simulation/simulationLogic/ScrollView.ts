@@ -476,6 +476,25 @@ export class ScrollView extends PIXI.Container {
 			this.reset()
 	}
 
+
+	resetCentered(x: number, y: number, width: number, height: number) {
+
+		let xp = this.renderer.width / 2 - (x + width / 2)
+		let yp = this.renderer.height / 2 - (y + height / 2)
+
+		if(isNaN(xp) || isNaN(yp)) {
+			xp = 0
+			yp = 0
+		}
+
+		const initialZoom = 1 / Util.getPixelRatio()
+		this.setTransform(xp, yp, initialZoom, initialZoom, 0, 0, 0, 0, 0);
+
+		// to fix any touch/mouse issues
+		this.touchEventDataMap.clear()
+		this.mouseEventData.clear()
+	}
+	
 	reset() {
 		const initialZoom = 1 / Util.getPixelRatio()
 		this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);

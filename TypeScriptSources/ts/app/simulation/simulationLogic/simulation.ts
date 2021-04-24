@@ -317,7 +317,6 @@ export function setInfo() {
  */
 export function resetPose() {
 	engine.getScene()?.reset();
-	engine.zoomReset()
 	//engine.getScene()?.fullReset();
 }
 

@@ -71,6 +71,48 @@ export class Scene {
 	// #############################################################################
 	//
 
+	private origin = {x: 0, y: 0}
+	private size = {width: 0, height: 0}
+
+	// TODO: copy coords
+    getSize() {
+		return this.size
+	}
+
+	getOrigin() {
+		return this.origin
+	}
+
+    updateBounds() {
+		Composite.allBodies(this.world).forEach(body => {
+			const min = body.bounds.min
+			const max = body.bounds.max
+
+			if(this.origin.x > min.x) {
+				this.origin.x = min.x
+			}
+			
+			if(this.origin.y > min.y) {
+				this.origin.y = min.y
+			}
+			
+			if(this.size.width < max.x) {
+				this.size.width = max.x
+			}
+
+			if(this.size.height < max.y) {
+				this.size.height = max.y
+			}
+		})
+
+		this.size.width -= this.origin.x
+		this.size.height -= this.origin.y
+    }
+
+	//
+	// #############################################################################
+	//
+
 	readonly debug: SceneDebug
 
 	getDebugGuiStatic() {
@@ -79,6 +121,10 @@ export class Scene {
 
 	getDebugGuiDynamic() {
 		return this.debug.debugGuiDynamic
+	}
+
+	initDynamicDebugGui() {
+		this.debug.createDebugGuiDynamic()
 	}
 
 
@@ -118,6 +164,14 @@ export class Scene {
 		this.currentlyLoading = false;
 		this.hasFinishedLoading = true;
 		this.hasBeenInitialized = true;
+
+
+		// update the scene size
+		this.updateBounds()
+
+		// reset view position
+		this.getRenderer()?.zoomReset()
+
 
 		// make container visibility
 		this.getContainers().setVisibility(true);
@@ -699,7 +753,7 @@ export class Scene {
 	 */
 	onInit(chain: AsyncChain) {
 		// create dynamic debug gui
-		this.debug.createDebugGuiDynamic()
+		this.initDynamicDebugGui()
 		
 		console.log('on init');
 		chain.next();

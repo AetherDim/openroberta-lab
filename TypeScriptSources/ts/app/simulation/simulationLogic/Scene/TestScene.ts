@@ -46,6 +46,9 @@ export class TestScene extends Scene {
 	 */
 	onInit(chain: AsyncChain) {
 
+		// create dynamic debug gui
+		this.initDynamicDebugGui()
+
 		// use 0.001 for EV3
 		const scale = 0.001;
 		
