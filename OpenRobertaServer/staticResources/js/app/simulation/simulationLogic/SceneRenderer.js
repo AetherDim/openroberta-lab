@@ -1,4 +1,4 @@
-define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollView", "./Util", "./pixijs"], function (require, exports, $, Scene_1, Color_1, ScrollView_1, Util_1) {
+define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollView", "./Util", "./GlobalDebug", "./pixijs"], function (require, exports, $, Scene_1, Color_1, ScrollView_1, Util_1, GlobalDebug_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SceneRender = void 0;
@@ -61,6 +61,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 }
             }, this);
             //this.app.ticker.maxFPS = 30
+            GlobalDebug_1.DebugGuiRoot === null || GlobalDebug_1.DebugGuiRoot === void 0 ? void 0 : GlobalDebug_1.DebugGuiRoot.addUpdatable('FPS', function () { return _this.app.ticker.FPS; });
         }
         SceneRender.prototype.getScene = function () {
             return this.scene;

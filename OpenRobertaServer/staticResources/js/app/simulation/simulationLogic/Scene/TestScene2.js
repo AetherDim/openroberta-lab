@@ -56,6 +56,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
         };
         TestScene2.prototype.onInit = function (chain) {
             var _this = this;
+            this.debug.createDebugGuiDynamic();
             var textures = this.assets.map(function (asset) { return RRC.loader.get(asset).texture; });
             textures.forEach(function (texture) {
                 var sprite = new PIXI.Sprite(texture);

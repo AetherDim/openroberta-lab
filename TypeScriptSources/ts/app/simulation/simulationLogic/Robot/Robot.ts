@@ -127,6 +127,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		if(DebugGui) {
 			const robotFolder = DebugGui.addFolder('Robot')
 
+			const pos = robotFolder.addFolder('Position')
+			pos.addUpdatable('x', () => this.body.position.x)
+			pos.addUpdatable('y', () => this.body.position.x)
+
 			const wheelFolder = robotFolder.addFolder('Wheels')
 
 			const control = {
@@ -148,10 +152,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			this.wheelsList[1]._addDebugGui(wheelFolder.addFolder('Wheel Right'))
 			this.wheelsList[2]._addDebugGui(wheelFolder.addFolder('Wheel Back'))
 
-			DebugGui.addButton('DownloadTest', () => downloadJSONFile('test.json', [1, 2, 3]))
 			DebugGui.addButton("Download Program (JSON)", () => 
 				downloadFile("program.json", [JSON.stringify(this.programCode, undefined, "\t")])
 			)
+
 		}
 
 	}

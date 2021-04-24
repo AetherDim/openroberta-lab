@@ -106,6 +106,18 @@ export class EntityManager {
         this.updatableEntities.forEach(entity => entity.update(this.scene.getDT()))
     }
 
+    getNumberOfEntities() {
+        return this.entities.length
+    }
+
+    getNumberOfUpdatableEntities() {
+        return this.updatableEntities.length
+    }
+
+    getNumberOfDrawablePhysicsEntities() {
+        return this.drawablePhysicsEntities.length
+    }
+
     /**
      * remove all entities
      */

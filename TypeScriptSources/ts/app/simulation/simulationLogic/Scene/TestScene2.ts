@@ -30,6 +30,8 @@ export class TestScene2 extends RRCScene {
 
 	onInit(chain: AsyncChain) {
 
+		this.debug.createDebugGuiDynamic()
+
 		const textures = this.assets.map(asset => RRC.loader.get(asset).texture)
 		
 		textures.forEach(texture => {

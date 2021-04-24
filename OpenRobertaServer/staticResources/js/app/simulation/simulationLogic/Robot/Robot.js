@@ -74,6 +74,9 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var DebugGui = this.scene.getDebugGuiDynamic();
             if (DebugGui) {
                 var robotFolder = DebugGui.addFolder('Robot');
+                var pos = robotFolder.addFolder('Position');
+                pos.addUpdatable('x', function () { return _this_1.body.position.x; });
+                pos.addUpdatable('y', function () { return _this_1.body.position.x; });
                 var wheelFolder_1 = robotFolder.addFolder('Wheels');
                 var control = {
                     rollingFriction: this.wheelsList[0].rollingFriction,
@@ -90,7 +93,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 this.wheelsList[0]._addDebugGui(wheelFolder_1.addFolder('Wheel Left'));
                 this.wheelsList[1]._addDebugGui(wheelFolder_1.addFolder('Wheel Right'));
                 this.wheelsList[2]._addDebugGui(wheelFolder_1.addFolder('Wheel Back'));
-                DebugGui.addButton('DownloadTest', function () { return GlobalDebug_1.downloadJSONFile('test.json', [1, 2, 3]); });
                 DebugGui.addButton("Download Program (JSON)", function () {
                     return GlobalDebug_1.downloadFile("program.json", [JSON.stringify(_this_1.programCode, undefined, "\t")]);
                 });

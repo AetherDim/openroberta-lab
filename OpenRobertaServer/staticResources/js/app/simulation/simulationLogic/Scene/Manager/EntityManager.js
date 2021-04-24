@@ -88,6 +88,15 @@ define(["require", "exports", "../../Entity", "matter-js", "../../Util"], functi
             var _this = this;
             this.updatableEntities.forEach(function (entity) { return entity.update(_this.scene.getDT()); });
         };
+        EntityManager.prototype.getNumberOfEntities = function () {
+            return this.entities.length;
+        };
+        EntityManager.prototype.getNumberOfUpdatableEntities = function () {
+            return this.updatableEntities.length;
+        };
+        EntityManager.prototype.getNumberOfDrawablePhysicsEntities = function () {
+            return this.drawablePhysicsEntities.length;
+        };
         /**
          * remove all entities
          */

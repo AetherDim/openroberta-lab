@@ -13,6 +13,25 @@ export const SEND_LOG = false
 export const PRINT_NON_WRAPPED_ERROR = true
 
 
+const updatableList: dat.GUIController[] = []
+
+export const DEBUG_UPDATE_TIMER = new Timer(0.5, () => updateDebugDisplay())
+DEBUG_UPDATE_TIMER.start()
+
+function updateDebugDisplay() {
+	updatableList.forEach(element => {
+		element.updateDisplay()
+	});
+}
+
+export function registerDebugUpdatable(controller: dat.GUIController): dat.GUIController {
+	const index = updatableList.indexOf(controller, 0);
+	if (index < 0) {
+		updatableList.push(controller)
+	}
+	return controller
+}
+
 
 // Debug GUI Root
 
@@ -32,12 +51,16 @@ export function clearDebugGuiRoot() {
 
 export function createDebugGuiRoot() {
 	if(DEBUG && !DebugGuiRoot) {
-		DebugGuiRoot = new dat.GUI({name: 'Debug', autoPlace: DEBUG})
+		DebugGuiRoot = new dat.GUI({name: 'Debug', autoPlace: true, width: 400})
 		const parent = DebugGuiRoot.domElement.parentElement
 		if (parent) {
 			// move debug gui up to be visible
 			parent.style.zIndex = '1000000'
 		}
+		const style = DebugGuiRoot.domElement.style
+		style.position = 'absolute'
+		style.left = '0%'
+		style.top = '500'
 	}
 }
 
@@ -65,17 +88,10 @@ export class SceneDebug {
 	debugGuiDynamic?: dat.GUI;
 
 
-	updateTimer?: Timer
-
 	constructor(scene: Scene, disabled: boolean) {
 		this.disabled = disabled
 		this.scene = scene
 		this.createDebugGuiStatic()
-
-		if(DEBUG && !disabled) {
-			this.updateTimer = new Timer(0.5, () => this.debugGuiStatic?.updateDisplay())
-			this.updateTimer.start()
-		}
 	}
 
 
@@ -95,7 +111,6 @@ export class SceneDebug {
 	deleteDebugGuiDynamic() {
 		if(this.debugGuiDynamic) {
 			this.debugGuiStatic?.removeFolder(this.debugGuiDynamic)
-			this.debugGuiDynamic.destroy()
 			this.debugGuiDynamic = undefined
 		}
 	}
@@ -118,13 +133,13 @@ export class SceneDebug {
 	createDebugGuiStatic() {
 		if(DEBUG && !this.disabled && DebugGuiRoot && !this.debugGuiStatic) {
 			this.debugGuiStatic = DebugGuiRoot.addFolder(this.scene.getName())
+			this.initSceneDebug()
 		}
 	}
 	
 	deleteDebugGuiStatic() {
 		if(this.debugGuiStatic) {
 			DebugGuiRoot?.removeFolder(this.debugGuiStatic)
-			this.debugGuiStatic.destroy()
 			this.debugGuiStatic = undefined
 			this.debugGuiDynamic = undefined
 		}
@@ -136,10 +151,60 @@ export class SceneDebug {
 		this.deleteDebugGuiStatic()
 	}
 
+	private initSceneDebug() {
+		const scene = this.scene
+		const gui = this.debugGuiStatic
+
+		gui.add(scene, 'autostartSim')
+		gui.add(scene, 'dt').min(0.001).max(0.1).step(0.001).onChange((dt) => scene.setDT(dt))
+		gui.add(scene, 'simSleepTime').min(0.001).max(0.1).step(0.001).onChange((s) => scene.setSimSleepTime(s))
+		gui.add(scene, 'simSpeedupFactor').min(1).max(10000).step(1).onChange((dt) => scene.setDT(dt))
+		gui.add(scene, 'blocklyUpdateSleepTime').min(0.001).max(0.1).step(0.001).onChange((s) => scene.setBlocklyUpdateSleepTime(s))
+
+		const unit = gui.addFolder('unit converter')
+		unit.addUpdatable('m', () => scene.unit.getLength(1))
+		unit.addUpdatable('kg', () => scene.unit.getMass(1))
+		unit.addUpdatable('s', () => scene.unit.getTime(1))
+
+		const loading = gui.addFolder('loading states')
+		loading.addUpdatable('currentlyLoading', createReflectionGetter(this.scene, 'currentlyLoading'))
+		loading.addUpdatable('resourcesLoaded', createReflectionGetter(this.scene, 'resourcesLoaded'))
+		loading.addUpdatable('hasBeenInitialized', createReflectionGetter(this.scene, 'hasBeenInitialized'))
+		loading.addUpdatable('hasFinishedLoading', createReflectionGetter(this.scene, 'hasFinishedLoading'))
+
+		loading.addUpdatable('loadingStartTime', createReflectionGetter(this.scene, 'loadingStartTime'))
+		loading.addUpdatable('minLoadTime', createReflectionGetter(this.scene, 'minLoadTime'))
+
+		const robot = gui.addFolder('Robot Manager')
+		const rm = scene.getRobotManager()
+
+		robot.add(rm, 'numberOfRobots').min(1).step(1).max(1000)
+		robot.add(rm, 'showRobotSensorValues')
+		robot.addUpdatable('Actual number of robots', () => rm.getRobots().length)
+
+		const program = robot.addFolder('Program Manager')
+		const pm = rm.getProgramManager()
+
+		program.add(pm, 'programPaused')
+		program.addUpdatable('debugMode', createReflectionGetter(pm, 'debugMode'))
+		program.addUpdatable('initialized', createReflectionGetter(pm, 'initialized'))
+		program.addUpdatable('allowBlocklyUpdate', createReflectionGetter(pm, 'allowBlocklyUpdate'))
+
+		const entity = gui.addFolder('Entity Manager')
+		const em = scene.getEntityManager()
+		entity.addUpdatable('Number of entities', () => em.getNumberOfEntities())
+		entity.addUpdatable('Number of updatable entities', () => em.getNumberOfUpdatableEntities())
+		entity.addUpdatable('Number of drawable physics entities', () => em.getNumberOfDrawablePhysicsEntities())
+
+	}
+
 
 }
 
 
+export function createReflectionGetter(param: any, name: string) {
+	return () => param[name]
+}
 
 
 /**
@@ -165,11 +230,11 @@ dat.GUI.prototype.addButton = function (name: string, callback: () => void) : da
 dat.GUI.prototype.addUpdatable = function (name: string, callback: () => Object) : dat.GUIController {
 	const func = {}
 	func[name] = callback()
-	const gui = this.add(func, name)
+	const gui = this.add(func, name) as dat.GUIController
 	gui.getValue = function () {
 		return callback()
 	}
-
+	registerDebugUpdatable(gui)
 	return gui
 }
 
@@ -202,3 +267,37 @@ dat.GUI.prototype.addFolder = function (name: string): dat.GUI {
 	}
 	return addFolderFunc.apply(this, [name])
 }
+
+
+function removeControllerFromUpdateTimer(controller: dat.GUIController) {
+	const index = updatableList.indexOf(controller, 0);
+	if (index > -1) {
+		updatableList.splice(index, 1);
+		//console.error('Removing dat.GUIController')
+	}
+}
+
+function removeFolderFromUpdateTimer(folder: dat.GUI) {
+	for(const name in folder.__folders) {
+		removeFolderFromUpdateTimer(folder.__folders[name])
+	}
+	folder.__controllers.forEach(controller => removeControllerFromUpdateTimer(controller))
+}
+
+
+const removeFolderFromGui = dat.GUI.prototype.removeFolder
+
+dat.GUI.prototype.removeFolder = function(sub: dat.GUI) {
+	removeFolderFromUpdateTimer(sub)
+	removeFolderFromGui.call(this, sub)
+	//console.log('Removing dat.GUI (Folder)')
+}
+
+const removeGUIController = dat.GUI.prototype.remove
+
+dat.GUI.prototype.remove = function(controller: dat.GUIController) {
+	removeControllerFromUpdateTimer(controller)
+	removeGUIController.call(this, controller)
+	//console.log('Removing dat.GUIController')
+}
+
