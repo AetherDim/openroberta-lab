@@ -160,6 +160,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         };
         Scene.prototype.updateBounds = function () {
             var _this_1 = this;
+            this.origin = { x: 0, y: 0 };
+            this.size = { width: 0, height: 0 };
             matter_js_1.Composite.allBodies(this.world).forEach(function (body) {
                 var min = body.bounds.min;
                 var max = body.bounds.max;

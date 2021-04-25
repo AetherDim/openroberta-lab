@@ -84,6 +84,9 @@ export class Scene {
 	}
 
     updateBounds() {
+		this.origin = {x: 0, y: 0}
+		this.size = {width: 0, height: 0}
+		
 		Composite.allBodies(this.world).forEach(body => {
 			const min = body.bounds.min
 			const max = body.bounds.max
