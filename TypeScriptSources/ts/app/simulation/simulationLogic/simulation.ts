@@ -12,6 +12,7 @@ import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 import { TestScene3 } from './Scene/TestScene3';
 import { Util } from './Util';
 import { RobotProgram } from './Robot/RobotProgram';
+import { DEBUG } from './GlobalDebug';
 
 // TODO: check whether this has to be defined in here
 // probably not
@@ -112,7 +113,7 @@ const sceneManager = new SceneManager();
 //
 // register scenes
 //
-
+if(DEBUG)
 sceneManager.registerScene(
 
 	//
@@ -154,8 +155,10 @@ sceneManager.registerScene(
 		(descriptor) => {
 			return new RRCScene(descriptor.name, AgeGroup.ES);
 		}
-	),
+	)
+)
 
+sceneManager.registerScene(
 	//
 	//  Line Following
 	//

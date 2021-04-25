@@ -1,4 +1,4 @@
-define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./Util", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, Util_1) {
+define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./Util", "./GlobalDebug", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, Util_1, GlobalDebug_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneDescriptor = void 0;
@@ -90,17 +90,19 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     //
     // register scenes
     //
+    if (GlobalDebug_1.DEBUG)
+        sceneManager.registerScene(
+        //
+        // Test
+        //
+        new SceneDescriptor('Test Scene', 'TestScene', 'Test scene with all sim features', function (descriptor) {
+            return new TestScene_1.TestScene(descriptor.name);
+        }), new SceneDescriptor("Test Scene 2", "TestScene2", "T", function (descriptor) { return new TestScene2_1.TestScene2(descriptor.name, AgeGroup_1.AgeGroup.ES); }), new SceneDescriptor("Test Scene 3", "TestScene3", "Test scene for testing the robot", function (descriptor) { return new TestScene3_1.TestScene3(); }), new SceneDescriptor('Empty Scene', 'EmptyScene', 'Empty Scene', function (descriptor) {
+            return new Scene_1.Scene(descriptor.name);
+        }), new SceneDescriptor('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function (descriptor) {
+            return new RRCScene_1.RRCScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
+        }));
     sceneManager.registerScene(
-    //
-    // Test
-    //
-    new SceneDescriptor('Test Scene', 'TestScene', 'Test scene with all sim features', function (descriptor) {
-        return new TestScene_1.TestScene(descriptor.name);
-    }), new SceneDescriptor("Test Scene 2", "TestScene2", "T", function (descriptor) { return new TestScene2_1.TestScene2(descriptor.name, AgeGroup_1.AgeGroup.ES); }), new SceneDescriptor("Test Scene 3", "TestScene3", "Test scene for testing the robot", function (descriptor) { return new TestScene3_1.TestScene3(); }), new SceneDescriptor('Empty Scene', 'EmptyScene', 'Empty Scene', function (descriptor) {
-        return new Scene_1.Scene(descriptor.name);
-    }), new SceneDescriptor('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function (descriptor) {
-        return new RRCScene_1.RRCScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }), 
     //
     //  Line Following
     //
