@@ -102,8 +102,8 @@ export class SceneRender {
 
 	private onResize(oldWidth: number, oldHeight: number) {
 		const pixelRatio = Util.getPixelRatio()
-		this.scrollView.x += (this.app.renderer.screen.height-oldWidth) / 2 / pixelRatio
-		this.scrollView.y += (this.app.renderer.screen.width-oldHeight) / 2 / pixelRatio
+		this.scrollView.x += (this.app.renderer.screen.width-oldWidth) / 2 / pixelRatio
+		this.scrollView.y += (this.app.renderer.screen.height-oldHeight) / 2 / pixelRatio
 	}
 
 	getScene(): Scene {

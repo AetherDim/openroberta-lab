@@ -69,8 +69,8 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
         }
         SceneRender.prototype.onResize = function (oldWidth, oldHeight) {
             var pixelRatio = Util_1.Util.getPixelRatio();
-            this.scrollView.x += (this.app.renderer.screen.height - oldWidth) / 2 / pixelRatio;
-            this.scrollView.y += (this.app.renderer.screen.width - oldHeight) / 2 / pixelRatio;
+            this.scrollView.x += (this.app.renderer.screen.width - oldWidth) / 2 / pixelRatio;
+            this.scrollView.y += (this.app.renderer.screen.height - oldHeight) / 2 / pixelRatio;
         };
         SceneRender.prototype.getScene = function () {
             return this.scene;
