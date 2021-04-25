@@ -392,9 +392,10 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             return _this;
         }
         ScrollView.prototype.resetCentered = function (x, y, width, height) {
-            var initialZoom = 1 / Util_1.Util.getPixelRatio();
-            var xp = this.renderer.width / 2 - (x + width / 2) * initialZoom;
-            var yp = this.renderer.height / 2 - (y + height / 2) * initialZoom;
+            var pixelRatio = Util_1.Util.getPixelRatio();
+            var initialZoom = 1 / pixelRatio;
+            var xp = (this.renderer.screen.width / 2 - (x + width / 2)) / pixelRatio;
+            var yp = (this.renderer.screen.height / 2 - (y + height / 2)) / pixelRatio;
             if (isNaN(xp) || isNaN(yp)) {
                 xp = 0;
                 yp = 0;

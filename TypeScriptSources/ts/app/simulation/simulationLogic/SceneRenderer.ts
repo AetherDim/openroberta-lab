@@ -74,9 +74,6 @@ export class SceneRender {
 			this.switchScene(new Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
 		}
 
-		let oldWidth = 0
-		let oldHeight = 0
-
 		this.app.ticker.add(dt => {
 			if(this.scene) {
 
@@ -88,8 +85,8 @@ export class SceneRender {
 					)) {
 
 					//resize = true
-					oldWidth = this.app.view.clientWidth
-					oldHeight = this.app.view.clientHeight
+					const oldWidth = this.app.renderer.screen.width
+					const oldHeight = this.app.renderer.screen.height
 					//this.app.queueResize()
 					this.app.resize()
 					this.onResize(oldWidth, oldHeight)
@@ -104,8 +101,9 @@ export class SceneRender {
 	}
 
 	private onResize(oldWidth: number, oldHeight: number) {
-		this.scrollView.x += (this.app.view.clientWidth-oldWidth) / 2
-		this.scrollView.y += (this.app.view.clientHeight-oldHeight) / 2
+		const pixelRatio = Util.getPixelRatio()
+		this.scrollView.x += (this.app.renderer.screen.height-oldWidth) / 2 / pixelRatio
+		this.scrollView.y += (this.app.renderer.screen.width-oldHeight) / 2 / pixelRatio
 	}
 
 	getScene(): Scene {

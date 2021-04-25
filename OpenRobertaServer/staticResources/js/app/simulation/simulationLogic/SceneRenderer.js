@@ -50,16 +50,14 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             else {
                 this.switchScene(new Scene_1.Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
             }
-            var oldWidth = 0;
-            var oldHeight = 0;
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
                     _this.scene.renderTick(dt);
                     if (_this.resizeTo && (_this.app.view.clientWidth != Util_1.Util.getPixelRatio() * _this.resizeTo.clientWidth ||
                         _this.app.view.clientHeight != Util_1.Util.getPixelRatio() * _this.resizeTo.clientHeight)) {
                         //resize = true
-                        oldWidth = _this.app.view.clientWidth;
-                        oldHeight = _this.app.view.clientHeight;
+                        var oldWidth = _this.app.renderer.screen.width;
+                        var oldHeight = _this.app.renderer.screen.height;
                         //this.app.queueResize()
                         _this.app.resize();
                         _this.onResize(oldWidth, oldHeight);
@@ -70,8 +68,9 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             GlobalDebug_1.DebugGuiRoot === null || GlobalDebug_1.DebugGuiRoot === void 0 ? void 0 : GlobalDebug_1.DebugGuiRoot.addUpdatable('FPS', function () { return _this.app.ticker.FPS; });
         }
         SceneRender.prototype.onResize = function (oldWidth, oldHeight) {
-            this.scrollView.x += (this.app.view.clientWidth - oldWidth) / 2;
-            this.scrollView.y += (this.app.view.clientHeight - oldHeight) / 2;
+            var pixelRatio = Util_1.Util.getPixelRatio();
+            this.scrollView.x += (this.app.renderer.screen.height - oldWidth) / 2 / pixelRatio;
+            this.scrollView.y += (this.app.renderer.screen.width - oldHeight) / 2 / pixelRatio;
         };
         SceneRender.prototype.getScene = function () {
             return this.scene;

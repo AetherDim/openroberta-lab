@@ -479,10 +479,11 @@ export class ScrollView extends PIXI.Container {
 
 	resetCentered(x: number, y: number, width: number, height: number) {
 
-		const initialZoom = 1 / Util.getPixelRatio()
+		const pixelRatio = Util.getPixelRatio()
+		const initialZoom = 1 / pixelRatio
 
-		let xp = this.renderer.width / 2 - (x + width / 2) * initialZoom
-		let yp = this.renderer.height / 2 - (y + height / 2) * initialZoom
+		let xp = (this.renderer.screen.width / 2 - (x + width / 2)) / pixelRatio
+		let yp = (this.renderer.screen.height / 2 - (y + height / 2)) / pixelRatio
 
 		if(isNaN(xp) || isNaN(yp)) {
 			xp = 0
