@@ -9,6 +9,7 @@ import {PhysicsRectEntity, DrawableEntity, RectEntityOptions} from "../../Entity
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint"
 import {WaypointList} from "../../Waypoints/WaypointList";
 import {Util} from "../../Util";
+import { DEBUG } from "../../GlobalDebug";
 
 export class RRCScene extends Scene {
 
@@ -30,7 +31,7 @@ export class RRCScene extends Scene {
 	}
 
 	setWaypointList(list: WaypointList<ScoreWaypoint>) {
-		if (this.addWaypointGraphics) {
+		if (this.addWaypointGraphics && DEBUG) {
 			for (const waypoint of list.waypoints) {
 				this.addEntity(DrawableEntity.rect(this, waypoint.position.x, waypoint.position.y, waypoint.maxDistance * 2, waypoint.maxDistance * 2, {
 					color: 0xFF0000,

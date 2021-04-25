@@ -22,7 +22,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1, Util_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util", "../../GlobalDebug"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1, Util_1, GlobalDebug_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -48,7 +48,7 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         };
         RRCScene.prototype.setWaypointList = function (list) {
             var e_1, _a;
-            if (this.addWaypointGraphics) {
+            if (this.addWaypointGraphics && GlobalDebug_1.DEBUG) {
                 try {
                     for (var _b = __values(list.waypoints), _c = _b.next(); !_c.done; _c = _b.next()) {
                         var waypoint = _c.value;
