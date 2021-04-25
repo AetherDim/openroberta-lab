@@ -2,15 +2,15 @@ import dat = require('dat.gui');
 import { Scene } from './Scene/Scene';
 import { Timer } from './Timer';
 
-export const DEBUG = false
+export const DEBUG = true
 /**
  * Used in log.js
  */
-export const SEND_LOG = true
+export const SEND_LOG = false
 /**
  * Used in 'wrap.js' to print the error before it is wrapped
  */
-export const PRINT_NON_WRAPPED_ERROR = false
+export const PRINT_NON_WRAPPED_ERROR = true
 
 
 const updatableList: dat.GUIController[] = []

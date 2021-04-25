@@ -77,6 +77,61 @@ function driveForwardProgram(speed: number, distance: number): OpCode[] {
 	]
 }
 
+/**
+ * @param speed from 0 to 100 (in %)
+ * @param angle in degree
+ */
+ function rotateProgram(speed: number, angle: number, right: boolean): OpCode[] {
+	const uuidExpr1 = Util.genUid()
+	const uuidExpr2 = Util.genUid()
+	const uuidRotateAction= Util.genUid()
+	const dir = right ? 'right' : 'left'
+	return [
+		{
+			"opc": "expr",
+			"expr": "NUM_CONST",
+			"+": [
+				uuidExpr1
+			],
+			"value": speed.toString()
+		},
+		{
+			"opc": "expr",
+			"expr": "NUM_CONST",
+			"+": [
+				uuidExpr2
+			],
+			"-": [
+				uuidExpr1
+			],
+			"value": angle.toString()
+		},
+		{
+			"opc": "TurnAction",
+			"speedOnly": false,
+			"turnDirection": dir,
+			"SetTime": false,
+			"name": "ev3",
+			"+": [
+				uuidRotateAction
+			],
+			"-": [
+				uuidExpr2
+			]
+		},
+		{
+			"opc": "stopDrive",
+			"name": "ev3"
+		},
+		{
+			"opc": "stop",
+			"-": [
+				uuidRotateAction
+			]
+		}
+	]
+}
+
 class KeyData {
 	// (0.05, 0.5, 0.05)
 	rollingFriction = Util.range(0.1, 0.1, 0.01)
@@ -86,8 +141,11 @@ class KeyData {
 	otherRollingFriction = Util.range(0.03, 0.03, 0.01)
 	otherSlideFriction = Util.range(0.05, 0.05, 0.01)
 
-	driveForwardSpeed = Util.range(10, 100, 10)
-	driveForwardDistance = Util.range(0.1, 1.0, 0.1)
+	//driveForwardSpeed = Util.range(10, 100, 10)
+	//driveForwardDistance = Util.range(0.1, 1.0, 0.1)
+	rotateSpeed = Util.range(10, 100, 10)
+	rotateAngle = Util.range(0, 360, 10)
+	directionRight = [true]
 }
 
 type SubKeyData = Expand<UnpackArrayProperties<KeyData>>
@@ -112,6 +170,10 @@ export class TestScene3 extends Scene {
 	endPositionAccuracy = Infinity
 	initialPosition = { x: 0.0, y: 0.0 }
 	prevRobotPosition = { x: 0.0, y: 0.0 }
+
+	endRotationAccuracy = Infinity
+	initialRotation = 0
+	prevRotation = 0
 
 	data: any[] = []
 
@@ -189,7 +251,7 @@ export class TestScene3 extends Scene {
 
 		this.robot = Robot.EV3(this)
 		this.robotTester = new RobotTester(this.robot)
-		this.robot.setPose(this.initialPosition, 0)
+		this.robot.setPose(this.initialPosition, this.initialRotation)
 		this.addRobot(this.robot)
 
 		// start program
@@ -211,7 +273,8 @@ export class TestScene3 extends Scene {
 			const program = true ? 
 				[
 					constructProgram([
-						driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+						//driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+						rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
 					])
 				] : Util.simulation.storedPrograms
 			this.getProgramManager().setPrograms(program, true, undefined)
@@ -225,6 +288,7 @@ export class TestScene3 extends Scene {
 		this.data.push({
 			key: this.keyValues[this.keyIndex],
 			value: this.unit.fromLength(Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
+			angle: this.initialRotation-this.prevRotation,
 			didTimeOut: didTimeOut,
 			simulationTime: this.time
 		})
@@ -252,7 +316,8 @@ export class TestScene3 extends Scene {
 			}
 			if (this.getProgramManager().allInterpretersTerminated()) {
 				// program terminated
-				if (Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy) {
+				if (Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy ||
+				Math.abs(this.robot.body.angle-this.prevRotation) < this.endRotationAccuracy) {
 					// program terminated and robot does not move
 					this.pushDataAndResetWithTimeout(false)
 				}
@@ -260,6 +325,7 @@ export class TestScene3 extends Scene {
 		}
 		this.prevRobotPosition.x = this.robot.body.position.x
 		this.prevRobotPosition.y = this.robot.body.position.y
+		this.prevRotation = this.robot.body.angle
 
 	}
 

@@ -77,6 +77,60 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             }
         ];
     }
+    /**
+     * @param speed from 0 to 100 (in %)
+     * @param angle in degree
+     */
+    function rotateProgram(speed, angle, right) {
+        var uuidExpr1 = Util_1.Util.genUid();
+        var uuidExpr2 = Util_1.Util.genUid();
+        var uuidRotateAction = Util_1.Util.genUid();
+        var dir = right ? 'right' : 'left';
+        return [
+            {
+                "opc": "expr",
+                "expr": "NUM_CONST",
+                "+": [
+                    uuidExpr1
+                ],
+                "value": speed.toString()
+            },
+            {
+                "opc": "expr",
+                "expr": "NUM_CONST",
+                "+": [
+                    uuidExpr2
+                ],
+                "-": [
+                    uuidExpr1
+                ],
+                "value": angle.toString()
+            },
+            {
+                "opc": "TurnAction",
+                "speedOnly": false,
+                "turnDirection": dir,
+                "SetTime": false,
+                "name": "ev3",
+                "+": [
+                    uuidRotateAction
+                ],
+                "-": [
+                    uuidExpr2
+                ]
+            },
+            {
+                "opc": "stopDrive",
+                "name": "ev3"
+            },
+            {
+                "opc": "stop",
+                "-": [
+                    uuidRotateAction
+                ]
+            }
+        ];
+    }
     var KeyData = /** @class */ (function () {
         function KeyData() {
             // (0.05, 0.5, 0.05)
@@ -85,8 +139,11 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.slideFriction = Util_1.Util.range(0.3, 0.3, 0.01);
             this.otherRollingFriction = Util_1.Util.range(0.03, 0.03, 0.01);
             this.otherSlideFriction = Util_1.Util.range(0.05, 0.05, 0.01);
-            this.driveForwardSpeed = Util_1.Util.range(10, 100, 10);
-            this.driveForwardDistance = Util_1.Util.range(0.1, 1.0, 0.1);
+            //driveForwardSpeed = Util.range(10, 100, 10)
+            //driveForwardDistance = Util.range(0.1, 1.0, 0.1)
+            this.rotateSpeed = Util_1.Util.range(10, 100, 10);
+            this.rotateAngle = Util_1.Util.range(0, 360, 10);
+            this.directionRight = [true];
         }
         return KeyData;
     }());
@@ -106,6 +163,9 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             _this.endPositionAccuracy = Infinity;
             _this.initialPosition = { x: 0.0, y: 0.0 };
             _this.prevRobotPosition = { x: 0.0, y: 0.0 };
+            _this.endRotationAccuracy = Infinity;
+            _this.initialRotation = 0;
+            _this.prevRotation = 0;
             _this.data = [];
             _this.keyIndex = 0;
             _this.keyData = new KeyData();
@@ -154,7 +214,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.time = 0.0;
             this.robot = Robot_1.Robot.EV3(this);
             this.robotTester = new RobotTester_1.RobotTester(this.robot);
-            this.robot.setPose(this.initialPosition, 0);
+            this.robot.setPose(this.initialPosition, this.initialRotation);
             this.addRobot(this.robot);
             // start program
             if (this.keyIndex < this.keyValues.length) {
@@ -173,7 +233,8 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                 var program = true ?
                     [
                         constructProgram([
-                            driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                            //driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                            rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
                         ])
                     ] : Util_1.Util.simulation.storedPrograms;
                 this.getProgramManager().setPrograms(program, true, undefined);
@@ -185,6 +246,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.data.push({
                 key: this.keyValues[this.keyIndex],
                 value: this.unit.fromLength(Util_1.Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
+                angle: this.initialRotation - this.prevRotation,
                 didTimeOut: didTimeOut,
                 simulationTime: this.time
             });
@@ -207,7 +269,8 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                 }
                 if (this.getProgramManager().allInterpretersTerminated()) {
                     // program terminated
-                    if (Util_1.Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy) {
+                    if (Util_1.Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy ||
+                        Math.abs(this.robot.body.angle - this.prevRotation) < this.endRotationAccuracy) {
                         // program terminated and robot does not move
                         this.pushDataAndResetWithTimeout(false);
                     }
@@ -215,6 +278,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             }
             this.prevRobotPosition.x = this.robot.body.position.x;
             this.prevRobotPosition.y = this.robot.body.position.y;
+            this.prevRotation = this.robot.body.angle;
         };
         return TestScene3;
     }(Scene_1.Scene));
