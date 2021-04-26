@@ -3,15 +3,15 @@ import { Scene } from './Scene/Scene';
 import { SceneRender } from './SceneRenderer';
 import { Timer } from './Timer';
 
-export const DEBUG = true
+export const DEBUG = false
 /**
  * Used in log.js
  */
-export const SEND_LOG = false
+export const SEND_LOG = !DEBUG || false
 /**
  * Used in 'wrap.js' to print the error before it is wrapped
  */
-export const PRINT_NON_WRAPPED_ERROR = true
+export const PRINT_NON_WRAPPED_ERROR = DEBUG && true
 
 
 const updatableList: dat.GUIController[] = []
