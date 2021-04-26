@@ -136,15 +136,19 @@ export class ContainerManager {
     getGroundImageData: (x: number, y: number, w: number, h: number) => ImageData = this._initialGroundDataFunction
 
     updateGroundImageDataFunction() {
+        console.log('init color sensor texture')
         const groundVisible = this.groundContainer.visible
         this.groundContainer.visible = true // the container needs to be visible for this to work
 
         const canvas = this.scene.getRenderer()?.getCanvasFromDisplayObject(this.groundContainer)
         const renderingContext = canvas?.getContext("2d")
         const bounds = this.groundContainer.getBounds()
+        const origin = this.groundContainer.getGlobalPosition()
         if (renderingContext) {
             const scaleX = 1 / this.groundContainer.parent.scale.x
             const scaleY = 1 / this.groundContainer.parent.scale.y
+            bounds.x -= origin.x
+            bounds.y -= origin.y
             bounds.x *= scaleX
             bounds.y *= scaleY
             bounds.width *= scaleX

@@ -115,14 +115,18 @@ define(["require", "exports"], function (require, exports) {
         };
         ContainerManager.prototype.updateGroundImageDataFunction = function () {
             var _a;
+            console.log('init color sensor texture');
             var groundVisible = this.groundContainer.visible;
             this.groundContainer.visible = true; // the container needs to be visible for this to work
             var canvas = (_a = this.scene.getRenderer()) === null || _a === void 0 ? void 0 : _a.getCanvasFromDisplayObject(this.groundContainer);
             var renderingContext = canvas === null || canvas === void 0 ? void 0 : canvas.getContext("2d");
             var bounds = this.groundContainer.getBounds();
+            var origin = this.groundContainer.getGlobalPosition();
             if (renderingContext) {
                 var scaleX = 1 / this.groundContainer.parent.scale.x;
                 var scaleY = 1 / this.groundContainer.parent.scale.y;
+                bounds.x -= origin.x;
+                bounds.y -= origin.y;
                 bounds.x *= scaleX;
                 bounds.y *= scaleY;
                 bounds.width *= scaleX;
