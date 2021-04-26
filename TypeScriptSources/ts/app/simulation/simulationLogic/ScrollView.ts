@@ -498,7 +498,7 @@ export class ScrollView extends PIXI.Container {
 
 		if(screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
 
-			if(screen.width < screen.height) {
+			if(screen.width / screen.height < width/height) {
 				// scale to width
 				this.zoomCenter(screen.width/width)
 			} else {

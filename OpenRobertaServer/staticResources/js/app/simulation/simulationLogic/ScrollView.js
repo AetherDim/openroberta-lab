@@ -404,7 +404,7 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             }
             this.setTransform(xp, yp, initialZoom, initialZoom, 0, 0, 0, 0, 0);
             if (screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
-                if (screen.width < screen.height) {
+                if (screen.width / screen.height < width / height) {
                     // scale to width
                     this.zoomCenter(screen.width / width);
                 }
