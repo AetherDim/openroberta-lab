@@ -136,6 +136,20 @@ export class Util {
 	}
 
 	/**
+	 * Shuffles array in place. ES6 version
+	 * @param {Array} a items An array containing the items.
+	 * @returns in-place shuffled array
+	 * @see https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
+	 */
+	static shuffle<T>(a: T[]): T[] {
+		for (let i = a.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[a[i], a[j]] = [a[j], a[i]]
+		}
+		return a
+	}
+
+	/**
 	 * Generate a unique ID.  This should be globally unique.
 	 * 87 characters ^ 20 length > 128 bits (better than a UUID).
 	 * @return {string} A globally unique ID string.

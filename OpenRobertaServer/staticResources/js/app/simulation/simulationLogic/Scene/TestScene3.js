@@ -134,18 +134,57 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     var KeyData = /** @class */ (function () {
         function KeyData() {
             // (0.05, 0.5, 0.05)
-            this.rollingFriction = Util_1.Util.range(0.1, 0.1, 0.01);
+            this.rollingFriction = Util_1.Util.range(0.03, 0.03, 0.1);
             // (0.05, 1.0, 0.05)
-            this.slideFriction = Util_1.Util.range(0.3, 0.3, 0.01);
+            this.slideFriction = Util_1.Util.range(0.3, 0.3, 0.1);
             this.otherRollingFriction = Util_1.Util.range(0.03, 0.03, 0.01);
             this.otherSlideFriction = Util_1.Util.range(0.05, 0.05, 0.01);
             //driveForwardSpeed = Util.range(10, 100, 10)
             //driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-            this.rotateSpeed = Util_1.Util.range(0.1, 20, 0.1);
+            this.rotateSpeed = Util_1.Util.range(5, 100, 5);
             this.rotateAngle = Util_1.Util.range(0, 180, 10);
             this.directionRight = [true];
         }
         return KeyData;
+    }());
+    var ValueHelper = /** @class */ (function () {
+        /**
+         * @param getSignedDistance a function which returns the signed distance from `start` to `end`. E.g. for numbers `end - start` and for points the norm distance.
+         */
+        function ValueHelper(name, initialValue, endMaxDelta, context, getNewValue, getSignedDistance) {
+            this.name = name;
+            this.initialValue = initialValue;
+            this.previousValue = initialValue;
+            this.endMaxDelta = endMaxDelta;
+            this.context = context;
+            this.getSignedDistance = getSignedDistance;
+            this._getNewValue = getNewValue;
+        }
+        ValueHelper.prototype.getPreviousValue = function () {
+            return this.previousValue;
+        };
+        ValueHelper.prototype.update = function () {
+            this.previousValue = this._getNewValue(this.context);
+        };
+        ValueHelper.prototype.getNewValue = function () {
+            return this._getNewValue(this.context);
+        };
+        /**
+         * @returns the absolute distance between the current value (`getNewValue`) and the `previousValue`
+         */
+        ValueHelper.prototype.getDistanceToPreviousValue = function () {
+            return Math.abs(this.getSignedDistance(this.previousValue, this._getNewValue(this.context)));
+        };
+        ValueHelper.prototype.getSignedDistanceToInitialValue = function () {
+            return this.getSignedDistance(this.initialValue, this._getNewValue(this.context));
+        };
+        ValueHelper.fromNumber = function (opt) {
+            return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, function (start, end) { return end - start; });
+        };
+        ValueHelper.fromVector = function (opt) {
+            return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, function (v1, v2) { return Util_1.Util.vectorDistance(v1, v2); });
+        };
+        return ValueHelper;
     }());
     var TestScene3 = /** @class */ (function (_super) {
         __extends(TestScene3, _super);
@@ -160,14 +199,31 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
              * Time since start of test in sections
              */
             _this.startWallTime = 0.0;
-            _this.endPositionAccuracy = Infinity;
-            _this.initialPosition = { x: 0.0, y: 0.0 };
-            _this.prevRobotPosition = { x: 0.0, y: 0.0 };
-            _this.endRotationAccuracy = Infinity;
-            _this.initialRotation = 0;
-            _this.prevRotation = 0;
+            _this.radianToAngleFactor = 180 / Math.PI;
+            _this.robotPositionValue = ValueHelper.fromVector({
+                name: "initPositionDistance",
+                initialValue: { x: 0.0, y: 0.0 },
+                endMaxDelta: Infinity,
+                context: _this,
+                getNewValue: function (c) { return c.robot.body.position; }
+            });
+            _this.robotRotationValue = ValueHelper.fromNumber({
+                name: "initAngleDelta",
+                initialValue: 0,
+                endMaxDelta: Infinity,
+                context: _this,
+                getNewValue: function (c) { return c.robot.body.angle * c.radianToAngleFactor; }
+            });
+            /**
+             * The array of `ValueHelper`s. Note that `initialValue` has to be set in `onInit`
+             */
+            _this.valueHelpers = [_this.robotPositionValue, _this.robotRotationValue];
             _this.data = [];
             _this.keyIndex = 0;
+            /**
+             * Shuffling the keyValues can improve the ETA
+             */
+            _this.randomizeKeyValues = true;
             _this.keyData = new KeyData();
             _this.keyValues = [];
             _this.testTime = 0;
@@ -178,7 +234,11 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             // set poll sim ticker time to 0
             // TODO: Maybe set it always to 0 and remove timeout argument for `Timer.asyncStop`
             _this.setSimTickerStopPollTime(0);
+            // make tuples from 'keyData' and maybe shuffle them in order to get a better ETA
             _this.keyValues = Util_1.Util.allPropertiesTuples(_this.keyData);
+            if (_this.randomizeKeyValues) {
+                Util_1.Util.shuffle(_this.keyValues);
+            }
             var DebugGui = _this.getDebugGuiStatic();
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Download data", function () { return GlobalDebug_1.downloadJSONFile("data.json", _this.data); });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Speeeeeed!!!!!", function () { return _this.setSpeedUpFactor(1000); });
@@ -214,7 +274,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.time = 0.0;
             this.robot = Robot_1.Robot.EV3(this);
             this.robotTester = new RobotTester_1.RobotTester(this.robot);
-            this.robot.setPose(this.initialPosition, this.initialRotation);
+            this.robot.setPose(this.robotPositionValue.initialValue, this.robotRotationValue.initialValue);
             this.addRobot(this.robot);
             // start program
             if (this.keyIndex < this.keyValues.length) {
@@ -243,13 +303,15 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             asyncChain.next();
         };
         TestScene3.prototype.pushDataAndResetWithTimeout = function (didTimeOut) {
-            this.data.push({
-                key: this.keyValues[this.keyIndex],
-                value: this.unit.fromLength(Util_1.Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
-                angle: this.robot.body.angle * 180 / Math.PI,
-                didTimeOut: didTimeOut,
-                simulationTime: this.time
+            var value = {
+                key: this.keyValues[this.keyIndex]
+            };
+            this.valueHelpers.forEach(function (keyValue) {
+                value[keyValue.name] = keyValue.getSignedDistanceToInitialValue();
             });
+            value.didTimeOut = didTimeOut,
+                value.simulationTime = this.time;
+            this.data.push(value);
             // reset scene and automatically call 'onInit'
             this.keyIndex += 1;
             this.autostartSim = this.keyIndex < this.keyValues.length;
@@ -269,16 +331,19 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                 }
                 if (this.getProgramManager().allInterpretersTerminated()) {
                     // program terminated
-                    if (Util_1.Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy ||
-                        Math.abs(this.robot.body.angle - this.prevRotation) < this.endRotationAccuracy) {
+                    var finished_1 = true;
+                    this.valueHelpers.forEach(function (keyValue) {
+                        if (finished_1 && keyValue.getDistanceToPreviousValue() > keyValue.endMaxDelta) {
+                            finished_1 = false;
+                        }
+                    });
+                    if (finished_1) {
                         // program terminated and robot does not move
                         this.pushDataAndResetWithTimeout(false);
                     }
                 }
             }
-            this.prevRobotPosition.x = this.robot.body.position.x;
-            this.prevRobotPosition.y = this.robot.body.position.y;
-            this.prevRotation = this.robot.body.angle;
+            this.valueHelpers.forEach(function (e) { return e.update(); });
         };
         return TestScene3;
     }(Scene_1.Scene));

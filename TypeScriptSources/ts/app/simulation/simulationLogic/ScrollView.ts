@@ -439,6 +439,8 @@ export class ScrollView extends PIXI.Container {
 	 */
 	invertZoom = false;
 
+	public minScreenSize = 400 / Util.getPixelRatio()
+
 
 
 	//
@@ -479,11 +481,12 @@ export class ScrollView extends PIXI.Container {
 
 	resetCentered(x: number, y: number, width: number, height: number) {
 
+		const screen = this.renderer.screen
 		const pixelRatio = Util.getPixelRatio()
 		const initialZoom = 1 / pixelRatio
 
-		let xp = (this.renderer.screen.width / 2 - (x + width / 2)) / pixelRatio
-		let yp = (this.renderer.screen.height / 2 - (y + height / 2)) / pixelRatio
+		let xp = (screen.width / 2 - (x + width / 2)) / pixelRatio
+		let yp = (screen.height / 2 - (y + height / 2)) / pixelRatio
 
 		if(isNaN(xp) || isNaN(yp)) {
 			xp = 0
@@ -491,6 +494,24 @@ export class ScrollView extends PIXI.Container {
 		}
 
 		this.setTransform(xp, yp, initialZoom, initialZoom, 0, 0, 0, 0, 0);
+
+
+		if(screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
+
+			if(screen.width / screen.height < width/height) {
+				// scale to width
+				this.zoomCenter(screen.width/width)
+			} else {
+				// scale to height
+				this.zoomCenter(screen.height/height)
+			}
+
+		} else {
+
+			this.zoomCenter(this.minScreenSize/Math.max(width, height))
+
+		}
+
 
 		// to fix any touch/mouse issues
 		this.touchEventDataMap.clear()
@@ -535,7 +556,7 @@ export class ScrollView extends PIXI.Container {
 	 * @param delta zoom delta
 	 * @param pos position
 	 */
-	zoom(delta: number, pos: PIXI.IPointData) {
+	public zoom(delta: number, pos: PIXI.IPointData) {
 		this.x = (this.x - pos.x) * delta + pos.x;
 		this.y = (this.y - pos.y) * delta + pos.y;
 		
@@ -543,7 +564,7 @@ export class ScrollView extends PIXI.Container {
 		this.scale.y *= delta;
 	}
 
-	zoomCenter(delta: number) {
+	public zoomCenter(delta: number) {
 		const ratio = Util.getPixelRatio()
 		this.zoom(delta, {x: this.renderer.screen.width/2/ratio, y: this.renderer.screen.height/2/ratio})
 	}

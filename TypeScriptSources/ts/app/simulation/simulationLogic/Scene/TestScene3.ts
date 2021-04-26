@@ -1,10 +1,11 @@
 
+import { Vector } from "matter-js";
 import { downloadJSONFile } from "../GlobalDebug";
 import { Robot } from "../Robot/Robot";
 import { RobotProgram } from "../Robot/RobotProgram";
 import { RobotTester } from "../Robot/RobotTester";
 import { Unit } from "../Unit";
-import { asUniqueArray, TupleContains, UniqueTupleElements, UnpackArrayProperties, TupleUnpackArray, Util, Expand } from "../Util";
+import { UnpackArrayProperties, Util, Expand } from "../Util";
 import { AsyncChain } from "./AsyncChain";
 import { Scene } from "./Scene";
 
@@ -134,18 +135,75 @@ function driveForwardProgram(speed: number, distance: number): OpCode[] {
 
 class KeyData {
 	// (0.05, 0.5, 0.05)
-	rollingFriction = Util.range(0.1, 0.1, 0.01)
+	rollingFriction = Util.range(0.03, 0.03, 0.1)
 	// (0.05, 1.0, 0.05)
-	slideFriction = Util.range(0.3, 0.3, 0.01)
+	slideFriction = Util.range(0.3, 0.3, 0.1)
 
 	otherRollingFriction = Util.range(0.03, 0.03, 0.01)
 	otherSlideFriction = Util.range(0.05, 0.05, 0.01)
 
 	//driveForwardSpeed = Util.range(10, 100, 10)
 	//driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-	rotateSpeed = Util.range(0.1, 20, 0.1)
+	rotateSpeed = Util.range(5, 100, 5)
 	rotateAngle = Util.range(0, 180, 10)
 	directionRight = [true]
+}
+
+class ValueHelper<T, C> {
+
+	readonly name: string
+	readonly initialValue: T
+	private previousValue: T
+	readonly endMaxDelta: number
+	private readonly context: C
+	private readonly _getNewValue: (context: C) => T
+	private readonly getSignedDistance: (start: T, end: T) => number
+
+	/**
+	 * @param getSignedDistance a function which returns the signed distance from `start` to `end`. E.g. for numbers `end - start` and for points the norm distance.
+	 */
+	private constructor(name: string, initialValue: T, endMaxDelta: number, context: C, getNewValue: (context: C) => T, getSignedDistance: (start: T, end: T) => number) {
+		this.name = name
+		this.initialValue = initialValue
+		this.previousValue = initialValue
+		this.endMaxDelta = endMaxDelta
+		this.context = context
+		this.getSignedDistance = getSignedDistance
+		this._getNewValue = getNewValue
+	}
+
+	getPreviousValue(): T {
+		return this.previousValue
+	}
+
+	update() {
+		this.previousValue = this._getNewValue(this.context)
+	}
+
+	getNewValue(): T {
+		return this._getNewValue(this.context)
+	}
+
+	/**
+	 * @returns the absolute distance between the current value (`getNewValue`) and the `previousValue`
+	 */
+	getDistanceToPreviousValue(): number {
+		return Math.abs(this.getSignedDistance(this.previousValue, this._getNewValue(this.context)))
+	}
+
+	getSignedDistanceToInitialValue(): number {
+		return this.getSignedDistance(this.initialValue, this._getNewValue(this.context))
+	}
+
+
+	static fromNumber<C>(opt: { name: string, initialValue: number, endMaxDelta: number, context: C, getNewValue: (context: C) => number }): ValueHelper<number, C> {
+		return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, (start, end) => end - start)
+	}
+
+	static fromVector<C>(opt: { name: string, initialValue: Vector, endMaxDelta: number, context: C, getNewValue: (context: C) => Vector }): ValueHelper<Vector, C> {
+		return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, (v1, v2) => Util.vectorDistance(v1, v2))
+	}
+
 }
 
 type SubKeyData = Expand<UnpackArrayProperties<KeyData>>
@@ -167,19 +225,41 @@ export class TestScene3 extends Scene {
 	 */
 	startWallTime = 0.0
 
-	endPositionAccuracy = Infinity
-	initialPosition = { x: 0.0, y: 0.0 }
-	prevRobotPosition = { x: 0.0, y: 0.0 }
+	readonly radianToAngleFactor = 180 / Math.PI
 
-	endRotationAccuracy = Infinity
-	initialRotation = 0
-	prevRotation = 0
+	readonly robotPositionValue =
+		ValueHelper.fromVector({
+			name: "initPositionDistance",
+			initialValue: {x: 0.0, y: 0.0},
+			endMaxDelta: Infinity,
+			context: this,
+			getNewValue: (c) => c.robot.body.position
+		})
+
+	readonly robotRotationValue = 
+		ValueHelper.fromNumber({
+			name: "initAngleDelta",
+			initialValue: 0,
+			endMaxDelta: Infinity,
+			context: this,
+			getNewValue: (c) => c.robot.body.angle * c.radianToAngleFactor
+		})
+
+
+	/**
+	 * The array of `ValueHelper`s. Note that `initialValue` has to be set in `onInit` 
+	 */
+	valueHelpers = [this.robotPositionValue, this.robotRotationValue]
 
 	data: any[] = []
 
 	keyIndex = 0
 
 
+	/**
+	 * Shuffling the keyValues can improve the ETA
+	 */
+	randomizeKeyValues = true
 	keyData = new KeyData()
 	keyValues: SubKeyData[] = []
 
@@ -199,8 +279,11 @@ export class TestScene3 extends Scene {
 		// TODO: Maybe set it always to 0 and remove timeout argument for `Timer.asyncStop`
 		this.setSimTickerStopPollTime(0)
 
+		// make tuples from 'keyData' and maybe shuffle them in order to get a better ETA
 		this.keyValues = Util.allPropertiesTuples(this.keyData)
-
+		if (this.randomizeKeyValues) {
+			Util.shuffle(this.keyValues)
+		}
 
 		const DebugGui = this.getDebugGuiStatic()
 
@@ -251,7 +334,9 @@ export class TestScene3 extends Scene {
 
 		this.robot = Robot.EV3(this)
 		this.robotTester = new RobotTester(this.robot)
-		this.robot.setPose(this.initialPosition, this.initialRotation)
+		this.robot.setPose(
+			this.robotPositionValue.initialValue,
+			this.robotRotationValue.initialValue)
 		this.addRobot(this.robot)
 
 		// start program
@@ -285,13 +370,15 @@ export class TestScene3 extends Scene {
 	}
 
 	pushDataAndResetWithTimeout(didTimeOut: boolean) {
-		this.data.push({
-			key: this.keyValues[this.keyIndex],
-			value: this.unit.fromLength(Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
-			angle: this.robot.body.angle * 180 / Math.PI,
-			didTimeOut: didTimeOut,
-			simulationTime: this.time
+		const value: any = {
+			key: this.keyValues[this.keyIndex]
+		}
+		this.valueHelpers.forEach(keyValue => {
+			value[keyValue.name] = keyValue.getSignedDistanceToInitialValue()
 		})
+		value.didTimeOut = didTimeOut,
+		value.simulationTime = this.time
+		this.data.push(value)
 		
 		// reset scene and automatically call 'onInit'
 		this.keyIndex += 1
@@ -316,16 +403,19 @@ export class TestScene3 extends Scene {
 			}
 			if (this.getProgramManager().allInterpretersTerminated()) {
 				// program terminated
-				if (Util.vectorDistance(this.robot.body.position, this.prevRobotPosition) < this.endPositionAccuracy ||
-				Math.abs(this.robot.body.angle-this.prevRotation) < this.endRotationAccuracy) {
+				let finished = true
+				this.valueHelpers.forEach(keyValue => {
+					if (finished && keyValue.getDistanceToPreviousValue() > keyValue.endMaxDelta) {
+						finished = false
+					}
+				})
+				if (finished) {
 					// program terminated and robot does not move
 					this.pushDataAndResetWithTimeout(false)
 				}
 			}
 		}
-		this.prevRobotPosition.x = this.robot.body.position.x
-		this.prevRobotPosition.y = this.robot.body.position.y
-		this.prevRotation = this.robot.body.angle
+		this.valueHelpers.forEach(e => e.update())
 
 	}
 
