@@ -58,10 +58,10 @@ export function createDebugGuiRoot() {
 			// move debug gui up to be visible
 			parent.style.zIndex = '1000000'
 		}
-		const style = DebugGuiRoot.domElement.style
-		style.position = 'absolute'
-		style.left = '0%'
-		style.top = '500'
+		//const style = DebugGuiRoot.domElement.style
+		//style.position = 'absolute'
+		//style.left = '70%'
+		//style.top = '500'
 	}
 }
 

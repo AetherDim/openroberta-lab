@@ -43,10 +43,10 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
                 // move debug gui up to be visible
                 parent_1.style.zIndex = '1000000';
             }
-            var style = exports.DebugGuiRoot.domElement.style;
-            style.position = 'absolute';
-            style.left = '0%';
-            style.top = '500';
+            //const style = DebugGuiRoot.domElement.style
+            //style.position = 'absolute'
+            //style.left = '70%'
+            //style.top = '500'
         }
     }
     exports.createDebugGuiRoot = createDebugGuiRoot;
