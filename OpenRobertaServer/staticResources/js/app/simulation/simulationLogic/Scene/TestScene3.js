@@ -141,8 +141,8 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.otherSlideFriction = Util_1.Util.range(0.05, 0.05, 0.01);
             //driveForwardSpeed = Util.range(10, 100, 10)
             //driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-            this.rotateSpeed = Util_1.Util.range(10, 100, 10);
-            this.rotateAngle = Util_1.Util.range(0, 360, 10);
+            this.rotateSpeed = Util_1.Util.range(0.1, 20, 0.1);
+            this.rotateAngle = Util_1.Util.range(0, 180, 10);
             this.directionRight = [true];
         }
         return KeyData;
@@ -155,7 +155,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             /**
              * A timeout for this simulation test in internal simulation time
              */
-            _this.simulationTestTimeout = 20.0;
+            _this.simulationTestTimeout = 300.0;
             /**
              * Time since start of test in sections
              */
@@ -246,7 +246,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.data.push({
                 key: this.keyValues[this.keyIndex],
                 value: this.unit.fromLength(Util_1.Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
-                angle: this.initialRotation - this.prevRotation,
+                angle: this.robot.body.angle * 180 / Math.PI,
                 didTimeOut: didTimeOut,
                 simulationTime: this.time
             });

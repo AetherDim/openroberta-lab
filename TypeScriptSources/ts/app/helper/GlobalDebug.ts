@@ -1,5 +1,6 @@
 import dat = require('dat.gui');
 import { Scene } from './Scene/Scene';
+import { SceneRender } from './SceneRenderer';
 import { Timer } from './Timer';
 
 export const DEBUG = true
@@ -67,6 +68,32 @@ export function createDebugGuiRoot() {
 createDebugGuiRoot()
 
 
+
+export function initGlobalSceneDebug(sceneRenderer: SceneRender) {
+	if(!DEBUG) {
+		return
+	}
+
+	DebugGuiRoot.addUpdatable('FPS', () => sceneRenderer.app.ticker.FPS)
+
+	const renderer = DebugGuiRoot.addFolder('Renderer')
+	renderer.addUpdatable('Screen width', () => sceneRenderer.app.screen.width)
+	renderer.addUpdatable('Screen height', () => sceneRenderer.app.screen.height)
+	renderer.addUpdatable('devicePixelRatio', () => window.devicePixelRatio || 0.75)
+
+	const debug = DebugGuiRoot.addFolder('Special Debug Functions')
+	debug.addButton('Add color sensors to robot', () => {
+		const robot = sceneRenderer.getScene().getRobotManager().getRobots()[0]
+		let count = 0
+		const range = 0.2
+		for(let x = -range; x < range; x+=0.02) {
+			for(let y = -range; y < range; y+=0.02) {
+				robot.addColorSensor('SP' + count++, x, y)
+			}
+		}
+	})
+	
+}
 
 
 

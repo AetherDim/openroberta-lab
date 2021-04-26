@@ -4,7 +4,7 @@ import { Scene } from './Scene/Scene';
 import { rgbToNumber } from './Color'
 import { ScrollView, ScrollViewEvent } from './ScrollView';
 import { Util } from './Util';
-import { DebugGuiRoot } from './GlobalDebug';
+import { DebugGuiRoot, initGlobalSceneDebug } from './GlobalDebug';
 
 
 
@@ -96,8 +96,7 @@ export class SceneRender {
 		}, this);
 		//this.app.ticker.maxFPS = 30
 
-		DebugGuiRoot?.addUpdatable('FPS', () => this.app.ticker.FPS)
-
+		initGlobalSceneDebug(this)
 	}
 
 	private onResize(oldWidth: number, oldHeight: number) {

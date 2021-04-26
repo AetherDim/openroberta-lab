@@ -65,7 +65,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 }
             }, this);
             //this.app.ticker.maxFPS = 30
-            GlobalDebug_1.DebugGuiRoot === null || GlobalDebug_1.DebugGuiRoot === void 0 ? void 0 : GlobalDebug_1.DebugGuiRoot.addUpdatable('FPS', function () { return _this.app.ticker.FPS; });
+            GlobalDebug_1.initGlobalSceneDebug(this);
         }
         SceneRender.prototype.onResize = function (oldWidth, oldHeight) {
             var pixelRatio = Util_1.Util.getPixelRatio();

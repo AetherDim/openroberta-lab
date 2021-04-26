@@ -143,8 +143,8 @@ class KeyData {
 
 	//driveForwardSpeed = Util.range(10, 100, 10)
 	//driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-	rotateSpeed = Util.range(10, 100, 10)
-	rotateAngle = Util.range(0, 360, 10)
+	rotateSpeed = Util.range(0.1, 20, 0.1)
+	rotateAngle = Util.range(0, 180, 10)
 	directionRight = [true]
 }
 
@@ -160,7 +160,7 @@ export class TestScene3 extends Scene {
 	/**
 	 * A timeout for this simulation test in internal simulation time
 	 */
-	simulationTestTimeout = 20.0
+	simulationTestTimeout = 300.0
 
 	/**
 	 * Time since start of test in sections
@@ -288,7 +288,7 @@ export class TestScene3 extends Scene {
 		this.data.push({
 			key: this.keyValues[this.keyIndex],
 			value: this.unit.fromLength(Util.vectorDistance(this.initialPosition, this.prevRobotPosition)),
-			angle: this.initialRotation-this.prevRotation,
+			angle: this.robot.body.angle * 180 / Math.PI,
 			didTimeOut: didTimeOut,
 			simulationTime: this.time
 		})

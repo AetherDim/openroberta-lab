@@ -1,7 +1,7 @@
 define(["require", "exports", "dat.gui", "./Timer"], function (require, exports, dat, Timer_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.downloadJSONFile = exports.downloadFile = exports.createReflectionGetter = exports.SceneDebug = exports.createDebugGuiRoot = exports.clearDebugGuiRoot = exports.DebugGuiRoot = exports.registerDebugUpdatable = exports.DEBUG_UPDATE_TIMER = exports.PRINT_NON_WRAPPED_ERROR = exports.SEND_LOG = exports.DEBUG = void 0;
+    exports.downloadJSONFile = exports.downloadFile = exports.createReflectionGetter = exports.SceneDebug = exports.initGlobalSceneDebug = exports.createDebugGuiRoot = exports.clearDebugGuiRoot = exports.DebugGuiRoot = exports.registerDebugUpdatable = exports.DEBUG_UPDATE_TIMER = exports.PRINT_NON_WRAPPED_ERROR = exports.SEND_LOG = exports.DEBUG = void 0;
     exports.DEBUG = true;
     /**
      * Used in log.js
@@ -51,6 +51,28 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
     }
     exports.createDebugGuiRoot = createDebugGuiRoot;
     createDebugGuiRoot();
+    function initGlobalSceneDebug(sceneRenderer) {
+        if (!exports.DEBUG) {
+            return;
+        }
+        exports.DebugGuiRoot.addUpdatable('FPS', function () { return sceneRenderer.app.ticker.FPS; });
+        var renderer = exports.DebugGuiRoot.addFolder('Renderer');
+        renderer.addUpdatable('Screen width', function () { return sceneRenderer.app.screen.width; });
+        renderer.addUpdatable('Screen height', function () { return sceneRenderer.app.screen.height; });
+        renderer.addUpdatable('devicePixelRatio', function () { return window.devicePixelRatio || 0.75; });
+        var debug = exports.DebugGuiRoot.addFolder('Special Debug Functions');
+        debug.addButton('Add color sensors to robot', function () {
+            var robot = sceneRenderer.getScene().getRobotManager().getRobots()[0];
+            var count = 0;
+            var range = 0.3;
+            for (var x = -range; x < range; x += 0.02) {
+                for (var y = -range; y < range; y += 0.02) {
+                    robot.addColorSensor('SP' + count++, x, y);
+                }
+            }
+        });
+    }
+    exports.initGlobalSceneDebug = initGlobalSceneDebug;
     var SceneDebug = /** @class */ (function () {
         function SceneDebug(scene, disabled) {
             this.disabled = disabled;
