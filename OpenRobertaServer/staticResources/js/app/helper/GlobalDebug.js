@@ -64,7 +64,7 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
         debug.addButton('Add color sensors to robot', function () {
             var robot = sceneRenderer.getScene().getRobotManager().getRobots()[0];
             var count = 0;
-            var range = 0.3;
+            var range = 0.2;
             for (var x = -range; x < range; x += 0.02) {
                 for (var y = -range; y < range; y += 0.02) {
                     robot.addColorSensor('SP' + count++, x, y);

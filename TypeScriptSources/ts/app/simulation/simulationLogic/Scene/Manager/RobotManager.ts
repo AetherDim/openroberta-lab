@@ -51,7 +51,8 @@ export class RobotManager {
     updateSensorValueView() {
         // TODO: refactor this, the simulation should not have a html/div dependency
         // update sensor value html
-        if (this.showRobotSensorValues) {
+        
+        if (this.showRobotSensorValues && $('#simValuesModal').is(':visible')) {
             const htmlElement = $('#notConstantValue')
             htmlElement.html('');
             const elementList: { label: string, value: any }[] = []

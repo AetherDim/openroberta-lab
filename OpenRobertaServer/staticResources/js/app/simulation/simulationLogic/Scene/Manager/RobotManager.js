@@ -36,10 +36,10 @@ define(["require", "exports", "./ProgramManager"], function (require, exports, P
             return this.numberOfRobots;
         };
         RobotManager.prototype.updateSensorValueView = function () {
-            var _this = this;
             // TODO: refactor this, the simulation should not have a html/div dependency
             // update sensor value html
-            if (this.showRobotSensorValues) {
+            var _this = this;
+            if (this.showRobotSensorValues && $('#simValuesModal').is(':visible')) {
                 var htmlElement = $('#notConstantValue');
                 htmlElement.html('');
                 var elementList_1 = [];
