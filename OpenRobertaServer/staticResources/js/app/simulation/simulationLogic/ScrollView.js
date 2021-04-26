@@ -363,7 +363,7 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
              * Inverts zoom behaviour
              */
             _this.invertZoom = false;
-            _this.minScreenSize = 400 * Util_1.Util.getPixelRatio();
+            _this.minScreenSize = 400 / Util_1.Util.getPixelRatio();
             //
             // Event Data
             //

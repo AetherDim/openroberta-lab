@@ -439,7 +439,7 @@ export class ScrollView extends PIXI.Container {
 	 */
 	invertZoom = false;
 
-	public minScreenSize = 400*Util.getPixelRatio()
+	public minScreenSize = 400 / Util.getPixelRatio()
 
 
 
