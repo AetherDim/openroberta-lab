@@ -103,6 +103,14 @@ export class SceneRender {
 		const pixelRatio = Util.getPixelRatio()
 		this.scrollView.x += (this.app.renderer.screen.width-oldWidth) / 2 / pixelRatio
 		this.scrollView.y += (this.app.renderer.screen.height-oldHeight) / 2 / pixelRatio
+
+
+		const zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize)/Math.max(oldWidth, this.scrollView.minScreenSize)
+		//const zoomY = Math.max(this.app.renderer.screen.height, this.scrollView.minScreenSize)/Math.max(oldHeight, this.scrollView.minScreenSize)
+
+		this.scrollView.zoomCenter(zoomX)
+
+		
 	}
 
 	getScene(): Scene {

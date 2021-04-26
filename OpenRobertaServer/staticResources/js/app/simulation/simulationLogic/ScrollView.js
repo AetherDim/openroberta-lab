@@ -363,6 +363,7 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
              * Inverts zoom behaviour
              */
             _this.invertZoom = false;
+            _this.minScreenSize = 400 * Util_1.Util.getPixelRatio();
             //
             // Event Data
             //
@@ -392,15 +393,29 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             return _this;
         }
         ScrollView.prototype.resetCentered = function (x, y, width, height) {
+            var screen = this.renderer.screen;
             var pixelRatio = Util_1.Util.getPixelRatio();
             var initialZoom = 1 / pixelRatio;
-            var xp = (this.renderer.screen.width / 2 - (x + width / 2)) / pixelRatio;
-            var yp = (this.renderer.screen.height / 2 - (y + height / 2)) / pixelRatio;
+            var xp = (screen.width / 2 - (x + width / 2)) / pixelRatio;
+            var yp = (screen.height / 2 - (y + height / 2)) / pixelRatio;
             if (isNaN(xp) || isNaN(yp)) {
                 xp = 0;
                 yp = 0;
             }
             this.setTransform(xp, yp, initialZoom, initialZoom, 0, 0, 0, 0, 0);
+            if (screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
+                if (screen.width < screen.height) {
+                    // scale to width
+                    this.zoomCenter(screen.width / width);
+                }
+                else {
+                    // scale to height
+                    this.zoomCenter(screen.height / height);
+                }
+            }
+            else {
+                this.zoomCenter(this.minScreenSize / Math.max(width, height));
+            }
             // to fix any touch/mouse issues
             this.touchEventDataMap.clear();
             this.mouseEventData.clear();
