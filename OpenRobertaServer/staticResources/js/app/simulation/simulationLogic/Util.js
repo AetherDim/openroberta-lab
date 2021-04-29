@@ -44,13 +44,36 @@ define(["require", "exports"], function (require, exports) {
          * @param end inclusive end of range
          * @param step the step size of the range
          */
-        Util.range = function (start, end, step) {
-            if (step === void 0) { step = 1.0; }
+        Util.closedRange = function (start, end, step) {
+            if (step === void 0) { step = 1; }
             var ans = [];
             for (var i = start; i <= end; i += step) {
                 ans.push(i);
             }
             return ans;
+        };
+        /**
+         * Returns an array of numbers starting from 'start' to (exclusive) 'end' with a step size 'step'
+         *
+         * @param start inclusive start of range
+         * @param end exclusive end of range
+         * @param step the step size of the range
+         */
+        Util.range = function (start, end, step) {
+            if (step === void 0) { step = 1; }
+            var ans = [];
+            for (var i = start; i < end; i += step) {
+                ans.push(i);
+            }
+            return ans;
+        };
+        /**
+         * Use this function in the `default` block of a `switch` to check that `value` is of type `never` i.e. this function is never reached.
+         *
+         * @param value the value which is switched over
+         */
+        Util.exhaustiveSwitch = function (value) {
+            throw new Error("The value " + value + " was not exhaustively switched over");
         };
         /**
          * Shuffles array in place. ES6 version
@@ -301,6 +324,9 @@ define(["require", "exports"], function (require, exports) {
          */
         Util.getPixelRatio = function () {
             return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
+        };
+        Util.cloneVector = function (value) {
+            return { x: value.x, y: value.y };
         };
         Util.simulation = {
             storedPrograms: [],

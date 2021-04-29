@@ -10,6 +10,9 @@ define(["require", "exports"], function (require, exports) {
             if (waypoints === void 0) { waypoints = []; }
             this.waypoints = waypoints;
         }
+        WaypointList.prototype.getWaypoints = function () {
+            return this.waypoints;
+        };
         /**
          * Get the waypoint at `index`
          */
@@ -37,7 +40,8 @@ define(["require", "exports"], function (require, exports) {
         WaypointList.prototype.appendReversedWaypoints = function (includingTheLast) {
             if (includingTheLast === void 0) { includingTheLast = false; }
             for (var i = this.waypoints.length - 1 + (includingTheLast ? 0 : -1); i >= 0; i--) {
-                this.waypoints.push(this.waypoints[i]);
+                // TODO: Find type-safe way to clone an object
+                this.waypoints.push(this.waypoints[i].clone());
             }
         };
         /**

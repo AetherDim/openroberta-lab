@@ -11,18 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util", "../../GlobalDebug"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1, Util_1, GlobalDebug_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -30,7 +19,6 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         __extends(RRCScene, _super);
         function RRCScene(name, ageGroup) {
             var _this = _super.call(this, name + " " + ageGroup) || this;
-            _this.addWaypointGraphics = true;
             _this.scoreText2 = new PIXI.Text("");
             _this.scoreText3 = new PIXI.Text("");
             _this.scoreTextContainer = new PIXI.Container();
@@ -44,29 +32,22 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
          */
         RRCScene.prototype.makeWaypoint = function (position, score, maxDistance) {
             if (maxDistance === void 0) { maxDistance = 50; }
-            return new ScoreWaypoint_1.ScoreWaypoint(this.unit, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score);
+            return new ScoreWaypoint_1.ScoreWaypoint(this, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score);
         };
-        RRCScene.prototype.setWaypointList = function (list) {
-            var e_1, _a;
-            if (this.addWaypointGraphics && GlobalDebug_1.DEBUG) {
-                try {
-                    for (var _b = __values(list.waypoints), _c = _b.next(); !_c.done; _c = _b.next()) {
-                        var waypoint = _c.value;
-                        this.addEntity(Entity_1.DrawableEntity.rect(this, waypoint.position.x, waypoint.position.y, waypoint.maxDistance * 2, waypoint.maxDistance * 2, {
-                            color: 0xFF0000,
-                            alpha: 0.5
-                        }));
-                    }
-                }
-                catch (e_1_1) { e_1 = { error: e_1_1 }; }
-                finally {
-                    try {
-                        if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-                    }
-                    finally { if (e_1) throw e_1.error; }
-                }
-            }
+        RRCScene.prototype.setWaypointList = function (list, waypointVisibilityBehavior) {
+            if (waypointVisibilityBehavior === void 0) { waypointVisibilityBehavior = "showNext"; }
             var t = this;
+            this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior;
+            // add index text graphic to waypoints
+            this.waypointsManager.getWaypoints().forEach(function (waypoint, index) {
+                var oldGraphics = waypoint.graphics;
+                var text = new PIXI.Text(String(index));
+                text.style = new PIXI.TextStyle({ fill: 0x0 });
+                text.position.x = waypoint.position.x;
+                text.position.y = waypoint.position.y;
+                waypoint.graphics = new PIXI.Container()
+                    .addChild(oldGraphics, text);
+            });
             this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
                 /*t.addToScore(waypoint.score)
                 if (idx == list.getLastWaypointIndex()) {

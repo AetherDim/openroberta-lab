@@ -135,17 +135,17 @@ function driveForwardProgram(speed: number, distance: number): OpCode[] {
 
 class KeyData {
 	// (0.05, 0.5, 0.05)
-	rollingFriction = Util.range(0.03, 0.03, 0.1)
+	rollingFriction = Util.closedRange(0.03, 0.03, 0.1)
 	// (0.05, 1.0, 0.05)
-	slideFriction = Util.range(0.3, 0.3, 0.1)
+	slideFriction = Util.closedRange(0.3, 0.3, 0.1)
 
-	otherRollingFriction = Util.range(0.03, 0.03, 0.01)
-	otherSlideFriction = Util.range(0.05, 0.05, 0.01)
+	otherRollingFriction = Util.closedRange(0.03, 0.03, 0.01)
+	otherSlideFriction = Util.closedRange(0.05, 0.05, 0.01)
 
 	//driveForwardSpeed = Util.range(10, 100, 10)
 	//driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-	rotateSpeed = Util.range(5, 100, 5)
-	rotateAngle = Util.range(0, 180, 10)
+	rotateSpeed = Util.closedRange(5, 100, 5)
+	rotateAngle = Util.closedRange(0, 180, 10)
 	directionRight = [true]
 }
 

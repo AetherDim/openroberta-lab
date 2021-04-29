@@ -134,15 +134,15 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     var KeyData = /** @class */ (function () {
         function KeyData() {
             // (0.05, 0.5, 0.05)
-            this.rollingFriction = Util_1.Util.range(0.03, 0.03, 0.1);
+            this.rollingFriction = Util_1.Util.closedRange(0.03, 0.03, 0.1);
             // (0.05, 1.0, 0.05)
-            this.slideFriction = Util_1.Util.range(0.3, 0.3, 0.1);
-            this.otherRollingFriction = Util_1.Util.range(0.03, 0.03, 0.01);
-            this.otherSlideFriction = Util_1.Util.range(0.05, 0.05, 0.01);
+            this.slideFriction = Util_1.Util.closedRange(0.3, 0.3, 0.1);
+            this.otherRollingFriction = Util_1.Util.closedRange(0.03, 0.03, 0.01);
+            this.otherSlideFriction = Util_1.Util.closedRange(0.05, 0.05, 0.01);
             //driveForwardSpeed = Util.range(10, 100, 10)
             //driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-            this.rotateSpeed = Util_1.Util.range(5, 100, 5);
-            this.rotateAngle = Util_1.Util.range(0, 180, 10);
+            this.rotateSpeed = Util_1.Util.closedRange(5, 100, 5);
+            this.rotateAngle = Util_1.Util.closedRange(0, 180, 10);
             this.directionRight = [true];
         }
         return KeyData;

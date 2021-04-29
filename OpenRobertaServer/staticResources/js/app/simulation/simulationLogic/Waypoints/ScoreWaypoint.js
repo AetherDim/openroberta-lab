@@ -21,15 +21,20 @@ define(["require", "exports", "./Waypoint"], function (require, exports, Waypoin
     var ScoreWaypoint = /** @class */ (function (_super) {
         __extends(ScoreWaypoint, _super);
         /**
+         * @param scene The `Scene` in which the waypoint will be placed
          * @param position The position of the waypoint in meters
          * @param maxDistance The maximum distance to reach the waypoint in meters
          * @param score The score for reaching the waypoint
          */
-        function ScoreWaypoint(unit, position, maxDistance, score) {
-            var _this = _super.call(this, unit, position, maxDistance) || this;
+        function ScoreWaypoint(scene, position, maxDistance, score) {
+            var _this = _super.call(this, scene, position, maxDistance) || this;
             _this.score = score;
             return _this;
         }
+        ScoreWaypoint.prototype.clone = function () {
+            var scene = this.getScene();
+            return new ScoreWaypoint(scene, scene.unit.fromPosition(this.position), scene.unit.fromLength(this.maxDistance), this.score);
+        };
         return ScoreWaypoint;
     }(Waypoint_1.Waypoint));
     exports.ScoreWaypoint = ScoreWaypoint;

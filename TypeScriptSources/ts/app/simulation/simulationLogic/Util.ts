@@ -127,12 +127,36 @@ export class Util {
 	 * @param end inclusive end of range
 	 * @param step the step size of the range
 	 */
-	static range(start: number, end: number, step: number = 1.0) {
-		var ans = [];
+	static closedRange(start: number, end: number, step: number = 1) {
+		const ans: number[] = [];
 		for (let i = start; i <= end; i += step) {
 			ans.push(i);
 		}
 		return ans;
+	}
+
+	/**
+	 * Returns an array of numbers starting from 'start' to (exclusive) 'end' with a step size 'step' 
+	 * 
+	 * @param start inclusive start of range
+	 * @param end exclusive end of range
+	 * @param step the step size of the range
+	 */
+	 static range(start: number, end: number, step: number = 1) {
+		const ans: number[] = [];
+		for (let i = start; i < end; i += step) {
+			ans.push(i);
+		}
+		return ans;
+	}
+
+	/**
+	 * Use this function in the `default` block of a `switch` to check that `value` is of type `never` i.e. this function is never reached.
+	 * 
+	 * @param value the value which is switched over
+	 */
+	static exhaustiveSwitch(value: never): never {
+		throw new Error(`The value ${value} was not exhaustively switched over`)
 	}
 
 	/**
@@ -382,6 +406,10 @@ export class Util {
 	 */
 	static getPixelRatio() {
 		return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
+	}
+
+	static cloneVector(value: Vector): Vector {
+		return { x: value.x, y: value.y }
 	}
 
 }

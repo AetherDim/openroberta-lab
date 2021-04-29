@@ -481,9 +481,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             // update entities e.g. robots
             this.getEntityManager().update();
             // TODO: Handle multiple robots and waypoints
-            //if (this.robots.length >= 1) {
-            //	this.waypointsManager.update(this.robots[0].body.position)
-            //}
+            if (this.robotManager.getNumberOfRobots() >= 1) {
+                this.waypointsManager.update(this.robotManager.getRobots()[0].body.position);
+            }
             this.getProgramManager().update(); // update breakpoints, ...
             // FIX Grid bucket memory consumption
             // Remove empty buckets

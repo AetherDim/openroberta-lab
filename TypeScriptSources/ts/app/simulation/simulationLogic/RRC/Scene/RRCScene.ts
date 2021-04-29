@@ -2,19 +2,18 @@ import {AsyncChain} from "../../Scene/AsyncChain";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
-import {Body, Vector, World} from "matter-js";
+import {Body, Vector} from "matter-js";
 import {Unit} from "../../Unit";
 import {Scene} from "../../Scene/Scene";
-import {PhysicsRectEntity, DrawableEntity, RectEntityOptions} from "../../Entity";
+import {PhysicsRectEntity, RectEntityOptions} from "../../Entity";
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint"
 import {WaypointList} from "../../Waypoints/WaypointList";
 import {Util} from "../../Util";
-import { DEBUG } from "../../GlobalDebug";
+import { WaypointVisibilityBehavior } from "../../Waypoints/WaypointsManager";
 
 export class RRCScene extends Scene {
 
 	readonly ageGroup: AgeGroup;
-	private addWaypointGraphics = true
 
 	constructor(name: string, ageGroup: AgeGroup) {
 		super(name + " " + ageGroup);
@@ -27,19 +26,25 @@ export class RRCScene extends Scene {
 	 * @param maxDistance The maximum distance in matter units which still reaches the waypoint (default: 50 matter units)
 	 */
 	makeWaypoint(position: Vector, score: number, maxDistance: number = 50): ScoreWaypoint {
-		return new ScoreWaypoint(this.unit, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score)
+		return new ScoreWaypoint(this, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score)
 	}
 
-	setWaypointList(list: WaypointList<ScoreWaypoint>) {
-		if (this.addWaypointGraphics && DEBUG) {
-			for (const waypoint of list.waypoints) {
-				this.addEntity(DrawableEntity.rect(this, waypoint.position.x, waypoint.position.y, waypoint.maxDistance * 2, waypoint.maxDistance * 2, {
-					color: 0xFF0000,
-					alpha: 0.5
-				}))
-			}
-		}
+	setWaypointList(list: WaypointList<ScoreWaypoint>, waypointVisibilityBehavior: WaypointVisibilityBehavior = "showNext") {
 		const t = this
+		this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior
+		
+		// add index text graphic to waypoints
+		this.waypointsManager.getWaypoints().forEach((waypoint, index) => {
+			const oldGraphics = waypoint.graphics
+
+			const text = new PIXI.Text(String(index))
+			text.style = new PIXI.TextStyle({ fill: 0x0 })
+			text.position.x = waypoint.position.x
+			text.position.y = waypoint.position.y
+			waypoint.graphics = new PIXI.Container()
+				.addChild(oldGraphics, text)
+		})
+		
 		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
 			/*t.addToScore(waypoint.score)
 			if (idx == list.getLastWaypointIndex()) {
