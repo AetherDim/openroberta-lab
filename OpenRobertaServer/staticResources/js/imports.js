@@ -155,6 +155,7 @@ require.config({
         'Entity',
         { 'Scene': [
                 'Scene',
+                'ScoreScene',
                 'TestScene',
                 'TestScene2',
                 'TestScene3',

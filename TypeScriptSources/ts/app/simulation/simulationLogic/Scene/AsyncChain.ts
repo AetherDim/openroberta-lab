@@ -3,12 +3,14 @@
  * TODO: switch to actual promises?
  */
 
+type AsyncFunction = (chain: AsyncChain) => void
+
 export class AsyncListener {
 
-	func: (chain: AsyncChain) => void;
+	func: AsyncFunction;
 	thisContext: any;
 
-	constructor(func: (chain: AsyncChain) => void, thisContext: any) {
+	constructor(func: AsyncFunction, thisContext: any) {
 		this.func = func
 		this.thisContext = thisContext
 	}
@@ -18,15 +20,19 @@ export class AsyncListener {
 export class AsyncChain {
 
 	private readonly listeners: AsyncListener[];
+	private readonly listenerFunctions: AsyncFunction[];
 	private index = 0;
 
 	constructor(...listeners: AsyncListener[]) {
 		this.listeners = listeners;
+		this.listenerFunctions = [];
+		this.listeners.forEach(listener => this.listenerFunctions.push(listener.func))
 	}
 
 	push(...listeners: AsyncListener[]) {
 		listeners.forEach(listener => {
 			this.listeners.push(listener);
+			this.listenerFunctions.push(listener.func)
 		});
 	}
 
@@ -55,6 +61,28 @@ export class AsyncChain {
 
 	length() {
 		return this.listeners.length;
+	}
+
+	addAtIndex(idx: number, ...listeners: AsyncListener[]) {
+		if(idx >= 0) {
+			listeners.forEach(listener => {
+				this.listeners.splice(idx, 0, listener);
+				this.listenerFunctions.splice(idx, 0, listener.func)
+				idx ++;
+			});
+		}
+	}
+
+	addBefore(fnc: AsyncFunction, ...listeners: AsyncListener[]) {
+		const idx = this.listenerFunctions.lastIndexOf(fnc)
+		this.addAtIndex(idx, ...listeners)
+	}
+
+	addAfter(fnc: AsyncFunction, ...listeners: AsyncListener[]) {
+		const idx = this.listenerFunctions.lastIndexOf(fnc)
+		if(idx >= 0) {
+			this.addAtIndex(idx+1, ...listeners)
+		}
 	}
 
 }

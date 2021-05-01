@@ -7,7 +7,7 @@ import { Util } from "../Util"
 /**
  * A waypoint with a position and maximum distance to reach it
  */
-export class Waypoint extends DrawableEntity {
+export class Waypoint extends DrawableEntity<PIXI.Container> {
 
 	/**
 	 * Position in matter coordinates
@@ -18,7 +18,7 @@ export class Waypoint extends DrawableEntity {
 	 */
 	maxDistance: number
 
-	graphics: PIXI.DisplayObject
+	readonly graphics: PIXI.Container
 
 	/**
 	 * Creates a Waypoint at the specified `position` which is by default visible.
@@ -32,13 +32,15 @@ export class Waypoint extends DrawableEntity {
 	constructor(scene: Scene, position: Vector, maxDistance: number) {
 		const pos = scene.unit.getPosition(position)
 		const radius = scene.unit.getLength(maxDistance)
+		const container = new PIXI.Container()
 		const graphics = new PIXI.Graphics()
 			.lineStyle(2, 0x0000FF)
 			.beginFill(undefined, 0)
 			.drawCircle(pos.x, pos.y, radius)
 			.endFill()
-		super(scene, graphics)
-		this.graphics = graphics
+		container.addChild(graphics)
+		super(scene, container)
+		this.graphics = container
 		this.position = pos
 		this.maxDistance = radius
 	}

@@ -60,6 +60,15 @@ export class Scene {
 	//
 	// #############################################################################
 	//
+	private readonly onChainCompleteListeners: ((chain: AsyncChain) => void)[] = []
+
+	addOnAsyncChainBuildCompleteLister(fnc: (chain: AsyncChain) => void) {
+		this.onChainCompleteListeners.push(fnc)
+	}
+
+	//
+	// #############################################################################
+	//
 
 	private _unit = new Unit({})
 
@@ -295,6 +304,8 @@ export class Scene {
 			// swap from loading to scene, remove loading animation, cleanup, ...
 			{func: this.finishedLoading, thisContext: this},
 		);
+
+		this.onChainCompleteListeners.forEach(listener => listener.call(this, this.loadingChain!))
 
 		console.log('starting to load scene!');
 		console.log('Loading stages: ' + this.loadingChain.length());

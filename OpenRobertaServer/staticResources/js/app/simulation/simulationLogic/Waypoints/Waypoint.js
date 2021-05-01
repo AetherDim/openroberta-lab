@@ -33,13 +33,15 @@ define(["require", "exports", "../Entity"], function (require, exports, Entity_1
             var _this = this;
             var pos = scene.unit.getPosition(position);
             var radius = scene.unit.getLength(maxDistance);
+            var container = new PIXI.Container();
             var graphics = new PIXI.Graphics()
                 .lineStyle(2, 0x0000FF)
                 .beginFill(undefined, 0)
                 .drawCircle(pos.x, pos.y, radius)
                 .endFill();
-            _this = _super.call(this, scene, graphics) || this;
-            _this.graphics = graphics;
+            container.addChild(graphics);
+            _this = _super.call(this, scene, container) || this;
+            _this.graphics = container;
             _this.position = pos;
             _this.maxDistance = radius;
             return _this;

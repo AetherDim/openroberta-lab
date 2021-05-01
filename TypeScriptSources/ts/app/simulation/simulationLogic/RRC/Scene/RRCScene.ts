@@ -4,14 +4,14 @@ import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
 import {Body, Vector} from "matter-js";
 import {Unit} from "../../Unit";
-import {Scene} from "../../Scene/Scene";
-import {PhysicsRectEntity, RectEntityOptions} from "../../Entity";
+import {ScoreScene} from "../../Scene/ScoreScene";
+import {PhysicsRectEntity, DrawableEntity, RectEntityOptions} from "../../Entity";
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint"
 import {WaypointList} from "../../Waypoints/WaypointList";
 import {Util} from "../../Util";
 import { WaypointVisibilityBehavior } from "../../Waypoints/WaypointsManager";
 
-export class RRCScene extends Scene {
+export class RRCScene extends ScoreScene {
 
 	readonly ageGroup: AgeGroup;
 
@@ -33,23 +33,21 @@ export class RRCScene extends Scene {
 		const t = this
 		this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior
 		
+		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
+			t.addToScore(waypoint.score)
+			if (idx == list.getLastWaypointIndex()) {
+				//t.showScoreScreen(10)
+			}
+		})
+
 		// add index text graphic to waypoints
 		this.waypointsManager.getWaypoints().forEach((waypoint, index) => {
-			const oldGraphics = waypoint.graphics
-
 			const text = new PIXI.Text(String(index))
-			text.style = new PIXI.TextStyle({ fill: 0x0 })
+			text.style = new PIXI.TextStyle({ align: 'center' })
 			text.position.x = waypoint.position.x
 			text.position.y = waypoint.position.y
-			waypoint.graphics = new PIXI.Container()
-				.addChild(oldGraphics, text)
-		})
-		
-		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
-			/*t.addToScore(waypoint.score)
-			if (idx == list.getLastWaypointIndex()) {
-				t.showScoreScreen(10)
-			}*/
+			//text.zIndex = 10000;
+			waypoint.graphics.addChild(text)
 		})
 	}
 
@@ -117,7 +115,7 @@ export class RRCScene extends Scene {
 		}
 	}
 
-	updateScoreText() {
+	//updateScoreText() {
 		/*let text = "Score: " + this.getScore();
 		this.scoreText.text = text;
 		this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
@@ -127,7 +125,7 @@ export class RRCScene extends Scene {
 
 		this.scoreText3.text = text;
 		this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
-	}
+	//}
 
 	getUnitConverter(): Unit {
 		// approx 60px = 20cm

@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/Scene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, Scene_1, Entity_1, ScoreWaypoint_1, Util_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/ScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, ScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -38,21 +38,20 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             if (waypointVisibilityBehavior === void 0) { waypointVisibilityBehavior = "showNext"; }
             var t = this;
             this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior;
+            this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
+                t.addToScore(waypoint.score);
+                if (idx == list.getLastWaypointIndex()) {
+                    //t.showScoreScreen(10)
+                }
+            });
             // add index text graphic to waypoints
             this.waypointsManager.getWaypoints().forEach(function (waypoint, index) {
-                var oldGraphics = waypoint.graphics;
                 var text = new PIXI.Text(String(index));
-                text.style = new PIXI.TextStyle({ fill: 0x0 });
+                text.style = new PIXI.TextStyle({ align: 'center' });
                 text.position.x = waypoint.position.x;
                 text.position.y = waypoint.position.y;
-                waypoint.graphics = new PIXI.Container()
-                    .addChild(oldGraphics, text);
-            });
-            this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
-                /*t.addToScore(waypoint.score)
-                if (idx == list.getLastWaypointIndex()) {
-                    t.showScoreScreen(10)
-                }*/
+                //text.zIndex = 10000;
+                waypoint.graphics.addChild(text);
             });
         };
         RRCScene.prototype.loadScoreAssets = function (chain) {
@@ -104,17 +103,17 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
                 this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
             }
         };
-        RRCScene.prototype.updateScoreText = function () {
-            /*let text = "Score: " + this.getScore();
-            this.scoreText.text = text;
-            this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
-    
-            this.scoreText2.text = text;
-            this.scoreText2.position.set(-this.scoreText.width / 2 - 3, -this.scoreText.height / 2);
-    
-            this.scoreText3.text = text;
-            this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
-        };
+        //updateScoreText() {
+        /*let text = "Score: " + this.getScore();
+        this.scoreText.text = text;
+        this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
+
+        this.scoreText2.text = text;
+        this.scoreText2.position.set(-this.scoreText.width / 2 - 3, -this.scoreText.height / 2);
+
+        this.scoreText3.text = text;
+        this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
+        //}
         RRCScene.prototype.getUnitConverter = function () {
             // approx 60px = 20cm
             return new Unit_1.Unit({ m: 350 });
@@ -197,6 +196,6 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             right.getDrawable().visible = visible;
         };
         return RRCScene;
-    }(Scene_1.Scene));
+    }(ScoreScene_1.ScoreScene));
     exports.RRCScene = RRCScene;
 });

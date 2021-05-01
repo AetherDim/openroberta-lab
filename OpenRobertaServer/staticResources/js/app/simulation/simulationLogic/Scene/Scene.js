@@ -37,6 +37,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             //
             // #############################################################################
             //
+            this.onChainCompleteListeners = [];
+            //
+            // #############################################################################
+            //
             this._unit = new Unit_1.Unit({});
             //
             // #############################################################################
@@ -143,6 +147,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         };
         Scene.prototype.addRobot = function (robot) {
             this.getRobotManager().addRobot(robot);
+        };
+        Scene.prototype.addOnAsyncChainBuildCompleteLister = function (fnc) {
+            this.onChainCompleteListeners.push(fnc);
         };
         Object.defineProperty(Scene.prototype, "unit", {
             get: function () {
@@ -297,6 +304,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             this.loadingChain.push({ func: function (chain) { _this_1._unit = _this_1.getUnitConverter(); chain.next(); }, thisContext: this }, { func: this.onInit, thisContext: this }, // init scene
             // swap from loading to scene, remove loading animation, cleanup, ...
             { func: this.finishedLoading, thisContext: this });
+            this.onChainCompleteListeners.forEach(function (listener) { return listener.call(_this_1, _this_1.loadingChain); });
             console.log('starting to load scene!');
             console.log('Loading stages: ' + this.loadingChain.length());
             // start time
