@@ -28,6 +28,7 @@ export class ScoreScene extends Scene {
 
     updateScoreText() {
         this.scoreText.text = "Score: " + this.score
+        this.scoreText.resolution = 4
     }
 
 

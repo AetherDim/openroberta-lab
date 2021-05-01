@@ -34,6 +34,7 @@ define(["require", "exports", "./AsyncChain", "./Scene"], function (require, exp
         };
         ScoreScene.prototype.updateScoreText = function () {
             this.scoreText.text = "Score: " + this.score;
+            this.scoreText.resolution = 4;
         };
         ScoreScene.prototype.setScore = function (score) {
             this.score = score;

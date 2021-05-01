@@ -48,8 +48,9 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             this.waypointsManager.getWaypoints().forEach(function (waypoint, index) {
                 var text = new PIXI.Text(String(index));
                 text.style = new PIXI.TextStyle({ align: 'center' });
-                text.position.x = waypoint.position.x;
-                text.position.y = waypoint.position.y;
+                text.position.x = waypoint.position.x - text.width / 2;
+                text.position.y = waypoint.position.y - text.height / 2;
+                text.resolution = 4;
                 //text.zIndex = 10000;
                 waypoint.graphics.addChild(text);
             });
