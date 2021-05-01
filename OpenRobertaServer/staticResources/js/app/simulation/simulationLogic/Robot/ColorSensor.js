@@ -23,6 +23,10 @@ define(["require", "exports"], function (require, exports) {
         ColorSensor.prototype.getDetectedColor = function () {
             return this.detectedColor;
         };
+        ColorSensor.prototype.getColorHexValueString = function () {
+            var color = this.detectedColor;
+            return "#" + ((1 << 24) + (color.red << 16) + (color.green << 8) + color.blue).toString(16).slice(1);
+        };
         /**
          * Returns the brightness as a value from 0 to 1
          */

@@ -636,7 +636,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 append("Light Sensor " + port, this.colorSensors[port].getDetectedBrightness() * 100, "%");
             }
             for (var port in this.colorSensors) {
-                appendAny("Color Sensor " + port, JSON.stringify(this.colorSensors[port].getDetectedColor()));
+                appendAny("Color Sensor " + port, "<span style=\"width: 20px; background-color:" + this.colorSensors[port].getColorHexValueString() + "\">&nbsp;</span>");
             }
             for (var port in this.ultrasonicSensors) {
                 append("Ultra Sensor " + port, 100 * s.unit.fromLength(this.ultrasonicSensors[port].getMeasuredDistance()), "cm");
