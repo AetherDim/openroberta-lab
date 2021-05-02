@@ -18,7 +18,7 @@ export class ScoreScene extends Scene {
 
     onInitScore(chain: AsyncChain) {
         this.getContainers().entityTopContainer.addChild(this.scoreText)
-        this.scoreText.position.y -= 50
+        this.scoreText.position.y = -50
 
         this.updateScoreText()
         
@@ -35,6 +35,20 @@ export class ScoreScene extends Scene {
     setScore(score: number) {
         this.score = score
         this.updateScoreText()
+    }
+
+    resetScore() {
+        this.setScore(0)
+    }
+
+    reset() {
+        this.resetScore()
+        super.reset()
+    }
+
+    fullReset() {
+        this.resetScore()
+        super.fullReset()
     }
 
     setVisible(visible: boolean) {
