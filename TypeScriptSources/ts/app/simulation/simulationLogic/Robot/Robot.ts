@@ -964,6 +964,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * - brick: (xSize: 0.11m, ySize: 0.072m, mass: 0.268kg)
 	 * - wheel: (diameter: 0.043m, width: 0.022m, mass: 0.013kg, rollingFriction: 1.1°, slideFriction: 47.3°)
 	 * - motor: (mass: 0.080kg)
+	 * - 100% speed: (1m ca. 3.19s)
+	 * - total mass: 0.611kg
 	 */
 	static EV3(scene: Scene): Robot {
 		const wheel = { diameter: 0.05, width: 0.02 }
