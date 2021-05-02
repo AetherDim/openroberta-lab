@@ -42,13 +42,13 @@ export class ScoreScene extends Scene {
     }
 
     reset() {
-        super.reset()
         this.resetScore()
+        super.reset()
     }
 
     fullReset() {
-        super.fullReset()
         this.resetScore()
+        super.fullReset()
     }
 
     setVisible(visible: boolean) {

@@ -44,12 +44,12 @@ define(["require", "exports", "./AsyncChain", "./Scene"], function (require, exp
             this.setScore(0);
         };
         ScoreScene.prototype.reset = function () {
-            _super.prototype.reset.call(this);
             this.resetScore();
+            _super.prototype.reset.call(this);
         };
         ScoreScene.prototype.fullReset = function () {
-            _super.prototype.fullReset.call(this);
             this.resetScore();
+            _super.prototype.fullReset.call(this);
         };
         ScoreScene.prototype.setVisible = function (visible) {
             this.scoreText.visible = visible;
