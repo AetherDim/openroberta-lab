@@ -429,12 +429,18 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			wheel.update(dt)
 		})
 
-		if(!this.robotBehaviour || !this.interpreter) {
+
+
+		if(!this.robotBehaviour) {
 			return;
 		}
 
 		// update sensors
 		this.updateRobotBehaviourHardwareStateSensors()
+
+		if (!this.interpreter) {
+			return;
+		}
 
 		if(this.delay > 0) {
 			this.delay -= dt; // reduce delay by dt each tick
@@ -991,6 +997,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
 		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
 		robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
+		robot.robotBehaviour = new RobotSimBehaviour(robot.scene.unit);
 		return robot
 	}
 }

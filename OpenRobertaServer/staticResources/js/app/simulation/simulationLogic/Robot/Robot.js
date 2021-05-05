@@ -301,11 +301,14 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration);
                 wheel.update(dt);
             });
-            if (!this.robotBehaviour || !this.interpreter) {
+            if (!this.robotBehaviour) {
                 return;
             }
             // update sensors
             this.updateRobotBehaviourHardwareStateSensors();
+            if (!this.interpreter) {
+                return;
+            }
             if (this.delay > 0) {
                 this.delay -= dt; // reduce delay by dt each tick
             }
@@ -817,6 +820,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          * - brick: (xSize: 0.11m, ySize: 0.072m, mass: 0.268kg)
          * - wheel: (diameter: 0.043m, width: 0.022m, mass: 0.013kg, rollingFriction: 1.1°, slideFriction: 47.3°)
          * - motor: (mass: 0.080kg)
+         * - 100% speed: (1m ca. 3.19s)
+         * - total mass: 0.611kg
          */
         Robot.EV3 = function (scene) {
             var wheel = { diameter: 0.05, width: 0.02 };
@@ -840,6 +845,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 });
             matter_js_1.Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05));
             robot.addTouchSensor("1", new TouchSensor_1.TouchSensor(scene, touchSensorBody));
+            robot.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour(robot.scene.unit);
             return robot;
         };
         return Robot;
