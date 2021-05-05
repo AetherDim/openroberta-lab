@@ -75,7 +75,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 */
 	private touchSensors: StringMap<TouchSensor> = {}
 
-	private robotBehaviour?: RobotSimBehaviour
+	private robotBehaviour: RobotSimBehaviour
 
 	configuration?: StringMap<SensorType> = undefined;
 	programCode: any = null;
@@ -111,6 +111,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 		this.physicsWheelsList = []
 		this.physicsComposite = Composite.create()
+		this.robotBehaviour = new RobotSimBehaviour(this.scene.unit)
+
 		this.updatePhysicsObject()
 
 		this.addChild(this.bodyEntity)
@@ -997,7 +999,6 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
 		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
 		robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
-		robot.robotBehaviour = new RobotSimBehaviour(robot.scene.unit);
 		return robot
 	}
 }

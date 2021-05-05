@@ -59,6 +59,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             this.bodyContainer = this.bodyEntity.getDrawable();
             this.physicsWheelsList = [];
             this.physicsComposite = matter_js_1.Composite.create();
+            this.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour(this.scene.unit);
             this.updatePhysicsObject();
             this.addChild(this.bodyEntity);
             var t = this;
@@ -845,7 +846,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 });
             matter_js_1.Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05));
             robot.addTouchSensor("1", new TouchSensor_1.TouchSensor(scene, touchSensorBody));
-            robot.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour(robot.scene.unit);
             return robot;
         };
         return Robot;
