@@ -5,7 +5,6 @@ import "../ExtendedMatter"
 import { MAXPOWER } from '../interpreter.constants'
 import { Interpreter } from '../interpreter.interpreter'
 import { RobotSimBehaviour } from './RobotSimBehaviour'
-import { Unit } from '../Unit'
 import { Wheel } from './Wheel'
 import { ColorSensor } from './ColorSensor'
 import { UltrasonicSensor } from './UltrasonicSensor'
@@ -15,9 +14,8 @@ import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, P
 import { Scene } from '../Scene/Scene'
 import { StringMap, Util } from '../Util'
 // Dat Gui
-import {downloadFile, downloadJSONFile} from "./../GlobalDebug";
-import dat = require('dat.gui')
-import {BodyHelper} from "./BodyHelper";
+import { downloadFile } from "./../GlobalDebug";
+import { BodyHelper } from "./BodyHelper";
 import { RobotProgram } from './RobotProgram'
 
 const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
@@ -122,6 +120,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.addDebugSettings()
 	}
 
+	private transferWheelForcesToRobotBody = false
+
 	private addDebugSettings() {
 
 		const DebugGui = this.scene.getDebugGuiDynamic()
@@ -133,12 +133,26 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			pos.addUpdatable('x', () => this.body.position.x)
 			pos.addUpdatable('y', () => this.body.position.x)
 
+			robotFolder.add(this, "transferWheelForcesToRobotBody")
+
 			const wheelFolder = robotFolder.addFolder('Wheels')
 
 			const control = {
+				alongStepFunctionWidth: 100.0,
+				orthStepFunctionWidth: 100.0,
 				rollingFriction: this.wheelsList[0].rollingFriction,
 				slideFriction: this.wheelsList[0].slideFriction
 			}
+
+			wheelFolder.add(control, 'alongStepFunctionWidth', 0, 100).onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.alongStepFunctionWidth = value)
+				wheelFolder.updateDisplay()
+			})
+
+			wheelFolder.add(control, 'orthStepFunctionWidth', 0, 100).onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.orthStepFunctionWidth = value)
+				wheelFolder.updateDisplay()
+			})
 
 			wheelFolder.add(control, 'rollingFriction').onChange(value => {
 				this.wheelsList.forEach(wheel => wheel.rollingFriction = value)
@@ -429,6 +443,11 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.wheelsList.forEach(wheel => {
 			wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration)
 			wheel.update(dt)
+			if (this.transferWheelForcesToRobotBody) {
+				const force = wheel._wheelForceVector
+				Body.applyForce(wheel.physicsBody, wheel.physicsBody.position, Vector.neg(force))
+				Body.applyForce(this.body, wheel.physicsBody.position, force)
+			}
 		})
 
 

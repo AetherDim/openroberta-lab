@@ -33,6 +33,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              * robot type
              */
             this.type = 'default';
+            this.transferWheelForcesToRobotBody = false;
             this.children = [];
             /**
              * The torque multiplier for the left wheel
@@ -78,11 +79,22 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 var pos = robotFolder.addFolder('Position');
                 pos.addUpdatable('x', function () { return _this_1.body.position.x; });
                 pos.addUpdatable('y', function () { return _this_1.body.position.x; });
+                robotFolder.add(this, "transferWheelForcesToRobotBody");
                 var wheelFolder_1 = robotFolder.addFolder('Wheels');
                 var control = {
+                    alongStepFunctionWidth: 100.0,
+                    orthStepFunctionWidth: 100.0,
                     rollingFriction: this.wheelsList[0].rollingFriction,
                     slideFriction: this.wheelsList[0].slideFriction
                 };
+                wheelFolder_1.add(control, 'alongStepFunctionWidth', 0, 100).onChange(function (value) {
+                    _this_1.wheelsList.forEach(function (wheel) { return wheel.alongStepFunctionWidth = value; });
+                    wheelFolder_1.updateDisplay();
+                });
+                wheelFolder_1.add(control, 'orthStepFunctionWidth', 0, 100).onChange(function (value) {
+                    _this_1.wheelsList.forEach(function (wheel) { return wheel.orthStepFunctionWidth = value; });
+                    wheelFolder_1.updateDisplay();
+                });
                 wheelFolder_1.add(control, 'rollingFriction').onChange(function (value) {
                     _this_1.wheelsList.forEach(function (wheel) { return wheel.rollingFriction = value; });
                     wheelFolder_1.updateDisplay();
@@ -295,12 +307,18 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          * @param dt The time step in internal units
          */
         Robot.prototype.update = function (dt) {
+            var _this_1 = this;
             // update wheels velocities
             var gravitationalAcceleration = this.scene.unit.getAcceleration(9.81);
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
             this.wheelsList.forEach(function (wheel) {
                 wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration);
                 wheel.update(dt);
+                if (_this_1.transferWheelForcesToRobotBody) {
+                    var force = wheel._wheelForceVector;
+                    matter_js_1.Body.applyForce(wheel.physicsBody, wheel.physicsBody.position, matter_js_1.Vector.neg(force));
+                    matter_js_1.Body.applyForce(_this_1.body, wheel.physicsBody.position, force);
+                }
             });
             if (!this.robotBehaviour) {
                 return;

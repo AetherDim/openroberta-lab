@@ -1,11 +1,10 @@
 import { range } from "d3"
 import { Body, Vector } from "matter-js"
 import { ElectricMotor } from "./ElectricMotor"
-import { Unit } from "../Unit"
 import { DrawablePhysicsEntity, PhysicsRectEntity } from "../Entity"
 import { Scene } from "../Scene/Scene"
 import { Util } from "../Util"
-import {GUI} from "dat.gui";
+import { GUI } from "dat.gui";
 
 export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	
@@ -158,14 +157,19 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		// this.pixiContainer.addChild(this.wheelDebugObject)
 	}
 
-	
-	private customFunction(velocity: number, stepFunctionWidth: number = 10): number {
+	alongStepFunctionWidth = 100
+	orthStepFunctionWidth = 100
+
+
+	private customFunction(velocity: number, stepFunctionWidth: number): number { 
 		if (false) { 
 			return velocity/stepFunctionWidth 
 		} else {
 			return this.continuousStepFunction(velocity, stepFunctionWidth)
 		}
 	}
+
+	_wheelForceVector = { x: 0, y: 0}
 
 	update(dt: number) {
 		const wheel = this.physicsBody
@@ -175,7 +179,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 
 		// torque from the rolling friction
 		// rollingFriction = d/R and d * F_N = torque
-		const rollingFrictionTorque = this.customFunction(-wheel.velocityAlongBody(), 100)
+		const rollingFrictionTorque = this.customFunction(-wheel.velocityAlongBody(), this.alongStepFunctionWidth)
 				* this.rollingFriction * this.wheelRadius * this.normalForce
 
 		// TODO: already simulated by `wheelSlideFrictionForce`?
@@ -184,8 +188,12 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		// torque for 
 		const wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody()
 		var alongSlideFrictionForce = this.normalForce * this.slideFriction
-		 * this.customFunction(wheelVelocityDifference)
+		 * this.customFunction(wheelVelocityDifference, this.alongStepFunctionWidth)
 
+		// t = time
+		// v0 = initial velocity, f = force, m = mass, v1 = end velocity
+		// o0 = initial angular velocity, T = torque, I = moment of inertia, o1 = end angular velocity
+		//
 		// v0 + f/m * t = v1
 		// o0 + T/I * t = o1
 		//
@@ -204,11 +212,11 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		// for m -> infinity:
 		// t = (o0 * r - v0) / (-T/I*r)
 		//   = (o0 * r - v0)/r / (-T/I)
-		var slidingFrictionTorque = -alongSlideFrictionForce * this.wheelRadius
+		let slidingFrictionTorque = -alongSlideFrictionForce * this.wheelRadius
 
 		let alongForce = 0
 
-		// TODO: A bot hacky to use a constant acceleration
+		// TODO: A bit hacky to use a constant acceleration
 		const mass = this.normalForce / this.scene.unit.getAcceleration(9.81)//wheel.mass
 		const totalTorque = slidingFrictionTorque + this.torque + rollingFrictionTorque
 		/** time to adjust speed such that the wheel rotation speed matches the center of mass wheel speed */
@@ -244,13 +252,12 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		// friction orthogonal to the wheel rolling direction
 		const orthVelocity = Vector.dot(wheel.velocity, orthVec)
 		const orthSlideFrictionForce = this.normalForce * this.slideFriction
-		 * this.customFunction(-orthVelocity, 100)
+		 * this.customFunction(-orthVelocity, this.orthStepFunctionWidth)
 		const orthSlideFrictionForceVec = Vector.mult(orthVec, orthSlideFrictionForce)
 
 		// apply the friction force
-		Body.applyForce(wheel, wheel.position,
-			Util.vectorAdd(alongForceVec, orthSlideFrictionForceVec)
-		)
+		this._wheelForceVector = Util.vectorAdd(alongForceVec, orthSlideFrictionForceVec)
+		Body.applyForce(wheel, wheel.position, this._wheelForceVector)
 
 
 		// update `wheelAngle` and `angularVelocity` using torque
