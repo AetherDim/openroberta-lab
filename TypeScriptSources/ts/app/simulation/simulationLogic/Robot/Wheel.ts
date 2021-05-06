@@ -55,10 +55,10 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	 * The wheel radius is half of the `width`.
 	 * 
 	 * @param scene
-	 * @param x
-	 * @param y 
-	 * @param width 
-	 * @param height 
+	 * @param x in m (SI units)
+	 * @param y in m (SI units)
+	 * @param width in m (SI units)
+	 * @param height in m (SI units)
 	 * @param physicsEntity 
 	 * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
 	 */
@@ -159,15 +159,21 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		// this.pixiContainer.addChild(this.wheelDebugObject)
 	}
 
-	alongStepFunctionWidth = 100
-	orthStepFunctionWidth = 100
+	alongStepFunctionWidth = 0.1
+	orthStepFunctionWidth = 0.1
 
 
+	/**
+	 * Returns a new velocity from `velocity`
+	 * 
+	 * @param velocity in internal units
+	 * @param stepFunctionWidth in m/s (SI units)
+	 */
 	private customFunction(velocity: number, stepFunctionWidth: number): number { 
 		if (false) { 
 			return velocity/stepFunctionWidth 
 		} else {
-			return Util.continuousSign(velocity, stepFunctionWidth)
+			return Util.continuousSign(velocity, this.scene.unit.getVelocity(stepFunctionWidth))
 		}
 	}
 

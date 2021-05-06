@@ -139,10 +139,10 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.slideFriction = Util_1.Util.closedRange(0.3, 0.3, 0.1);
             this.otherRollingFriction = Util_1.Util.closedRange(0.03, 0.03, 0.01);
             this.otherSlideFriction = Util_1.Util.closedRange(0.05, 0.05, 0.01);
-            //driveForwardSpeed = Util.range(10, 100, 10)
-            //driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-            this.rotateSpeed = Util_1.Util.closedRange(5, 100, 5);
-            this.rotateAngle = Util_1.Util.closedRange(0, 180, 10);
+            // driveForwardSpeed = Util.range(60, 100, 1)
+            // driveForwardDistance = Util.range(0, 2.0, 0.04)
+            this.rotateSpeed = Util_1.Util.closedRange(1, 100, 1);
+            this.rotateAngle = Util_1.Util.closedRange(0, 360, 10);
             this.directionRight = [true];
         }
         return KeyData;
@@ -178,6 +178,10 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
         ValueHelper.prototype.getSignedDistanceToInitialValue = function () {
             return this.getSignedDistance(this.initialValue, this._getNewValue(this.context));
         };
+        ValueHelper.prototype.withMappedSignedDistance = function (toNewSignedDistance) {
+            var getSignedDistance = this.getSignedDistance;
+            return new ValueHelper(this.name, this.initialValue, toNewSignedDistance(this.endMaxDelta), this.context, this._getNewValue, function (v1, v2) { return toNewSignedDistance(getSignedDistance(v1, v2)); });
+        };
         ValueHelper.fromNumber = function (opt) {
             return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, function (start, end) { return end - start; });
         };
@@ -199,21 +203,21 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
              * Time since start of test in sections
              */
             _this.startWallTime = 0.0;
-            _this.radianToAngleFactor = 180 / Math.PI;
+            _this.constUnit = _this.getUnitConverter();
             _this.robotPositionValue = ValueHelper.fromVector({
                 name: "initPositionDistance",
                 initialValue: { x: 0.0, y: 0.0 },
                 endMaxDelta: Infinity,
                 context: _this,
                 getNewValue: function (c) { return c.robot.body.position; }
-            });
+            }).withMappedSignedDistance(function (distance) { return _this.constUnit.fromLength(distance); });
             _this.robotRotationValue = ValueHelper.fromNumber({
                 name: "initAngleDelta",
                 initialValue: 0,
                 endMaxDelta: Infinity,
                 context: _this,
-                getNewValue: function (c) { return c.robot.body.angle * c.radianToAngleFactor; }
-            });
+                getNewValue: function (c) { return c.robot.body.angle; }
+            }).withMappedSignedDistance(function (angle) { return Util_1.Util.toDegrees(angle); });
             /**
              * The array of `ValueHelper`s. Note that `initialValue` has to be set in `onInit`
              */
@@ -293,7 +297,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                 var program = true ?
                     [
                         constructProgram([
-                            //driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                            // driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
                             rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
                         ])
                     ] : Util_1.Util.simulation.storedPrograms;

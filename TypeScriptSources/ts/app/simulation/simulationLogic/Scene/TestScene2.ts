@@ -52,7 +52,7 @@ export class TestScene2 extends RRCScene {
 
 		this.initRobot({
 			position: {x: 100, y: 400},
-			rotation: 60
+			rotation: 0
 		})
 
 		chain.next()

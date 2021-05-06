@@ -72,7 +72,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
             this.setWaypointList(waypointList);
             this.initRobot({
                 position: { x: 100, y: 400 },
-                rotation: 60
+                rotation: 0
             });
             chain.next();
         };

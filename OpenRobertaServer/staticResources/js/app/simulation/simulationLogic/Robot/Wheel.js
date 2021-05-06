@@ -38,10 +38,10 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
          * The wheel radius is half of the `width`.
          *
          * @param scene
-         * @param x
-         * @param y
-         * @param width
-         * @param height
+         * @param x in m (SI units)
+         * @param y in m (SI units)
+         * @param width in m (SI units)
+         * @param height in m (SI units)
          * @param physicsEntity
          * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
          */
@@ -72,8 +72,8 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
             _this.angularVelocity = 0;
             _this.wheelProfile = [];
             _this.debugContainer = new PIXI.Container();
-            _this.alongStepFunctionWidth = 100;
-            _this.orthStepFunctionWidth = 100;
+            _this.alongStepFunctionWidth = 0.1;
+            _this.orthStepFunctionWidth = 0.1;
             _this._wheelForceVector = { x: 0, y: 0 };
             _this.physicsEntity = physicsEntity;
             _this.physicsBody = _this.physicsEntity.getPhysicsBody();
@@ -152,12 +152,18 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
             // this.wheelDebugObject = text
             // this.pixiContainer.addChild(this.wheelDebugObject)
         };
+        /**
+         * Returns a new velocity from `velocity`
+         *
+         * @param velocity in internal units
+         * @param stepFunctionWidth in m/s (SI units)
+         */
         Wheel.prototype.customFunction = function (velocity, stepFunctionWidth) {
             if (false) {
                 return velocity / stepFunctionWidth;
             }
             else {
-                return Util_1.Util.continuousSign(velocity, stepFunctionWidth);
+                return Util_1.Util.continuousSign(velocity, this.scene.unit.getVelocity(stepFunctionWidth));
             }
         };
         Wheel.prototype.update = function (dt) {

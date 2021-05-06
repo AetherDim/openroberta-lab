@@ -142,10 +142,10 @@ class KeyData {
 	otherRollingFriction = Util.closedRange(0.03, 0.03, 0.01)
 	otherSlideFriction = Util.closedRange(0.05, 0.05, 0.01)
 
-	//driveForwardSpeed = Util.range(10, 100, 10)
-	//driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-	rotateSpeed = Util.closedRange(5, 100, 5)
-	rotateAngle = Util.closedRange(0, 180, 10)
+	// driveForwardSpeed = Util.range(60, 100, 1)
+	// driveForwardDistance = Util.range(0, 2.0, 0.04)
+	rotateSpeed = Util.closedRange(1, 100, 1)
+	rotateAngle = Util.closedRange(0, 360, 10)
 	directionRight = [true]
 }
 
@@ -195,6 +195,17 @@ class ValueHelper<T, C> {
 		return this.getSignedDistance(this.initialValue, this._getNewValue(this.context))
 	}
 
+	withMappedSignedDistance(toNewSignedDistance: (distance: number) => number) {
+		const getSignedDistance = this.getSignedDistance
+		return new ValueHelper(
+			this.name,
+			this.initialValue,
+			toNewSignedDistance(this.endMaxDelta),
+			this.context,
+			this._getNewValue,
+			(v1, v2) => toNewSignedDistance(getSignedDistance(v1, v2))
+		)
+	}
 
 	static fromNumber<C>(opt: { name: string, initialValue: number, endMaxDelta: number, context: C, getNewValue: (context: C) => number }): ValueHelper<number, C> {
 		return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, (start, end) => end - start)
@@ -225,7 +236,7 @@ export class TestScene3 extends Scene {
 	 */
 	startWallTime = 0.0
 
-	readonly radianToAngleFactor = 180 / Math.PI
+	readonly constUnit = this.getUnitConverter()
 
 	readonly robotPositionValue =
 		ValueHelper.fromVector({
@@ -234,7 +245,7 @@ export class TestScene3 extends Scene {
 			endMaxDelta: Infinity,
 			context: this,
 			getNewValue: (c) => c.robot.body.position
-		})
+		}).withMappedSignedDistance(distance => this.constUnit.fromLength(distance))
 
 	readonly robotRotationValue = 
 		ValueHelper.fromNumber({
@@ -242,8 +253,8 @@ export class TestScene3 extends Scene {
 			initialValue: 0,
 			endMaxDelta: Infinity,
 			context: this,
-			getNewValue: (c) => c.robot.body.angle * c.radianToAngleFactor
-		})
+			getNewValue: (c) => c.robot.body.angle
+		}).withMappedSignedDistance(angle => Util.toDegrees(angle))
 
 
 	/**
@@ -251,7 +262,7 @@ export class TestScene3 extends Scene {
 	 */
 	valueHelpers = [this.robotPositionValue, this.robotRotationValue]
 
-	data: any[] = []
+	data: unknown[] = []
 
 	keyIndex = 0
 
@@ -358,7 +369,7 @@ export class TestScene3 extends Scene {
 			const program = true ? 
 				[
 					constructProgram([
-						//driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+						// driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
 						rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
 					])
 				] : Util.simulation.storedPrograms

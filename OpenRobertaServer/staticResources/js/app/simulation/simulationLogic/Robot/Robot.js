@@ -51,6 +51,19 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 maxForceControlEncoderDifference: 0.2
             };
             /**
+             * For given value `vGiven` calculate the actual one `v = vGiven * factor`
+             */
+            this.calibrationParameters = {
+                /**
+                 * Works for all speeds with an error of ±1.2%
+                 */
+                rotationAngleFactor: 0.6333,
+                /**
+                 * Valid for motor force below 84%. At 100% the error is about 10%.
+                 */
+                driveForwardDistanceFactor: 0.76
+            };
+            /**
              * robot type
              */
             this.type = 'default';
@@ -106,16 +119,16 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 wheelFolder_1.add(this.endEncoderSettings, "maxAngularVelocity", 0, 0.3);
                 wheelFolder_1.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 0.3);
                 var control = {
-                    alongStepFunctionWidth: 100.0,
-                    orthStepFunctionWidth: 100.0,
+                    alongStepFunctionWidth: 0.1,
+                    orthStepFunctionWidth: 0.1,
                     rollingFriction: this.wheelsList[0].rollingFriction,
                     slideFriction: this.wheelsList[0].slideFriction
                 };
-                wheelFolder_1.add(control, 'alongStepFunctionWidth', 0, 100).onChange(function (value) {
+                wheelFolder_1.add(control, 'alongStepFunctionWidth', 0, 0.1).onChange(function (value) {
                     _this_1.wheelsList.forEach(function (wheel) { return wheel.alongStepFunctionWidth = value; });
                     wheelFolder_1.updateDisplay();
                 });
-                wheelFolder_1.add(control, 'orthStepFunctionWidth', 0, 100).onChange(function (value) {
+                wheelFolder_1.add(control, 'orthStepFunctionWidth', 0, 0.1).onChange(function (value) {
                     _this_1.wheelsList.forEach(function (wheel) { return wheel.orthStepFunctionWidth = value; });
                     wheelFolder_1.updateDisplay();
                 });
@@ -400,9 +413,10 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     if (!this.endEncoder) {
                         this.needsNewCommands = false;
                         var averageSpeed = 0.5 * (Math.abs(driveData.speed.left) + Math.abs(driveData.speed.right));
+                        var driveFactor = 1 / this.calibrationParameters.driveForwardDistanceFactor;
                         this.endEncoder = {
-                            left: this.encoder.left + driveData.distance / this.leftDrivingWheel.wheelRadius * driveData.speed.left / averageSpeed,
-                            right: this.encoder.right + driveData.distance / this.rightDrivingWheel.wheelRadius * driveData.speed.right / averageSpeed
+                            left: this.encoder.left + driveData.distance / this.leftDrivingWheel.wheelRadius * driveData.speed.left / averageSpeed * driveFactor,
+                            right: this.encoder.right + driveData.distance / this.rightDrivingWheel.wheelRadius * driveData.speed.right / averageSpeed * driveFactor
                         };
                     }
                     useEndEncoder(driveData.speed.left, driveData.speed.right);
@@ -422,7 +436,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                         var axleLength = Util_1.Util.vectorDistance(this.leftDrivingWheel.physicsBody.position, this.rightDrivingWheel.physicsBody.position);
                         var wheelDrivingDistance = rotateData.angle * 0.5 * axleLength;
                         // left rotation for `angle * speed > 0`
-                        var rotationFactor = Math.sign(rotateData.speed);
+                        var rotationFactor = Math.sign(rotateData.speed) / this.calibrationParameters.rotationAngleFactor;
                         this.endEncoder = {
                             left: this.encoder.left - wheelDrivingDistance / this.leftDrivingWheel.wheelRadius * rotationFactor,
                             right: this.encoder.right + wheelDrivingDistance / this.rightDrivingWheel.wheelRadius * rotationFactor

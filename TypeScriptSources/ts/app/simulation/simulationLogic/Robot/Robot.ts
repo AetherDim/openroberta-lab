@@ -106,6 +106,20 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		 */
 		maxForceControlEncoderDifference: 0.2
 	}
+
+	/**
+	 * For given value `vGiven` calculate the actual one `v = vGiven * factor`
+	 */
+	private calibrationParameters = {
+		/**
+		 * Works for all speeds with an error of ±1.2%
+		 */
+		rotationAngleFactor: 0.6333,
+		/**
+		 * Valid for motor force below 84%. At 100% the error is about 10%.
+		 */
+		driveForwardDistanceFactor: 0.76
+	}
 	
 	/**
 	 * robot type
@@ -164,18 +178,18 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			wheelFolder.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 0.3)
 
 			const control = {
-				alongStepFunctionWidth: 100.0,
-				orthStepFunctionWidth: 100.0,
+				alongStepFunctionWidth: 0.1,
+				orthStepFunctionWidth: 0.1,
 				rollingFriction: this.wheelsList[0].rollingFriction,
 				slideFriction: this.wheelsList[0].slideFriction
 			}
 
-			wheelFolder.add(control, 'alongStepFunctionWidth', 0, 100).onChange(value => {
+			wheelFolder.add(control, 'alongStepFunctionWidth', 0, 0.1).onChange(value => {
 				this.wheelsList.forEach(wheel => wheel.alongStepFunctionWidth = value)
 				wheelFolder.updateDisplay()
 			})
 
-			wheelFolder.add(control, 'orthStepFunctionWidth', 0, 100).onChange(value => {
+			wheelFolder.add(control, 'orthStepFunctionWidth', 0, 0.1).onChange(value => {
 				this.wheelsList.forEach(wheel => wheel.orthStepFunctionWidth = value)
 				wheelFolder.updateDisplay()
 			})
@@ -537,9 +551,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				if (!this.endEncoder) {
 					this.needsNewCommands = false
 					const averageSpeed = 0.5 * (Math.abs(driveData.speed.left) + Math.abs(driveData.speed.right))
+					const driveFactor = 1 / this.calibrationParameters.driveForwardDistanceFactor
 					this.endEncoder = {
-						left: this.encoder.left + driveData.distance / this.leftDrivingWheel.wheelRadius * driveData.speed.left / averageSpeed,
-						right: this.encoder.right + driveData.distance / this.rightDrivingWheel.wheelRadius * driveData.speed.right / averageSpeed
+						left: this.encoder.left + driveData.distance / this.leftDrivingWheel.wheelRadius * driveData.speed.left / averageSpeed * driveFactor,
+						right: this.encoder.right + driveData.distance / this.rightDrivingWheel.wheelRadius * driveData.speed.right / averageSpeed * driveFactor
 					}
 				}
 				useEndEncoder(driveData.speed.left, driveData.speed.right)
@@ -560,7 +575,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 					const axleLength = Util.vectorDistance(this.leftDrivingWheel.physicsBody.position, this.rightDrivingWheel.physicsBody.position)
 					const wheelDrivingDistance = rotateData.angle * 0.5 * axleLength
 					// left rotation for `angle * speed > 0`
-					const rotationFactor = Math.sign(rotateData.speed)
+					const rotationFactor = Math.sign(rotateData.speed) / this.calibrationParameters.rotationAngleFactor
 					this.endEncoder = {
 						left: this.encoder.left - wheelDrivingDistance / this.leftDrivingWheel.wheelRadius * rotationFactor,
 						right: this.encoder.right + wheelDrivingDistance / this.rightDrivingWheel.wheelRadius * rotationFactor
