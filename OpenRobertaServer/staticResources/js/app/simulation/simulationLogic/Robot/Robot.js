@@ -30,6 +30,27 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              */
             this.delay = 0;
             /**
+             * Settings for the usage of `endEncoder`
+             */
+            this.endEncoderSettings = {
+                /**
+                 * Maximum encoder angle difference in radians.
+                 * End condition: `abs(encoder - endEncoder) < angleAccuracy`
+                 */
+                maxAngleDifference: 0.02,
+                /**
+                 * Maximum encoder angular velocity accuracy in radians/'internal seconds' of the driving wheels.
+                 * End condition: `abs(wheel.angularVelocity) < maxAngularVelocity`
+                 */
+                maxAngularVelocity: 0.02,
+                /**
+                 * Given the encoder difference `encoderDiff = endEncoder - encoder`, use
+                 * `Util.continuousSign(encoderDiff, maxForceControlEncoderDifference)`
+                 * as multiplier to the maximum force.
+                 */
+                maxForceControlEncoderDifference: 0.2
+            };
+            /**
              * robot type
              */
             this.type = 'default';
@@ -81,6 +102,9 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 pos.addUpdatable('y', function () { return _this_1.body.position.x; });
                 robotFolder.add(this, "transferWheelForcesToRobotBody");
                 var wheelFolder_1 = robotFolder.addFolder('Wheels');
+                wheelFolder_1.add(this.endEncoderSettings, "maxAngleDifference", 0, 0.3);
+                wheelFolder_1.add(this.endEncoderSettings, "maxAngularVelocity", 0, 0.3);
+                wheelFolder_1.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 0.3);
                 var control = {
                     alongStepFunctionWidth: 100.0,
                     orthStepFunctionWidth: 100.0,
@@ -320,9 +344,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     matter_js_1.Body.applyForce(_this_1.body, wheel.physicsBody.position, force);
                 }
             });
-            if (!this.robotBehaviour) {
-                return;
-            }
             // update sensors
             this.updateRobotBehaviourHardwareStateSensors();
             if (!this.interpreter) {
@@ -348,7 +369,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              * @param speedRight Use magnitude as maximum right speed (can be negative)
              */
             function useEndEncoder(speedLeft, speedRight) {
-                var _a;
                 if (!t.endEncoder) {
                     return;
                 }
@@ -356,15 +376,20 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     left: t.endEncoder.left - t.encoder.left,
                     right: t.endEncoder.right - t.encoder.right
                 };
-                if (Math.abs(encoderDifference.left) < 0.1 && Math.abs(encoderDifference.right) < 0.1) {
+                var stopEncoder = Math.abs(encoderDifference.left) < t.endEncoderSettings.maxAngleDifference &&
+                    Math.abs(encoderDifference.right) < t.endEncoderSettings.maxAngleDifference &&
+                    Math.abs(t.leftDrivingWheel.angularVelocity) < t.endEncoderSettings.maxAngularVelocity &&
+                    Math.abs(t.rightDrivingWheel.angularVelocity) < t.endEncoderSettings.maxAngularVelocity;
+                if (stopEncoder) {
                     // on end
                     t.endEncoder = null;
-                    (_a = t.robotBehaviour) === null || _a === void 0 ? void 0 : _a.resetCommands();
+                    t.robotBehaviour.resetCommands();
                     t.needsNewCommands = true;
                 }
                 else {
-                    t.leftForce = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft);
-                    t.rightForce = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight);
+                    var maxDifference = t.endEncoderSettings.maxForceControlEncoderDifference;
+                    t.leftForce = Util_1.Util.continuousSign(encoderDifference.left, maxDifference) * Math.abs(speedLeft);
+                    t.rightForce = Util_1.Util.continuousSign(encoderDifference.right, maxDifference) * Math.abs(speedRight);
                 }
             }
             var driveData = this.robotBehaviour.drive;
@@ -636,21 +661,18 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         };
         ;
         Robot.prototype.addHTMLSensorValuesTo = function (list) {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d;
             var s = this.scene;
             var appendAny = function (label, value) { list.push({ label: label, value: value }); };
             var append = function (label, value, end) {
                 list.push({ label: label, value: Math.round(value * 1000000) / 1000000 + (end !== null && end !== void 0 ? end : "") });
             };
-            var sensors = (_a = this.robotBehaviour) === null || _a === void 0 ? void 0 : _a.getHardwareStateSensors();
-            if (sensors == undefined) {
-                return;
-            }
+            var sensors = this.robotBehaviour.getHardwareStateSensors();
             append("Robot X", this.body.position.x);
             append("Robot Y", this.body.position.y);
             append("Robot θ", this.body.angle * 180 / Math.PI, "°");
-            append("Motor left", (_c = (_b = sensors.encoder) === null || _b === void 0 ? void 0 : _b.left) !== null && _c !== void 0 ? _c : 0, "°");
-            append("Motor right", (_e = (_d = sensors.encoder) === null || _d === void 0 ? void 0 : _d.right) !== null && _e !== void 0 ? _e : 0, "°");
+            append("Motor left", Util_1.Util.toDegrees((_b = (_a = sensors.encoder) === null || _a === void 0 ? void 0 : _a.left) !== null && _b !== void 0 ? _b : 0), "°");
+            append("Motor right", Util_1.Util.toDegrees((_d = (_c = sensors.encoder) === null || _c === void 0 ? void 0 : _c.right) !== null && _d !== void 0 ? _d : 0), "°");
             for (var port in this.touchSensors) {
                 appendAny("Touch Sensor " + port, this.touchSensors[port].getIsTouched());
             }
@@ -672,9 +694,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         };
         Robot.prototype.updateRobotBehaviourHardwareStateSensors = function () {
             var _a;
-            if (!this.robotBehaviour) {
-                return;
-            }
             var sensors = this.robotBehaviour.getHardwareStateSensors();
             // encoder
             sensors.encoder = {

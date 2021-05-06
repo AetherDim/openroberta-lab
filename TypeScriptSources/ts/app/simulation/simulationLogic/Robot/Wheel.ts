@@ -33,8 +33,17 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 	 */
 	normalForce = 0
 
+	/**
+	 * previous wheel angle in radians
+	 */
 	prevWheelAngle = 0
+	/**
+	 * wheel angle in radians
+	 */
 	wheelAngle = 0
+	/**
+	 * wheel angular velocity in radians/'internal seconds'
+	 */
 	angularVelocity = 0
 
 	private readonly wheelProfile: PIXI.Graphics[] = []
@@ -127,13 +136,6 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		this.normalForce += force
 	}
 
-	private continuousStepFunction(x: number, width: number) {
-		if (Math.abs(x) > width) {
-			return Math.sign(x)
-		}
-		return x / width
-	}
-
 	private debugText?: PIXI.Text
 
 	updateWheelProfile() {
@@ -165,7 +167,7 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		if (false) { 
 			return velocity/stepFunctionWidth 
 		} else {
-			return this.continuousStepFunction(velocity, stepFunctionWidth)
+			return Util.continuousSign(velocity, stepFunctionWidth)
 		}
 	}
 

@@ -142,12 +142,39 @@ export class Util {
 	 * @param end exclusive end of range
 	 * @param step the step size of the range
 	 */
-	 static range(start: number, end: number, step: number = 1) {
+	static range(start: number, end: number, step: number = 1) {
 		const ans: number[] = [];
 		for (let i = start; i < end; i += step) {
 			ans.push(i);
 		}
 		return ans;
+	}
+
+	/**
+	 * Convert radians to degrees
+	 */
+	static toDegrees(radians: number): number {
+		return radians / Math.PI * 180
+	}
+
+	/**
+	 * Convert degrees to radians
+	 */
+	 static toRadians(degrees: number): number {
+		return degrees / 180 * Math.PI
+	}
+
+	/**
+	 * Returns `sign(x)` if `abs(x) <= width` otherwise `x/width`.
+	 * 
+	 * @param x the number
+	 * @param width the width of the linear region
+	 */
+	static continuousSign(x: number, width: number) {
+		if (Math.abs(x) >= width) {
+			return Math.sign(x)
+		}
+		return x / width
 	}
 
 	/**

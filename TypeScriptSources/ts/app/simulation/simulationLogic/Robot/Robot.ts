@@ -84,6 +84,28 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * Time to wait until the next command should be executed (in internal units)
 	 */
 	private delay = 0
+
+	/**
+	 * Settings for the usage of `endEncoder`
+	 */
+	private endEncoderSettings = {
+		/**
+		 * Maximum encoder angle difference in radians.
+		 * End condition: `abs(encoder - endEncoder) < angleAccuracy`
+		 */
+		maxAngleDifference: 0.02,
+		/**
+		 * Maximum encoder angular velocity accuracy in radians/'internal seconds' of the driving wheels.
+		 * End condition: `abs(wheel.angularVelocity) < maxAngularVelocity`
+		 */
+		maxAngularVelocity: 0.02,
+		/**
+		 * Given the encoder difference `encoderDiff = endEncoder - encoder`, use
+		 * `Util.continuousSign(encoderDiff, maxForceControlEncoderDifference)`
+		 * as multiplier to the maximum force.
+		 */
+		maxForceControlEncoderDifference: 0.2
+	}
 	
 	/**
 	 * robot type
@@ -136,6 +158,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			robotFolder.add(this, "transferWheelForcesToRobotBody")
 
 			const wheelFolder = robotFolder.addFolder('Wheels')
+
+			wheelFolder.add(this.endEncoderSettings, "maxAngleDifference", 0, 0.3)
+			wheelFolder.add(this.endEncoderSettings, "maxAngularVelocity", 0, 0.3)
+			wheelFolder.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 0.3)
 
 			const control = {
 				alongStepFunctionWidth: 100.0,
@@ -450,12 +476,6 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			}
 		})
 
-
-
-		if(!this.robotBehaviour) {
-			return;
-		}
-
 		// update sensors
 		this.updateRobotBehaviourHardwareStateSensors()
 
@@ -490,14 +510,22 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				left: t.endEncoder.left - t.encoder.left,
 				right: t.endEncoder.right - t.encoder.right
 			}
-			if (Math.abs(encoderDifference.left) < 0.1 && Math.abs(encoderDifference.right) < 0.1) {
+			
+			const stopEncoder =
+				Math.abs(encoderDifference.left) < t.endEncoderSettings.maxAngleDifference &&
+				Math.abs(encoderDifference.right) < t.endEncoderSettings.maxAngleDifference &&
+				Math.abs(t.leftDrivingWheel.angularVelocity) < t.endEncoderSettings.maxAngularVelocity &&
+				Math.abs(t.rightDrivingWheel.angularVelocity) < t.endEncoderSettings.maxAngularVelocity
+
+			if (stopEncoder) {
 				// on end
 				t.endEncoder = null
-				t.robotBehaviour?.resetCommands()
+				t.robotBehaviour.resetCommands()
 				t.needsNewCommands = true
 			} else {
-				t.leftForce = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft)
-				t.rightForce = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight)
+				const maxDifference = t.endEncoderSettings.maxForceControlEncoderDifference
+				t.leftForce = Util.continuousSign(encoderDifference.left, maxDifference) * Math.abs(speedLeft)
+				t.rightForce = Util.continuousSign(encoderDifference.right, maxDifference) * Math.abs(speedRight)
 			}
 		}
 
@@ -787,15 +815,13 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			list.push({ label: label, value: Math.round(value * 1000000)/1000000 + (end ?? "")})
 		}
 
-		const sensors = this.robotBehaviour?.getHardwareStateSensors()
-		if (sensors == undefined) {
-			return
-		}
+		const sensors = this.robotBehaviour.getHardwareStateSensors()
+
 		append("Robot X", this.body.position.x)
 		append("Robot Y", this.body.position.y)
 		append("Robot θ", this.body.angle * 180 / Math.PI, "°")
-		append("Motor left", sensors.encoder?.left ?? 0, "°")
-		append("Motor right", sensors.encoder?.right ?? 0, "°")
+		append("Motor left", Util.toDegrees(sensors.encoder?.left ?? 0), "°")
+		append("Motor right", Util.toDegrees(sensors.encoder?.right ?? 0), "°")
 		for (const port in this.touchSensors) {
 			appendAny("Touch Sensor "+port, this.touchSensors[port].getIsTouched())
 		}
@@ -819,17 +845,15 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	private updateRobotBehaviourHardwareStateSensors() {
-		if (!this.robotBehaviour) {
-			return
-		}
+
 		const sensors = this.robotBehaviour.getHardwareStateSensors()
-		
+
 		// encoder
 		sensors.encoder = {
 			left: this.encoder.left,
 			right: this.encoder.right
 		}
-		
+
 		// gyo sensor
 		// Note: OpenRoberta has a bug for the gyro.rate where they calculate it by
 		// angleDifference * timeDifference but it should be angleDifference / timeDifference

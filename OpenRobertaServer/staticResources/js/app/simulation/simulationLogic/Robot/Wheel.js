@@ -58,8 +58,17 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
              * The force in the `z` direction
              */
             _this.normalForce = 0;
+            /**
+             * previous wheel angle in radians
+             */
             _this.prevWheelAngle = 0;
+            /**
+             * wheel angle in radians
+             */
             _this.wheelAngle = 0;
+            /**
+             * wheel angular velocity in radians/'internal seconds'
+             */
             _this.angularVelocity = 0;
             _this.wheelProfile = [];
             _this.debugContainer = new PIXI.Container();
@@ -125,12 +134,6 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
         Wheel.prototype.applyNormalForce = function (force) {
             this.normalForce += force;
         };
-        Wheel.prototype.continuousStepFunction = function (x, width) {
-            if (Math.abs(x) > width) {
-                return Math.sign(x);
-            }
-            return x / width;
-        };
         Wheel.prototype.updateWheelProfile = function () {
             for (var i = 0; i < this.wheelProfile.length; i++) {
                 var profileGraphics = this.wheelProfile[i];
@@ -154,7 +157,7 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
                 return velocity / stepFunctionWidth;
             }
             else {
-                return this.continuousStepFunction(velocity, stepFunctionWidth);
+                return Util_1.Util.continuousSign(velocity, stepFunctionWidth);
             }
         };
         Wheel.prototype.update = function (dt) {

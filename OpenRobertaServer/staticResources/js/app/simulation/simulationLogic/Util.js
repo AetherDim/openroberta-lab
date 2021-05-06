@@ -68,6 +68,30 @@ define(["require", "exports"], function (require, exports) {
             return ans;
         };
         /**
+         * Convert radians to degrees
+         */
+        Util.toDegrees = function (radians) {
+            return radians / Math.PI * 180;
+        };
+        /**
+         * Convert degrees to radians
+         */
+        Util.toRadians = function (degrees) {
+            return degrees / 180 * Math.PI;
+        };
+        /**
+         * Returns `sign(x)` if `abs(x) <= width` otherwise `x/width`.
+         *
+         * @param x the number
+         * @param width the width of the linear region
+         */
+        Util.continuousSign = function (x, width) {
+            if (Math.abs(x) >= width) {
+                return Math.sign(x);
+            }
+            return x / width;
+        };
+        /**
          * Use this function in the `default` block of a `switch` to check that `value` is of type `never` i.e. this function is never reached.
          *
          * @param value the value which is switched over
