@@ -17,6 +17,7 @@ import { StringMap, Util } from '../Util'
 import { downloadFile } from "./../GlobalDebug";
 import { BodyHelper } from "./BodyHelper";
 import { RobotProgram } from './RobotProgram'
+import { hsvToColorName, rgbToHsv } from '../Color'
 
 const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
 	// german description: "HT Infrarotsensor"
@@ -891,13 +892,19 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
 			const color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
-			colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics)
+			const r = color[0], g = color[1], b = color[2]
+			
+			colorSensor.setDetectedColor(r, g, b, this.updateSensorGraphics)
+
+			const hsv = rgbToHsv(r, g, b)
+			const colour = hsvToColorName(hsv)
+
 			sensors.color[port] = {
 				ambientlight: 0,
-				colorValue: "none",
-				colour: "none",
-				light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
-				rgb: [color[0], color[1], color[2]]
+				colorValue: colour,
+				colour: colour,
+				light: ((r + g + b) / 3 / 2.55),
+				rgb: [r, g, b]
 			}
 		}
 

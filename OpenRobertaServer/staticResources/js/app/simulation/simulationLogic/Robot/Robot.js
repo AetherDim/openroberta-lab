@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1) {
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../Color", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1, Color_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -734,13 +734,16 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 var colorSensorPosition = this.getAbsolutePosition(colorSensor.position);
                 // the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
                 var color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
-                colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics);
+                var r = color[0], g = color[1], b = color[2];
+                colorSensor.setDetectedColor(r, g, b, this.updateSensorGraphics);
+                var hsv = Color_1.rgbToHsv(r, g, b);
+                var colour = Color_1.hsvToColorName(hsv);
                 sensors.color[port] = {
                     ambientlight: 0,
-                    colorValue: "none",
-                    colour: "none",
-                    light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
-                    rgb: [color[0], color[1], color[2]]
+                    colorValue: colour,
+                    colour: colour,
+                    light: ((r + g + b) / 3 / 2.55),
+                    rgb: [r, g, b]
                 };
             }
             var allBodies = this.scene.getAllPhysicsBodies();

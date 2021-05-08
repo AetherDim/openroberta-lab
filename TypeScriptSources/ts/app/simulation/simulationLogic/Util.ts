@@ -452,4 +452,3 @@ declare global {
 		keys<T>(o: T): ObjectKeys<T>
 	}
 }
-
