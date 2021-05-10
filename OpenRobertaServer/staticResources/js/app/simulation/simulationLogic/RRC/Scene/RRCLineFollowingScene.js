@@ -107,6 +107,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
                     score: 50
                 }
             ];
+            _this.obstacleColor = 0xf68712;
             // Walls
             _this.wallES = {
                 x: 720,
@@ -181,7 +182,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             var goal = RRC.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.getContainers().groundContainer.addChild(this.goalSprite);
-            this.addStaticWallInPixels(this.getWall());
+            this.addStaticWallInPixels(this.getWall(), { color: this.obstacleColor, strokeColor: this.obstacleColor });
             this.addWalls(true);
             chain.next();
         };
