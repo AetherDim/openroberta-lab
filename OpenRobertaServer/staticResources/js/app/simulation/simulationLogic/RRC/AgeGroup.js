@@ -4,8 +4,8 @@ define(["require", "exports"], function (require, exports) {
     exports.AgeGroup = void 0;
     var AgeGroup;
     (function (AgeGroup) {
-        AgeGroup[AgeGroup["ES"] = 0] = "ES";
-        AgeGroup[AgeGroup["MS"] = 1] = "MS";
-        AgeGroup[AgeGroup["HS"] = 2] = "HS";
+        AgeGroup["ES"] = "ES";
+        AgeGroup["MS"] = "MS";
+        AgeGroup["HS"] = "HS";
     })(AgeGroup = exports.AgeGroup || (exports.AgeGroup = {}));
 });
