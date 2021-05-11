@@ -1,12 +1,14 @@
 import { RRCScene } from "../RRC/Scene/RRCScene";
-import { Asset, SharedAssetLoader } from "../SharedAssetLoader";
+import { Asset } from "../SharedAssetLoader";
 import { Unit } from "../Unit";
 import { AsyncChain } from "./AsyncChain";
-import { Scene } from "./Scene";
 import * as RRC from '../RRC/RRAssetLoader'
 import { randomIntBetween } from "../Random";
-import { Vector } from "matter-js";
 import { WaypointList } from "../Waypoints/WaypointList";
+import { Util } from "../Util";
+import { SensorType } from "../Robot/Robot";
+import { AgeGroup } from "../RRC/AgeGroup";
+
 
 export class TestScene2 extends RRCScene {
 
@@ -22,6 +24,50 @@ export class TestScene2 extends RRCScene {
 	].filter(asset => asset != undefined) as Asset[]
 
 
+	readonly testSensorTypes: SensorType[] = ["COLOR", "ULTRASONIC", "TOUCH"]
+
+	readonly _sensorTypes = [...this.testSensorTypes, undefined]
+	readonly allSensorConfigurations = Util.allPropertiesTuples({
+		1: this._sensorTypes,
+		2: this._sensorTypes,
+		3: this._sensorTypes,
+		4: this._sensorTypes
+	})
+
+	private configurationIndex = 0
+
+	constructor(name: string, ageGroup: AgeGroup) {
+		super(name, ageGroup)
+
+		const debug = this.getDebugGuiStatic()
+		if (debug != undefined) {
+			debug.add(this, "configurationIndex", 0, this.allSensorConfigurations.length - 1, 1)
+				.onChange(() => debug.updateDisplay())
+				.onFinishChange(() => this.reset())
+			debug.addUpdatable("configurationIndex: ", () =>
+				this.configurationIndex + "/" + (this.allSensorConfigurations.length - 1)
+			)
+			debug.addUpdatable("configuration: ", () =>
+				JSON.stringify(this.allSensorConfigurations[this.configurationIndex], undefined, "\n")
+			)
+			debug.addButton("next", () => {
+				if (this.configurationIndex < this.allSensorConfigurations.length) {
+					this.configurationIndex += 1
+					debug.updateDisplay()
+					this.reset()
+				}
+			})
+			debug.addButton("previous", () => {
+				if (this.configurationIndex > 0) {
+					this.configurationIndex -= 1
+					debug.updateDisplay()
+					this.reset()
+				}
+			})
+		}
+
+	}
+
 	onLoadAssets(chain: AsyncChain) {
 		RRC.loader.load(()=>chain.next(),
 			...this.assets
@@ -32,6 +78,9 @@ export class TestScene2 extends RRCScene {
 
 		// create dynamic debug gui
 		this.initDynamicDebugGui()
+
+		// TODO: Update robot with configuration
+		const robotConfiguration = this.allSensorConfigurations[this.configurationIndex]
 
 		const textures = this.assets.map(asset => RRC.loader.get(asset).texture)
 		

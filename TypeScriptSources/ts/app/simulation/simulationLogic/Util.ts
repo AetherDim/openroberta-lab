@@ -323,7 +323,7 @@ export class Util {
 		})
 	}
 
-	static allPropertiesTuples<T extends { [k in keyof T]: any[] }>(type: T): Expand<UnpackArrayProperties<T>>[] {
+	static allPropertiesTuples<T extends { [k in keyof T]: readonly any[] }>(type: T): Expand<UnpackArrayProperties<T>>[] {
 		const keys = Object.keys(type) as RestrictedKeys<T, any[]>[]
 		return Util.propertiesTuples(type, keys)
 	}
