@@ -1,4 +1,31 @@
-define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "../Geometry/Ray", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../Color", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, Ray_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1, Color_1) {
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./Sensors/ColorSensor", "../Geometry/Ray", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../Color", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, Ray_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1, Color_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -23,6 +50,10 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              * The touch sensors of the robot
              */
             this.touchSensors = {};
+            /**
+             * The gyro sensors of the robot
+             */
+            this.gyroSensors = new Map();
             this.programCode = null;
             /**
              * Time to wait until the next command should be executed (in internal units)
@@ -270,6 +301,13 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         };
         Robot.prototype.getTouchSensors = function () {
             return Util_1.Util.nonNullObjectValues(this.touchSensors);
+        };
+        Robot.prototype.addGyroSensor = function (port, gyroSensor) {
+            if (this.gyroSensors.has(port)) {
+                return false;
+            }
+            this.gyroSensors.set(port, gyroSensor);
+            return true;
         };
         /**
          * Adds `touchSensor` to `this.touchSensors` if the port is not occupied
@@ -718,7 +756,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             return Util_1.Util.vectorAdd(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
         };
         Robot.prototype.updateRobotBehaviourHardwareStateSensors = function () {
-            var _a;
+            var e_1, _a;
+            var _b, _c;
             var sensors = this.robotBehaviour.getHardwareStateSensors();
             // encoder
             sensors.encoder = {
@@ -728,12 +767,32 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             // gyo sensor
             // Note: OpenRoberta has a bug for the gyro.rate where they calculate it by
             // angleDifference * timeDifference but it should be angleDifference / timeDifference
-            var gyroRate = this.body.angularVelocity * 180 / Math.PI;
-            var oldAngle = (_a = sensors.gyro) === null || _a === void 0 ? void 0 : _a[2].angle;
-            sensors.gyro = { 2: {
-                    angle: oldAngle ? oldAngle + gyroRate * this.scene.getDT() : this.body.angle * 180 / Math.PI,
-                    rate: gyroRate
-                } };
+            var gyroData = (_b = sensors.gyro) !== null && _b !== void 0 ? _b : {};
+            var gyroRate = Util_1.Util.toDegrees(this.body.angularVelocity);
+            var gyroAngleDifference = Util_1.Util.toDegrees(this.body.angle - this.body.anglePrev);
+            var dt = this.scene.getDT();
+            try {
+                for (var _d = __values(this.gyroSensors), _e = _d.next(); !_e.done; _e = _d.next()) {
+                    var _f = __read(_e.value, 2), port = _f[0], gyroSensor = _f[1];
+                    var referenceAngle = (_c = this.robotBehaviour.getGyroReferenceAngle(port)) !== null && _c !== void 0 ? _c : 0;
+                    var angle = Util_1.Util.toDegrees(this.body.angle);
+                    gyroSensor.update(angle, referenceAngle, dt);
+                    // gyroData uses the 'true' angle instead of '' since the referenceAngle/"angleReset" is used
+                    // in 'RobotSimBehaviour.getSensorValue'
+                    gyroData[port] = {
+                        angle: angle,
+                        rate: gyroRate
+                    };
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_e && !_e.done && (_a = _d.return)) _a.call(_d);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            sensors.gyro = gyroData;
             var robotBodies = Util_1.Util.nonNullObjectValues(this.touchSensors).map(function (touchSensor) { return touchSensor.getPhysicsBody(); })
                 .concat(this.physicsWheelsList, this.body);
             // color
@@ -907,12 +966,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     backWheel
                 ]
             });
-            // robot.addColorSensor("3", 0.06, 0)
-            // robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 0, 90 * 2 * Math.PI / 360))
-            // const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12,
-            // 	{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
-            // Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
-            // robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
             return robot;
         };
         return Robot;

@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../Robot/TouchSensor", "../../Robot/UltrasonicSensor"], function (require, exports, matter_js_1, Entity_1, Util_1, TouchSensor_1, UltrasonicSensor_1) {
+define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../Robot/Sensors/TouchSensor", "../../Robot/Sensors/UltrasonicSensor", "../../Robot/Sensors/GyroSensor"], function (require, exports, matter_js_1, Entity_1, Util_1, TouchSensor_1, UltrasonicSensor_1, GyroSensor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RobotConfigurationManager = void 0;
@@ -32,6 +32,9 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
         RobotConfigurationManager.addUltrasonicSensor = function (robot, port, scene, configuration) {
             robot.addUltrasonicSensor(port, new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(configuration.x, configuration.y), Util_1.Util.toRadians(configuration.angle), Util_1.Util.toRadians(configuration.angularRange)));
         };
+        RobotConfigurationManager.addGyroSensor = function (robot, port, scene, configuration) {
+            robot.addGyroSensor(port, new GyroSensor_1.GyroSensor());
+        };
         RobotConfigurationManager.addSensors = function (robot, portMap, sensorType, addSensor) {
             var _a;
             var sensorCount = this.getMaxNumberOfSensors(portMap, sensorType);
@@ -60,7 +63,7 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
             RobotConfigurationManager.addSensors(robot, portMap, "COLOR", this.addColorSensor);
             RobotConfigurationManager.addSensors(robot, portMap, "ULTRASONIC", this.addUltrasonicSensor);
             //RobotConfigurationManager.addSensors(robot, portMap, "COMPASS", never)
-            //RobotConfigurationManager.addSensors(robot, portMap, "GYRO", never)
+            RobotConfigurationManager.addSensors(robot, portMap, "GYRO", this.addGyroSensor);
             //RobotConfigurationManager.addSensors(robot, portMap, "INFRARED", null)
             //RobotConfigurationManager.addSensors(robot, portMap, "SOUND", this.add)
         };

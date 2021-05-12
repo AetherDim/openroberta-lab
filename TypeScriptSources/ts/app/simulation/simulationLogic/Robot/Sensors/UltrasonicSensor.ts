@@ -1,5 +1,5 @@
 import { Vector } from "matter-js"
-import { Unit } from "../Unit"
+import { Unit } from "../../Unit"
 
 export class UltrasonicSensor {
 

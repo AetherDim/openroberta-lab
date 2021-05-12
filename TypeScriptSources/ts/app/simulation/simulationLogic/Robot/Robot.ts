@@ -6,10 +6,10 @@ import { MAXPOWER } from '../interpreter.constants'
 import { Interpreter } from '../interpreter.interpreter'
 import { RobotSimBehaviour } from './RobotSimBehaviour'
 import { Wheel } from './Wheel'
-import { ColorSensor } from './ColorSensor'
-import { UltrasonicSensor } from './UltrasonicSensor'
+import { ColorSensor } from './Sensors/ColorSensor'
+import { UltrasonicSensor } from './Sensors/UltrasonicSensor'
 import { Ray } from '../Geometry/Ray'
-import { TouchSensor } from './TouchSensor'
+import { TouchSensor } from './Sensors/TouchSensor'
 import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, PhysicsRectEntity } from '../Entity'
 import { Scene } from '../Scene/Scene'
 import { StringMap, Util } from '../Util'
@@ -19,6 +19,7 @@ import { BodyHelper } from "./BodyHelper";
 import { RobotProgram } from './RobotProgram'
 import { hsvToColorName, rgbToHsv } from '../Color'
 import { RobotConfigurationManager } from '../Scene/Manager/RobotConfigurationManager'
+import { GyroSensor } from './Sensors/GyroSensor'
 
 const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
 	// german description: "HT Infrarotsensor"
@@ -74,6 +75,11 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * The touch sensors of the robot
 	 */
 	private touchSensors: StringMap<TouchSensor> = {}
+
+	/**
+	 * The gyro sensors of the robot
+	 */
+	private gyroSensors = new Map<string, GyroSensor>()
 
 	private robotBehaviour: RobotSimBehaviour
 
@@ -367,6 +373,14 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 	getTouchSensors(): TouchSensor[] {
 		return Util.nonNullObjectValues(this.touchSensors)
+	}
+
+	addGyroSensor(port: string, gyroSensor: GyroSensor): boolean {
+		if (this.gyroSensors.has(port)) {
+			return false
+		}
+		this.gyroSensors.set(port, gyroSensor)
+		return true
 	}
 
 	/**
@@ -892,12 +906,22 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		// gyo sensor
 		// Note: OpenRoberta has a bug for the gyro.rate where they calculate it by
 		// angleDifference * timeDifference but it should be angleDifference / timeDifference
-		const gyroRate = this.body.angularVelocity * 180 / Math.PI
-		const oldAngle = sensors.gyro?.[2].angle;
-		sensors.gyro = { 2: {
-			angle: oldAngle ? oldAngle + gyroRate * this.scene.getDT() : this.body.angle * 180 / Math.PI,
-			rate: gyroRate
-		}}
+		const gyroData = sensors.gyro ?? {}
+		const gyroRate = Util.toDegrees(this.body.angularVelocity)
+		const gyroAngleDifference = Util.toDegrees(this.body.angle - this.body.anglePrev)
+		const dt = this.scene.getDT()
+		for (const [port, gyroSensor] of this.gyroSensors) {
+			const referenceAngle = this.robotBehaviour.getGyroReferenceAngle(port) ?? 0
+			const angle = Util.toDegrees(this.body.angle)
+			gyroSensor.update(angle, referenceAngle, dt)
+			// gyroData uses the 'true' angle instead of '' since the referenceAngle/"angleReset" is used
+			// in 'RobotSimBehaviour.getSensorValue'
+			gyroData[port] = {
+				angle: angle,
+				rate: gyroRate
+			}
+		}
+		sensors.gyro = gyroData
 
 		const robotBodies = Util.nonNullObjectValues(this.touchSensors).map(touchSensor => touchSensor.getPhysicsBody())
 			.concat(this.physicsWheelsList, this.body)
@@ -1078,12 +1102,6 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				backWheel
 			]
 		})
-		// robot.addColorSensor("3", 0.06, 0)
-		// robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 0, 90 * 2 * Math.PI / 360))
-		// const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12,
-		// 	{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
-		// Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
-		// robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
 		return robot
 	}
 }

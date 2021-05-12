@@ -1,10 +1,11 @@
 import { Body, Vector } from "matter-js";
 import { PhysicsRectEntity } from "../../Entity";
 import { Scene } from "../Scene";
-import { NumberIndexed, NumberMap, StringMap, Util } from "../../Util";
+import { NumberIndexed, StringMap, Util } from "../../Util";
 import { Robot, SensorType } from "../../Robot/Robot";
-import { TouchSensor } from "../../Robot/TouchSensor";
-import { UltrasonicSensor } from "../../Robot/UltrasonicSensor";
+import { TouchSensor } from "../../Robot/Sensors/TouchSensor";
+import { UltrasonicSensor } from "../../Robot/Sensors/UltrasonicSensor";
+import { GyroSensor } from "../../Robot/Sensors/GyroSensor";
 
 class MaxSensorCount {
 	readonly maxCount: number
@@ -133,6 +134,10 @@ export class RobotConfigurationManager {
 		)
 	}
 
+	private static addGyroSensor(robot: Robot, port: string, scene: Scene, configuration: SensorConfiguration<"GYRO">) {
+		robot.addGyroSensor(port, new GyroSensor())
+	}
+
 	
 	private static addSensors<T extends SensorType>(robot: Robot, portMap: SensorPortMap, sensorType: T, addSensor: (robot: Robot, port: string, scene: Scene, configuration: SensorConfiguration<T>) => void) {
 		
@@ -168,7 +173,7 @@ export class RobotConfigurationManager {
 		RobotConfigurationManager.addSensors(robot, portMap, "COLOR", this.addColorSensor)
 		RobotConfigurationManager.addSensors(robot, portMap, "ULTRASONIC", this.addUltrasonicSensor)
 		//RobotConfigurationManager.addSensors(robot, portMap, "COMPASS", never)
-		//RobotConfigurationManager.addSensors(robot, portMap, "GYRO", never)
+		RobotConfigurationManager.addSensors(robot, portMap, "GYRO", this.addGyroSensor)
 		//RobotConfigurationManager.addSensors(robot, portMap, "INFRARED", null)
 		//RobotConfigurationManager.addSensors(robot, portMap, "SOUND", this.add)
 

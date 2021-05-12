@@ -176,6 +176,12 @@ require.config({
                 'Polygon',
             ]},
         { 'Robot': [
+                { 'Sensors': [
+                        'ColorSensor',
+                        'UltrasonicSensor',
+                        'TouchSensor',
+                        'GyroSensor',
+                ]},
                 'Robot',
                 'RobotProgram',
                 'RobotTester',
@@ -183,10 +189,7 @@ require.config({
                 'RobotSimBehaviour',
                 'Wheel',
                 'RobotHardwareStateSensors',
-                'ColorSensor',
                 'BodyHelper',
-                'UltrasonicSensor',
-                'TouchSensor',
             ]},
         { 'RRC': [
                 'RRAssetLoader',
