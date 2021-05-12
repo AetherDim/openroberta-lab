@@ -37,6 +37,26 @@ define(["require", "exports"], function (require, exports) {
     var Util = /** @class */ (function () {
         function Util() {
         }
+        Util.safeIndexing = function (value, index) {
+            if (value == undefined) {
+                return undefined;
+            }
+            else {
+                return value[index];
+            }
+        };
+        /**
+         * Equality into the object.
+         *
+         * @see https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
+         */
+        Util.deepEqual = function (x, y) {
+            return (x && y && typeof x === 'object' && typeof y === 'object') ?
+                (Object.keys(x).length === Object.keys(y).length) &&
+                    Object.keys(x).reduce(function (isEqual, key) {
+                        return isEqual && Util.deepEqual(x[key], y[key]);
+                    }, true) : (x === y);
+        };
         /**
          * Returns an array of numbers starting from 'start' to (inclusive) 'end' with a step size 'step'
          *
@@ -280,8 +300,29 @@ define(["require", "exports"], function (require, exports) {
             }
             return string;
         };
-        Util.mapNotNull = function (array, transform) {
+        Util.nonNullObjectValues = function (value) {
             var e_3, _a;
+            var values = Object.values(value);
+            var result = [];
+            try {
+                for (var values_1 = __values(values), values_1_1 = values_1.next(); !values_1_1.done; values_1_1 = values_1.next()) {
+                    var element = values_1_1.value;
+                    if (element !== undefined && element !== null) {
+                        result.push(element);
+                    }
+                }
+            }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            finally {
+                try {
+                    if (values_1_1 && !values_1_1.done && (_a = values_1.return)) _a.call(values_1);
+                }
+                finally { if (e_3) throw e_3.error; }
+            }
+            return result;
+        };
+        Util.mapNotNull = function (array, transform) {
+            var e_4, _a;
             var result = [];
             try {
                 for (var array_1 = __values(array), array_1_1 = array_1.next(); !array_1_1.done; array_1_1 = array_1.next()) {
@@ -292,12 +333,12 @@ define(["require", "exports"], function (require, exports) {
                     }
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (array_1_1 && !array_1_1.done && (_a = array_1.return)) _a.call(array_1);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return result;
         };
@@ -352,6 +393,7 @@ define(["require", "exports"], function (require, exports) {
         Util.cloneVector = function (value) {
             return { x: value.x, y: value.y };
         };
+        // TODO: Remove this static variable
         Util.simulation = {
             storedPrograms: [],
             storedRobotType: ""

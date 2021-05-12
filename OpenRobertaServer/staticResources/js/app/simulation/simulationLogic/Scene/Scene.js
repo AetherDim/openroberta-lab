@@ -270,6 +270,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 console.warn('Already loading scene... !');
                 return;
             }
+            // TODO: Do not use global Util properties
+            var configurationManager = this.getRobotManager().configurationManager;
+            configurationManager.setRobotConfigurations(Util_1.Util.simulation.storedPrograms.map(function (p) { return p.javaScriptConfiguration; }));
             // stop the simulation
             this.stopSim();
             this.debug.clearDebugGuiDynamic(); // if dynamic debug gui exist, clear it

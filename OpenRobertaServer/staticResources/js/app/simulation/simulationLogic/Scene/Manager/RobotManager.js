@@ -1,4 +1,4 @@
-define(["require", "exports", "./ProgramManager"], function (require, exports, ProgramManager_1) {
+define(["require", "exports", "./ProgramManager", "./RobotConfigurationManager"], function (require, exports, ProgramManager_1, RobotConfigurationManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RobotManager = void 0;
@@ -17,6 +17,7 @@ define(["require", "exports", "./ProgramManager"], function (require, exports, P
              */
             this.robots = new Array();
             this.programManager = new ProgramManager_1.ProgramManager(this);
+            this.configurationManager = new RobotConfigurationManager_1.RobotConfigurationManager(this.robots);
             this.scene = scene;
         }
         RobotManager.prototype.getProgramManager = function () {
@@ -31,6 +32,7 @@ define(["require", "exports", "./ProgramManager"], function (require, exports, P
         RobotManager.prototype.addRobot = function (robot) {
             this.robots.push(robot);
             this.scene.getEntityManager().addEntity(robot);
+            this.configurationManager.safeUpdateLastRobot();
         };
         RobotManager.prototype.getNumberOfRobots = function () {
             return this.numberOfRobots;

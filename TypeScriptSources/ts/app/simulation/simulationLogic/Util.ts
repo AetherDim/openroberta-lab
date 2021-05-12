@@ -1,12 +1,13 @@
 import { Vector } from "matter-js"
 import { RobotProgram } from "./Robot/RobotProgram"
 
-
-export type StringMap<V> = { [key: string]: V }
-export type NumberMap<V> = { [key: number]: V }
+export type StringMap<V> = { [key: string]: V | undefined }
+export type NumberMap<V> = { [key: number]: V | undefined }
 
 export type UnpackArray<T> = T extends readonly (infer U)[] ? U : never
 export type UnpackArrayProperties<T> = { [k in keyof T]: UnpackArray<T[k]> }
+
+export type NumberIndexed<T extends unknown[] | undefined | null> = T extends unknown[] ? T[number] : T
 
 /**
  * expands object types one level deep
@@ -112,6 +113,7 @@ type RestrictedKeysType<T, KeyType> = { [k in keyof T]: T[k] extends KeyType ? T
 
 export class Util {
 
+	// TODO: Remove this static variable
 	static simulation: {
 		storedPrograms: RobotProgram[],
 		storedRobotType: string
@@ -119,6 +121,27 @@ export class Util {
 		storedPrograms: [],
 		storedRobotType: ""
 	}
+
+	static safeIndexing<T extends unknown[] | undefined>(value: T, index: number): NumberIndexed<T> {
+		if (value == undefined) {
+			return undefined as NumberIndexed<T>
+		} else {
+			return value[index] as NumberIndexed<T>
+		}
+	}
+
+	/**
+	 * Equality into the object.
+	 * 
+	 * @see https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
+	 */
+	static deepEqual(x: any, y: any): boolean {
+		return (x && y && typeof x === 'object' && typeof y === 'object') ?
+		  (Object.keys(x).length === Object.keys(y).length) &&
+			Object.keys(x).reduce<boolean>((isEqual, key) =>
+				isEqual && Util.deepEqual(x[key], y[key])
+			, true) : (x === y);
+	  }
 
 	/**
 	 * Returns an array of numbers starting from 'start' to (inclusive) 'end' with a step size 'step' 
@@ -367,6 +390,17 @@ export class Util {
 		return string
 	}
 
+	static nonNullObjectValues<T>(value: { [s: string]: T } | ArrayLike<T>): NonNullable<T>[] {
+		const values = Object.values(value)
+		const result: NonNullable<T>[] = []
+		for (const element of values) {
+			if (element !== undefined && element !== null) {
+				result.push(element as NonNullable<T>)
+			}
+		}
+		return result
+	}
+
 	static mapNotNull<T, U>(array: T[], transform: (element: T) => (U | null | undefined)): U[] {
 		const result: U[] = []
 		for (const element of array) {
@@ -439,16 +473,4 @@ export class Util {
 		return { x: value.x, y: value.y }
 	}
 
-}
-
-type ObjectKeys<T> = 
-	T extends object ? (keyof T)[] :
-	T extends number ? [] :
-	T extends Array<any> | string ? string[] :
-	never
-
-declare global {
-	export interface ObjectConstructor {
-		keys<T>(o: T): ObjectKeys<T>
-	}
 }

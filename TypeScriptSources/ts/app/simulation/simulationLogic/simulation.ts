@@ -274,6 +274,16 @@ var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNext
  * @param robotType 
  */
 export function init(programs: RobotProgram[], refresh: boolean, robotType: string) {
+
+	function toProgramEqualityObject(p: RobotProgram): unknown {
+		return {
+			javaScriptConfiguration: p.javaScriptConfiguration
+		}
+	}
+	let hasNewConfiguration = !Util.deepEqual(
+		programs.map(toProgramEqualityObject),
+		Util.simulation.storedPrograms.map(toProgramEqualityObject))
+
 	Util.simulation.storedPrograms = programs;
 	Util.simulation.storedRobotType = robotType;
 
@@ -281,7 +291,13 @@ export function init(programs: RobotProgram[], refresh: boolean, robotType: stri
 
 	// TODO: prevent clicking run twice
 
-	engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
+	const configurationManager = engine.getScene().getRobotManager().configurationManager
+	configurationManager.setRobotConfigurations(programs.map(p => p.javaScriptConfiguration))
+	engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType)
+
+	if (hasNewConfiguration) {
+		engine.getScene().reset()
+	}
 }
 
 

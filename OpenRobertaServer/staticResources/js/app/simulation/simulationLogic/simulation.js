@@ -145,11 +145,22 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
      * @param robotType
      */
     function init(programs, refresh, robotType) {
+        function toProgramEqualityObject(p) {
+            return {
+                javaScriptConfiguration: p.javaScriptConfiguration
+            };
+        }
+        var hasNewConfiguration = !Util_1.Util.deepEqual(programs.map(toProgramEqualityObject), Util_1.Util.simulation.storedPrograms.map(toProgramEqualityObject));
         Util_1.Util.simulation.storedPrograms = programs;
         Util_1.Util.simulation.storedRobotType = robotType;
         //$('simScene').hide();
         // TODO: prevent clicking run twice
+        var configurationManager = engine.getScene().getRobotManager().configurationManager;
+        configurationManager.setRobotConfigurations(programs.map(function (p) { return p.javaScriptConfiguration; }));
         engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
+        if (hasNewConfiguration) {
+            engine.getScene().reset();
+        }
     }
     exports.init = init;
     function getNumRobots() {

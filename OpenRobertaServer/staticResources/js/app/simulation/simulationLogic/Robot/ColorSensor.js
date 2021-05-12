@@ -6,15 +6,17 @@ define(["require", "exports"], function (require, exports) {
         /**
          * Creates a new color sensor.
          *
-         * @param position Position relative to the robot position in meter
+         * @param position Position relative to the robot position in meters
+         * @param graphicsRadius the radius of the circle graphic in meters
          */
-        function ColorSensor(unit, position) {
+        function ColorSensor(unit, position, graphicsRadius) {
             /**
              * The color which is detected below the color sensor
              */
             this.detectedColor = { red: 0, green: 0, blue: 0 };
             this.graphics = new PIXI.Graphics();
             this.position = unit.getPosition(position);
+            this.graphicsRadius = unit.getLength(graphicsRadius);
             this.updateGraphics();
         }
         /**
@@ -53,10 +55,10 @@ define(["require", "exports"], function (require, exports) {
             this.graphics
                 .clear()
                 .beginFill((color.red * 256 + color.green) * 256 + color.blue)
-                .lineStyle(1, 0) // black border
+                .lineStyle(this.graphicsRadius * 0.2, 0) // black border
                 // pixi.js needs more performance if 'drawCircle' is used
                 //.drawRect(-6, -6, 12, 12)
-                .drawCircle(0, 0, 6)
+                .drawCircle(0, 0, this.graphicsRadius)
                 .endFill();
             this.graphics.position.set(this.position.x, this.position.y);
         };

@@ -3,7 +3,11 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UltrasonicSensor = void 0;
     var UltrasonicSensor = /** @class */ (function () {
-        function UltrasonicSensor(unit, position, angularRange) {
+        /**
+         * @param angle angle towards the x axis in radians
+         * @param angularRange angular range in radians
+         */
+        function UltrasonicSensor(unit, position, angle, angularRange) {
             /**
              * The measured distance in matter units
              */
@@ -11,6 +15,7 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             this.graphics = new PIXI.Graphics();
             this.unit = unit;
             this.position = unit.getPosition(position);
+            this.angle = angle;
             this.angularRange = angularRange;
             this.maximumMeasurableDistance = 0;
             this.setMaximumMeasurableDistanceInMeters(2.5);
@@ -41,15 +46,15 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
             var graphicsDistance = Math.min(this.maximumMeasurableDistance, this.measuredDistance);
             var vector = matter_js_1.Vector.create(graphicsDistance, 0);
             var halfAngle = this.angularRange / 2;
-            var leftVector = matter_js_1.Vector.rotate(vector, halfAngle);
-            var rightVector = matter_js_1.Vector.rotate(vector, -halfAngle);
+            var leftVector = matter_js_1.Vector.rotate(vector, this.angle + halfAngle);
+            var rightVector = matter_js_1.Vector.rotate(vector, this.angle - halfAngle);
             this.graphics
                 .clear()
                 .lineStyle(2)
                 .moveTo(leftVector.x, leftVector.y)
                 .lineTo(0, 0)
                 .lineTo(rightVector.x, rightVector.y)
-                .arc(0, 0, graphicsDistance, -halfAngle, halfAngle);
+                .arc(0, 0, graphicsDistance, this.angle - halfAngle, this.angle + halfAngle);
             this.graphics.position.set(this.position.x, this.position.y);
         };
         UltrasonicSensor.prototype.removeGraphicsFromParent = function () {

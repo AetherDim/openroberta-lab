@@ -5,7 +5,7 @@ import { AsyncChain } from "./AsyncChain";
 import * as RRC from '../RRC/RRAssetLoader'
 import { randomIntBetween } from "../Random";
 import { WaypointList } from "../Waypoints/WaypointList";
-import { Util } from "../Util";
+import { StringMap, Util } from "../Util";
 import { SensorType } from "../Robot/Robot";
 import { AgeGroup } from "../RRC/AgeGroup";
 
@@ -79,8 +79,8 @@ export class TestScene2 extends RRCScene {
 		// create dynamic debug gui
 		this.initDynamicDebugGui()
 
-		// TODO: Update robot with configuration
 		const robotConfiguration = this.allSensorConfigurations[this.configurationIndex]
+		this.robotManager.configurationManager.setRobotConfigurations([robotConfiguration])
 
 		const textures = this.assets.map(asset => RRC.loader.get(asset).texture)
 		

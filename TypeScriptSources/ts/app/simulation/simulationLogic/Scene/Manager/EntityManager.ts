@@ -83,6 +83,9 @@ export class EntityManager {
             }
 
             if (Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
+                // TODO: The entity might not be in the world and will therefore not
+                // removed from its parent container
+                Composite.remove(this.scene.getWorld(), entity.getPhysicsObject(), true)
                 Util.removeFromArray(this.drawablePhysicsEntities, entity)
             }
 

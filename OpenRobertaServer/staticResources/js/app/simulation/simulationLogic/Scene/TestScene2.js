@@ -93,8 +93,8 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
             var _this = this;
             // create dynamic debug gui
             this.initDynamicDebugGui();
-            // TODO: Update robot with configuration
             var robotConfiguration = this.allSensorConfigurations[this.configurationIndex];
+            this.robotManager.configurationManager.setRobotConfigurations([robotConfiguration]);
             var textures = this.assets.map(function (asset) { return RRC.loader.get(asset).texture; });
             textures.forEach(function (texture) {
                 var sprite = new PIXI.Sprite(texture);

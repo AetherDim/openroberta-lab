@@ -165,6 +165,7 @@ require.config({
                         'EntityManager',
                         'ProgramManager',
                         'RobotManager',
+                        'RobotConfigurationManager',
                     ]}
             ]},
         { 'Geometry': [
@@ -185,7 +186,7 @@ require.config({
                 'ColorSensor',
                 'BodyHelper',
                 'UltrasonicSensor',
-                'TouchSensor'
+                'TouchSensor',
             ]},
         { 'RRC': [
                 'RRAssetLoader',

@@ -18,6 +18,7 @@ import { downloadFile } from "./../GlobalDebug";
 import { BodyHelper } from "./BodyHelper";
 import { RobotProgram } from './RobotProgram'
 import { hsvToColorName, rgbToHsv } from '../Color'
+import { RobotConfigurationManager } from '../Scene/Manager/RobotConfigurationManager'
 
 const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
 	// german description: "HT Infrarotsensor"
@@ -76,8 +77,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 	private robotBehaviour: RobotSimBehaviour
 
-	configuration?: StringMap<SensorType> = undefined;
-	programCode: any = null;
+	programCode: unknown = null;
 
 	interpreter?: Interpreter
 
@@ -317,11 +317,20 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		Composite.rotate(this.physicsComposite, rotation - this.body.angle, this.body.position)
 	}
 
+	removeAllSensors() {
+		Util.nonNullObjectValues(this.colorSensors).forEach(c => c.removeGraphicsFromParent())
+		Util.nonNullObjectValues(this.ultrasonicSensors).forEach(u => u.removeGraphicsFromParent())
+		Util.nonNullObjectValues(this.touchSensors).forEach(t => t.scene.removeEntity(t))
+		this.colorSensors = {}
+		this.ultrasonicSensors = {}
+		this.touchSensors = {}
+	}
+
 	/**
 	 * Returns the color sensor which can be `undefined`
 	 */
 	getColorSensors(): ColorSensor[] {
-		return Object.values(this.colorSensors)
+		return Util.nonNullObjectValues(this.colorSensors)
 	}
 
 	/**
@@ -330,20 +339,21 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * @param port the port of the sensor
 	 * @param x x position of the sensor in meters
 	 * @param y y position of the sensor in meters
+	 * @param graphicsRadius the radius of the circle graphic in meters
 	 * @returns false if a color sensor at `port` already exists and a new color sensor was not added
 	 */
-	addColorSensor(port: string, x: number, y: number): boolean {
+	addColorSensor(port: string, x: number, y: number, graphicsRadius: number): boolean {
 		if (this.colorSensors[port]) {
 			return false
 		}
-		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y))
+		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y), graphicsRadius)
 		this.colorSensors[port] = colorSensor
 		this.bodyContainer.addChild(colorSensor.graphics)
 		return true
 	}
 	
 	getUltrasonicSensors(): UltrasonicSensor[] {
-		return Object.values(this.ultrasonicSensors)
+		return Util.nonNullObjectValues(this.ultrasonicSensors)
 	}
 
 	addUltrasonicSensor(port: string, ultrasonicSensor: UltrasonicSensor): boolean {
@@ -356,7 +366,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	getTouchSensors(): TouchSensor[] {
-		return Object.values(this.touchSensors)
+		return Util.nonNullObjectValues(this.touchSensors)
 	}
 
 	/**
@@ -371,8 +381,17 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			return false
 		}
 		this.addChild(touchSensor)
-		Composite.add(this.physicsComposite, touchSensor.physicsBody)
-		this.physicsComposite.addRigidBodyConstraints(this.body, touchSensor.physicsBody, 0.3, 0.3)
+		const sensorBody = touchSensor.physicsBody
+
+		Body.rotate(sensorBody, this.body.angle)
+		Body.setPosition(sensorBody,
+			Vector.add(
+				this.body.position,
+				Vector.rotate(touchSensor.physicsBody.position, this.body.angle)
+			)
+		)
+		Composite.add(this.physicsComposite, sensorBody)
+		this.physicsComposite.addRigidBodyConstraints(this.body, sensorBody, 0.3, 0.3)
 		this.touchSensors[port] = touchSensor
 		return true
 	}
@@ -417,12 +436,12 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	setProgram(program: RobotProgram, breakpoints: any[]): Interpreter {
 		const _this = this;
 		this.programCode = JSON.parse(program.javaScriptProgram);
-		this.configuration = program.javaScriptConfiguration
-		const allKeys = Object.keys(this.configuration)
-		const allValues = Object.values(this.configuration)
+		const configuration = program.javaScriptConfiguration
+		const allKeys = Object.keys(configuration)
+		const allValues = Util.nonNullObjectValues(configuration)
 		const wrongValueCount = allValues.find((e)=>!sensorTypeStrings.includes(e))?.length ?? 0
 		if (wrongValueCount > 0 || allKeys.filter((e) => typeof e === "number").length > 0) {
-			console.error(`The 'configuration' has not the expected type: ${this.configuration}`)
+			console.error(`The 'configuration' has not the expected type: ${configuration}`)
 		}
 		this.robotBehaviour = new RobotSimBehaviour(this.scene.unit);
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
@@ -839,16 +858,16 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		append("Motor left", Util.toDegrees(sensors.encoder?.left ?? 0), "°")
 		append("Motor right", Util.toDegrees(sensors.encoder?.right ?? 0), "°")
 		for (const port in this.touchSensors) {
-			appendAny("Touch Sensor "+port, this.touchSensors[port].getIsTouched())
+			appendAny("Touch Sensor "+port, this.touchSensors[port]!.getIsTouched())
 		}
 		for (const port in this.colorSensors) {
-			append("Light Sensor "+port, this.colorSensors[port].getDetectedBrightness() * 100, "%")
+			append("Light Sensor "+port, this.colorSensors[port]!.getDetectedBrightness() * 100, "%")
 		}
 		for (const port in this.colorSensors) {
-			appendAny("Color Sensor "+port, "<span style=\"width: 20px; background-color:" + this.colorSensors[port].getColorHexValueString() + "\">&nbsp;</span>")
+			appendAny("Color Sensor "+port, "<span style=\"width: 20px; background-color:" + this.colorSensors[port]!.getColorHexValueString() + "\">&nbsp;</span>")
 		}
 		for (const port in this.ultrasonicSensors) {
-			append("Ultra Sensor "+port, 100 * s.unit.fromLength(this.ultrasonicSensors[port].getMeasuredDistance()), "cm")
+			append("Ultra Sensor "+port, 100 * s.unit.fromLength(this.ultrasonicSensors[port]!.getMeasuredDistance()), "cm")
 		}
         
 	}
@@ -880,7 +899,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			rate: gyroRate
 		}}
 
-		const robotBodies = Object.values(this.touchSensors).map(touchSensor => touchSensor.getPhysicsBody())
+		const robotBodies = Util.nonNullObjectValues(this.touchSensors).map(touchSensor => touchSensor.getPhysicsBody())
 			.concat(this.physicsWheelsList, this.body)
 
 		// color
@@ -888,7 +907,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			sensors.color = {}
 		}
 		for (const port in this.colorSensors) {
-			const colorSensor = this.colorSensors[port]
+			const colorSensor = this.colorSensors[port]!
 			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
 			const color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
@@ -918,7 +937,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			sensors.infrared = {}
 		}
 		for (const port in this.ultrasonicSensors) {
-			const ultrasonicSensor = this.ultrasonicSensors[port]
+			const ultrasonicSensor = this.ultrasonicSensors[port]!
 			const sensorPosition = this.getAbsolutePosition(ultrasonicSensor.position)
 			let ultrasonicDistance: number
 			let nearestPoint: Vector | undefined
@@ -926,9 +945,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				ultrasonicDistance = 0
 			} else {
 				const halfAngle = ultrasonicSensor.angularRange / 2
+				const angle = ultrasonicSensor.angle
 				const rays = [
-					Vector.rotate(Vector.create(1, 0), halfAngle + this.body.angle),
-					Vector.rotate(Vector.create(1, 0), -halfAngle + this.body.angle)]
+					Vector.rotate(Vector.create(1, 0), angle + halfAngle + this.body.angle),
+					Vector.rotate(Vector.create(1, 0), angle - halfAngle + this.body.angle)]
 					.map(v => new Ray(sensorPosition, v))
 				// (point - sensorPos) * vec > 0
 				const vectors = rays.map(r => Vector.perp(r.directionVector))
@@ -986,7 +1006,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			sensors.touch = {}
 		}
 		for (const port in this.touchSensors) {
-			const touchSensor = this.touchSensors[port]
+			const touchSensor = this.touchSensors[port]!
 			touchSensor.setIsTouched(BodyHelper.bodyIntersectsOther(touchSensor.physicsBody, allBodies))
 			sensors.touch[port] = touchSensor.getIsTouched()
 		}
@@ -1058,12 +1078,12 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				backWheel
 			]
 		})
-		robot.addColorSensor("3", 0.06, 0)
-		robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
-		const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12,
-			{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
-		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
-		robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
+		// robot.addColorSensor("3", 0.06, 0)
+		// robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 0, 90 * 2 * Math.PI / 360))
+		// const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12,
+		// 	{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
+		// Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
+		// robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
 		return robot
 	}
 }

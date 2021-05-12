@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "./UltrasonicSensor", "../Geometry/Ray", "./TouchSensor", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../Color", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, UltrasonicSensor_1, Ray_1, TouchSensor_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1, Color_1) {
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./ColorSensor", "../Geometry/Ray", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../Color", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, Ray_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1, Color_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = void 0;
@@ -23,7 +23,6 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              * The touch sensors of the robot
              */
             this.touchSensors = {};
-            this.configuration = undefined;
             this.programCode = null;
             /**
              * Time to wait until the next command should be executed (in internal units)
@@ -226,11 +225,19 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             }
             matter_js_1.Composite.rotate(this.physicsComposite, rotation - this.body.angle, this.body.position);
         };
+        Robot.prototype.removeAllSensors = function () {
+            Util_1.Util.nonNullObjectValues(this.colorSensors).forEach(function (c) { return c.removeGraphicsFromParent(); });
+            Util_1.Util.nonNullObjectValues(this.ultrasonicSensors).forEach(function (u) { return u.removeGraphicsFromParent(); });
+            Util_1.Util.nonNullObjectValues(this.touchSensors).forEach(function (t) { return t.scene.removeEntity(t); });
+            this.colorSensors = {};
+            this.ultrasonicSensors = {};
+            this.touchSensors = {};
+        };
         /**
          * Returns the color sensor which can be `undefined`
          */
         Robot.prototype.getColorSensors = function () {
-            return Object.values(this.colorSensors);
+            return Util_1.Util.nonNullObjectValues(this.colorSensors);
         };
         /**
          * Sets the color sensor at the position (x,y) in meters
@@ -238,19 +245,20 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          * @param port the port of the sensor
          * @param x x position of the sensor in meters
          * @param y y position of the sensor in meters
+         * @param graphicsRadius the radius of the circle graphic in meters
          * @returns false if a color sensor at `port` already exists and a new color sensor was not added
          */
-        Robot.prototype.addColorSensor = function (port, x, y) {
+        Robot.prototype.addColorSensor = function (port, x, y, graphicsRadius) {
             if (this.colorSensors[port]) {
                 return false;
             }
-            var colorSensor = new ColorSensor_1.ColorSensor(this.scene.unit, matter_js_1.Vector.create(x, y));
+            var colorSensor = new ColorSensor_1.ColorSensor(this.scene.unit, matter_js_1.Vector.create(x, y), graphicsRadius);
             this.colorSensors[port] = colorSensor;
             this.bodyContainer.addChild(colorSensor.graphics);
             return true;
         };
         Robot.prototype.getUltrasonicSensors = function () {
-            return Object.values(this.ultrasonicSensors);
+            return Util_1.Util.nonNullObjectValues(this.ultrasonicSensors);
         };
         Robot.prototype.addUltrasonicSensor = function (port, ultrasonicSensor) {
             if (this.ultrasonicSensors[port]) {
@@ -261,7 +269,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             return true;
         };
         Robot.prototype.getTouchSensors = function () {
-            return Object.values(this.touchSensors);
+            return Util_1.Util.nonNullObjectValues(this.touchSensors);
         };
         /**
          * Adds `touchSensor` to `this.touchSensors` if the port is not occupied
@@ -275,8 +283,11 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 return false;
             }
             this.addChild(touchSensor);
-            matter_js_1.Composite.add(this.physicsComposite, touchSensor.physicsBody);
-            this.physicsComposite.addRigidBodyConstraints(this.body, touchSensor.physicsBody, 0.3, 0.3);
+            var sensorBody = touchSensor.physicsBody;
+            matter_js_1.Body.rotate(sensorBody, this.body.angle);
+            matter_js_1.Body.setPosition(sensorBody, matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(touchSensor.physicsBody.position, this.body.angle)));
+            matter_js_1.Composite.add(this.physicsComposite, sensorBody);
+            this.physicsComposite.addRigidBodyConstraints(this.body, sensorBody, 0.3, 0.3);
             this.touchSensors[port] = touchSensor;
             return true;
         };
@@ -301,12 +312,12 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var _a, _b;
             var _this = this;
             this.programCode = JSON.parse(program.javaScriptProgram);
-            this.configuration = program.javaScriptConfiguration;
-            var allKeys = Object.keys(this.configuration);
-            var allValues = Object.values(this.configuration);
+            var configuration = program.javaScriptConfiguration;
+            var allKeys = Object.keys(configuration);
+            var allValues = Util_1.Util.nonNullObjectValues(configuration);
             var wrongValueCount = (_b = (_a = allValues.find(function (e) { return !sensorTypeStrings.includes(e); })) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0;
             if (wrongValueCount > 0 || allKeys.filter(function (e) { return typeof e === "number"; }).length > 0) {
-                console.error("The 'configuration' has not the expected type: " + this.configuration);
+                console.error("The 'configuration' has not the expected type: " + configuration);
             }
             this.robotBehaviour = new RobotSimBehaviour_1.RobotSimBehaviour(this.scene.unit);
             this.interpreter = new interpreter_interpreter_1.Interpreter(this.programCode, this.robotBehaviour, function () {
@@ -723,7 +734,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     angle: oldAngle ? oldAngle + gyroRate * this.scene.getDT() : this.body.angle * 180 / Math.PI,
                     rate: gyroRate
                 } };
-            var robotBodies = Object.values(this.touchSensors).map(function (touchSensor) { return touchSensor.getPhysicsBody(); })
+            var robotBodies = Util_1.Util.nonNullObjectValues(this.touchSensors).map(function (touchSensor) { return touchSensor.getPhysicsBody(); })
                 .concat(this.physicsWheelsList, this.body);
             // color
             if (!sensors.color) {
@@ -764,9 +775,10 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 }
                 else {
                     var halfAngle = ultrasonicSensor.angularRange / 2;
+                    var angle = ultrasonicSensor.angle;
                     var rays = [
-                        matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), halfAngle + this_1.body.angle),
-                        matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), -halfAngle + this_1.body.angle)
+                        matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), angle + halfAngle + this_1.body.angle),
+                        matter_js_1.Vector.rotate(matter_js_1.Vector.create(1, 0), angle - halfAngle + this_1.body.angle)
                     ]
                         .map(function (v) { return new Ray_1.Ray(sensorPosition, v); });
                     // (point - sensorPos) * vec > 0
@@ -895,11 +907,12 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     backWheel
                 ]
             });
-            robot.addColorSensor("3", 0.06, 0);
-            robot.addUltrasonicSensor("4", new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(0.095, 0), 90 * 2 * Math.PI / 360));
-            var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 });
-            matter_js_1.Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05));
-            robot.addTouchSensor("1", new TouchSensor_1.TouchSensor(scene, touchSensorBody));
+            // robot.addColorSensor("3", 0.06, 0)
+            // robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 0, 90 * 2 * Math.PI / 360))
+            // const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12,
+            // 	{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
+            // Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
+            // robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
             return robot;
         };
         return Robot;
