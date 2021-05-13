@@ -27,12 +27,23 @@ export class TestScene2 extends RRCScene {
 	readonly testSensorTypes: SensorType[] = ["COLOR", "ULTRASONIC", "TOUCH"]
 
 	readonly _sensorTypes = [...this.testSensorTypes, undefined]
-	readonly allSensorConfigurations = Util.allPropertiesTuples({
-		1: this._sensorTypes,
-		2: this._sensorTypes,
-		3: this._sensorTypes,
-		4: this._sensorTypes
-	})
+	readonly useMultiSetCombinations = true
+	readonly allSensorConfigurations = this.useMultiSetCombinations ?
+		Util.generateMultiSetTuples(
+			this._sensorTypes, 4
+		).map(multiSet => { return {
+			1: multiSet[0],
+			2: multiSet[1], 
+			3: multiSet[2],
+			4: multiSet[3]
+		}}) :
+		Util.allPropertiesTuples({
+			1: this._sensorTypes,
+			2: this._sensorTypes,
+			3: this._sensorTypes,
+			4: this._sensorTypes
+		})
+	
 
 	private configurationIndex = 0
 
@@ -51,7 +62,7 @@ export class TestScene2 extends RRCScene {
 				JSON.stringify(this.allSensorConfigurations[this.configurationIndex], undefined, "\n")
 			)
 			debug.addButton("next", () => {
-				if (this.configurationIndex < this.allSensorConfigurations.length) {
+				if (this.configurationIndex < this.allSensorConfigurations.length - 1) {
 					this.configurationIndex += 1
 					debug.updateDisplay()
 					this.reset()

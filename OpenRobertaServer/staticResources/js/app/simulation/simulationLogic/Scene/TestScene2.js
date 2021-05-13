@@ -47,12 +47,22 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
             ].filter(function (asset) { return asset != undefined; });
             _this.testSensorTypes = ["COLOR", "ULTRASONIC", "TOUCH"];
             _this._sensorTypes = __spread(_this.testSensorTypes, [undefined]);
-            _this.allSensorConfigurations = Util_1.Util.allPropertiesTuples({
-                1: _this._sensorTypes,
-                2: _this._sensorTypes,
-                3: _this._sensorTypes,
-                4: _this._sensorTypes
-            });
+            _this.useMultiSetCombinations = true;
+            _this.allSensorConfigurations = _this.useMultiSetCombinations ?
+                Util_1.Util.generateMultiSetTuples(_this._sensorTypes, 4).map(function (multiSet) {
+                    return {
+                        1: multiSet[0],
+                        2: multiSet[1],
+                        3: multiSet[2],
+                        4: multiSet[3]
+                    };
+                }) :
+                Util_1.Util.allPropertiesTuples({
+                    1: _this._sensorTypes,
+                    2: _this._sensorTypes,
+                    3: _this._sensorTypes,
+                    4: _this._sensorTypes
+                });
             _this.configurationIndex = 0;
             var debug = _this.getDebugGuiStatic();
             if (debug != undefined) {
@@ -66,7 +76,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
                     return JSON.stringify(_this.allSensorConfigurations[_this.configurationIndex], undefined, "\n");
                 });
                 debug.addButton("next", function () {
-                    if (_this.configurationIndex < _this.allSensorConfigurations.length) {
+                    if (_this.configurationIndex < _this.allSensorConfigurations.length - 1) {
                         _this.configurationIndex += 1;
                         debug.updateDisplay();
                         _this.reset();

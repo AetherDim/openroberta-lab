@@ -255,6 +255,46 @@ define(["require", "exports"], function (require, exports) {
             return Util.propertiesTuples(type, keys);
         };
         /**
+        * Generates from `values` a list of all multi-sets which has `length` elements.
+        *
+        * Each element in `value` is assumes to be unique.
+        *
+        * @example
+        * value = [A, B, C]
+        * length = 4
+        * // generates (up to some ordering)
+        * [AAAA, AAAB, AAAC, AABB, AABC, AACC, ..., CCCC]
+        *
+        * @param values the values which are used to generate the multi-set permutations
+        * @param length the number of elements in the multi-set
+        */
+        Util.generateMultiSetTuples = function (values, length) {
+            /** repeatedValues[valueIndex][count] returns an array where values[valueIndex] is repeated 'count' times */
+            var repeatedValues = values.map(function (value) {
+                return Util.closedRange(0, length).map(function (len) {
+                    return new Array(len).fill(value);
+                });
+            });
+            var result = [];
+            var valueCount = values.length;
+            function recursiveFor(maxCount, recursionIndex, intermediateValue) {
+                if (recursionIndex >= valueCount) {
+                    result.push(intermediateValue);
+                }
+                else if (recursionIndex == valueCount - 1) {
+                    // last value
+                    result.push(intermediateValue.concat(repeatedValues[recursionIndex][maxCount]));
+                }
+                else {
+                    for (var i = 0; i <= maxCount; i++) {
+                        recursiveFor(maxCount - i, recursionIndex + 1, intermediateValue.concat(repeatedValues[recursionIndex][i]));
+                    }
+                }
+            }
+            recursiveFor(length, 0, []);
+            return result;
+        };
+        /**
          * @param time in seconds
          * @see https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
          * @returns A string of the format "HH:MM:SS"

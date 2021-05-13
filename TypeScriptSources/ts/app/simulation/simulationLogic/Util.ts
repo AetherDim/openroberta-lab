@@ -352,6 +352,53 @@ export class Util {
 	}
 
 	/**
+	* Generates from `values` a list of all multi-sets which has `length` elements.
+	* 
+	* Each element in `value` is assumes to be unique.
+	* 
+	* @example
+	* value = [A, B, C]
+	* length = 4
+	* // generates (up to some ordering)
+	* [AAAA, AAAB, AAAC, AABB, AABC, AACC, ..., CCCC]
+	* 
+	* @param values the values which are used to generate the multi-set permutations
+	* @param length the number of elements in the multi-set
+	*/
+static generateMultiSetTuples<T>(values: T[], length: number): T[][] {
+	
+	/** repeatedValues[valueIndex][count] returns an array where values[valueIndex] is repeated 'count' times */
+	const repeatedValues = values.map(value =>
+		Util.closedRange(0, length).map(len =>
+			new Array<T>(len).fill(value)
+		)
+	)
+
+	const result: T[][] = []
+	const valueCount = values.length
+
+	function recursiveFor(maxCount: number, recursionIndex: number, intermediateValue: T[]) {
+		if (recursionIndex >= valueCount) {
+			result.push(intermediateValue)
+		} else if (recursionIndex == valueCount - 1) {
+			// last value
+			result.push(
+				intermediateValue.concat(repeatedValues[recursionIndex][maxCount])
+			)
+		} else {
+			for (let i = 0; i <= maxCount; i++) {
+				recursiveFor(maxCount - i, recursionIndex + 1,
+					intermediateValue.concat(repeatedValues[recursionIndex][i]))
+			}
+		}
+	}
+
+	recursiveFor(length, 0, [])
+
+	return result
+}
+
+	/**
 	 * @param time in seconds
 	 * @see https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
 	 * @returns A string of the format "HH:MM:SS"
