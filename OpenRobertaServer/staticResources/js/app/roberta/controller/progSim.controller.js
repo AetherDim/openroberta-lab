@@ -228,7 +228,9 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                 var xmlTextProgram = Blockly.Xml.domToText(xmlProgram);
                 var isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
                 var configName = isNamedConfig ? GUISTATE_C.getConfigurationName() : undefined;
-                var xmlConfigText = GUISTATE_C.isConfigurationAnonymous() ? GUISTATE_C.getConfigurationXML() : undefined;
+                // TODO: Why does the configuration has to be an anonymous one?
+                //var xmlConfigText = GUISTATE_C.isConfigurationAnonymous() ? GUISTATE_C.getConfigurationXML() : undefined;
+                var xmlConfigText = GUISTATE_C.getConfigurationXML();
                 var language = GUISTATE_C.getLanguage();
 
                 PROGRAM.runInSim(GUISTATE_C.getProgramName(), configName, xmlTextProgram, xmlConfigText, language, function(result) {
