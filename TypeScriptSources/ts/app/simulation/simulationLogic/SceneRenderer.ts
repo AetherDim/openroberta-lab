@@ -165,7 +165,7 @@ export class SceneRender {
 		}
 
 		if(this.scene) {
-			this.scene.stopSim();
+			this.scene.pauseSim();
 			this.scene.setSceneRenderer(undefined); // unregister this renderer
 		}
 

@@ -173,11 +173,6 @@ export class Scene {
 			return;
 		}
 
-		this.currentlyLoading = false;
-		this.hasFinishedLoading = true;
-		this.hasBeenInitialized = true;
-
-
 		// update the scene size
 		this.updateBounds()
 
@@ -191,6 +186,10 @@ export class Scene {
 		// update image for rgb sensor
 		this.getContainers().updateGroundImageDataFunction();
 
+		this.currentlyLoading = false;
+		this.hasFinishedLoading = true; // needs to be set before startSim() is called
+		this.hasBeenInitialized = true;
+
 		if(this.autostartSim) {
 			// auto start simulation
 			this.startSim();
@@ -199,6 +198,10 @@ export class Scene {
 		console.log('Finished loading!');
 
 		chain.next(); // technically we don't need this
+	}
+
+	isLoadingComplete() {
+		return this.hasFinishedLoading
 	}
 
 	/**
@@ -257,7 +260,7 @@ export class Scene {
 
 
 		// stop the simulation
-		this.stopSim()
+		this.pauseSim()
 
 		this.debug.clearDebugGuiDynamic() // if dynamic debug gui exist, clear it
 
@@ -420,7 +423,7 @@ export class Scene {
 		}
 	}
 
-	stopSim() {
+	pauseSim() {
 		this.simTicker.stop();
 	}
 
@@ -525,7 +528,7 @@ export class Scene {
 		}
 
 		if(sceneRenderer && !this.hasFinishedLoading && !noLoad) {
-			this.load();
+			this.load(true); // force reload assets
 		}
 	}
 

@@ -212,9 +212,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 }, this.minLoadTime - loadingTime);
                 return;
             }
-            this.currentlyLoading = false;
-            this.hasFinishedLoading = true;
-            this.hasBeenInitialized = true;
             // update the scene size
             this.updateBounds();
             // reset view position
@@ -223,12 +220,18 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             this.getContainers().setVisibility(true);
             // update image for rgb sensor
             this.getContainers().updateGroundImageDataFunction();
+            this.currentlyLoading = false;
+            this.hasFinishedLoading = true; // needs to be set before startSim() is called
+            this.hasBeenInitialized = true;
             if (this.autostartSim) {
                 // auto start simulation
                 this.startSim();
             }
             console.log('Finished loading!');
             chain.next(); // technically we don't need this
+        };
+        Scene.prototype.isLoadingComplete = function () {
+            return this.hasFinishedLoading;
         };
         /**
          * Reloads the whole scene and force reloads the assets
@@ -274,7 +277,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             var configurationManager = this.getRobotManager().configurationManager;
             configurationManager.setRobotConfigurations(Util_1.Util.simulation.storedPrograms.map(function (p) { return p.javaScriptConfiguration; }));
             // stop the simulation
-            this.stopSim();
+            this.pauseSim();
             this.debug.clearDebugGuiDynamic(); // if dynamic debug gui exist, clear it
             this.currentlyLoading = true; // this flag will start loading animation update
             this.hasFinishedLoading = false;
@@ -371,7 +374,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 console.warn("'startSim()' is called during the loading process.");
             }
         };
-        Scene.prototype.stopSim = function () {
+        Scene.prototype.pauseSim = function () {
             this.simTicker.stop();
         };
         /**
@@ -431,7 +434,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 }
             }
             if (sceneRenderer && !this.hasFinishedLoading && !noLoad) {
-                this.load();
+                this.load(true); // force reload assets
             }
         };
         Scene.prototype.renderTick = function (dt) {

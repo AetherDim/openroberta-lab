@@ -64,6 +64,9 @@ define(["require", "exports", "blockly", "../../simulation.constants"], function
             this.programPaused = pause;
             this.setSimRunButton(pause && !this.debugMode);
         };
+        ProgramManager.prototype.resetProgram = function () {
+        };
+        // TODO: Add more programs
         ProgramManager.prototype.startProgram = function () {
             this.setProgramPause(false);
             this.setSimRunButton(true);
@@ -249,6 +252,9 @@ define(["require", "exports", "blockly", "../../simulation.constants"], function
                     this.interpreters[i].addEvent(mode);
                 }
             }
+        };
+        ProgramManager.prototype.startDebugging = function () {
+            // TODO
         };
         /** called to signify debugging is finished in simulation */
         ProgramManager.prototype.endDebugging = function () {

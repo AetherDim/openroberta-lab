@@ -248,6 +248,32 @@ export class Util {
 	private static soup_ = '!#$%()*+,-./:;=?@[]^_`{|}~' +
 		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
+	/**
+	 * Generate a unique ID.  This should be globally unique.
+	 * 87 characters ^ 20 length > 128 bits (better than a UUID).
+	 * @return {string} A globally unique ID string.
+	 */
+	static genHtmlUid(): string {
+		const length = 25;
+		const soupLength = Util.soupHTML_.length;
+		const id: string[] = [];
+		id[0] = Util.soupAlphabet_.charAt(Math.random() * Util.soupAlphabet_.length);
+		for (let i = 1; i < length; i++) {
+			id[i] = Util.soupHTML_.charAt(Math.random() * soupLength);
+		}
+		return id.join('');
+	};
+	
+	private static soupAlphabet_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+	private static soupHTML_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_:';
+
+	static idNumber = 0
+	static genHtmlUid2() {
+		const uid = 'uid:' + this.idNumber
+		this.idNumber ++
+		return uid
+	}
+
 	static flattenArray<T>(array: T[][]): T[] {
 		const result: T[] = []
 		for (let i = 0; i < array.length; i++) {

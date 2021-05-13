@@ -246,7 +246,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
             engine.getScene().startSim();
         }
         else {
-            engine.getScene().stopSim();
+            engine.getScene().pauseSim();
         }
     }
     exports.sim = sim;

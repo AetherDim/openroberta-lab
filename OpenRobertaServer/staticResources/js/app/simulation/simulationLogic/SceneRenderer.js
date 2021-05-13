@@ -117,7 +117,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 return;
             }
             if (this.scene) {
-                this.scene.stopSim();
+                this.scene.pauseSim();
                 this.scene.setSceneRenderer(undefined); // unregister this renderer
             }
             // remove all children from PIXI renderer

@@ -385,7 +385,7 @@ export function sim(run: boolean) {
 	if(run) {
 		engine.getScene().startSim();
 	} else {
-		engine.getScene().stopSim();
+		engine.getScene().pauseSim();
 	}
 }
 

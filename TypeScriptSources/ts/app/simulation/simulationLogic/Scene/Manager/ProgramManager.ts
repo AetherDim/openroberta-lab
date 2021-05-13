@@ -88,7 +88,12 @@ export class ProgramManager {
 		this.setSimRunButton(pause && !this.debugMode);
 	}
 
+	resetProgram() {
+		
+	}
 
+
+	// TODO: Add more programs
 	startProgram() {
 		this.setProgramPause(false);
 		this.setSimRunButton(true);
@@ -291,6 +296,10 @@ export class ProgramManager {
 				this.interpreters[i].addEvent(mode);
 			}
 		}
+	}
+
+	startDebugging() {
+		// TODO
 	}
 
 	/** called to signify debugging is finished in simulation */

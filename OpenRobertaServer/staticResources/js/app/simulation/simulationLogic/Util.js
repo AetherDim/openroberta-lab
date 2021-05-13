@@ -148,6 +148,27 @@ define(["require", "exports"], function (require, exports) {
             return id.join('');
         };
         ;
+        /**
+         * Generate a unique ID.  This should be globally unique.
+         * 87 characters ^ 20 length > 128 bits (better than a UUID).
+         * @return {string} A globally unique ID string.
+         */
+        Util.genHtmlUid = function () {
+            var length = 25;
+            var soupLength = Util.soupHTML_.length;
+            var id = [];
+            id[0] = Util.soupAlphabet_.charAt(Math.random() * Util.soupAlphabet_.length);
+            for (var i = 1; i < length; i++) {
+                id[i] = Util.soupHTML_.charAt(Math.random() * soupLength);
+            }
+            return id.join('');
+        };
+        ;
+        Util.genHtmlUid2 = function () {
+            var uid = 'uid:' + this.idNumber;
+            this.idNumber++;
+            return uid;
+        };
         Util.flattenArray = function (array) {
             var result = [];
             for (var i = 0; i < array.length; i++) {
@@ -447,6 +468,9 @@ define(["require", "exports"], function (require, exports) {
          */
         Util.soup_ = '!#$%()*+,-./:;=?@[]^_`{|}~' +
             'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        Util.soupAlphabet_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        Util.soupHTML_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_:';
+        Util.idNumber = 0;
         return Util;
     }());
     exports.Util = Util;
