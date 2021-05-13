@@ -61,22 +61,22 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	updateSensorGraphics = true
 
 	/**
-	 * The color sensors of the robot
+	 * The color sensors of the robot where the key is the port.
 	 */
-	private colorSensors: StringMap<ColorSensor> = {}
+	private colorSensors = new Map<string, ColorSensor>()
 
 	/**
-	 * The ultrasonic sensors of the robot
+	 * The ultrasonic sensors of the robot where the key is the port.
 	 */
-	private ultrasonicSensors: StringMap<UltrasonicSensor> = {}
+	private ultrasonicSensors = new Map<string, UltrasonicSensor>()
 
 	/**
-	 * The touch sensors of the robot
+	 * The touch sensors of the robot where the key is the port.
 	 */
-	private touchSensors: StringMap<TouchSensor> = {}
+	private touchSensors = new Map<string, TouchSensor>()
 
 	/**
-	 * The gyro sensors of the robot
+	 * The gyro sensors of the robot where the key is the port.
 	 */
 	private gyroSensors = new Map<string, GyroSensor>()
 
@@ -323,19 +323,20 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	removeAllSensors() {
-		Util.nonNullObjectValues(this.colorSensors).forEach(c => c.removeGraphicsFromParent())
-		Util.nonNullObjectValues(this.ultrasonicSensors).forEach(u => u.removeGraphicsFromParent())
-		Util.nonNullObjectValues(this.touchSensors).forEach(t => t.scene.removeEntity(t))
-		this.colorSensors = {}
-		this.ultrasonicSensors = {}
-		this.touchSensors = {}
+		this.getColorSensors().forEach(c => c.removeGraphicsFromParent())
+		this.getUltrasonicSensors().forEach(u => u.removeGraphicsFromParent())
+		this.getTouchSensors().forEach(t => t.scene.removeEntity(t))
+		this.colorSensors.clear()
+		this.ultrasonicSensors.clear()
+		this.touchSensors.clear()
+		this.gyroSensors.clear()
 	}
 
 	/**
 	 * Returns the color sensor which can be `undefined`
 	 */
 	getColorSensors(): ColorSensor[] {
-		return Util.nonNullObjectValues(this.colorSensors)
+		return Array.from(this.colorSensors.values())
 	}
 
 	/**
@@ -348,30 +349,30 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * @returns false if a color sensor at `port` already exists and a new color sensor was not added
 	 */
 	addColorSensor(port: string, x: number, y: number, graphicsRadius: number): boolean {
-		if (this.colorSensors[port]) {
+		if (this.colorSensors.has(port)) {
 			return false
 		}
 		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y), graphicsRadius)
-		this.colorSensors[port] = colorSensor
+		this.colorSensors.set(port, colorSensor)
 		this.bodyContainer.addChild(colorSensor.graphics)
 		return true
 	}
 	
 	getUltrasonicSensors(): UltrasonicSensor[] {
-		return Util.nonNullObjectValues(this.ultrasonicSensors)
+		return Array.from(this.ultrasonicSensors.values())
 	}
 
 	addUltrasonicSensor(port: string, ultrasonicSensor: UltrasonicSensor): boolean {
-		if (this.ultrasonicSensors[port]) {
+		if (this.ultrasonicSensors.has(port)) {
 			return false
 		}
-		this.ultrasonicSensors[port] = ultrasonicSensor
+		this.ultrasonicSensors.set(port, ultrasonicSensor)
 		this.bodyContainer.addChild(ultrasonicSensor.graphics)
 		return true
 	}
 
 	getTouchSensors(): TouchSensor[] {
-		return Util.nonNullObjectValues(this.touchSensors)
+		return Array.from(this.touchSensors.values())
 	}
 
 	addGyroSensor(port: string, gyroSensor: GyroSensor): boolean {
@@ -390,7 +391,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * @returns false if a touch sensor at `port` already exists and the new touch sensor was not added
 	 */
 	addTouchSensor(port: string, touchSensor: TouchSensor): boolean {
-		if (this.touchSensors[port]) {
+		if (this.touchSensors.has(port)) {
 			return false
 		}
 		this.addChild(touchSensor)
@@ -405,7 +406,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		)
 		Composite.add(this.physicsComposite, sensorBody)
 		this.physicsComposite.addRigidBodyConstraints(this.body, sensorBody, 0.3, 0.3)
-		this.touchSensors[port] = touchSensor
+		this.touchSensors.set(port, touchSensor)
 		return true
 	}
 
@@ -863,17 +864,17 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		append("Robot θ", this.body.angle * 180 / Math.PI, "°")
 		append("Motor left", Util.toDegrees(sensors.encoder?.left ?? 0), "°")
 		append("Motor right", Util.toDegrees(sensors.encoder?.right ?? 0), "°")
-		for (const port in this.touchSensors) {
-			appendAny("Touch Sensor "+port, this.touchSensors[port]!.getIsTouched())
+		for (const [port, touchSensor] of this.touchSensors) {
+			appendAny("Touch Sensor "+port, touchSensor.getIsTouched())
 		}
-		for (const port in this.colorSensors) {
-			append("Light Sensor "+port, this.colorSensors[port]!.getDetectedBrightness() * 100, "%")
+		for (const [port, colorSensor] of this.colorSensors) {
+			append("Light Sensor "+port, colorSensor.getDetectedBrightness() * 100, "%")
 		}
-		for (const port in this.colorSensors) {
-			appendAny("Color Sensor "+port, "<span style=\"width: 20px; background-color:" + this.colorSensors[port]!.getColorHexValueString() + "\">&nbsp;</span>")
+		for (const [port, colorSensor] of this.colorSensors) {
+			appendAny("Color Sensor "+port, "<span style=\"width: 20px; background-color:" + colorSensor.getColorHexValueString() + "\">&nbsp;</span>")
 		}
-		for (const port in this.ultrasonicSensors) {
-			append("Ultra Sensor "+port, 100 * s.unit.fromLength(this.ultrasonicSensors[port]!.getMeasuredDistance()), "cm")
+		for (const [port, ultrasonicSensor] of this.ultrasonicSensors) {
+			append("Ultra Sensor "+port, 100 * s.unit.fromLength(ultrasonicSensor.getMeasuredDistance()), "cm")
 		}
         
 	}
@@ -915,15 +916,14 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		}
 		sensors.gyro = gyroData
 
-		const robotBodies = Util.nonNullObjectValues(this.touchSensors).map(touchSensor => touchSensor.getPhysicsBody())
+		const robotBodies = this.getTouchSensors().map(touchSensor => touchSensor.getPhysicsBody())
 			.concat(this.physicsWheelsList, this.body)
 
 		// color
 		if (!sensors.color) {
 			sensors.color = {}
 		}
-		for (const port in this.colorSensors) {
-			const colorSensor = this.colorSensors[port]!
+		for (const [port, colorSensor] of this.colorSensors) {
 			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
 			const color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
@@ -952,8 +952,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		if (!sensors.infrared) {
 			sensors.infrared = {}
 		}
-		for (const port in this.ultrasonicSensors) {
-			const ultrasonicSensor = this.ultrasonicSensors[port]!
+		for (const [port, ultrasonicSensor] of this.ultrasonicSensors) {
 			const sensorPosition = this.getAbsolutePosition(ultrasonicSensor.position)
 			let ultrasonicDistance: number
 			let nearestPoint: Vector | undefined
@@ -1021,8 +1020,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		if (!sensors.touch) {
 			sensors.touch = {}
 		}
-		for (const port in this.touchSensors) {
-			const touchSensor = this.touchSensors[port]!
+		for (const [port, touchSensor] of this.touchSensors) {
 			touchSensor.setIsTouched(BodyHelper.bodyIntersectsOther(touchSensor.physicsBody, allBodies))
 			sensors.touch[port] = touchSensor.getIsTouched()
 		}

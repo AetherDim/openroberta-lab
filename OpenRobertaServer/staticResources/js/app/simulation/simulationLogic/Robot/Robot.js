@@ -39,19 +39,19 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         function Robot(robot) {
             this.updateSensorGraphics = true;
             /**
-             * The color sensors of the robot
+             * The color sensors of the robot where the key is the port.
              */
-            this.colorSensors = {};
+            this.colorSensors = new Map();
             /**
-             * The ultrasonic sensors of the robot
+             * The ultrasonic sensors of the robot where the key is the port.
              */
-            this.ultrasonicSensors = {};
+            this.ultrasonicSensors = new Map();
             /**
-             * The touch sensors of the robot
+             * The touch sensors of the robot where the key is the port.
              */
-            this.touchSensors = {};
+            this.touchSensors = new Map();
             /**
-             * The gyro sensors of the robot
+             * The gyro sensors of the robot where the key is the port.
              */
             this.gyroSensors = new Map();
             this.programCode = null;
@@ -257,18 +257,19 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             matter_js_1.Composite.rotate(this.physicsComposite, rotation - this.body.angle, this.body.position);
         };
         Robot.prototype.removeAllSensors = function () {
-            Util_1.Util.nonNullObjectValues(this.colorSensors).forEach(function (c) { return c.removeGraphicsFromParent(); });
-            Util_1.Util.nonNullObjectValues(this.ultrasonicSensors).forEach(function (u) { return u.removeGraphicsFromParent(); });
-            Util_1.Util.nonNullObjectValues(this.touchSensors).forEach(function (t) { return t.scene.removeEntity(t); });
-            this.colorSensors = {};
-            this.ultrasonicSensors = {};
-            this.touchSensors = {};
+            this.getColorSensors().forEach(function (c) { return c.removeGraphicsFromParent(); });
+            this.getUltrasonicSensors().forEach(function (u) { return u.removeGraphicsFromParent(); });
+            this.getTouchSensors().forEach(function (t) { return t.scene.removeEntity(t); });
+            this.colorSensors.clear();
+            this.ultrasonicSensors.clear();
+            this.touchSensors.clear();
+            this.gyroSensors.clear();
         };
         /**
          * Returns the color sensor which can be `undefined`
          */
         Robot.prototype.getColorSensors = function () {
-            return Util_1.Util.nonNullObjectValues(this.colorSensors);
+            return Array.from(this.colorSensors.values());
         };
         /**
          * Sets the color sensor at the position (x,y) in meters
@@ -280,27 +281,27 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          * @returns false if a color sensor at `port` already exists and a new color sensor was not added
          */
         Robot.prototype.addColorSensor = function (port, x, y, graphicsRadius) {
-            if (this.colorSensors[port]) {
+            if (this.colorSensors.has(port)) {
                 return false;
             }
             var colorSensor = new ColorSensor_1.ColorSensor(this.scene.unit, matter_js_1.Vector.create(x, y), graphicsRadius);
-            this.colorSensors[port] = colorSensor;
+            this.colorSensors.set(port, colorSensor);
             this.bodyContainer.addChild(colorSensor.graphics);
             return true;
         };
         Robot.prototype.getUltrasonicSensors = function () {
-            return Util_1.Util.nonNullObjectValues(this.ultrasonicSensors);
+            return Array.from(this.ultrasonicSensors.values());
         };
         Robot.prototype.addUltrasonicSensor = function (port, ultrasonicSensor) {
-            if (this.ultrasonicSensors[port]) {
+            if (this.ultrasonicSensors.has(port)) {
                 return false;
             }
-            this.ultrasonicSensors[port] = ultrasonicSensor;
+            this.ultrasonicSensors.set(port, ultrasonicSensor);
             this.bodyContainer.addChild(ultrasonicSensor.graphics);
             return true;
         };
         Robot.prototype.getTouchSensors = function () {
-            return Util_1.Util.nonNullObjectValues(this.touchSensors);
+            return Array.from(this.touchSensors.values());
         };
         Robot.prototype.addGyroSensor = function (port, gyroSensor) {
             if (this.gyroSensors.has(port)) {
@@ -317,7 +318,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
          * @returns false if a touch sensor at `port` already exists and the new touch sensor was not added
          */
         Robot.prototype.addTouchSensor = function (port, touchSensor) {
-            if (this.touchSensors[port]) {
+            if (this.touchSensors.has(port)) {
                 return false;
             }
             this.addChild(touchSensor);
@@ -326,7 +327,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             matter_js_1.Body.setPosition(sensorBody, matter_js_1.Vector.add(this.body.position, matter_js_1.Vector.rotate(touchSensor.physicsBody.position, this.body.angle)));
             matter_js_1.Composite.add(this.physicsComposite, sensorBody);
             this.physicsComposite.addRigidBodyConstraints(this.body, sensorBody, 0.3, 0.3);
-            this.touchSensors[port] = touchSensor;
+            this.touchSensors.set(port, touchSensor);
             return true;
         };
         Robot.prototype.setWheels = function (wheels) {
@@ -716,7 +717,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
         };
         ;
         Robot.prototype.addHTMLSensorValuesTo = function (list) {
-            var _a, _b, _c, _d;
+            var e_1, _a, e_2, _b, e_3, _c, e_4, _d;
+            var _e, _f, _g, _h;
             var s = this.scene;
             var appendAny = function (label, value) { list.push({ label: label, value: value }); };
             var append = function (label, value, end) {
@@ -726,19 +728,59 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             append("Robot X", this.body.position.x);
             append("Robot Y", this.body.position.y);
             append("Robot θ", this.body.angle * 180 / Math.PI, "°");
-            append("Motor left", Util_1.Util.toDegrees((_b = (_a = sensors.encoder) === null || _a === void 0 ? void 0 : _a.left) !== null && _b !== void 0 ? _b : 0), "°");
-            append("Motor right", Util_1.Util.toDegrees((_d = (_c = sensors.encoder) === null || _c === void 0 ? void 0 : _c.right) !== null && _d !== void 0 ? _d : 0), "°");
-            for (var port in this.touchSensors) {
-                appendAny("Touch Sensor " + port, this.touchSensors[port].getIsTouched());
+            append("Motor left", Util_1.Util.toDegrees((_f = (_e = sensors.encoder) === null || _e === void 0 ? void 0 : _e.left) !== null && _f !== void 0 ? _f : 0), "°");
+            append("Motor right", Util_1.Util.toDegrees((_h = (_g = sensors.encoder) === null || _g === void 0 ? void 0 : _g.right) !== null && _h !== void 0 ? _h : 0), "°");
+            try {
+                for (var _j = __values(this.touchSensors), _k = _j.next(); !_k.done; _k = _j.next()) {
+                    var _l = __read(_k.value, 2), port = _l[0], touchSensor = _l[1];
+                    appendAny("Touch Sensor " + port, touchSensor.getIsTouched());
+                }
             }
-            for (var port in this.colorSensors) {
-                append("Light Sensor " + port, this.colorSensors[port].getDetectedBrightness() * 100, "%");
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_k && !_k.done && (_a = _j.return)) _a.call(_j);
+                }
+                finally { if (e_1) throw e_1.error; }
             }
-            for (var port in this.colorSensors) {
-                appendAny("Color Sensor " + port, "<span style=\"width: 20px; background-color:" + this.colorSensors[port].getColorHexValueString() + "\">&nbsp;</span>");
+            try {
+                for (var _m = __values(this.colorSensors), _o = _m.next(); !_o.done; _o = _m.next()) {
+                    var _p = __read(_o.value, 2), port = _p[0], colorSensor = _p[1];
+                    append("Light Sensor " + port, colorSensor.getDetectedBrightness() * 100, "%");
+                }
             }
-            for (var port in this.ultrasonicSensors) {
-                append("Ultra Sensor " + port, 100 * s.unit.fromLength(this.ultrasonicSensors[port].getMeasuredDistance()), "cm");
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (_o && !_o.done && (_b = _m.return)) _b.call(_m);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            try {
+                for (var _q = __values(this.colorSensors), _r = _q.next(); !_r.done; _r = _q.next()) {
+                    var _s = __read(_r.value, 2), port = _s[0], colorSensor = _s[1];
+                    appendAny("Color Sensor " + port, "<span style=\"width: 20px; background-color:" + colorSensor.getColorHexValueString() + "\">&nbsp;</span>");
+                }
+            }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            finally {
+                try {
+                    if (_r && !_r.done && (_c = _q.return)) _c.call(_q);
+                }
+                finally { if (e_3) throw e_3.error; }
+            }
+            try {
+                for (var _t = __values(this.ultrasonicSensors), _u = _t.next(); !_u.done; _u = _t.next()) {
+                    var _v = __read(_u.value, 2), port = _v[0], ultrasonicSensor = _v[1];
+                    append("Ultra Sensor " + port, 100 * s.unit.fromLength(ultrasonicSensor.getMeasuredDistance()), "cm");
+                }
+            }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
+            finally {
+                try {
+                    if (_u && !_u.done && (_d = _t.return)) _d.call(_t);
+                }
+                finally { if (e_4) throw e_4.error; }
             }
         };
         /**
@@ -748,8 +790,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             return Util_1.Util.vectorAdd(this.body.position, matter_js_1.Vector.rotate(relativePosition, this.body.angle));
         };
         Robot.prototype.updateRobotBehaviourHardwareStateSensors = function () {
-            var e_1, _a;
-            var _b, _c;
+            var e_5, _a, e_6, _b, e_7, _c, e_8, _d;
+            var _e, _f;
             var sensors = this.robotBehaviour.getHardwareStateSensors();
             // encoder
             sensors.encoder = {
@@ -759,14 +801,14 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             // gyo sensor
             // Note: OpenRoberta has a bug for the gyro.rate where they calculate it by
             // angleDifference * timeDifference but it should be angleDifference / timeDifference
-            var gyroData = (_b = sensors.gyro) !== null && _b !== void 0 ? _b : {};
+            var gyroData = (_e = sensors.gyro) !== null && _e !== void 0 ? _e : {};
             var gyroRate = Util_1.Util.toDegrees(this.body.angularVelocity);
             var gyroAngleDifference = Util_1.Util.toDegrees(this.body.angle - this.body.anglePrev);
             var dt = this.scene.getDT();
             try {
-                for (var _d = __values(this.gyroSensors), _e = _d.next(); !_e.done; _e = _d.next()) {
-                    var _f = __read(_e.value, 2), port = _f[0], gyroSensor = _f[1];
-                    var referenceAngle = (_c = this.robotBehaviour.getGyroReferenceAngle(port)) !== null && _c !== void 0 ? _c : 0;
+                for (var _g = __values(this.gyroSensors), _h = _g.next(); !_h.done; _h = _g.next()) {
+                    var _j = __read(_h.value, 2), port = _j[0], gyroSensor = _j[1];
+                    var referenceAngle = (_f = this.robotBehaviour.getGyroReferenceAngle(port)) !== null && _f !== void 0 ? _f : 0;
                     var angle = Util_1.Util.toDegrees(this.body.angle);
                     gyroSensor.update(angle, referenceAngle, dt);
                     // gyroData uses the 'true' angle instead of '' since the referenceAngle/"angleReset" is used
@@ -777,36 +819,45 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     };
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
             finally {
                 try {
-                    if (_e && !_e.done && (_a = _d.return)) _a.call(_d);
+                    if (_h && !_h.done && (_a = _g.return)) _a.call(_g);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_5) throw e_5.error; }
             }
             sensors.gyro = gyroData;
-            var robotBodies = Util_1.Util.nonNullObjectValues(this.touchSensors).map(function (touchSensor) { return touchSensor.getPhysicsBody(); })
+            var robotBodies = this.getTouchSensors().map(function (touchSensor) { return touchSensor.getPhysicsBody(); })
                 .concat(this.physicsWheelsList, this.body);
             // color
             if (!sensors.color) {
                 sensors.color = {};
             }
-            for (var port in this.colorSensors) {
-                var colorSensor = this.colorSensors[port];
-                var colorSensorPosition = this.getAbsolutePosition(colorSensor.position);
-                // the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
-                var color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
-                var r = color[0], g = color[1], b = color[2];
-                colorSensor.setDetectedColor(r, g, b, this.updateSensorGraphics);
-                var hsv = Color_1.rgbToHsv(r, g, b);
-                var colour = Color_1.hsvToColorName(hsv);
-                sensors.color[port] = {
-                    ambientlight: 0,
-                    colorValue: colour,
-                    colour: colour,
-                    light: ((r + g + b) / 3 / 2.55),
-                    rgb: [r, g, b]
-                };
+            try {
+                for (var _k = __values(this.colorSensors), _l = _k.next(); !_l.done; _l = _k.next()) {
+                    var _m = __read(_l.value, 2), port = _m[0], colorSensor = _m[1];
+                    var colorSensorPosition = this.getAbsolutePosition(colorSensor.position);
+                    // the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
+                    var color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data;
+                    var r = color[0], g = color[1], b = color[2];
+                    colorSensor.setDetectedColor(r, g, b, this.updateSensorGraphics);
+                    var hsv = Color_1.rgbToHsv(r, g, b);
+                    var colour = Color_1.hsvToColorName(hsv);
+                    sensors.color[port] = {
+                        ambientlight: 0,
+                        colorValue: colour,
+                        colour: colour,
+                        light: ((r + g + b) / 3 / 2.55),
+                        rgb: [r, g, b]
+                    };
+                }
+            }
+            catch (e_6_1) { e_6 = { error: e_6_1 }; }
+            finally {
+                try {
+                    if (_l && !_l.done && (_b = _k.return)) _b.call(_k);
+                }
+                finally { if (e_6) throw e_6.error; }
             }
             var allBodies = this.scene.getAllPhysicsBodies();
             // ultrasonic sensor
@@ -816,8 +867,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             if (!sensors.infrared) {
                 sensors.infrared = {};
             }
-            var _loop_1 = function (port) {
-                var ultrasonicSensor = this_1.ultrasonicSensors[port];
+            var _loop_1 = function (port, ultrasonicSensor) {
                 var sensorPosition = this_1.getAbsolutePosition(ultrasonicSensor.position);
                 var ultrasonicDistance = void 0;
                 var nearestPoint;
@@ -882,17 +932,36 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 };
             };
             var this_1 = this;
-            for (var port in this.ultrasonicSensors) {
-                _loop_1(port);
+            try {
+                for (var _o = __values(this.ultrasonicSensors), _p = _o.next(); !_p.done; _p = _o.next()) {
+                    var _q = __read(_p.value, 2), port = _q[0], ultrasonicSensor = _q[1];
+                    _loop_1(port, ultrasonicSensor);
+                }
+            }
+            catch (e_7_1) { e_7 = { error: e_7_1 }; }
+            finally {
+                try {
+                    if (_p && !_p.done && (_c = _o.return)) _c.call(_o);
+                }
+                finally { if (e_7) throw e_7.error; }
             }
             // touch sensor
             if (!sensors.touch) {
                 sensors.touch = {};
             }
-            for (var port in this.touchSensors) {
-                var touchSensor = this.touchSensors[port];
-                touchSensor.setIsTouched(BodyHelper_1.BodyHelper.bodyIntersectsOther(touchSensor.physicsBody, allBodies));
-                sensors.touch[port] = touchSensor.getIsTouched();
+            try {
+                for (var _r = __values(this.touchSensors), _s = _r.next(); !_s.done; _s = _r.next()) {
+                    var _t = __read(_s.value, 2), port = _t[0], touchSensor = _t[1];
+                    touchSensor.setIsTouched(BodyHelper_1.BodyHelper.bodyIntersectsOther(touchSensor.physicsBody, allBodies));
+                    sensors.touch[port] = touchSensor.getIsTouched();
+                }
+            }
+            catch (e_8_1) { e_8 = { error: e_8_1 }; }
+            finally {
+                try {
+                    if (_s && !_s.done && (_d = _r.return)) _d.call(_r);
+                }
+                finally { if (e_8) throw e_8.error; }
             }
         };
         /**
