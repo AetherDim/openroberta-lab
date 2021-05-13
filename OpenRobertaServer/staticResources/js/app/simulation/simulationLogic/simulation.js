@@ -1,4 +1,15 @@
-define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./Util", "./GlobalDebug", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, Util_1, GlobalDebug_1) {
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./Util", "./GlobalDebug", "./Robot/Robot", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, Util_1, GlobalDebug_1, Robot_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneDescriptor = void 0;
@@ -145,13 +156,35 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
      * @param robotType
      */
     function init(programs, refresh, robotType) {
-        function toProgramEqualityObject(p) {
+        var e_1, _a;
+        var _b, _c;
+        function toProgramEqualityObject(data) {
             return {
-                javaScriptConfiguration: p.javaScriptConfiguration
+                javaScriptConfiguration: data.javaScriptConfiguration
             };
         }
-        var hasNewConfiguration = !Util_1.Util.deepEqual(programs.map(toProgramEqualityObject), Util_1.Util.simulation.storedPrograms.map(toProgramEqualityObject));
-        Util_1.Util.simulation.storedPrograms = programs;
+        var hasNewConfiguration = !Util_1.Util.deepEqual(programs.map(toProgramEqualityObject), Util_1.Util.simulation.storedRobertaRobotSetupData.map(toProgramEqualityObject));
+        try {
+            // check that the configuration values ("TOUCH", "GYRO", ...) are also in `sensorTypeStrings`
+            for (var programs_1 = __values(programs), programs_1_1 = programs_1.next(); !programs_1_1.done; programs_1_1 = programs_1.next()) {
+                var setupData = programs_1_1.value;
+                var configuration = setupData.javaScriptConfiguration;
+                var allKeys = Object.keys(configuration);
+                var allValues = Util_1.Util.nonNullObjectValues(configuration);
+                var wrongValueCount = (_c = (_b = allValues.find(function (e) { return !Robot_1.sensorTypeStrings.includes(e); })) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0;
+                if (wrongValueCount > 0 || allKeys.filter(function (e) { return typeof e === "number"; }).length > 0) {
+                    console.error("The 'configuration' has not the expected type. Configuration: " + configuration);
+                }
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (programs_1_1 && !programs_1_1.done && (_a = programs_1.return)) _a.call(programs_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        Util_1.Util.simulation.storedRobertaRobotSetupData = programs;
         Util_1.Util.simulation.storedRobotType = robotType;
         //$('simScene').hide();
         // TODO: prevent clicking run twice
@@ -172,7 +205,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     }
     exports.setPause = setPause;
     function run(refresh, robotType) {
-        init(Util_1.Util.simulation.storedPrograms, refresh, robotType);
+        init(Util_1.Util.simulation.storedRobertaRobotSetupData, refresh, robotType);
     }
     exports.run = run;
     /**
@@ -181,7 +214,7 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     function stopProgram() {
         // TODO: reset robot?
         engine.getScene().getProgramManager().stopProgram();
-        init(Util_1.Util.simulation.storedPrograms, false, Util_1.Util.simulation.storedRobotType);
+        init(Util_1.Util.simulation.storedRobertaRobotSetupData, false, Util_1.Util.simulation.storedRobotType);
     }
     exports.stopProgram = stopProgram;
     function importImage() {

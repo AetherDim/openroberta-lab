@@ -1,5 +1,5 @@
 import { Vector } from "matter-js"
-import { RobotProgram } from "./Robot/RobotProgram"
+import { RobertaRobotSetupData } from "./Robot/RobertaRobotSetupData"
 
 export type StringMap<V> = { [key: string]: V | undefined }
 export type NumberMap<V> = { [key: number]: V | undefined }
@@ -115,10 +115,10 @@ export class Util {
 
 	// TODO: Remove this static variable
 	static simulation: {
-		storedPrograms: RobotProgram[],
+		storedRobertaRobotSetupData: RobertaRobotSetupData[],
 		storedRobotType: string
 	} = {
-		storedPrograms: [],
+		storedRobertaRobotSetupData: [],
 		storedRobotType: ""
 	}
 

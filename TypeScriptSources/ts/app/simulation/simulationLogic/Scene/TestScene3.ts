@@ -11,7 +11,6 @@ import { Scene } from "./Scene";
 
 function constructProgram(operations: OpCode[][]): RobotProgram {
 	return {
-		javaScriptConfiguration: {1: "TOUCH", 2: "GYRO", 3: "COLOR", 4: "ULTRASONIC"},
 		javaScriptProgram: JSON.stringify({ "ops": Util.flattenArray(operations) }, undefined, "\t")
 	}
 }
@@ -366,14 +365,14 @@ export class TestScene3 extends Scene {
 			})
 
 			// run(false, undefined)
-			const program = true ? 
+			const programs: RobotProgram[] = true ? 
 				[
 					constructProgram([
 						// driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
 						rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
 					])
-				] : Util.simulation.storedPrograms
-			this.getProgramManager().setPrograms(program, true, undefined)
+				] : Util.simulation.storedRobertaRobotSetupData
+			this.getProgramManager().setPrograms(programs, true, undefined)
 			this.getProgramManager().startProgram()
 		}
 

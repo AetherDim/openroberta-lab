@@ -456,7 +456,7 @@ define(["require", "exports"], function (require, exports) {
         };
         // TODO: Remove this static variable
         Util.simulation = {
-            storedPrograms: [],
+            storedRobertaRobotSetupData: [],
             storedRobotType: ""
         };
         /**

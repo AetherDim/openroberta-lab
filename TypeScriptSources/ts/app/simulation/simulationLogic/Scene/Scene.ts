@@ -256,7 +256,7 @@ export class Scene {
 		// TODO: Do not use global Util properties
 		const configurationManager = this.getRobotManager().configurationManager
 		configurationManager.setRobotConfigurations(
-			Util.simulation.storedPrograms.map(p => p.javaScriptConfiguration))
+			Util.simulation.storedRobertaRobotSetupData.map(p => p.javaScriptConfiguration))
 
 
 		// stop the simulation

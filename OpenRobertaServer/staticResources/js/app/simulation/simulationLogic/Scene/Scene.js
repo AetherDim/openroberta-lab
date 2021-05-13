@@ -275,7 +275,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             }
             // TODO: Do not use global Util properties
             var configurationManager = this.getRobotManager().configurationManager;
-            configurationManager.setRobotConfigurations(Util_1.Util.simulation.storedPrograms.map(function (p) { return p.javaScriptConfiguration; }));
+            configurationManager.setRobotConfigurations(Util_1.Util.simulation.storedRobertaRobotSetupData.map(function (p) { return p.javaScriptConfiguration; }));
             // stop the simulation
             this.pauseSim();
             this.debug.clearDebugGuiDynamic(); // if dynamic debug gui exist, clear it

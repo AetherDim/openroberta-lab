@@ -6,6 +6,7 @@ import { Robot, SensorType } from "../../Robot/Robot";
 import { TouchSensor } from "../../Robot/Sensors/TouchSensor";
 import { UltrasonicSensor } from "../../Robot/Sensors/UltrasonicSensor";
 import { GyroSensor } from "../../Robot/Sensors/GyroSensor";
+import { RobotConfiguration } from "../../Robot/RobotConfiguration";
 
 class MaxSensorCount {
 	readonly maxCount: number
@@ -24,7 +25,7 @@ class MaxSensorCount {
  * 
  * The 2D arrays return `array[sensorCount][sensorIndex]` which is a sensor configuration
  */
-type RobotConfiguration = {
+type RobotSensorConfiguration = {
 	TOUCH: {x: number, y: number, width: number, height: number, angle: number, mass: number}[][]
 	GYRO: undefined[],
 	COLOR: {x: number, y: number, graphicsRadius: number}[][]
@@ -42,7 +43,7 @@ type RobotConfiguration = {
  */
 type SensorPortMap = Map<SensorType, string[]>
 
-type SensorConfiguration<K extends SensorType> = NumberIndexed<NumberIndexed<RobotConfiguration[K]>>
+type SensorConfiguration<K extends SensorType> = NumberIndexed<NumberIndexed<RobotSensorConfiguration[K]>>
 
 export class RobotConfigurationManager {
 	
@@ -51,7 +52,7 @@ export class RobotConfigurationManager {
 	private static readonly ultrasonicSensorOffset = 0.02
 
 	private robots: Robot[]
-	private robotConfigurations: StringMap<SensorType>[] = [] 
+	private robotConfigurations: RobotConfiguration[] = [] 
 
 	constructor(robots: Robot[]) {
 		this.robots = robots
@@ -59,7 +60,7 @@ export class RobotConfigurationManager {
 
 
 	
-	private static robotConfiguration: RobotConfiguration = {
+	private static robotConfiguration: RobotSensorConfiguration = {
 		TOUCH: [
 			[{x: 0.085, y: 0, width: 0.01, height: 0.12, angle: 0, mass: 0.05}]
 		],
@@ -156,7 +157,7 @@ export class RobotConfigurationManager {
 	}
 
 
-	private static configureRobot(robot: Robot, configuration: StringMap<SensorType>) {
+	private static configureRobot(robot: Robot, configuration: RobotConfiguration) {
 
 		const portMap: SensorPortMap = new Map()
 		for(const port in configuration) {
@@ -180,7 +181,7 @@ export class RobotConfigurationManager {
 		
 	}
 
-	setRobotConfigurations(robotConfigurations: StringMap<SensorType>[]) {
+	setRobotConfigurations(robotConfigurations: RobotConfiguration[]) {
 		this.robotConfigurations = robotConfigurations
 	}
 

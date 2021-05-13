@@ -183,6 +183,8 @@ require.config({
                         'GyroSensor',
                 ]},
                 'Robot',
+                'RobertaRobotSetupData',
+                'RobotConfiguration',
                 'RobotProgram',
                 'RobotTester',
                 'ElectricMotor',

@@ -17,7 +17,6 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     exports.TestScene3 = void 0;
     function constructProgram(operations) {
         return {
-            javaScriptConfiguration: { 1: "TOUCH", 2: "GYRO", 3: "COLOR", 4: "ULTRASONIC" },
             javaScriptProgram: JSON.stringify({ "ops": Util_1.Util.flattenArray(operations) }, undefined, "\t")
         };
     }
@@ -294,14 +293,14 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                     }
                 });
                 // run(false, undefined)
-                var program = true ?
+                var programs = true ?
                     [
                         constructProgram([
                             // driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
                             rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
                         ])
-                    ] : Util_1.Util.simulation.storedPrograms;
-                this.getProgramManager().setPrograms(program, true, undefined);
+                    ] : Util_1.Util.simulation.storedRobertaRobotSetupData;
+                this.getProgramManager().setPrograms(programs, true, undefined);
                 this.getProgramManager().startProgram();
             }
             asyncChain.next();

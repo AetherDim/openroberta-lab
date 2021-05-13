@@ -18,10 +18,9 @@ import { downloadFile } from "./../GlobalDebug";
 import { BodyHelper } from "./BodyHelper";
 import { RobotProgram } from './RobotProgram'
 import { hsvToColorName, rgbToHsv } from '../Color'
-import { RobotConfigurationManager } from '../Scene/Manager/RobotConfigurationManager'
 import { GyroSensor } from './Sensors/GyroSensor'
 
-const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
+export const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
 	// german description: "HT Infrarotsensor"
 	"IRSEEKER",
 	// does not work in RobertaLab?!
@@ -449,14 +448,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 	setProgram(program: RobotProgram, breakpoints: any[]): Interpreter {
 		const _this = this;
-		this.programCode = JSON.parse(program.javaScriptProgram);
-		const configuration = program.javaScriptConfiguration
-		const allKeys = Object.keys(configuration)
-		const allValues = Util.nonNullObjectValues(configuration)
-		const wrongValueCount = allValues.find((e)=>!sensorTypeStrings.includes(e))?.length ?? 0
-		if (wrongValueCount > 0 || allKeys.filter((e) => typeof e === "number").length > 0) {
-			console.error(`The 'configuration' has not the expected type: ${configuration}`)
-		}
+		this.programCode = JSON.parse(program.javaScriptProgram)
 		this.robotBehaviour = new RobotSimBehaviour(this.scene.unit);
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
 			_this.programTerminated();

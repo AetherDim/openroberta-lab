@@ -11,8 +11,9 @@ import {RRCScene} from "./RRC/Scene/RRCScene";
 import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 import { TestScene3 } from './Scene/TestScene3';
 import { Util } from './Util';
-import { RobotProgram } from './Robot/RobotProgram';
 import { DEBUG } from './GlobalDebug';
+import { RobertaRobotSetupData } from './Robot/RobertaRobotSetupData'
+import { sensorTypeStrings } from './Robot/Robot';
 
 // TODO: check whether this has to be defined in here
 // probably not
@@ -273,18 +274,29 @@ var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNext
  * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
  * @param robotType 
  */
-export function init(programs: RobotProgram[], refresh: boolean, robotType: string) {
+export function init(programs: RobertaRobotSetupData[], refresh: boolean, robotType: string) {
 
-	function toProgramEqualityObject(p: RobotProgram): unknown {
+	function toProgramEqualityObject(data: RobertaRobotSetupData): unknown {
 		return {
-			javaScriptConfiguration: p.javaScriptConfiguration
+			javaScriptConfiguration: data.javaScriptConfiguration
 		}
 	}
 	let hasNewConfiguration = !Util.deepEqual(
 		programs.map(toProgramEqualityObject),
-		Util.simulation.storedPrograms.map(toProgramEqualityObject))
+		Util.simulation.storedRobertaRobotSetupData.map(toProgramEqualityObject))
 
-	Util.simulation.storedPrograms = programs;
+	// check that the configuration values ("TOUCH", "GYRO", ...) are also in `sensorTypeStrings`
+	for (const setupData of programs) {
+		const configuration = setupData.javaScriptConfiguration
+		const allKeys = Object.keys(configuration)
+		const allValues = Util.nonNullObjectValues(configuration)
+		const wrongValueCount = allValues.find((e)=>!sensorTypeStrings.includes(e))?.length ?? 0
+		if (wrongValueCount > 0 || allKeys.filter((e) => typeof e === "number").length > 0) {
+			console.error(`The 'configuration' has not the expected type. Configuration: ${configuration}`)
+		}
+	}
+
+	Util.simulation.storedRobertaRobotSetupData = programs;
 	Util.simulation.storedRobotType = robotType;
 
 	//$('simScene').hide();
@@ -311,7 +323,7 @@ export function setPause(pause:boolean) {
 }
 
 export function run(refresh:boolean, robotType: any) {
-	init(Util.simulation.storedPrograms, refresh, robotType);
+	init(Util.simulation.storedRobertaRobotSetupData, refresh, robotType);
 }
 
 /**
@@ -320,7 +332,7 @@ export function run(refresh:boolean, robotType: any) {
 export function stopProgram() {
 	// TODO: reset robot?
 	engine.getScene().getProgramManager().stopProgram();
-	init(Util.simulation.storedPrograms, false, Util.simulation.storedRobotType);
+	init(Util.simulation.storedRobertaRobotSetupData, false, Util.simulation.storedRobotType);
 }
 
 export function importImage() {
