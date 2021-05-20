@@ -1,103 +1,13 @@
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
-define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./Util", "./GlobalDebug", "./Robot/Robot", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneRenderer_1, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, Util_1, GlobalDebug_1, Robot_1) {
+define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./GlobalDebug", "./Cyberspace/Cyberspace", "./Cyberspace/SceneManager", "./BlocklyDebug", "./pixijs", "./ExtendedMatter"], function (require, exports, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, GlobalDebug_1, Cyberspace_1, SceneManager_1, BlocklyDebug_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = exports.SceneManager = exports.SceneDescriptor = void 0;
-    // TODO: check whether this has to be defined in here
-    // probably not
-    var SceneDescriptor = /** @class */ (function () {
-        function SceneDescriptor(name, ID, description, creteScene) {
-            this.name = name;
-            this.description = description;
-            this.ID = ID;
-            this._createScene = creteScene;
-        }
-        SceneDescriptor.prototype.createScene = function () {
-            return this._createScene(this);
-        };
-        return SceneDescriptor;
-    }());
-    exports.SceneDescriptor = SceneDescriptor;
-    var SceneManager = /** @class */ (function () {
-        function SceneManager() {
-            this.sceneHandleMap = new Map();
-            this.sceneMap = new Map();
-        }
-        SceneManager.prototype.getScene = function (ID) {
-            var scene = this.sceneMap.get(ID);
-            if (!scene) {
-                var sceneHandle = this.sceneHandleMap.get(ID);
-                if (sceneHandle) {
-                    scene = sceneHandle.createScene();
-                    this.sceneMap.set(ID, scene);
-                }
-            }
-            return scene;
-        };
-        SceneManager.prototype.registerScene = function () {
-            var _this = this;
-            var sceneHandles = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                sceneHandles[_i] = arguments[_i];
-            }
-            sceneHandles.forEach(function (handle) {
-                if (_this.sceneHandleMap.get(handle.ID)) {
-                    console.error('Scene with ID: ' + handle.ID + ' already registered!!!');
-                    return;
-                }
-                _this.sceneHandleMap.set(handle.ID, handle);
-            });
-        };
-        SceneManager.prototype.getSceneHandleList = function () {
-            return Array.from(this.sceneHandleMap.values());
-        };
-        SceneManager.prototype.getNextScene = function () {
-            if (this.sceneHandleMap.size < 1) {
-                console.error('No scenes registered!!!');
-                return undefined;
-            }
-            if (!this.currentID) {
-                this.currentID = Array.from(this.sceneHandleMap.keys())[0];
-                return this.getScene(this.currentID);
-            }
-            var keys = Array.from(this.sceneHandleMap.keys());
-            var idx = keys.indexOf(this.currentID);
-            if (idx >= 0) {
-                idx++;
-                if (idx >= keys.length) {
-                    idx = 0;
-                }
-                this.currentID = keys[idx];
-            }
-            else {
-                // one loop around
-                this.currentID = Array.from(this.sceneHandleMap.keys())[0];
-            }
-            return this.getScene(this.currentID);
-        };
-        SceneManager.prototype.getCurrentHandle = function () {
-            if (this.currentID) {
-                return this.sceneHandleMap.get(this.currentID);
-            }
-            return undefined;
-        };
-        SceneManager.prototype.setCurrentScene = function (ID) {
-            this.currentID = ID;
-        };
-        return SceneManager;
-    }());
-    exports.SceneManager = SceneManager;
-    var sceneManager = new SceneManager();
+    exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
+    //
+    // init all components for a simulation
+    //
+    var cyberspace = new Cyberspace_1.Cyberspace('sceneCanvas', 'simDiv');
+    var sceneManager = cyberspace.getSceneManager();
+    var blocklyDebugManager = new BlocklyDebug_1.BlocklyDebug(cyberspace);
     //
     // register scenes
     //
@@ -106,115 +16,80 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
         //
         // Test
         //
-        new SceneDescriptor('Test Scene', 'TestScene', 'Test scene with all sim features', function (descriptor) {
+        new SceneManager_1.SceneDescriptor('Test Scene', 'Test scene with all sim features', function (descriptor) {
             return new TestScene_1.TestScene(descriptor.name);
-        }), new SceneDescriptor("Test Scene 2", "TestScene2", "T", function (descriptor) { return new TestScene2_1.TestScene2(descriptor.name, AgeGroup_1.AgeGroup.ES); }), new SceneDescriptor("Test Scene 3", "TestScene3", "Test scene for testing the robot", function (descriptor) { return new TestScene3_1.TestScene3(); }), new SceneDescriptor('Empty Scene', 'EmptyScene', 'Empty Scene', function (descriptor) {
+        }), new SceneManager_1.SceneDescriptor("Test Scene 2", "Test scene for testing different sensor configurations", function (descriptor) { return new TestScene2_1.TestScene2(descriptor.name, AgeGroup_1.AgeGroup.ES); }), new SceneManager_1.SceneDescriptor("Test Scene 3", "Test scene for generating calibration data for the robot", function (descriptor) { return new TestScene3_1.TestScene3(); }), new SceneManager_1.SceneDescriptor('Empty Scene', 'Empty Scene', function (descriptor) {
             return new Scene_1.Scene(descriptor.name);
-        }), new SceneDescriptor('RRC - Test Scene', 'RRCTest', 'Roborave Cyberspace Test', function (descriptor) {
+        }), new SceneManager_1.SceneDescriptor('RRC - Test Scene', 'Roborave Cyberspace Test', function (descriptor) {
             return new RRCScene_1.RRCScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
         }));
     sceneManager.registerScene(
     //
     //  Line Following
     //
-    new SceneDescriptor('RRC - Line Following - ES', 'RRCLineFollowingES', 'Roborave Cyberspace line following ES', function (descriptor) {
+    new SceneManager_1.SceneDescriptor('RRC - Line Following - ES', 'Roborave Cyberspace line following ES', function (descriptor) {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }), new SceneDescriptor('RRC - Line Following - MS', 'RRCLineFollowingMS', 'Roborave Cyberspace line following MS', function (descriptor) {
+    }), new SceneManager_1.SceneDescriptor('RRC - Line Following - MS', 'Roborave Cyberspace line following MS', function (descriptor) {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }), new SceneDescriptor('RRC - Line Following - HS', 'RRCLineFollowingHS', 'Roborave Cyberspace line following HS', function (descriptor) {
+    }), new SceneManager_1.SceneDescriptor('RRC - Line Following - HS', 'Roborave Cyberspace line following HS', function (descriptor) {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
     }), 
     //
     // Rainbow
     //
-    new SceneDescriptor('RRC - Rainbow - ES', 'RRCRainbowES', 'Roborave Cyberspace Rainbow ES', function (descriptor) {
+    new SceneManager_1.SceneDescriptor('RRC - Rainbow - ES', 'Roborave Cyberspace Rainbow ES', function (descriptor) {
         return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }), new SceneDescriptor('RRC - Rainbow - MS', 'RRCRainbowMS', 'Roborave Cyberspace Rainbow MS', function (descriptor) {
+    }), new SceneManager_1.SceneDescriptor('RRC - Rainbow - MS', 'Roborave Cyberspace Rainbow MS', function (descriptor) {
         return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }), new SceneDescriptor('RRC - Rainbow - HS', 'RRCRainbowHS', 'Roborave Cyberspace Rainbow HS', function (descriptor) {
+    }), new SceneManager_1.SceneDescriptor('RRC - Rainbow - HS', 'Roborave Cyberspace Rainbow HS', function (descriptor) {
         return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
     }), 
     //
     // Labyrinth
     //
-    new SceneDescriptor('RRC - Labyrinth - ES', 'RRCLabyrinthES', 'Roborave Cyberspace Labyrinth ES', function (descriptor) {
+    new SceneManager_1.SceneDescriptor('RRC - Labyrinth - ES', 'Roborave Cyberspace Labyrinth ES', function (descriptor) {
         return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }), new SceneDescriptor('RRC - Labyrinth - MS', 'RRCLabyrinthMS', 'Roborave Cyberspace Labyrinth MS', function (descriptor) {
+    }), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - MS', 'Roborave Cyberspace Labyrinth MS', function (descriptor) {
         return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }), new SceneDescriptor('RRC - Labyrinth - HS', 'RRCLabyrinthHS', 'Roborave Cyberspace Labyrinth HS', function (descriptor) {
+    }), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - HS', 'Roborave Cyberspace Labyrinth HS', function (descriptor) {
         return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
     }));
-    //
-    // create engine
-    //
-    var engine = new SceneRenderer_1.SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNextScene());
-    //engine.getScene().setupDebugRenderer('notConstantValue');
-    //engine.getScene().setupDebugRenderer('simDiv');
+    // switch to first scene
+    cyberspace.switchToNextScene();
     /**
      * @param programs
      * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
      * @param robotType
      */
     function init(programs, refresh, robotType) {
-        var e_1, _a;
-        var _b, _c;
-        function toProgramEqualityObject(data) {
-            return {
-                javaScriptConfiguration: data.javaScriptConfiguration
-            };
-        }
-        var hasNewConfiguration = !Util_1.Util.deepEqual(programs.map(toProgramEqualityObject), Util_1.Util.simulation.storedRobertaRobotSetupData.map(toProgramEqualityObject));
-        try {
-            // check that the configuration values ("TOUCH", "GYRO", ...) are also in `sensorTypeStrings`
-            for (var programs_1 = __values(programs), programs_1_1 = programs_1.next(); !programs_1_1.done; programs_1_1 = programs_1.next()) {
-                var setupData = programs_1_1.value;
-                var configuration = setupData.javaScriptConfiguration;
-                var allKeys = Object.keys(configuration);
-                var allValues = Util_1.Util.nonNullObjectValues(configuration);
-                var wrongValueCount = (_c = (_b = allValues.find(function (e) { return !Robot_1.sensorTypeStrings.includes(e); })) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0;
-                if (wrongValueCount > 0 || allKeys.filter(function (e) { return typeof e === "number"; }).length > 0) {
-                    console.error("The 'configuration' has not the expected type. Configuration: " + configuration);
-                }
-            }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (programs_1_1 && !programs_1_1.done && (_a = programs_1.return)) _a.call(programs_1);
-            }
-            finally { if (e_1) throw e_1.error; }
-        }
-        Util_1.Util.simulation.storedRobertaRobotSetupData = programs;
-        Util_1.Util.simulation.storedRobotType = robotType;
         //$('simScene').hide();
         // TODO: prevent clicking run twice
-        var configurationManager = engine.getScene().getRobotManager().configurationManager;
-        configurationManager.setRobotConfigurations(programs.map(function (p) { return p.javaScriptConfiguration; }));
-        engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
-        if (hasNewConfiguration) {
-            engine.getScene().reset();
-        }
+        cyberspace.setRobertaRobotSetupData(programs, robotType);
     }
     exports.init = init;
     function getNumRobots() {
-        return engine.getScene().getRobotManager().getNumberOfRobots();
+        return 1;
     }
     exports.getNumRobots = getNumRobots;
     function setPause(pause) {
-        engine.getScene().getProgramManager().setProgramPause(pause);
+        if (pause) {
+            cyberspace.pausePrograms();
+        }
+        else {
+            cyberspace.startPrograms();
+        }
     }
     exports.setPause = setPause;
     function run(refresh, robotType) {
-        init(Util_1.Util.simulation.storedRobertaRobotSetupData, refresh, robotType);
+        //init(Util.simulation.storedRobertaRobotSetupData, refresh, robotType);
+        console.log("run!");
     }
     exports.run = run;
     /**
      * on stop program
      */
     function stopProgram() {
-        // TODO: reset robot?
-        engine.getScene().getProgramManager().stopProgram();
-        init(Util_1.Util.simulation.storedRobertaRobotSetupData, false, Util_1.Util.simulation.storedRobotType);
+        cyberspace.stopPrograms();
     }
     exports.stopProgram = stopProgram;
     function importImage() {
@@ -229,57 +104,49 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
      * Reset robot position and zoom of ScrollView
      */
     function resetPose() {
-        var _a;
-        (_a = engine.getScene()) === null || _a === void 0 ? void 0 : _a.reset();
-        //engine.getScene()?.fullReset();
+        cyberspace.resetScene();
     }
     exports.resetPose = resetPose;
     function updateDebugMode(debugMode) {
-        engine.getScene().getProgramManager().updateDebugMode(debugMode);
+        blocklyDebugManager.setDebugMode(debugMode);
     }
     exports.updateDebugMode = updateDebugMode;
     function endDebugging() {
-        engine.getScene().getProgramManager().endDebugging();
+        blocklyDebugManager.setDebugMode(false);
     }
     exports.endDebugging = endDebugging;
     function interpreterAddEvent(event) {
-        engine.getScene().getProgramManager().interpreterAddEvent(event);
+        blocklyDebugManager.interpreterAddEvent(event);
     }
     exports.interpreterAddEvent = interpreterAddEvent;
     /**
      * on simulation close
      */
     function cancel() {
-        engine.getScene().getProgramManager().stopProgram();
+        cyberspace.pausePrograms();
     }
     exports.cancel = cancel;
     //
     // Scene selection functions
     //
     function getScenes() {
-        return sceneManager.getSceneHandleList();
+        return cyberspace.getScenes();
     }
     exports.getScenes = getScenes;
     function selectScene(ID) {
-        var scene = sceneManager.getScene(ID);
-        sceneManager.setCurrentScene(ID);
-        engine.switchScene(scene, true);
-        scene === null || scene === void 0 ? void 0 : scene.fullReset();
+        cyberspace.loadScene(ID);
     }
     exports.selectScene = selectScene;
     function nextScene() {
-        var scene = sceneManager.getNextScene();
-        engine.switchScene(scene, true);
-        scene === null || scene === void 0 ? void 0 : scene.fullReset();
-        return sceneManager.getCurrentHandle();
+        return cyberspace.nextScene();
     }
     exports.nextScene = nextScene;
     function sim(run) {
         if (run) {
-            engine.getScene().startSim();
+            cyberspace.startSimulation();
         }
         else {
-            engine.getScene().pauseSim();
+            cyberspace.pauseSimulation();
         }
     }
     exports.sim = sim;
@@ -293,19 +160,19 @@ define(["require", "exports", "./SceneRenderer", "./RRC/AgeGroup", "./RRC/Scene/
     }
     exports.score = score;
     function zoomIn() {
-        engine.zoomIn();
+        cyberspace.zoomViewIn();
     }
     exports.zoomIn = zoomIn;
     function zoomOut() {
-        engine.zoomOut();
+        cyberspace.zoomViewOut();
     }
     exports.zoomOut = zoomOut;
     function zoomReset() {
-        engine.zoomReset();
+        cyberspace.resetView();
     }
     exports.zoomReset = zoomReset;
     function setSimSpeed(speedup) {
-        engine.setSpeedUpFactor(speedup);
+        cyberspace.setSimulationSpeedupFactor(speedup);
     }
     exports.setSimSpeed = setSimSpeed;
 });

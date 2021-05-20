@@ -454,11 +454,6 @@ define(["require", "exports"], function (require, exports) {
         Util.cloneVector = function (value) {
             return { x: value.x, y: value.y };
         };
-        // TODO: Remove this static variable
-        Util.simulation = {
-            storedRobertaRobotSetupData: [],
-            storedRobotType: ""
-        };
         /**
          * Legal characters for the unique ID.  Should be all on a US keyboard.
          * No characters that conflict with XML or JSON.  Requests to remove additional

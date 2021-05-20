@@ -54,7 +54,7 @@ export class TestScene2 extends RRCScene {
 		if (debug != undefined) {
 			debug.add(this, "configurationIndex", 0, this.allSensorConfigurations.length - 1, 1)
 				.onChange(() => debug.updateDisplay())
-				.onFinishChange(() => this.reset())
+				.onFinishChange(() => this.reset([]))
 			debug.addUpdatable("configurationIndex: ", () =>
 				this.configurationIndex + "/" + (this.allSensorConfigurations.length - 1)
 			)
@@ -65,14 +65,14 @@ export class TestScene2 extends RRCScene {
 				if (this.configurationIndex < this.allSensorConfigurations.length - 1) {
 					this.configurationIndex += 1
 					debug.updateDisplay()
-					this.reset()
+					this.reset([])
 				}
 			})
 			debug.addButton("previous", () => {
 				if (this.configurationIndex > 0) {
 					this.configurationIndex -= 1
 					debug.updateDisplay()
-					this.reset()
+					this.reset([])
 				}
 			})
 		}

@@ -35,7 +35,7 @@ define(["require", "exports", "./ProgramManager", "./RobotConfigurationManager"]
             this.configurationManager.safeUpdateLastRobot();
         };
         RobotManager.prototype.getNumberOfRobots = function () {
-            return this.numberOfRobots;
+            return this.robots.length;
         };
         RobotManager.prototype.updateSensorValueView = function () {
             // TODO: refactor this, the simulation should not have a html/div dependency

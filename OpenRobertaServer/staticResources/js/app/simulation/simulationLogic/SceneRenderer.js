@@ -4,7 +4,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
     exports.SceneRender = void 0;
     // physics and graphics
     var SceneRender = /** @class */ (function () {
-        function SceneRender(canvas, allowBlocklyAccess, autoResizeTo, scene) {
+        function SceneRender(canvas, allowBlocklyAccess, robotSetupData, autoResizeTo, scene) {
             var _this = this;
             this.allowBlocklyAccess = false;
             var htmlCanvas = null;
@@ -43,12 +43,15 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                     _this.scene.interactionEvent(ev);
                 }
             });
+            if (!robotSetupData) {
+                robotSetupData = [];
+            }
             // switch to scene
             if (scene) {
-                this.switchScene(scene);
+                this.switchScene(robotSetupData, scene);
             }
             else {
-                this.switchScene(new Scene_1.Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
+                this.switchScene(robotSetupData, new Scene_1.Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
             }
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
@@ -107,7 +110,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             var origin = this.scene.getOrigin();
             this.scrollView.resetCentered(origin.x, origin.y, size.width, size.height);
         };
-        SceneRender.prototype.switchScene = function (scene, noLoad) {
+        SceneRender.prototype.switchScene = function (robotSetupData, scene, noLoad) {
             if (noLoad === void 0) { noLoad = false; }
             if (!scene) {
                 console.log('undefined scene!');
@@ -118,7 +121,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             }
             if (this.scene) {
                 this.scene.pauseSim();
-                this.scene.setSceneRenderer(undefined); // unregister this renderer
+                this.scene.setSceneRenderer(robotSetupData, undefined); // unregister this renderer
             }
             // remove all children from PIXI renderer
             if (this.scrollView.children.length > 0) {
@@ -126,7 +129,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 this.scrollView.removeChildren(0, this.scrollView.children.length);
             }
             this.scene = scene;
-            scene.setSceneRenderer(this, this.allowBlocklyAccess, noLoad);
+            scene.setSceneRenderer(robotSetupData, this, this.allowBlocklyAccess, noLoad);
         };
         // TODO: remove before add? only add once?
         SceneRender.prototype.addDisplayable = function (displayable) {

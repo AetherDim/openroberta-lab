@@ -153,6 +153,8 @@ require.config({
         'Random',
         'Util',
         'Entity',
+        'BlocklyDebug',
+        'UIManager',
         { 'Scene': [
                 'Scene',
                 'ScoreScene',
@@ -208,7 +210,12 @@ require.config({
                 "WaypointList",
                 "WaypointsManager",
                 "ScoreWaypoint",
-            ]}
+            ]},
+        { "Cyberspace": [
+                        "Cyberspace",
+                        "SceneManager",
+                        "SimulationCache",
+                    ]}
     ]),
     shim: {
         'bootstrap': {

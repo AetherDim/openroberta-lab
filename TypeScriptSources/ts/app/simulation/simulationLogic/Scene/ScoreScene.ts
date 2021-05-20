@@ -1,3 +1,4 @@
+import { RobotSetupData } from "../Robot/RobotSetupData";
 import { AsyncChain, AsyncListener } from "./AsyncChain";
 import { Scene } from "./Scene";
 
@@ -41,14 +42,14 @@ export class ScoreScene extends Scene {
         this.setScore(0)
     }
 
-    reset() {
+    reset(robotSetupData: RobotSetupData[]) {
         this.resetScore()
-        super.reset()
+        super.reset(robotSetupData)
     }
 
-    fullReset() {
+    fullReset(robotSetupData: RobotSetupData[]) {
         this.resetScore()
-        super.fullReset()
+        super.fullReset(robotSetupData)
     }
 
     setVisible(visible: boolean) {

@@ -68,7 +68,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
             if (debug != undefined) {
                 debug.add(_this, "configurationIndex", 0, _this.allSensorConfigurations.length - 1, 1)
                     .onChange(function () { return debug.updateDisplay(); })
-                    .onFinishChange(function () { return _this.reset(); });
+                    .onFinishChange(function () { return _this.reset([]); });
                 debug.addUpdatable("configurationIndex: ", function () {
                     return _this.configurationIndex + "/" + (_this.allSensorConfigurations.length - 1);
                 });
@@ -79,14 +79,14 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
                     if (_this.configurationIndex < _this.allSensorConfigurations.length - 1) {
                         _this.configurationIndex += 1;
                         debug.updateDisplay();
-                        _this.reset();
+                        _this.reset([]);
                     }
                 });
                 debug.addButton("previous", function () {
                     if (_this.configurationIndex > 0) {
                         _this.configurationIndex -= 1;
                         debug.updateDisplay();
-                        _this.reset();
+                        _this.reset([]);
                     }
                 });
             }

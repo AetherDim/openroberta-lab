@@ -5,6 +5,7 @@ import { rgbToNumber } from './Color'
 import { ScrollView, ScrollViewEvent } from './ScrollView';
 import { Util } from './Util';
 import { DebugGuiRoot, initGlobalSceneDebug } from './GlobalDebug';
+import { RobotSetupData } from './Robot/RobotSetupData';
 
 
 
@@ -21,7 +22,7 @@ export class SceneRender {
 	private readonly resizeTo: HTMLElement|null;
 	
 
-	constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, autoResizeTo?: HTMLElement | string, scene?: Scene) {
+	constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, robotSetupData?: RobotSetupData[], autoResizeTo?: HTMLElement | string, scene?: Scene) {
 
 		var htmlCanvas = null;
 		var resizeTo = null;
@@ -67,11 +68,15 @@ export class SceneRender {
 			} 
 		});
 
+		if(!robotSetupData) {
+			robotSetupData = []
+		}
+
 		// switch to scene
 		if(scene) {
-			this.switchScene(scene);
+			this.switchScene(robotSetupData, scene);
 		} else {
-			this.switchScene(new Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
+			this.switchScene(robotSetupData, new Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
 		}
 
 		this.app.ticker.add(dt => {
@@ -154,7 +159,7 @@ export class SceneRender {
 		this.scrollView.resetCentered(origin.x, origin.y, size.width, size.height)
 	}
 
-	switchScene(scene?: Scene, noLoad: boolean = false) {
+	switchScene(robotSetupData: RobotSetupData[], scene?: Scene, noLoad: boolean = false) {
 		if(!scene) {
 			console.log('undefined scene!')
 			scene = new Scene("");
@@ -166,7 +171,7 @@ export class SceneRender {
 
 		if(this.scene) {
 			this.scene.pauseSim();
-			this.scene.setSceneRenderer(undefined); // unregister this renderer
+			this.scene.setSceneRenderer(robotSetupData, undefined); // unregister this renderer
 		}
 
 		// remove all children from PIXI renderer
@@ -177,7 +182,7 @@ export class SceneRender {
 
 		this.scene = scene;
 
-		scene.setSceneRenderer(this, this.allowBlocklyAccess, noLoad);
+		scene.setSceneRenderer(robotSetupData, this, this.allowBlocklyAccess, noLoad);
 
 	}
 

@@ -1,58 +1,60 @@
-define(["require", "exports", "blockly", "../../simulation.constants"], function (require, exports, Blockly, CONSTANTS) {
+define(["require", "exports", "../../UIManager"], function (require, exports, UIManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ProgramManager = void 0;
+    /*export interface DebugEventHandler {
+        onUpdateSimValues(manager: ProgramManager): void
+    
+        onProgramPause(manager: ProgramManager): void
+        onProgramResume(manager: ProgramManager): void
+        onProgramStart(manager: ProgramManager): void
+        onProgramStop(manager: ProgramManager): void
+        onProgramReset(manager: ProgramManager): void
+        
+        onUpdateDebugMode(manager: ProgramManager, debugEnabled: boolean): void
+        onInterpreterAddEvent(manager: ProgramManager, mode: any): void
+        onRemoveBreakPoint(manager: ProgramManager, block: Blockly.Block): void
+    }*/
     var ProgramManager = /** @class */ (function () {
         function ProgramManager(robotManager) {
             this.programPaused = true;
             this.debugMode = false;
             this.breakpoints = [];
-            this.observers = {};
             this.interpreters = [];
             this.initialized = false;
-            this.allowBlocklyUpdate = false;
+            this.cachedPrograms = [];
             this.robotManager = robotManager;
             this.robots = robotManager.getRobots();
         }
-        /**
-         * setter for Scene.ts
-         */
-        ProgramManager.prototype._setAllowBlocklyUpdate = function (allowBlocklyUpdate) {
-            this.allowBlocklyUpdate = allowBlocklyUpdate;
-        };
         ProgramManager.prototype.hasBeenInitialized = function () {
             return this.initialized;
         };
-        ProgramManager.prototype.setPrograms = function (programs, refresh, robotType) {
-            if (refresh === void 0) { refresh = false; }
+        ProgramManager.prototype.setCachedPrograms = function () {
+            this.setPrograms(this.cachedPrograms);
+        };
+        ProgramManager.prototype.setPrograms = function (programs) {
             if (programs.length < this.robots.length) {
                 console.warn("Not enough programs!");
             }
-            this.interpreters = [];
-            // reset interpreters
-            this.robots.forEach(function (robot) {
-                robot.interpreter = undefined;
-            });
-            for (var i = 0; i < programs.length; i++) {
-                if (i >= this.robots.length) {
-                    console.info('Not enough robots, too many programs!');
-                    break;
+            // cache old programs
+            this.cachedPrograms = programs;
+            this.stopProgram(); // reset program manager
+            this.init();
+        };
+        ProgramManager.prototype.init = function () {
+            if (!this.initialized) {
+                for (var i = 0; i < this.cachedPrograms.length; i++) {
+                    if (i >= this.robots.length) {
+                        console.info('Not enough robots, too many programs!');
+                        break;
+                    }
+                    // We can use a single breakpoints array for all interpreters, because 
+                    // the breakpoint IDs are unique
+                    this.interpreters.push(this.robots[i].setProgram(this.cachedPrograms[i], this.breakpoints));
                 }
-                // I think we can use a single breakpoints array for all interpreters, because 
-                // the breakpoint IDs are unique
-                this.interpreters.push(this.robots[i].setProgram(programs[i], this.breakpoints));
+                this.updateDebugMode(this.debugMode);
+                this.initialized = true;
             }
-            this.updateDebugMode(this.debugMode);
-            this.setSimRunButton(this.programPaused);
-            // TODO:
-            // the original simulation.js would replace all robots if refresh is true
-            // we will only change the type (The robot should manage anything type related internally)
-            if (refresh && robotType) {
-                this.robots.forEach(function (robot) {
-                    robot.setRobotType(robotType);
-                });
-            }
-            this.initialized = true;
         };
         ProgramManager.prototype.isProgramPaused = function () {
             return this.programPaused;
@@ -62,24 +64,30 @@ define(["require", "exports", "blockly", "../../simulation.constants"], function
         };
         ProgramManager.prototype.setProgramPause = function (pause) {
             this.programPaused = pause;
-            this.setSimRunButton(pause && !this.debugMode);
         };
-        ProgramManager.prototype.resetProgram = function () {
-        };
-        // TODO: Add more programs
+        // TODO: Add 
         ProgramManager.prototype.startProgram = function () {
+            this.init();
             this.setProgramPause(false);
-            this.setSimRunButton(true);
         };
-        ProgramManager.prototype.stopProgram = function () {
+        ProgramManager.prototype.pauseProgram = function () {
             this.setProgramPause(true);
-            this.setSimRunButton(true);
-            if (this.debugMode) {
-                for (var i = 0; i < this.interpreters.length; i++) {
-                    this.interpreters[i].removeHighlights();
-                }
+        };
+        /**
+         * Stops the program and resets all interpreters
+         */
+        ProgramManager.prototype.stopProgram = function () {
+            // remove all highlights from breakpoints
+            for (var i = 0; i < this.interpreters.length; i++) {
+                this.interpreters[i].removeHighlights();
             }
-            this.updateDebugMode(this.debugMode);
+            this.interpreters = [];
+            // reset interpreters
+            this.robots.forEach(function (robot) {
+                robot.interpreter = undefined;
+            });
+            this.initialized = false;
+            this.setProgramPause(true);
         };
         ProgramManager.prototype.getSimVariables = function () {
             if (this.interpreters.length >= 1) {
@@ -89,65 +97,15 @@ define(["require", "exports", "blockly", "../../simulation.constants"], function
                 return {};
             }
         };
-        ProgramManager.prototype.updateSimVariables = function () {
-            if ($("#simVariablesModal").attr('aria-hidden') == "false") {
-                $("#variableValue").html("");
-                var variables = this.getSimVariables();
-                if (Object.keys(variables).length > 0) {
-                    for (var v in variables) {
-                        var value = variables[v][0];
-                        this.addVariableValue(v, value);
-                    }
-                }
-                else {
-                    $('#variableValue').append('<div><label> No variables instantiated</label></div>');
-                }
-            }
-        };
-        ProgramManager.prototype.addVariableValue = function (name, value) {
-            switch (typeof value) {
-                case "number": {
-                    $("#variableValue").append('<div><label>' + name + ' :  </label><span> ' + Math.round(value * 100) / 100 + '</span></div>');
-                    break;
-                }
-                case "string": {
-                    $("#variableValue").append('<div><label>' + name + ' :  </label><span> ' + value + '</span></div>');
-                    break;
-                }
-                case "boolean": {
-                    $("#variableValue").append('<div><label>' + name + ' :  </label><span> ' + value + '</span></div>');
-                    break;
-                }
-                case "object": {
-                    for (var i = 0; i < value.length; i++) {
-                        this.addVariableValue(name + " [" + String(i) + "]", value[i]);
-                    }
-                    break;
-                }
-            }
-        };
-        ProgramManager.prototype.setSimRunButton = function (run) {
-            $('#simControl').removeClass('typcn-media-stop').removeClass('typcn-media-play').removeClass('typcn-media-play-outline');
-            if (run) {
-                $('#simControl').addClass('typcn-media-play');
-                $('#simControl').attr('data-original-title', Blockly.Msg.MENU_SIM_START_TOOLTIP);
-            }
-            else {
-                $('#simControl').addClass('typcn-media-stop');
-                $('#simControl').attr('data-original-title', Blockly.Msg.MENU_SIM_STOP_TOOLTIP);
-            }
-        };
         /**
          * has to be called after one simulation run
          */
         ProgramManager.prototype.update = function () {
             var allTerminated = this.allInterpretersTerminated();
-            if (allTerminated && !this.programPaused) {
+            if (allTerminated && this.initialized) {
                 console.log('All programs terminated');
+                UIManager_1.UIManager.setProgramRunButton(true);
                 this.stopProgram();
-            }
-            if (!allTerminated) {
-                this.updateSimVariables();
             }
         };
         ProgramManager.prototype.allInterpretersTerminated = function () {
@@ -160,124 +118,56 @@ define(["require", "exports", "blockly", "../../simulation.constants"], function
             });
             return allTerminated;
         };
-        /** adds/removes the ability for a block to be a breakpoint to a block */
-        ProgramManager.prototype.updateBreakpointEvent = function () {
-            var _this = this;
-            if (!this.debugMode || !this.allowBlocklyUpdate) {
-                // this function is very costly and we don not need an update if the debug mode is disabled
-                return;
-            }
-            if (!Blockly.getMainWorkspace()) {
-                // blockly workspace not initialized
-                return;
-            }
-            if (this.debugMode) {
-                Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (realBlock) {
-                    var block = realBlock;
-                    if (!$(block.svgGroup_).hasClass('blocklyDisabled')) {
-                        if (_this.observers.hasOwnProperty(block.id)) {
-                            _this.observers[realBlock.id].disconnect();
-                        }
-                        var observer = new MutationObserver(function (mutations) {
-                            mutations.forEach(function (mutation) {
-                                if ($(block.svgGroup_).hasClass('blocklyDisabled')) {
-                                    _this.removeBreakPoint(realBlock);
-                                    $(block.svgPath_).removeClass('breakpoint').removeClass('selectedBreakpoint');
-                                }
-                                else {
-                                    if ($(block.svgGroup_).hasClass('blocklySelected')) {
-                                        if ($(block.svgPath_).hasClass('breakpoint')) {
-                                            _this.removeBreakPoint(realBlock);
-                                            $(block.svgPath_).removeClass('breakpoint');
-                                        }
-                                        else if ($(block.svgPath_).hasClass('selectedBreakpoint')) {
-                                            _this.removeBreakPoint(realBlock);
-                                            $(block.svgPath_).removeClass('selectedBreakpoint').stop(true, true).animate({ 'fill-opacity': '1' }, 0);
-                                        }
-                                        else {
-                                            _this.breakpoints.push(realBlock.id);
-                                            $(block.svgPath_).addClass('breakpoint');
-                                        }
-                                    }
-                                }
-                            });
-                        });
-                        _this.observers[realBlock.id] = observer;
-                        observer.observe(block.svgGroup_, { attributes: true });
-                    }
-                });
-            }
-            else {
-                Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (block) {
-                    if (_this.observers.hasOwnProperty(block.id)) {
-                        _this.observers[block.id].disconnect();
-                    }
-                    $(block.svgPath_).removeClass('breakpoint');
-                });
-            }
-        };
         /** updates the debug mode for all interpreters */
         ProgramManager.prototype.updateDebugMode = function (mode) {
             this.debugMode = mode;
             for (var i = 0; i < this.interpreters.length; i++) {
-                // TODO: do we need this?
                 if (i < this.robots.length) {
                     this.interpreters[i].setDebugMode(mode);
                 }
             }
-            this.updateBreakpointEvent();
         };
-        /** removes breakpoint block */
-        ProgramManager.prototype.removeBreakPoint = function (block) {
+        ProgramManager.prototype.addBreakpoint = function (breakpointID) {
+            this.breakpoints.push(breakpointID);
+        };
+        /** removes breakpoint with breakpointID */
+        ProgramManager.prototype.removeBreakpoint = function (breakpointID) {
             for (var i = 0; i < this.breakpoints.length; i++) {
-                if (this.breakpoints[i] === block.id) {
+                if (this.breakpoints[i] === breakpointID) {
                     this.breakpoints.splice(i, 1);
-                }
-            }
-            if (!(this.breakpoints.length > 0) && this.interpreters !== null) {
-                for (var i = 0; i < this.interpreters.length; i++) {
-                    // TODO: do we need this?
-                    if (i < this.robots.length) {
-                        this.interpreters[i].removeEvent(CONSTANTS.DEBUG_BREAKPOINT);
-                    }
                 }
             }
         };
         /** adds an event to the interpreters */
         ProgramManager.prototype.interpreterAddEvent = function (mode) {
-            this.updateBreakpointEvent();
             for (var i = 0; i < this.interpreters.length; i++) {
-                // TODO: do we need this?
                 if (i < this.robots.length) {
                     this.interpreters[i].addEvent(mode);
                 }
             }
         };
+        /** removes an event to the interpreters */
+        ProgramManager.prototype.interpreterRemoveEvent = function (mode) {
+            for (var i = 0; i < this.interpreters.length; i++) {
+                if (i < this.robots.length) {
+                    this.interpreters[i].removeEvent(mode);
+                }
+            }
+        };
         ProgramManager.prototype.startDebugging = function () {
-            // TODO
+            this.updateDebugMode(true);
         };
         /** called to signify debugging is finished in simulation */
         ProgramManager.prototype.endDebugging = function () {
-            if (this.interpreters !== null) {
-                for (var i = 0; i < this.interpreters.length; i++) {
-                    // TODO: do we need this?
-                    if (i < this.robots.length) {
-                        this.interpreters[i].setDebugMode(false);
-                        this.interpreters[i].breakpoints = [];
-                    }
+            // this is equivalent to updateDebugMode with additional breakpoint removal
+            for (var i = 0; i < this.interpreters.length; i++) {
+                if (i < this.robots.length) {
+                    this.interpreters[i].setDebugMode(false);
+                    this.interpreters[i].breakpoints = [];
                 }
-            }
-            if (this.allowBlocklyUpdate && Blockly.getMainWorkspace()) {
-                var _this = this;
-                Blockly.getMainWorkspace().getAllBlocks(false).forEach(function (block) {
-                    if (block.inTask && !block.disabled && !block.getInheritedDisabled()) {
-                        $(block.svgPath_).stop(true, true).animate({ 'fill-opacity': '1' }, 0);
-                    }
-                });
             }
             this.breakpoints = [];
             this.debugMode = false;
-            this.updateBreakpointEvent();
         };
         return ProgramManager;
     }());

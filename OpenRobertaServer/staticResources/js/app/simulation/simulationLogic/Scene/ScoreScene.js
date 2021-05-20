@@ -43,13 +43,13 @@ define(["require", "exports", "./AsyncChain", "./Scene"], function (require, exp
         ScoreScene.prototype.resetScore = function () {
             this.setScore(0);
         };
-        ScoreScene.prototype.reset = function () {
+        ScoreScene.prototype.reset = function (robotSetupData) {
             this.resetScore();
-            _super.prototype.reset.call(this);
+            _super.prototype.reset.call(this, robotSetupData);
         };
-        ScoreScene.prototype.fullReset = function () {
+        ScoreScene.prototype.fullReset = function (robotSetupData) {
             this.resetScore();
-            _super.prototype.fullReset.call(this);
+            _super.prototype.fullReset.call(this, robotSetupData);
         };
         ScoreScene.prototype.setVisible = function (visible) {
             this.scoreText.visible = visible;

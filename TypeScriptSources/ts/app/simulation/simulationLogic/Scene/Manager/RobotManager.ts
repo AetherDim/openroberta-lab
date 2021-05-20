@@ -48,7 +48,7 @@ export class RobotManager {
     }
 
     getNumberOfRobots(): number {
-        return this.numberOfRobots;
+        return this.robots.length;
     }
 
     updateSensorValueView() {

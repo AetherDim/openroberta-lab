@@ -1,4 +1,6 @@
+import { RobertaRobotSetupData } from "../Robot/RobertaRobotSetupData"
 import { RobotProgram } from "../Robot/RobotProgram"
+import { SimulationCache } from "./SimulationCache"
 import { Scene } from "../Scene/Scene"
 import { ScoreScene } from "../Scene/ScoreScene"
 import { SceneRender } from "../SceneRenderer"
@@ -10,18 +12,22 @@ export class Cyberspace {
 	private readonly sceneManager = new SceneManager()
 	private readonly renderer: SceneRender
 
+	private simulationCache: SimulationCache = new SimulationCache([], "")
+
 	constructor(canvas: HTMLCanvasElement | string, autoResizeTo?: HTMLElement | string, scenes: SceneDescriptor[] = []) {
 		this.sceneManager.registerScene(...scenes)
-		this.renderer = new SceneRender(canvas, true, autoResizeTo, this.sceneManager.getNextScene())
+		this.renderer = new SceneRender(
+			canvas, true, this.simulationCache.toRobotSetupData(), autoResizeTo
+		)
 	}
 
-	
+
 	/* ############################################################################################ */
 	/* ####################################### Scene control ###################################### */
 	/* ############################################################################################ */
 
 	resetScene() {
-		this.renderer.getScene().reset()
+		this.renderer.getScene().reset(this.simulationCache.toRobotSetupData())
 	}
 
 	getScene(): Scene {
@@ -45,17 +51,22 @@ export class Cyberspace {
 			const scene = this.sceneManager.getScene(ID)
 			if(scene) {
 				this.sceneManager.setCurrentScene(ID)
-				this.renderer.switchScene(scene)
+				this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene)
 			}
+		}
+	}
+
+	switchToNextScene() {
+		// TODO: No check for 'isLoadingComplete'
+		const scene = this.sceneManager.getNextScene()
+		if(scene != undefined) {
+			this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene)
 		}
 	}
 
 	nextScene(): SceneDescriptor {
 		if(this.getScene().isLoadingComplete()) {
-			const scene = this.sceneManager.getNextScene()
-			if(scene) {
-				this.renderer.switchScene(scene)
-			}
+			this.switchToNextScene()
 		}
 		return this.sceneManager.getCurrentSceneDescriptor()!
 	}
@@ -109,10 +120,6 @@ export class Cyberspace {
 	pausePrograms() {
 		this.getProgramManager().setProgramPause(true)
 	}
-	
-	resetPrograms() {
-		this.getProgramManager().resetProgram()
-	}
 
 	setPrograms(programs: RobotProgram[]) {
 		this.getProgramManager().setPrograms(programs)
@@ -135,8 +142,19 @@ export class Cyberspace {
 	}
 
 
-	setRobotConfig() {
-		// TODO
+	setRobertaRobotSetupData(robertaRobotSetupDataList: RobertaRobotSetupData[], robotType: string) {
+		const newSimulationCache = new SimulationCache(robertaRobotSetupDataList, robotType)
+		const oldCache = this.simulationCache
+		this.simulationCache = newSimulationCache
+		if (!newSimulationCache.hasEqualConfiguration(oldCache)) {
+			// sets the robot programs and sensor configurations based on 'simulationCache'
+			this.resetScene()
+		} else {
+			// always set the programs
+			this.getProgramManager().setPrograms(
+				newSimulationCache.toRobotSetupData().map(setup => setup.program)
+			)
+		}
 	}
 
 

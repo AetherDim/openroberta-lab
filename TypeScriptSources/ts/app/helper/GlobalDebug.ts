@@ -186,7 +186,7 @@ export class SceneDebug {
 		gui.add(scene, 'dt').min(0.001).max(0.1).step(0.001).onChange((dt) => scene.setDT(dt))
 		gui.add(scene, 'simSleepTime').min(0.001).max(0.1).step(0.001).onChange((s) => scene.setSimSleepTime(s))
 		gui.add(scene, 'simSpeedupFactor').min(1).max(10000).step(1).onChange((dt) => scene.setDT(dt))
-		gui.add(scene, 'blocklyUpdateSleepTime').min(0.001).max(0.1).step(0.001).onChange((s) => scene.setBlocklyUpdateSleepTime(s))
+		//gui.add(scene, 'blocklyUpdateSleepTime').min(0.001).max(0.1).step(0.001).onChange((s) => scene.setBlocklyUpdateSleepTime(s))
 
 		const unit = gui.addFolder('unit converter')
 		unit.addUpdatable('m', () => scene.unit.getLength(1))
@@ -215,7 +215,7 @@ export class SceneDebug {
 		program.add(pm, 'programPaused')
 		program.addUpdatable('debugMode', createReflectionGetter(pm, 'debugMode'))
 		program.addUpdatable('initialized', createReflectionGetter(pm, 'initialized'))
-		program.addUpdatable('allowBlocklyUpdate', createReflectionGetter(pm, 'allowBlocklyUpdate'))
+		//program.addUpdatable('allowBlocklyUpdate', createReflectionGetter(pm, 'allowBlocklyUpdate'))
 
 		const entity = gui.addFolder('Entity Manager')
 		const em = scene.getEntityManager()

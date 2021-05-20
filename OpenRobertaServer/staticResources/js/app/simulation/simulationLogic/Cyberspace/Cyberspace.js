@@ -18,7 +18,7 @@ var __spread = (this && this.__spread) || function () {
     for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
     return ar;
 };
-define(["require", "exports", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager"], function (require, exports, ScoreScene_1, SceneRenderer_1, SceneManager_1) {
+define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager"], function (require, exports, SimulationCache_1, ScoreScene_1, SceneRenderer_1, SceneManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Cyberspace = void 0;
@@ -27,14 +27,15 @@ define(["require", "exports", "../Scene/ScoreScene", "../SceneRenderer", "./Scen
             var _a;
             if (scenes === void 0) { scenes = []; }
             this.sceneManager = new SceneManager_1.SceneManager();
+            this.simulationCache = new SimulationCache_1.SimulationCache([], "");
             (_a = this.sceneManager).registerScene.apply(_a, __spread(scenes));
-            this.renderer = new SceneRenderer_1.SceneRender(canvas, true, autoResizeTo, this.sceneManager.getNextScene());
+            this.renderer = new SceneRenderer_1.SceneRender(canvas, true, this.simulationCache.toRobotSetupData(), autoResizeTo);
         }
         /* ############################################################################################ */
         /* ####################################### Scene control ###################################### */
         /* ############################################################################################ */
         Cyberspace.prototype.resetScene = function () {
-            this.renderer.getScene().reset();
+            this.renderer.getScene().reset(this.simulationCache.toRobotSetupData());
         };
         Cyberspace.prototype.getScene = function () {
             return this.renderer.getScene();
@@ -54,16 +55,20 @@ define(["require", "exports", "../Scene/ScoreScene", "../SceneRenderer", "./Scen
                 var scene = this.sceneManager.getScene(ID);
                 if (scene) {
                     this.sceneManager.setCurrentScene(ID);
-                    this.renderer.switchScene(scene);
+                    this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene);
                 }
+            }
+        };
+        Cyberspace.prototype.switchToNextScene = function () {
+            // TODO: No check for 'isLoadingComplete'
+            var scene = this.sceneManager.getNextScene();
+            if (scene != undefined) {
+                this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene);
             }
         };
         Cyberspace.prototype.nextScene = function () {
             if (this.getScene().isLoadingComplete()) {
-                var scene = this.sceneManager.getNextScene();
-                if (scene) {
-                    this.renderer.switchScene(scene);
-                }
+                this.switchToNextScene();
             }
             return this.sceneManager.getCurrentSceneDescriptor();
         };
@@ -103,9 +108,6 @@ define(["require", "exports", "../Scene/ScoreScene", "../SceneRenderer", "./Scen
         Cyberspace.prototype.pausePrograms = function () {
             this.getProgramManager().setProgramPause(true);
         };
-        Cyberspace.prototype.resetPrograms = function () {
-            this.getProgramManager().resetProgram();
-        };
         Cyberspace.prototype.setPrograms = function (programs) {
             this.getProgramManager().setPrograms(programs);
         };
@@ -119,8 +121,18 @@ define(["require", "exports", "../Scene/ScoreScene", "../SceneRenderer", "./Scen
         };
         Cyberspace.prototype.registerDebugEventsForMainPrograms = function () {
         };
-        Cyberspace.prototype.setRobotConfig = function () {
-            // TODO
+        Cyberspace.prototype.setRobertaRobotSetupData = function (robertaRobotSetupDataList, robotType) {
+            var newSimulationCache = new SimulationCache_1.SimulationCache(robertaRobotSetupDataList, robotType);
+            var oldCache = this.simulationCache;
+            this.simulationCache = newSimulationCache;
+            if (!newSimulationCache.hasEqualConfiguration(oldCache)) {
+                // sets the robot programs and sensor configurations based on 'simulationCache'
+                this.resetScene();
+            }
+            else {
+                // always set the programs
+                this.getProgramManager().setPrograms(newSimulationCache.toRobotSetupData().map(function (setup) { return setup.program; }));
+            }
         };
         /* ############################################################################################ */
         /* #################################### ScrollView control #################################### */

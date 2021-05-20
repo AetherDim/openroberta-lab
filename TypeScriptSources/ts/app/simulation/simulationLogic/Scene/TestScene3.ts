@@ -3,6 +3,7 @@ import { Vector } from "matter-js";
 import { downloadJSONFile } from "../GlobalDebug";
 import { Robot } from "../Robot/Robot";
 import { RobotProgram } from "../Robot/RobotProgram";
+import { RobotSetupData } from "../Robot/RobotSetupData";
 import { RobotTester } from "../Robot/RobotTester";
 import { Unit } from "../Unit";
 import { UnpackArrayProperties, Util, Expand } from "../Util";
@@ -307,12 +308,12 @@ export class TestScene3 extends Scene {
 		DebugGui?.addButton("Reset", () =>  {
 			this.resetData()
 			this.autostartSim = false
-			this.reset()
+			this.reset([])
 		})
 		DebugGui?.addButton("Restart", () =>  {
 			this.resetData()
 			this.autostartSim = true
-			this.reset()
+			this.reset([])
 		})
 
 	}
@@ -330,6 +331,10 @@ export class TestScene3 extends Scene {
 	shouldWait = false
 
 	onInit(asyncChain: AsyncChain) {
+
+		this.getRobotManager().configurationManager.setRobotConfigurations([
+			{ 1: "TOUCH" }
+		])
 
 		this.shouldWait = false
 
@@ -364,15 +369,15 @@ export class TestScene3 extends Scene {
 				}
 			})
 
-			// run(false, undefined)
-			const programs: RobotProgram[] = true ? 
+
+			const programs: RobotProgram[] =
 				[
 					constructProgram([
 						// driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
 						rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
 					])
-				] : Util.simulation.storedRobertaRobotSetupData
-			this.getProgramManager().setPrograms(programs, true, undefined)
+				]
+			this.getProgramManager().setPrograms(programs)
 			this.getProgramManager().startProgram()
 		}
 
@@ -393,7 +398,7 @@ export class TestScene3 extends Scene {
 		// reset scene and automatically call 'onInit'
 		this.keyIndex += 1
 		this.autostartSim = this.keyIndex < this.keyValues.length
-		this.reset()
+		this.reset([])
 		this.shouldWait = true
 	}
 

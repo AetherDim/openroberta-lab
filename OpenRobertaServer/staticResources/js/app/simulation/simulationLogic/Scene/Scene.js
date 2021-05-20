@@ -18,7 +18,7 @@ var __spread = (this && this.__spread) || function () {
     for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
     return ar;
 };
-define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager", "./../GlobalDebug", "./Manager/EntityManager", "./Manager/ContainerManager", "./Manager/RobotManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1, GlobalDebug_1, EntityManager_1, ContainerManager_1, RobotManager_1) {
+define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager", "./../GlobalDebug", "./Manager/EntityManager", "./Manager/ContainerManager", "./Manager/RobotManager", "../UIManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1, GlobalDebug_1, EntityManager_1, ContainerManager_1, RobotManager_1, UIManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -77,13 +77,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
              */
             this.simSleepTime = this.dt;
             this.simSpeedupFactor = 1;
-            //
-            // #############################################################################
-            //
-            /**
-             * sleep time before calling blockly update
-             */
-            this.blocklyUpdateSleepTime = 1 / 10;
             /**
              * whether to create debug displayables to show all physics objects
              */
@@ -104,10 +97,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                     }
                     _this.update();
                 }
-            });
-            this.blocklyTicker = new Timer_1.Timer(this.blocklyUpdateSleepTime, function (delta) {
-                // update blockly
-                _this.getProgramManager().updateBreakpointEvent();
             });
             // simulation defaults
             // TODO: Gravity scale may depend on the chosen units
@@ -236,14 +225,14 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         /**
          * Reloads the whole scene and force reloads the assets
          */
-        Scene.prototype.fullReset = function () {
-            this.load(true);
+        Scene.prototype.fullReset = function (robotSetupData) {
+            this.load(robotSetupData, true);
         };
         /**
          * Reloads the whole scene without reloading the assets
          */
-        Scene.prototype.reset = function () {
-            this.load();
+        Scene.prototype.reset = function (robotSetupData) {
+            this.load(robotSetupData);
         };
         Scene.prototype.unload = function (chain) {
             // we could do this again if we need to
@@ -266,16 +255,16 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
          * load or reload this scene
          * @param forceLoadAssets
          */
-        Scene.prototype.load = function (forceLoadAssets) {
+        Scene.prototype.load = function (robotSetupData, forceLoadAssets) {
             var _this_1 = this;
             if (forceLoadAssets === void 0) { forceLoadAssets = false; }
             if (this.currentlyLoading) {
                 console.warn('Already loading scene... !');
                 return;
             }
-            // TODO: Do not use global Util properties
-            var configurationManager = this.getRobotManager().configurationManager;
-            configurationManager.setRobotConfigurations(Util_1.Util.simulation.storedRobertaRobotSetupData.map(function (p) { return p.javaScriptConfiguration; }));
+            UIManager_1.UIManager.setProgramRunButton(true);
+            this.getRobotManager().configurationManager.setRobotConfigurations(robotSetupData.map(function (setup) { return setup.sensorConfiguration; }));
+            this.getProgramManager().setPrograms(robotSetupData.map(function (setup) { return setup.program; }));
             // stop the simulation
             this.pauseSim();
             this.debug.clearDebugGuiDynamic(); // if dynamic debug gui exist, clear it
@@ -396,45 +385,23 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         Scene.prototype.getCurrentSimTickRate = function () {
             return Math.round(1000 / this.simTicker.lastDT) * this.simSpeedupFactor;
         };
-        Scene.prototype.startBlocklyUpdate = function () {
-            this.blocklyTicker.start();
-        };
-        Scene.prototype.stopBlocklyUpdate = function () {
-            this.blocklyTicker.stop();
-        };
-        Scene.prototype.setBlocklyUpdateSleepTime = function (simSleepTime) {
-            this.blocklyUpdateSleepTime = simSleepTime;
-            this.blocklyTicker.sleepTime = simSleepTime;
-        };
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;
         };
-        Scene.prototype.setSceneRenderer = function (sceneRenderer, allowBlocklyUpdate, noLoad) {
+        Scene.prototype.setSceneRenderer = function (robotSetupData, sceneRenderer, allowBlocklyUpdate, noLoad) {
             if (allowBlocklyUpdate === void 0) { allowBlocklyUpdate = false; }
             if (noLoad === void 0) { noLoad = false; }
             if (sceneRenderer != this.sceneRenderer) {
                 this.sceneRenderer = sceneRenderer;
                 if (sceneRenderer) {
-                    sceneRenderer.switchScene(this); // this will remove all registered rendering containers
-                    this.getContainers().registerToEngine(); // register rendering containers
-                    // tell the program manager whether we are allowed to do a blockly breakpoint update
-                    // this will be allowed if there is a blockly instance for us to use
-                    this.getProgramManager()._setAllowBlocklyUpdate(allowBlocklyUpdate);
-                    if (allowBlocklyUpdate) {
-                        this.startBlocklyUpdate(); // enable blockly update timer
-                    }
-                    else {
-                        this.stopBlocklyUpdate(); // stop it if this task is running
-                    }
-                }
-                else {
-                    // disable blockly breakpoint update because we have no scene
-                    this.getProgramManager()._setAllowBlocklyUpdate(false);
-                    this.stopBlocklyUpdate();
+                    // this will remove all registered rendering containers
+                    sceneRenderer.switchScene(robotSetupData, this);
+                    // register rendering containers
+                    this.getContainers().registerToEngine();
                 }
             }
             if (sceneRenderer && !this.hasFinishedLoading && !noLoad) {
-                this.load(true); // force reload assets
+                this.load(robotSetupData, true); // force reload assets
             }
         };
         Scene.prototype.renderTick = function (dt) {

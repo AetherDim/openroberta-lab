@@ -251,12 +251,12 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Reset", function () {
                 _this.resetData();
                 _this.autostartSim = false;
-                _this.reset();
+                _this.reset([]);
             });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Restart", function () {
                 _this.resetData();
                 _this.autostartSim = true;
-                _this.reset();
+                _this.reset([]);
             });
             return _this;
         }
@@ -269,6 +269,9 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.data = [];
         };
         TestScene3.prototype.onInit = function (asyncChain) {
+            this.getRobotManager().configurationManager.setRobotConfigurations([
+                { 1: "TOUCH" }
+            ]);
             this.shouldWait = false;
             this.testTime = Date.now() / 1000 - this.startWallTime;
             if (this.keyIndex == 0) {
@@ -292,15 +295,13 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                         slideFriction: tuple.otherSlideFriction
                     }
                 });
-                // run(false, undefined)
-                var programs = true ?
-                    [
-                        constructProgram([
-                            // driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-                            rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
-                        ])
-                    ] : Util_1.Util.simulation.storedRobertaRobotSetupData;
-                this.getProgramManager().setPrograms(programs, true, undefined);
+                var programs = [
+                    constructProgram([
+                        // driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                        rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
+                    ])
+                ];
+                this.getProgramManager().setPrograms(programs);
                 this.getProgramManager().startProgram();
             }
             asyncChain.next();
@@ -318,7 +319,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             // reset scene and automatically call 'onInit'
             this.keyIndex += 1;
             this.autostartSim = this.keyIndex < this.keyValues.length;
-            this.reset();
+            this.reset([]);
             this.shouldWait = true;
         };
         TestScene3.prototype.onUpdatePostPhysics = function () {

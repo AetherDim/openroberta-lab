@@ -113,15 +113,6 @@ type RestrictedKeysType<T, KeyType> = { [k in keyof T]: T[k] extends KeyType ? T
 
 export class Util {
 
-	// TODO: Remove this static variable
-	static simulation: {
-		storedRobertaRobotSetupData: RobertaRobotSetupData[],
-		storedRobotType: string
-	} = {
-		storedRobertaRobotSetupData: [],
-		storedRobotType: ""
-	}
-
 	static safeIndexing<T extends unknown[] | undefined>(value: T, index: number): NumberIndexed<T> {
 		if (value == undefined) {
 			return undefined as NumberIndexed<T>
