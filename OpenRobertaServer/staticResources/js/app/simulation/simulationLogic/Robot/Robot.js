@@ -25,7 +25,7 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./Sensors/ColorSensor", "../Geometry/Ray", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../Color", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, Ray_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1, Color_1) {
+define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.constants", "../interpreter.interpreter", "./RobotSimBehaviour", "./Wheel", "./Sensors/ColorSensor", "../Geometry/Ray", "../Entity", "../Util", "./../GlobalDebug", "./BodyHelper", "../Color", "./RobotLED", "../ExtendedMatter"], function (require, exports, matter_js_1, ElectricMotor_1, interpreter_constants_1, interpreter_interpreter_1, RobotSimBehaviour_1, Wheel_1, ColorSensor_1, Ray_1, Entity_1, Util_1, GlobalDebug_1, BodyHelper_1, Color_1, RobotLED_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Robot = exports.sensorTypeStrings = void 0;
@@ -54,6 +54,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
              * The gyro sensors of the robot where the key is the port.
              */
             this.gyroSensors = new Map();
+            this.LEDs = [];
             this.programCode = null;
             /**
              * Time to wait until the next command should be executed (in internal units)
@@ -330,6 +331,13 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             this.touchSensors.set(port, touchSensor);
             return true;
         };
+        Robot.prototype.getLEDs = function () {
+            return this.LEDs;
+        };
+        Robot.prototype.addLED = function (led) {
+            this.LEDs.push(led);
+            this.bodyContainer.addChild(led.graphics);
+        };
         Robot.prototype.setWheels = function (wheels) {
             this.leftDrivingWheel = wheels.leftDrivingWheel;
             this.rightDrivingWheel = wheels.rightDrivingWheel;
@@ -378,6 +386,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             this.endEncoder = null;
             this.leftForce = 0;
             this.rightForce = 0;
+            // reset led state
+            this.LEDs.forEach(function (LED) { return LED.resetState(); });
         };
         // IUpdatableEntity
         Robot.prototype.IUpdatableEntity = function () { };
@@ -401,7 +411,26 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             });
             // update sensors
             this.updateRobotBehaviourHardwareStateSensors();
+            // update LEDs
+            var LEDActionState = this.robotBehaviour.getActionState("led", true);
+            var LEDAction = Util_1.Util.flatMapOptional(LEDActionState, function (action) {
+                var _a;
+                return {
+                    color: Util_1.Util.flatMapOptional((_a = action.color) === null || _a === void 0 ? void 0 : _a.toUpperCase(), function (color) {
+                        if (Util_1.Util.listIncludesValue(RobotLED_1.robotLEDColors, color)) {
+                            return color;
+                        }
+                        else {
+                            console.warn("The robot LED color ('" + color + "') is not typed as 'RobotLEDColor'");
+                            return undefined;
+                        }
+                    }),
+                    mode: action.mode.toUpperCase()
+                };
+            });
+            this.LEDs.forEach(function (LED) { return LED.update(dt, LEDAction); });
             if (!this.interpreter) {
+                this.resetInternalState();
                 return;
             }
             if (this.delay > 0) {
@@ -1027,6 +1056,7 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     backWheel
                 ]
             });
+            robot.addLED(new RobotLED_1.RobotLED(scene.unit, { x: 0, y: 0 }, 0.01));
             return robot;
         };
         return Robot;

@@ -120,6 +120,19 @@ define(["require", "exports"], function (require, exports) {
             throw new Error("The value " + value + " was not exhaustively switched over");
         };
         /**
+         * Returns `list.includes(value)` and narrows the type of 'value'.
+         *
+         * @example
+         * const list: readonly ["A", "B"] = ["A", "B"] as const
+         * const value = "C"
+         * if (Util.listIncludesValue(list, value)) {
+         *     value // is of type "A" | "B"
+         * }
+         */
+        Util.listIncludesValue = function (list, value) {
+            return list.includes(value);
+        };
+        /**
          * Shuffles array in place. ES6 version
          * @param {Array} a items An array containing the items.
          * @returns in-place shuffled array
@@ -132,6 +145,17 @@ define(["require", "exports"], function (require, exports) {
                 _a = __read([a[j], a[i]], 2), a[i] = _a[0], a[j] = _a[1];
             }
             return a;
+        };
+        /**
+         * Maps `value` using `mapping` if `value != undefined` otherwise it returns `undefined`
+         */
+        Util.flatMapOptional = function (value, mapping) {
+            if (value == undefined) {
+                return undefined;
+            }
+            else {
+                return mapping(value);
+            }
         };
         /**
          * Generate a unique ID.  This should be globally unique.

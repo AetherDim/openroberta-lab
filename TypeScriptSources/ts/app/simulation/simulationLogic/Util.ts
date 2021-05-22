@@ -201,6 +201,20 @@ export class Util {
 	}
 
 	/**
+	 * Returns `list.includes(value)` and narrows the type of 'value'.
+	 * 
+	 * @example
+	 * const list: readonly ["A", "B"] = ["A", "B"] as const
+	 * const value = "C"
+	 * if (Util.listIncludesValue(list, value)) {
+	 *     value // is of type "A" | "B"
+	 * }
+	 */
+	static listIncludesValue<T, A extends readonly T[]>(list: A, value: T): value is typeof list[number] {
+		return list.includes(value)
+	}
+
+	/**
 	 * Shuffles array in place. ES6 version
 	 * @param {Array} a items An array containing the items.
 	 * @returns in-place shuffled array
@@ -212,6 +226,17 @@ export class Util {
 			[a[i], a[j]] = [a[j], a[i]]
 		}
 		return a
+	}
+
+	/**
+	 * Maps `value` using `mapping` if `value != undefined` otherwise it returns `undefined`
+	 */
+	static flatMapOptional<T, U>(value: T | undefined, mapping: (value: T) => U): U | undefined {
+		if (value == undefined) {
+			return undefined
+		} else {
+			return mapping(value)
+		}
 	}
 
 	/**

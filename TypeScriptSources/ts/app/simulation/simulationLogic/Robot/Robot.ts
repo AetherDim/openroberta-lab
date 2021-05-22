@@ -19,6 +19,7 @@ import { BodyHelper } from "./BodyHelper";
 import { RobotProgram } from './RobotProgram'
 import { hsvToColorName, rgbToHsv } from '../Color'
 import { GyroSensor } from './Sensors/GyroSensor'
+import { RobotLED, RobotLEDColor, robotLEDColors } from './RobotLED'
 
 export const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
 	// german description: "HT Infrarotsensor"
@@ -79,6 +80,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * The gyro sensors of the robot where the key is the port.
 	 */
 	private gyroSensors = new Map<string, GyroSensor>()
+
+	private LEDs: RobotLED[] = []
 
 	private robotBehaviour: RobotSimBehaviour
 
@@ -410,6 +413,15 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		return true
 	}
 
+	getLEDs(): RobotLED[] {
+		return this.LEDs
+	}
+
+	addLED(led: RobotLED) {
+		this.LEDs.push(led)
+		this.bodyContainer.addChild(led.graphics)
+	}
+
 	// TODO: Remove this line
 	private debugGraphics?: PIXI.Graphics
 
@@ -492,6 +504,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.endEncoder = null
 		this.leftForce = 0
 		this.rightForce = 0
+
+		// reset led state
+		this.LEDs.forEach(LED => LED.resetState())
 	}
 
 	// IUpdatableEntity
@@ -520,7 +535,27 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		// update sensors
 		this.updateRobotBehaviourHardwareStateSensors()
 
+		// update LEDs
+		const LEDActionState: { color?: string, mode: string } | undefined
+			= this.robotBehaviour.getActionState("led", true)
+		const LEDAction =
+			Util.flatMapOptional(LEDActionState, action => {
+				return {
+					color: Util.flatMapOptional(action.color?.toUpperCase(), color => {
+						if (Util.listIncludesValue(robotLEDColors, color)) {
+							return color
+						} else {
+							console.warn(`The robot LED color ('${color}') is not typed as 'RobotLEDColor'`)
+							return undefined
+						}
+					}),
+					mode: action.mode.toUpperCase()
+				}
+			})
+		this.LEDs.forEach(LED => LED.update(dt, LEDAction))
+
 		if (!this.interpreter) {
+			this.resetInternalState()
 			return;
 		}
 
@@ -1092,6 +1127,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				backWheel
 			]
 		})
+		robot.addLED(new RobotLED(scene.unit, { x: 0, y: 0 }, 0.01))
 		return robot
 	}
 }

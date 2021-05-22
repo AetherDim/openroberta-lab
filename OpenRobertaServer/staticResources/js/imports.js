@@ -188,6 +188,7 @@ require.config({
                 'RobertaRobotSetupData',
                 'RobotConfiguration',
                 'RobotProgram',
+                'RobotLED',
                 'RobotTester',
                 'ElectricMotor',
                 'RobotSimBehaviour',
