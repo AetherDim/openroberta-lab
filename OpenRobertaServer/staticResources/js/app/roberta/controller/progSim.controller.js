@@ -48,10 +48,8 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                                 MSG.displayMessage("MESSAGE_EDIT_START", "TOAST", GUISTATE_C.getProgramName());
                                 $('#simControl').addClass('typcn-media-stop').removeClass('typcn-media-play');
                                 $('#simControl').attr('data-original-title', Blockly.Msg.MENU_SIM_STOP_TOOLTIP);
-                                setTimeout(function() {
-                                    SIM.setPause(false);
-                                }, 500);
                                 SIM.init([result], false, GUISTATE_C.getRobotGroup());
+                                SIM.setPause(false);
                             } else {
                                 MSG.displayInformation(result, "", result.message, "");
                             }
@@ -69,9 +67,7 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
                         $('#simControl').addClass('typcn-media-stop').removeClass('typcn-media-play');
                         $('#simControl').attr('data-original-title', Blockly.Msg.MENU_SIM_STOP_TOOLTIP);
                         SIM.run(false, GUISTATE_C.getRobotGroup());
-                        setTimeout(function() {
-                            SIM.setPause(false);
-                        }, 500);
+                        SIM.setPause(false);
                     } else {
                         $('#simControl').addClass('typcn-media-play').removeClass('typcn-media-stop');
                         $('#simControl').attr('data-original-title', Blockly.Msg.MENU_SIM_START_TOOLTIP);
@@ -271,11 +267,9 @@ define(['exports', 'message', 'log', 'util', 'simulation.simulation', 'simulatio
 
                 PROGRAM.runInSim(GUISTATE_C.getProgramName(), configName, xmlTextProgram, xmlConfigText, language, function(result) {
                     if (result.rc == "ok") {
-                        setTimeout(function() {
-                            SIM.setPause(false);
-                            SIM.interpreterAddEvent(event);
-                        }, 500);
                         SIM.init([result], false, GUISTATE_C.getRobotGroup());
+                        SIM.setPause(false);
+                        SIM.interpreterAddEvent(event);
                     }
                     $('#simControl').removeClass('typcn-media-play').addClass('typcn-media-stop');
                 });
