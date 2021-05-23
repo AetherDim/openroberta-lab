@@ -34,7 +34,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
                 backgroundColor: Color_1.rgbToNumber(backgroundColor),
                 antialias: true,
                 resizeTo: resizeTo || undefined,
-                resolution: window.devicePixelRatio || 0.75,
+                resolution: window.devicePixelRatio || 0.75, // same as ScrollView.getPixelRatio()
             });
             // add mouse/touch control
             this.scrollView = new ScrollView_1.ScrollView(this.app.stage, this.app.renderer);

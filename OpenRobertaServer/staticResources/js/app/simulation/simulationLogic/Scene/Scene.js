@@ -14,9 +14,10 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager", "./../GlobalDebug", "./Manager/EntityManager", "./Manager/ContainerManager", "./Manager/RobotManager", "../UIManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1, GlobalDebug_1, EntityManager_1, ContainerManager_1, RobotManager_1, UIManager_1) {
     "use strict";
@@ -126,7 +127,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             for (var _i = 0; _i < arguments.length; _i++) {
                 entities[_i] = arguments[_i];
             }
-            (_a = this.getEntityManager()).addEntities.apply(_a, __spread(entities));
+            (_a = this.getEntityManager()).addEntities.apply(_a, __spreadArray([], __read(entities)));
         };
         Scene.prototype.addEntity = function (entity) {
             this.getEntityManager().addEntity(entity);

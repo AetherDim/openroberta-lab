@@ -36,9 +36,10 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 define(["require", "exports", "./wires", "./const.robots", "./robotBlock", "./port", "jquery"], function (require, exports, wires_1, const_robots_1, robotBlock_1, port_1, $) {
     "use strict";
@@ -155,7 +156,7 @@ define(["require", "exports", "./wires", "./const.robots", "./robotBlock", "./po
                     return (__assign(__assign({ name: name }, others), { connectedTo: _this.robot.getPortByName(block.confBlock + " " + block.getFieldValue(name)) ? block.confBlock + " " + block.getFieldValue(name) : block.getFieldValue(name) || others.connectedTo }));
                 });
                 _this.connections = _this.connections.filter(function (connection) { return connection.blockId !== block.id; });
-                _this.connections = __spread(_this.connections, connections);
+                _this.connections = __spreadArray(__spreadArray([], __read(_this.connections)), __read(connections));
             };
             this.deleteConnections = function (blockId) {
                 _this.connections = _this.connections.filter(function (connection) {

@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -27,9 +29,10 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAssetLoader", "../Random", "../Waypoints/WaypointList", "../Util"], function (require, exports, RRCScene_1, Unit_1, RRC, Random_1, WaypointList_1, Util_1) {
     "use strict";
@@ -46,7 +49,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
                 RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getAsset(4)
             ].filter(function (asset) { return asset != undefined; });
             _this.testSensorTypes = ["COLOR", "ULTRASONIC", "TOUCH"];
-            _this._sensorTypes = __spread(_this.testSensorTypes, [undefined]);
+            _this._sensorTypes = __spreadArray(__spreadArray([], __read(_this.testSensorTypes)), [undefined]);
             _this.useMultiSetCombinations = true;
             _this.allSensorConfigurations = _this.useMultiSetCombinations ?
                 Util_1.Util.generateMultiSetTuples(_this._sensorTypes, 4).map(function (multiSet) {
@@ -97,7 +100,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
         };
         TestScene2.prototype.onLoadAssets = function (chain) {
             var _a;
-            (_a = RRC.loader).load.apply(_a, __spread([function () { return chain.next(); }], this.assets));
+            (_a = RRC.loader).load.apply(_a, __spreadArray([function () { return chain.next(); }], __read(this.assets)));
         };
         TestScene2.prototype.onInit = function (chain) {
             var _this = this;

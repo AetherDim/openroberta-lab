@@ -14,9 +14,10 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager"], function (require, exports, SimulationCache_1, ScoreScene_1, SceneRenderer_1, SceneManager_1) {
     "use strict";
@@ -28,7 +29,7 @@ define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../Sc
             if (scenes === void 0) { scenes = []; }
             this.sceneManager = new SceneManager_1.SceneManager();
             this.simulationCache = new SimulationCache_1.SimulationCache([], "");
-            (_a = this.sceneManager).registerScene.apply(_a, __spread(scenes));
+            (_a = this.sceneManager).registerScene.apply(_a, __spreadArray([], __read(scenes)));
             this.renderer = new SceneRenderer_1.SceneRender(canvas, true, this.simulationCache.toRobotSetupData(), autoResizeTo);
         }
         /* ############################################################################################ */
