@@ -74,7 +74,7 @@ export class AsyncChain {
 	}
 
 	addBefore(fnc: AsyncFunction, ...listeners: AsyncListener[]) {
-		const idx = this.listenerFunctions.lastIndexOf(fnc)
+		const idx = this.listenerFunctions.indexOf(fnc)
 		this.addAtIndex(idx, ...listeners)
 	}
 

@@ -251,7 +251,7 @@ export function selectScene(ID: string) {
 }
 
 export function nextScene(): SceneDescriptor | undefined {
-	return cyberspace.nextScene();
+	return cyberspace.switchToNextScene();
 }
 
 export function sim(run: boolean) {

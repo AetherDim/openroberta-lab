@@ -138,7 +138,7 @@ define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingSce
     }
     exports.selectScene = selectScene;
     function nextScene() {
-        return cyberspace.nextScene();
+        return cyberspace.switchToNextScene();
     }
     exports.nextScene = nextScene;
     function sim(run) {

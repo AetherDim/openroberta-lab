@@ -38,6 +38,9 @@ define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../Sc
         Cyberspace.prototype.resetScene = function () {
             this.renderer.getScene().reset(this.simulationCache.toRobotSetupData());
         };
+        Cyberspace.prototype.fullResetScene = function () {
+            this.renderer.getScene().fullReset(this.simulationCache.toRobotSetupData());
+        };
         Cyberspace.prototype.getScene = function () {
             return this.renderer.getScene();
         };
@@ -51,25 +54,28 @@ define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../Sc
         Cyberspace.prototype.getScenes = function () {
             return this.sceneManager.getSceneDescriptorList();
         };
+        Cyberspace.prototype.switchToScene = function (scene) {
+            this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene);
+            if (scene.isLoadingComplete()) {
+                this.fullResetScene();
+            }
+        };
         Cyberspace.prototype.loadScene = function (ID) {
             if (this.getScene().isLoadingComplete()) {
                 var scene = this.sceneManager.getScene(ID);
                 if (scene) {
                     this.sceneManager.setCurrentScene(ID);
-                    this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene);
+                    this.switchToScene(scene);
                 }
             }
         };
-        Cyberspace.prototype.switchToNextScene = function () {
-            // TODO: No check for 'isLoadingComplete'
-            var scene = this.sceneManager.getNextScene();
-            if (scene != undefined) {
-                this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene);
-            }
-        };
-        Cyberspace.prototype.nextScene = function () {
-            if (this.getScene().isLoadingComplete()) {
-                this.switchToNextScene();
+        Cyberspace.prototype.switchToNextScene = function (forced) {
+            if (forced === void 0) { forced = false; }
+            if (forced || this.getScene().isLoadingComplete()) {
+                var scene = this.sceneManager.getNextScene();
+                if (scene != undefined) {
+                    this.switchToScene(scene);
+                }
             }
             return this.sceneManager.getCurrentSceneDescriptor();
         };

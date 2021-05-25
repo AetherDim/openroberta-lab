@@ -14,6 +14,7 @@ export class SceneRender {
 	
 	readonly app: PIXI.Application; // "window"
 
+	// TODO: Change scene to be non optional
 	private scene?: Scene;   // scene with physics and components
 	readonly scrollView: ScrollView;
 

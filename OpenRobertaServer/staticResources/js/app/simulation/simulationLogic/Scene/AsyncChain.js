@@ -97,7 +97,7 @@ define(["require", "exports"], function (require, exports) {
             for (var _i = 1; _i < arguments.length; _i++) {
                 listeners[_i - 1] = arguments[_i];
             }
-            var idx = this.listenerFunctions.lastIndexOf(fnc);
+            var idx = this.listenerFunctions.indexOf(fnc);
             this.addAtIndex.apply(this, __spreadArray([idx], __read(listeners)));
         };
         AsyncChain.prototype.addAfter = function (fnc) {

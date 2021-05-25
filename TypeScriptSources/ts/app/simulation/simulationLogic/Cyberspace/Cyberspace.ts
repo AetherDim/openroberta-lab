@@ -30,6 +30,10 @@ export class Cyberspace {
 		this.renderer.getScene().reset(this.simulationCache.toRobotSetupData())
 	}
 
+	fullResetScene() {
+		this.renderer.getScene().fullReset(this.simulationCache.toRobotSetupData())
+	}
+
 	getScene(): Scene {
 		return this.renderer.getScene()
 	}
@@ -46,27 +50,29 @@ export class Cyberspace {
 		return this.sceneManager.getSceneDescriptorList()
 	}
 
+	private switchToScene(scene: Scene) {
+		this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene)
+		if (scene.isLoadingComplete()) {
+			this.fullResetScene()
+		}
+	}
+
 	loadScene(ID: string) {
 		if(this.getScene().isLoadingComplete()) {
 			const scene = this.sceneManager.getScene(ID)
 			if(scene) {
 				this.sceneManager.setCurrentScene(ID)
-				this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene)
+				this.switchToScene(scene)
 			}
 		}
 	}
 
-	switchToNextScene() {
-		// TODO: No check for 'isLoadingComplete'
-		const scene = this.sceneManager.getNextScene()
-		if(scene != undefined) {
-			this.renderer.switchScene(this.simulationCache.toRobotSetupData(), scene)
-		}
-	}
-
-	nextScene(): SceneDescriptor {
-		if(this.getScene().isLoadingComplete()) {
-			this.switchToNextScene()
+	switchToNextScene(forced: boolean = false): SceneDescriptor {
+		if(forced || this.getScene().isLoadingComplete()) {
+			const scene = this.sceneManager.getNextScene()
+			if(scene != undefined) {
+				this.switchToScene(scene)
+			}
 		}
 		return this.sceneManager.getCurrentSceneDescriptor()!
 	}
