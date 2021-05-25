@@ -159,7 +159,7 @@ sceneManager.registerScene(
 );
 
 // switch to first scene
-cyberspace.switchToNextScene()
+cyberspace.switchToNextScene(true)
 
 
 /**

@@ -55,7 +55,7 @@ define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingSce
         return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
     }));
     // switch to first scene
-    cyberspace.switchToNextScene();
+    cyberspace.switchToNextScene(true);
     /**
      * @param programs
      * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
