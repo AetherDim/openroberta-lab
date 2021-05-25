@@ -101,34 +101,6 @@ sceneManager.registerScene(
 	),
 
 	//
-	// Rainbow
-	//
-
-	new SceneDescriptor(
-		'RRC - Rainbow - ES',
-		'Roborave Cyberspace Rainbow ES',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.ES);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Rainbow - MS',
-		'Roborave Cyberspace Rainbow MS',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.MS);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Rainbow - HS',
-		'Roborave Cyberspace Rainbow HS',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.HS);
-		}
-	),
-
-	//
 	// Labyrinth
 	//
 
@@ -157,6 +129,33 @@ sceneManager.registerScene(
 	),
 
 
+	//
+	// Rainbow
+	//
+
+	new SceneDescriptor(
+		'RRC - Rainbow - ES',
+		'Roborave Cyberspace Rainbow ES',
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.ES);
+		}
+	),
+
+	new SceneDescriptor(
+		'RRC - Rainbow - MS',
+		'Roborave Cyberspace Rainbow MS',
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.MS);
+		}
+	),
+
+	new SceneDescriptor(
+		'RRC - Rainbow - HS',
+		'Roborave Cyberspace Rainbow HS',
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.HS);
+		}
+	),
 );
 
 // switch to first scene
