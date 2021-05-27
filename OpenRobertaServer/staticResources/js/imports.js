@@ -196,6 +196,10 @@ require.config({
                 'RobotHardwareStateSensors',
                 'BodyHelper',
             ]},
+        { 'EventManager' : [
+            'EventHandlerList',
+            'EventManager',
+        ]},
         { 'RRC': [
                 'RRAssetLoader',
                 'AgeGroup',

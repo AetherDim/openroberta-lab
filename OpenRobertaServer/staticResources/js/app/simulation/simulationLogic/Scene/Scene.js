@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager", "./../GlobalDebug", "./Manager/EntityManager", "./Manager/ContainerManager", "./Manager/RobotManager", "../UIManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1, GlobalDebug_1, EntityManager_1, ContainerManager_1, RobotManager_1, UIManager_1) {
+define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit", "../Util", "./AsyncChain", "../Waypoints/WaypointsManager", "./../GlobalDebug", "./Manager/EntityManager", "./Manager/ContainerManager", "./Manager/RobotManager", "../EventManager/EventManager"], function (require, exports, matter_js_1, Timer_1, ScrollView_1, Unit_1, Util_1, AsyncChain_1, WaypointsManager_1, GlobalDebug_1, EntityManager_1, ContainerManager_1, RobotManager_1, EventManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scene = void 0;
@@ -35,6 +35,13 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             this.robotManager = new RobotManager_1.RobotManager(this);
             this.entityManager = new EntityManager_1.EntityManager(this);
             this.containerManager = new ContainerManager_1.ContainerManager(this);
+            //
+            // #############################################################################
+            //
+            this.eventManager = EventManager_1.EventManager.init({
+                onStartSimulation: EventManager_1.ParameterTypes.none,
+                onPauseSimulation: EventManager_1.ParameterTypes.none
+            });
             //
             // #############################################################################
             //
@@ -117,6 +124,10 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         };
         Scene.prototype.getProgramManager = function () {
             return this.getRobotManager().getProgramManager();
+        };
+        Scene.prototype.removeAllEventHandlers = function () {
+            this.eventManager.removeAllEventHandlers();
+            this.getProgramManager().removeAllEventHandlers();
         };
         //
         // #############################################################################
@@ -263,7 +274,6 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 console.warn('Already loading scene... !');
                 return;
             }
-            UIManager_1.UIManager.setProgramRunButton(true);
             this.getRobotManager().configurationManager.setRobotConfigurations(robotSetupData.map(function (setup) { return setup.sensorConfiguration; }));
             this.getProgramManager().setPrograms(robotSetupData.map(function (setup) { return setup.program; }));
             // stop the simulation
@@ -359,6 +369,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         Scene.prototype.startSim = function () {
             if (this.hasFinishedLoading) {
                 this.simTicker.start();
+                this.eventManager.onStartSimulationCallHandlers();
             }
             else {
                 console.warn("'startSim()' is called during the loading process.");
@@ -366,6 +377,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         };
         Scene.prototype.pauseSim = function () {
             this.simTicker.stop();
+            this.eventManager.onPauseSimulationCallHandlers();
         };
         /**
          * Sets the sim sleep time in seconds.

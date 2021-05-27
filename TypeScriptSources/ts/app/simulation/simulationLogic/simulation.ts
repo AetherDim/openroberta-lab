@@ -1,5 +1,4 @@
 import './pixijs'
-import {SceneRender} from './SceneRenderer'
 import './ExtendedMatter'
 import {AgeGroup} from "./RRC/AgeGroup";
 import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
@@ -10,13 +9,12 @@ import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 import {RRCScene} from "./RRC/Scene/RRCScene";
 import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 import { TestScene3 } from './Scene/TestScene3';
-import { Util } from './Util';
 import { DEBUG } from './GlobalDebug';
 import { RobertaRobotSetupData } from './Robot/RobertaRobotSetupData'
-import { sensorTypeStrings } from './Robot/Robot';
 import { Cyberspace } from './Cyberspace/Cyberspace';
 import { SceneDescriptor } from './Cyberspace/SceneManager';
 import { BlocklyDebug } from './BlocklyDebug';
+import { UIManager } from './UIManager';
 
 //
 // init all components for a simulation
@@ -25,6 +23,11 @@ const cyberspace = new Cyberspace('sceneCanvas', 'simDiv')
 const sceneManager = cyberspace.getSceneManager()
 const blocklyDebugManager = new BlocklyDebug(cyberspace)
 
+cyberspace.eventManager
+	.onStartPrograms(() => UIManager.setProgramRunButton("STOP"))
+	.onStopPrograms(() => UIManager.setProgramRunButton("START"))
+	.onStartSimulation(() => UIManager.setSimulationRunButton("STOP"))
+	.onPauseSimulation(() => UIManager.setSimulationRunButton("START"))
 
 //
 // register scenes

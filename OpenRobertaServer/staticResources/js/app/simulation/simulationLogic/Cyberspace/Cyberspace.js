@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager"], function (require, exports, SimulationCache_1, ScoreScene_1, SceneRenderer_1, SceneManager_1) {
+define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager", "../EventManager/EventManager"], function (require, exports, SimulationCache_1, ScoreScene_1, SceneRenderer_1, SceneManager_1, EventManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Cyberspace = void 0;
@@ -29,12 +29,41 @@ define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../Sc
             if (scenes === void 0) { scenes = []; }
             this.sceneManager = new SceneManager_1.SceneManager();
             this.simulationCache = new SimulationCache_1.SimulationCache([], "");
+            this.eventManager = EventManager_1.EventManager.init({
+                /** will be called after the simulation has been started */
+                onStartSimulation: EventManager_1.ParameterTypes.none,
+                /** will be called after the simulation has been paused */
+                onPauseSimulation: EventManager_1.ParameterTypes.none,
+                /** will be called after the program has been started */
+                onStartPrograms: EventManager_1.ParameterTypes.none,
+                /** will be called after the program has been paused or stopped */
+                onPausePrograms: EventManager_1.ParameterTypes.none,
+                /** will be called after the program has been stopped */
+                onStopPrograms: EventManager_1.ParameterTypes.none
+            });
             (_a = this.sceneManager).registerScene.apply(_a, __spreadArray([], __read(scenes)));
             this.renderer = new SceneRenderer_1.SceneRender(canvas, true, this.simulationCache.toRobotSetupData(), autoResizeTo);
+            var t = this;
+            this.renderer.onSwitchScene(function (scene) {
+                if (scene != undefined) {
+                    t.resetEventHandlersOfScene(scene);
+                }
+            });
         }
         /* ############################################################################################ */
         /* ####################################### Scene control ###################################### */
         /* ############################################################################################ */
+        Cyberspace.prototype.resetEventHandlersOfScene = function (scene) {
+            scene.removeAllEventHandlers();
+            var eventHandlerLists = this.eventManager.eventHandlerLists;
+            var programManagerEventHandlerLists = scene.getProgramManager().eventManager.eventHandlerLists;
+            programManagerEventHandlerLists.onStartProgram.pushEventHandleList(eventHandlerLists.onStartPrograms);
+            programManagerEventHandlerLists.onPauseProgram.pushEventHandleList(eventHandlerLists.onPausePrograms);
+            programManagerEventHandlerLists.onStopProgram.pushEventHandleList(eventHandlerLists.onStopPrograms);
+            var sceneEventHandlerLists = scene.eventManager.eventHandlerLists;
+            sceneEventHandlerLists.onStartSimulation.pushEventHandleList(eventHandlerLists.onStartSimulation);
+            sceneEventHandlerLists.onPauseSimulation.pushEventHandleList(eventHandlerLists.onPauseSimulation);
+        };
         Cyberspace.prototype.resetScene = function () {
             this.renderer.getScene().reset(this.simulationCache.toRobotSetupData());
         };
@@ -110,10 +139,10 @@ define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../Sc
             this.getProgramManager().stopProgram();
         };
         Cyberspace.prototype.resumePrograms = function () {
-            this.getProgramManager().setProgramPause(false);
+            this.getProgramManager().startProgram();
         };
         Cyberspace.prototype.pausePrograms = function () {
-            this.getProgramManager().setProgramPause(true);
+            this.getProgramManager().pauseProgram();
         };
         Cyberspace.prototype.setPrograms = function (programs) {
             this.getProgramManager().setPrograms(programs);

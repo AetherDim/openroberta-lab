@@ -1,10 +1,9 @@
 import Blockly = require("blockly");
-import * as CONSTANTS from "../../simulation.constants";
 import { Robot } from "../../Robot/Robot";
 import {RobotManager} from "./RobotManager";
 import {Interpreter} from "./../../interpreter.interpreter";
 import { RobotProgram } from "../../Robot/RobotProgram";
-import { UIManager } from "../../UIManager";
+import { EventManager, ParameterTypes } from "../../EventManager/EventManager";
 
 
 /*export interface DebugEventHandler {
@@ -36,6 +35,12 @@ export class ProgramManager {
 
 	private cachedPrograms: RobotProgram[] = []
 
+	readonly eventManager = EventManager.init({
+		onStartProgram: ParameterTypes.none,
+		onPauseProgram: ParameterTypes.none,
+		onStopProgram: ParameterTypes.none
+	})
+
 
 	hasBeenInitialized(): boolean {
 		return this.initialized;
@@ -44,6 +49,10 @@ export class ProgramManager {
 	constructor(robotManager: RobotManager) {
 		this.robotManager = robotManager;
 		this.robots = robotManager.getRobots();
+	}
+
+	removeAllEventHandlers() {
+		this.eventManager.removeAllEventHandlers()
 	}
 
 	setCachedPrograms() {
@@ -89,19 +98,19 @@ export class ProgramManager {
 		return this.debugMode
 	}
 
-	setProgramPause(pause: boolean) {
+	private setProgramPause(pause: boolean) {
 		this.programPaused = pause
 	}
 
-
-	// TODO: Add 
 	startProgram() {
 		this.init()
 		this.setProgramPause(false)
+		this.eventManager.onStartProgramCallHandlers()
 	}
 
 	pauseProgram() {
 		this.setProgramPause(true)
+		this.eventManager.onPauseProgramCallHandlers()
 	}
 
 	/**
@@ -122,7 +131,10 @@ export class ProgramManager {
 		})
 
 		this.initialized = false
-		this.setProgramPause(true)
+		this.pauseProgram()
+
+		// call event handlers
+		this.eventManager.onStopProgramCallHandlers()
 	}
 
 	getSimVariables() {
@@ -141,7 +153,6 @@ export class ProgramManager {
 		const allTerminated = this.allInterpretersTerminated();
 		if(allTerminated && this.initialized) {
 			console.log('All programs terminated');
-			UIManager.setProgramRunButton(true)
 			this.stopProgram();
 		}
 	}

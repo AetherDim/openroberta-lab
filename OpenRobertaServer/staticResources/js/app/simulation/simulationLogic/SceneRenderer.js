@@ -7,6 +7,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
         function SceneRender(canvas, allowBlocklyAccess, robotSetupData, autoResizeTo, scene) {
             var _this = this;
             this.allowBlocklyAccess = false;
+            this.onSwitchSceneEventHandler = [];
             var htmlCanvas = null;
             var resizeTo = null;
             this.allowBlocklyAccess = allowBlocklyAccess;
@@ -70,6 +71,9 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             //this.app.ticker.maxFPS = 30
             GlobalDebug_1.initGlobalSceneDebug(this);
         }
+        SceneRender.prototype.onSwitchScene = function (onSwitchSceneHandler) {
+            this.onSwitchSceneEventHandler.push(onSwitchSceneHandler);
+        };
         SceneRender.prototype.onResize = function (oldWidth, oldHeight) {
             var pixelRatio = Util_1.Util.getPixelRatio();
             this.scrollView.x += (this.app.renderer.screen.width - oldWidth) / 2 / pixelRatio;
@@ -130,6 +134,7 @@ define(["require", "exports", "jquery", "./Scene/Scene", "./Color", "./ScrollVie
             }
             this.scene = scene;
             scene.setSceneRenderer(robotSetupData, this, this.allowBlocklyAccess, noLoad);
+            this.onSwitchSceneEventHandler.forEach(function (handler) { return handler(scene); });
         };
         // TODO: remove before add? only add once?
         SceneRender.prototype.addDisplayable = function (displayable) {

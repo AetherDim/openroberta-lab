@@ -1,5 +1,5 @@
 import { Robot } from '../Robot/Robot';
-import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices, Query } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices } from 'matter-js';
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
@@ -14,7 +14,7 @@ import {EntityManager} from "./Manager/EntityManager";
 import {ContainerManager} from "./Manager/ContainerManager";
 import {RobotManager} from "./Manager/RobotManager";
 import { RobotSetupData } from '../Robot/RobotSetupData';
-import { UIManager } from '../UIManager';
+import { EventManager, ParameterTypes } from '../EventManager/EventManager';
 
 export class Scene {
 
@@ -37,6 +37,20 @@ export class Scene {
 
 	getProgramManager() {
 		return this.getRobotManager().getProgramManager()
+	}
+
+	//
+	// #############################################################################
+	//
+
+	readonly eventManager = EventManager.init({
+		onStartSimulation: ParameterTypes.none,
+		onPauseSimulation: ParameterTypes.none
+	})
+
+	removeAllEventHandlers() {
+		this.eventManager.removeAllEventHandlers()
+		this.getProgramManager().removeAllEventHandlers()
 	}
 
 	//
@@ -255,8 +269,6 @@ export class Scene {
 			return;
 		}
 
-		UIManager.setProgramRunButton(true)
-		
 		this.getRobotManager().configurationManager.setRobotConfigurations(
 			robotSetupData.map(setup => setup.sensorConfiguration)
 		)
@@ -420,14 +432,16 @@ export class Scene {
 
 	startSim() {
 		if(this.hasFinishedLoading) {
-			this.simTicker.start();
+			this.simTicker.start()
+			this.eventManager.onStartSimulationCallHandlers()
 		} else {
 			console.warn("'startSim()' is called during the loading process.")
 		}
 	}
 
 	pauseSim() {
-		this.simTicker.stop();
+		this.simTicker.stop()
+		this.eventManager.onPauseSimulationCallHandlers()
 	}
 
 	/**

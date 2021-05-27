@@ -1,4 +1,4 @@
-define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./GlobalDebug", "./Cyberspace/Cyberspace", "./Cyberspace/SceneManager", "./BlocklyDebug", "./pixijs", "./ExtendedMatter"], function (require, exports, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, GlobalDebug_1, Cyberspace_1, SceneManager_1, BlocklyDebug_1) {
+define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./GlobalDebug", "./Cyberspace/Cyberspace", "./Cyberspace/SceneManager", "./BlocklyDebug", "./UIManager", "./pixijs", "./ExtendedMatter"], function (require, exports, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, GlobalDebug_1, Cyberspace_1, SceneManager_1, BlocklyDebug_1, UIManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
@@ -8,6 +8,11 @@ define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingSce
     var cyberspace = new Cyberspace_1.Cyberspace('sceneCanvas', 'simDiv');
     var sceneManager = cyberspace.getSceneManager();
     var blocklyDebugManager = new BlocklyDebug_1.BlocklyDebug(cyberspace);
+    cyberspace.eventManager
+        .onStartPrograms(function () { return UIManager_1.UIManager.setProgramRunButton("STOP"); })
+        .onStopPrograms(function () { return UIManager_1.UIManager.setProgramRunButton("START"); })
+        .onStartSimulation(function () { return UIManager_1.UIManager.setSimulationRunButton("STOP"); })
+        .onPauseSimulation(function () { return UIManager_1.UIManager.setSimulationRunButton("START"); });
     //
     // register scenes
     //

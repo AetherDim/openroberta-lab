@@ -21,7 +21,9 @@ export class SceneRender {
 	readonly allowBlocklyAccess: boolean = false;
 
 	private readonly resizeTo: HTMLElement|null;
-	
+
+	private onSwitchSceneEventHandler: ((scene?: Scene) => void)[] = []
+
 
 	constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, robotSetupData?: RobotSetupData[], autoResizeTo?: HTMLElement | string, scene?: Scene) {
 
@@ -105,6 +107,10 @@ export class SceneRender {
 		initGlobalSceneDebug(this)
 	}
 
+	onSwitchScene(onSwitchSceneHandler: (scene?: Scene) => void) {
+		this.onSwitchSceneEventHandler.push(onSwitchSceneHandler)
+	}
+
 	private onResize(oldWidth: number, oldHeight: number) {
 		const pixelRatio = Util.getPixelRatio()
 		this.scrollView.x += (this.app.renderer.screen.width-oldWidth) / 2 / pixelRatio
@@ -185,6 +191,7 @@ export class SceneRender {
 
 		scene.setSceneRenderer(robotSetupData, this, this.allowBlocklyAccess, noLoad);
 
+		this.onSwitchSceneEventHandler.forEach(handler => handler(scene))
 	}
 
 

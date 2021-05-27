@@ -5,6 +5,7 @@ import { Scene } from "../Scene/Scene"
 import { ScoreScene } from "../Scene/ScoreScene"
 import { SceneRender } from "../SceneRenderer"
 import { SceneDescriptor, SceneManager } from "./SceneManager"
+import { EventManager, ParameterTypes } from "../EventManager/EventManager"
 
 
 export class Cyberspace {
@@ -14,17 +15,56 @@ export class Cyberspace {
 
 	private simulationCache: SimulationCache = new SimulationCache([], "")
 
+	readonly eventManager = EventManager.init({
+		/** will be called after the simulation has been started */
+		onStartSimulation: ParameterTypes.none,
+		/** will be called after the simulation has been paused */
+		onPauseSimulation: ParameterTypes.none,
+
+		/** will be called after the program has been started */
+		onStartPrograms: ParameterTypes.none,
+		/** will be called after the program has been paused or stopped */
+		onPausePrograms: ParameterTypes.none,
+		/** will be called after the program has been stopped */
+		onStopPrograms: ParameterTypes.none
+	})
+
 	constructor(canvas: HTMLCanvasElement | string, autoResizeTo?: HTMLElement | string, scenes: SceneDescriptor[] = []) {
 		this.sceneManager.registerScene(...scenes)
 		this.renderer = new SceneRender(
 			canvas, true, this.simulationCache.toRobotSetupData(), autoResizeTo
 		)
-	}
 
+		const t = this
+		this.renderer.onSwitchScene((scene) => {
+			if (scene != undefined) {
+				t.resetEventHandlersOfScene(scene)
+			}
+		})
+	}
 
 	/* ############################################################################################ */
 	/* ####################################### Scene control ###################################### */
 	/* ############################################################################################ */
+
+	resetEventHandlersOfScene(scene: Scene) {
+		scene.removeAllEventHandlers()
+
+		const eventHandlerLists = this.eventManager.eventHandlerLists
+		const programManagerEventHandlerLists = scene.getProgramManager().eventManager.eventHandlerLists
+		programManagerEventHandlerLists.onStartProgram.pushEventHandleList(
+			eventHandlerLists.onStartPrograms)
+		programManagerEventHandlerLists.onPauseProgram.pushEventHandleList(
+			eventHandlerLists.onPausePrograms)
+		programManagerEventHandlerLists.onStopProgram.pushEventHandleList(
+			eventHandlerLists.onStopPrograms)
+
+		const sceneEventHandlerLists = scene.eventManager.eventHandlerLists
+		sceneEventHandlerLists.onStartSimulation.pushEventHandleList(
+			eventHandlerLists.onStartSimulation)
+		sceneEventHandlerLists.onPauseSimulation.pushEventHandleList(
+			eventHandlerLists.onPauseSimulation)
+	}
 
 	resetScene() {
 		this.renderer.getScene().reset(this.simulationCache.toRobotSetupData())
@@ -120,11 +160,11 @@ export class Cyberspace {
 	}
 
 	resumePrograms() {
-		this.getProgramManager().setProgramPause(false)
+		this.getProgramManager().startProgram()
 	}
 
 	pausePrograms() {
-		this.getProgramManager().setProgramPause(true)
+		this.getProgramManager().pauseProgram()
 	}
 
 	setPrograms(programs: RobotProgram[]) {

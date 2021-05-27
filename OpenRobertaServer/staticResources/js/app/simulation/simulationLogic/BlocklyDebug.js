@@ -1,4 +1,4 @@
-define(["require", "exports", "blockly", "./Timer", "./UIManager"], function (require, exports, Blockly, Timer_1, UIManager_1) {
+define(["require", "exports", "blockly", "./Timer"], function (require, exports, Blockly, Timer_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BlocklyDebug = void 0;
@@ -143,11 +143,9 @@ define(["require", "exports", "blockly", "./Timer", "./UIManager"], function (re
         };
         BlocklyDebug.prototype.startProgram = function () {
             this.cyberspace.getProgramManager().startProgram();
-            UIManager_1.UIManager.setProgramRunButton(true);
         };
         BlocklyDebug.prototype.stopProgram = function () {
             this.cyberspace.getProgramManager().stopProgram();
-            UIManager_1.UIManager.setProgramRunButton(false);
         };
         BlocklyDebug.prototype.interpreterAddEvent = function (mode) {
             this.cyberspace.getProgramManager().interpreterAddEvent(mode);

@@ -1,7 +1,6 @@
 import Blockly = require("blockly");
 import { Cyberspace } from "./Cyberspace/Cyberspace";
 import { Timer } from "./Timer";
-import { UIManager } from "./UIManager";
 
 
 export class BlocklyDebug {
@@ -167,15 +166,12 @@ export class BlocklyDebug {
 		}
 	}
 
-
 	startProgram() {
 		this.cyberspace.getProgramManager().startProgram()
-		UIManager.setProgramRunButton(true);
 	}
 
 	stopProgram() {
 		this.cyberspace.getProgramManager().stopProgram()
-		UIManager.setProgramRunButton(false);
 	}
 
 	interpreterAddEvent(mode: any) {

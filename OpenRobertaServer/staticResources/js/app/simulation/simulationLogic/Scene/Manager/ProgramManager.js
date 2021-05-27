@@ -1,4 +1,4 @@
-define(["require", "exports", "../../UIManager"], function (require, exports, UIManager_1) {
+define(["require", "exports", "../../EventManager/EventManager"], function (require, exports, EventManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ProgramManager = void 0;
@@ -23,11 +23,19 @@ define(["require", "exports", "../../UIManager"], function (require, exports, UI
             this.interpreters = [];
             this.initialized = false;
             this.cachedPrograms = [];
+            this.eventManager = EventManager_1.EventManager.init({
+                onStartProgram: EventManager_1.ParameterTypes.none,
+                onPauseProgram: EventManager_1.ParameterTypes.none,
+                onStopProgram: EventManager_1.ParameterTypes.none
+            });
             this.robotManager = robotManager;
             this.robots = robotManager.getRobots();
         }
         ProgramManager.prototype.hasBeenInitialized = function () {
             return this.initialized;
+        };
+        ProgramManager.prototype.removeAllEventHandlers = function () {
+            this.eventManager.removeAllEventHandlers();
         };
         ProgramManager.prototype.setCachedPrograms = function () {
             this.setPrograms(this.cachedPrograms);
@@ -65,13 +73,14 @@ define(["require", "exports", "../../UIManager"], function (require, exports, UI
         ProgramManager.prototype.setProgramPause = function (pause) {
             this.programPaused = pause;
         };
-        // TODO: Add 
         ProgramManager.prototype.startProgram = function () {
             this.init();
             this.setProgramPause(false);
+            this.eventManager.onStartProgramCallHandlers();
         };
         ProgramManager.prototype.pauseProgram = function () {
             this.setProgramPause(true);
+            this.eventManager.onPauseProgramCallHandlers();
         };
         /**
          * Stops the program and resets all interpreters
@@ -87,7 +96,9 @@ define(["require", "exports", "../../UIManager"], function (require, exports, UI
                 robot.interpreter = undefined;
             });
             this.initialized = false;
-            this.setProgramPause(true);
+            this.pauseProgram();
+            // call event handlers
+            this.eventManager.onStopProgramCallHandlers();
         };
         ProgramManager.prototype.getSimVariables = function () {
             if (this.interpreters.length >= 1) {
@@ -104,7 +115,6 @@ define(["require", "exports", "../../UIManager"], function (require, exports, UI
             var allTerminated = this.allInterpretersTerminated();
             if (allTerminated && this.initialized) {
                 console.log('All programs terminated');
-                UIManager_1.UIManager.setProgramRunButton(true);
                 this.stopProgram();
             }
         };
