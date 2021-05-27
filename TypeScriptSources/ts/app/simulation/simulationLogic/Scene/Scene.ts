@@ -490,7 +490,7 @@ export class Scene {
 		return this.sceneRenderer;
 	}
 
-	setSceneRenderer(robotSetupData: RobotSetupData[], sceneRenderer?: SceneRender, allowBlocklyUpdate: boolean = false, noLoad: boolean = false) {
+	setSceneRenderer(robotSetupData: RobotSetupData[], sceneRenderer?: SceneRender, noLoad: boolean = false) {
 
 		if(sceneRenderer != this.sceneRenderer) {
 			this.sceneRenderer = sceneRenderer;

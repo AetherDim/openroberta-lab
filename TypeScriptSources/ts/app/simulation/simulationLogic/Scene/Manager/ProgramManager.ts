@@ -1,24 +1,8 @@
-import Blockly = require("blockly");
 import { Robot } from "../../Robot/Robot";
-import {RobotManager} from "./RobotManager";
-import {Interpreter} from "./../../interpreter.interpreter";
+import { RobotManager } from "./RobotManager";
+import { Interpreter } from "./../../interpreter.interpreter";
 import { RobotProgram } from "../../Robot/RobotProgram";
 import { EventManager, ParameterTypes } from "../../EventManager/EventManager";
-
-
-/*export interface DebugEventHandler {
-	onUpdateSimValues(manager: ProgramManager): void
-
-	onProgramPause(manager: ProgramManager): void
-	onProgramResume(manager: ProgramManager): void
-	onProgramStart(manager: ProgramManager): void
-	onProgramStop(manager: ProgramManager): void
-	onProgramReset(manager: ProgramManager): void
-	
-	onUpdateDebugMode(manager: ProgramManager, debugEnabled: boolean): void
-	onInterpreterAddEvent(manager: ProgramManager, mode: any): void
-	onRemoveBreakPoint(manager: ProgramManager, block: Blockly.Block): void 
-}*/
 
 
 export class ProgramManager {

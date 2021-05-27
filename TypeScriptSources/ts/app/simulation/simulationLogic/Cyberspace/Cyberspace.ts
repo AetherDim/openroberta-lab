@@ -31,16 +31,12 @@ export class Cyberspace {
 
 	constructor(canvas: HTMLCanvasElement | string, autoResizeTo?: HTMLElement | string, scenes: SceneDescriptor[] = []) {
 		this.sceneManager.registerScene(...scenes)
-		this.renderer = new SceneRender(
-			canvas, true, this.simulationCache.toRobotSetupData(), autoResizeTo
-		)
+		// empty scene as default
+		const emptyScene = new Scene("")
+		this.renderer = new SceneRender(emptyScene, canvas, this.simulationCache.toRobotSetupData(), autoResizeTo)
 
 		const t = this
-		this.renderer.onSwitchScene((scene) => {
-			if (scene != undefined) {
-				t.resetEventHandlersOfScene(scene)
-			}
-		})
+		this.renderer.onSwitchScene(scene => t.resetEventHandlersOfScene(scene))
 	}
 
 	/* ############################################################################################ */

@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager", "../EventManager/EventManager"], function (require, exports, SimulationCache_1, ScoreScene_1, SceneRenderer_1, SceneManager_1, EventManager_1) {
+define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager", "../EventManager/EventManager"], function (require, exports, SimulationCache_1, Scene_1, ScoreScene_1, SceneRenderer_1, SceneManager_1, EventManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Cyberspace = void 0;
@@ -42,13 +42,11 @@ define(["require", "exports", "./SimulationCache", "../Scene/ScoreScene", "../Sc
                 onStopPrograms: EventManager_1.ParameterTypes.none
             });
             (_a = this.sceneManager).registerScene.apply(_a, __spreadArray([], __read(scenes)));
-            this.renderer = new SceneRenderer_1.SceneRender(canvas, true, this.simulationCache.toRobotSetupData(), autoResizeTo);
+            // empty scene as default
+            var emptyScene = new Scene_1.Scene("");
+            this.renderer = new SceneRenderer_1.SceneRender(emptyScene, canvas, this.simulationCache.toRobotSetupData(), autoResizeTo);
             var t = this;
-            this.renderer.onSwitchScene(function (scene) {
-                if (scene != undefined) {
-                    t.resetEventHandlersOfScene(scene);
-                }
-            });
+            this.renderer.onSwitchScene(function (scene) { return t.resetEventHandlersOfScene(scene); });
         }
         /* ############################################################################################ */
         /* ####################################### Scene control ###################################### */

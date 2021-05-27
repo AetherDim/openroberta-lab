@@ -14,23 +14,19 @@ export class SceneRender {
 	
 	readonly app: PIXI.Application; // "window"
 
-	// TODO: Change scene to be non optional
-	private scene?: Scene;   // scene with physics and components
+	/** scene with physics and components */
+	private scene: Scene
 	readonly scrollView: ScrollView;
-
-	readonly allowBlocklyAccess: boolean = false;
 
 	private readonly resizeTo: HTMLElement|null;
 
-	private onSwitchSceneEventHandler: ((scene?: Scene) => void)[] = []
+	private onSwitchSceneEventHandler: ((scene: Scene) => void)[] = []
 
 
-	constructor(canvas: HTMLCanvasElement | string, allowBlocklyAccess: boolean, robotSetupData?: RobotSetupData[], autoResizeTo?: HTMLElement | string, scene?: Scene) {
+	constructor(scene: Scene, canvas: HTMLCanvasElement | string, robotSetupData?: RobotSetupData[], autoResizeTo?: HTMLElement | string) {
 
 		var htmlCanvas = null;
 		var resizeTo = null;
-
-		this.allowBlocklyAccess = allowBlocklyAccess;
 
 		const backgroundColor = $('#simDiv').css('background-color');
 
@@ -76,11 +72,9 @@ export class SceneRender {
 		}
 
 		// switch to scene
-		if(scene) {
-			this.switchScene(robotSetupData, scene);
-		} else {
-			this.switchScene(robotSetupData, new Scene("")); // empty scene as default (call after Engine.create() and renderer init !!!)
-		}
+		this.scene = scene
+		this.switchScene(robotSetupData, scene);
+		
 
 		this.app.ticker.add(dt => {
 			if(this.scene) {
@@ -107,7 +101,7 @@ export class SceneRender {
 		initGlobalSceneDebug(this)
 	}
 
-	onSwitchScene(onSwitchSceneHandler: (scene?: Scene) => void) {
+	onSwitchScene(onSwitchSceneHandler: (scene: Scene) => void) {
 		this.onSwitchSceneEventHandler.push(onSwitchSceneHandler)
 	}
 
@@ -166,20 +160,14 @@ export class SceneRender {
 		this.scrollView.resetCentered(origin.x, origin.y, size.width, size.height)
 	}
 
-	switchScene(robotSetupData: RobotSetupData[], scene?: Scene, noLoad: boolean = false) {
-		if(!scene) {
-			console.log('undefined scene!')
-			scene = new Scene("");
-		}
+	switchScene(robotSetupData: RobotSetupData[], scene: Scene, noLoad: boolean = false) {
 
 		if(this.scene == scene) {
 			return;
 		}
 
-		if(this.scene) {
-			this.scene.pauseSim();
-			this.scene.setSceneRenderer(robotSetupData, undefined); // unregister this renderer
-		}
+		this.scene.pauseSim();
+		this.scene.setSceneRenderer(robotSetupData, undefined); // unregister this renderer
 
 		// remove all children from PIXI renderer
 		if(this.scrollView.children.length > 0) {
@@ -189,7 +177,7 @@ export class SceneRender {
 
 		this.scene = scene;
 
-		scene.setSceneRenderer(robotSetupData, this, this.allowBlocklyAccess, noLoad);
+		scene.setSceneRenderer(robotSetupData, this, noLoad);
 
 		this.onSwitchSceneEventHandler.forEach(handler => handler(scene))
 	}
@@ -214,7 +202,7 @@ export class SceneRender {
 	}
 
 	setSpeedUpFactor(speedup: number) {
-		this.scene?.setSpeedUpFactor(speedup)
+		this.scene.setSpeedUpFactor(speedup)
 	}
 
 }

@@ -401,8 +401,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         Scene.prototype.getRenderer = function () {
             return this.sceneRenderer;
         };
-        Scene.prototype.setSceneRenderer = function (robotSetupData, sceneRenderer, allowBlocklyUpdate, noLoad) {
-            if (allowBlocklyUpdate === void 0) { allowBlocklyUpdate = false; }
+        Scene.prototype.setSceneRenderer = function (robotSetupData, sceneRenderer, noLoad) {
             if (noLoad === void 0) { noLoad = false; }
             if (sceneRenderer != this.sceneRenderer) {
                 this.sceneRenderer = sceneRenderer;

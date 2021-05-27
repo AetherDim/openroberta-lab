@@ -2,19 +2,6 @@ define(["require", "exports", "../../EventManager/EventManager"], function (requ
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ProgramManager = void 0;
-    /*export interface DebugEventHandler {
-        onUpdateSimValues(manager: ProgramManager): void
-    
-        onProgramPause(manager: ProgramManager): void
-        onProgramResume(manager: ProgramManager): void
-        onProgramStart(manager: ProgramManager): void
-        onProgramStop(manager: ProgramManager): void
-        onProgramReset(manager: ProgramManager): void
-        
-        onUpdateDebugMode(manager: ProgramManager, debugEnabled: boolean): void
-        onInterpreterAddEvent(manager: ProgramManager, mode: any): void
-        onRemoveBreakPoint(manager: ProgramManager, block: Blockly.Block): void
-    }*/
     var ProgramManager = /** @class */ (function () {
         function ProgramManager(robotManager) {
             this.programPaused = true;
