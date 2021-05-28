@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -38,10 +40,10 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
          * The wheel radius is half of the `width`.
          *
          * @param scene
-         * @param x
-         * @param y
-         * @param width
-         * @param height
+         * @param x in m (SI units)
+         * @param y in m (SI units)
+         * @param width in m (SI units)
+         * @param height in m (SI units)
          * @param physicsEntity
          * @param mass The mass of the wheel. If it is `null`, the default physics body mass is used.
          */
@@ -58,11 +60,23 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
              * The force in the `z` direction
              */
             _this.normalForce = 0;
+            /**
+             * previous wheel angle in radians
+             */
             _this.prevWheelAngle = 0;
+            /**
+             * wheel angle in radians
+             */
             _this.wheelAngle = 0;
+            /**
+             * wheel angular velocity in radians/'internal seconds'
+             */
             _this.angularVelocity = 0;
             _this.wheelProfile = [];
             _this.debugContainer = new PIXI.Container();
+            _this.alongStepFunctionWidth = 0.1;
+            _this.orthStepFunctionWidth = 0.1;
+            _this._wheelForceVector = { x: 0, y: 0 };
             _this.physicsEntity = physicsEntity;
             _this.physicsBody = _this.physicsEntity.getPhysicsBody();
             _a = __read(scene.unit.getLengths([x, y, width, height]), 4), x = _a[0], y = _a[1], width = _a[2], height = _a[3];
@@ -122,12 +136,6 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
         Wheel.prototype.applyNormalForce = function (force) {
             this.normalForce += force;
         };
-        Wheel.prototype.continuousStepFunction = function (x, width) {
-            if (Math.abs(x) > width) {
-                return Math.sign(x);
-            }
-            return x / width;
-        };
         Wheel.prototype.updateWheelProfile = function () {
             for (var i = 0; i < this.wheelProfile.length; i++) {
                 var profileGraphics = this.wheelProfile[i];
@@ -146,13 +154,18 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
             // this.wheelDebugObject = text
             // this.pixiContainer.addChild(this.wheelDebugObject)
         };
+        /**
+         * Returns a new velocity from `velocity`
+         *
+         * @param velocity in internal units
+         * @param stepFunctionWidth in m/s (SI units)
+         */
         Wheel.prototype.customFunction = function (velocity, stepFunctionWidth) {
-            if (stepFunctionWidth === void 0) { stepFunctionWidth = 10; }
             if (false) {
                 return velocity / stepFunctionWidth;
             }
             else {
-                return this.continuousStepFunction(velocity, stepFunctionWidth);
+                return Util_1.Util.continuousSign(velocity, this.scene.unit.getVelocity(stepFunctionWidth));
             }
         };
         Wheel.prototype.update = function (dt) {
@@ -161,14 +174,18 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
             var orthVec = { x: -vec.y, y: vec.x };
             // torque from the rolling friction
             // rollingFriction = d/R and d * F_N = torque
-            var rollingFrictionTorque = this.customFunction(-wheel.velocityAlongBody(), 100)
+            var rollingFrictionTorque = this.customFunction(-wheel.velocityAlongBody(), this.alongStepFunctionWidth)
                 * this.rollingFriction * this.wheelRadius * this.normalForce;
             // TODO: already simulated by `wheelSlideFrictionForce`?
             // const rollingFrictionForce = this.normalForce * this.rollingFriction * this.customFunction(-wheel.velocityAlongBody())
             // torque for 
             var wheelVelocityDifference = this.angularVelocity * this.wheelRadius - wheel.velocityAlongBody();
             var alongSlideFrictionForce = this.normalForce * this.slideFriction
-                * this.customFunction(wheelVelocityDifference);
+                * this.customFunction(wheelVelocityDifference, this.alongStepFunctionWidth);
+            // t = time
+            // v0 = initial velocity, f = force, m = mass, v1 = end velocity
+            // o0 = initial angular velocity, T = torque, I = moment of inertia, o1 = end angular velocity
+            //
             // v0 + f/m * t = v1
             // o0 + T/I * t = o1
             //
@@ -189,7 +206,7 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
             //   = (o0 * r - v0)/r / (-T/I)
             var slidingFrictionTorque = -alongSlideFrictionForce * this.wheelRadius;
             var alongForce = 0;
-            // TODO: A bot hacky to use a constant acceleration
+            // TODO: A bit hacky to use a constant acceleration
             var mass = this.normalForce / this.scene.unit.getAcceleration(9.81); //wheel.mass
             var totalTorque = slidingFrictionTorque + this.torque + rollingFrictionTorque;
             /** time to adjust speed such that the wheel rotation speed matches the center of mass wheel speed */
@@ -219,10 +236,11 @@ define(["require", "exports", "d3", "matter-js", "../Entity", "../Util"], functi
             // friction orthogonal to the wheel rolling direction
             var orthVelocity = matter_js_1.Vector.dot(wheel.velocity, orthVec);
             var orthSlideFrictionForce = this.normalForce * this.slideFriction
-                * this.customFunction(-orthVelocity, 100);
+                * this.customFunction(-orthVelocity, this.orthStepFunctionWidth);
             var orthSlideFrictionForceVec = matter_js_1.Vector.mult(orthVec, orthSlideFrictionForce);
             // apply the friction force
-            matter_js_1.Body.applyForce(wheel, wheel.position, Util_1.Util.vectorAdd(alongForceVec, orthSlideFrictionForceVec));
+            this._wheelForceVector = Util_1.Util.vectorAdd(alongForceVec, orthSlideFrictionForceVec);
+            matter_js_1.Body.applyForce(wheel, wheel.position, this._wheelForceVector);
             // update `wheelAngle` and `angularVelocity` using torque
             // this.angularVelocity = (this.wheelAngle - this.prevWheelAngle) / dt
             // this.prevWheelAngle = this.wheelAngle

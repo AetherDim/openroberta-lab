@@ -153,8 +153,11 @@ require.config({
         'Random',
         'Util',
         'Entity',
+        'BlocklyDebug',
+        'UIManager',
         { 'Scene': [
                 'Scene',
+                'ScoreScene',
                 'TestScene',
                 'TestScene2',
                 'TestScene3',
@@ -164,6 +167,7 @@ require.config({
                         'EntityManager',
                         'ProgramManager',
                         'RobotManager',
+                        'RobotConfigurationManager',
                     ]}
             ]},
         { 'Geometry': [
@@ -174,18 +178,28 @@ require.config({
                 'Polygon',
             ]},
         { 'Robot': [
+                { 'Sensors': [
+                        'ColorSensor',
+                        'UltrasonicSensor',
+                        'TouchSensor',
+                        'GyroSensor',
+                ]},
                 'Robot',
+                'RobertaRobotSetupData',
+                'RobotConfiguration',
                 'RobotProgram',
+                'RobotLED',
                 'RobotTester',
                 'ElectricMotor',
                 'RobotSimBehaviour',
                 'Wheel',
                 'RobotHardwareStateSensors',
-                'ColorSensor',
                 'BodyHelper',
-                'UltrasonicSensor',
-                'TouchSensor'
             ]},
+        { 'EventManager' : [
+            'EventHandlerList',
+            'EventManager',
+        ]},
         { 'RRC': [
                 'RRAssetLoader',
                 'AgeGroup',
@@ -201,7 +215,12 @@ require.config({
                 "WaypointList",
                 "WaypointsManager",
                 "ScoreWaypoint",
-            ]}
+            ]},
+        { "Cyberspace": [
+                        "Cyberspace",
+                        "SceneManager",
+                        "SimulationCache",
+                    ]}
     ]),
     shim: {
         'bootstrap': {

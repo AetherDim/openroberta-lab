@@ -69,6 +69,9 @@ define(["require", "exports", "../../Entity", "matter-js", "../../Util"], functi
                     (_a = entity.getContainer) === null || _a === void 0 ? void 0 : _a.call(entity).removeChild(entity.getDrawable());
                 }
                 if (Entity_1.Type.IDrawablePhysicsEntity.isSupertypeOf(entity)) {
+                    // TODO: The entity might not be in the world and will therefore not
+                    // removed from its parent container
+                    matter_js_1.Composite.remove(this.scene.getWorld(), entity.getPhysicsObject(), true);
                     Util_1.Util.removeFromArray(this.drawablePhysicsEntities, entity);
                 }
                 if (Entity_1.Type.IContainerEntity.isSupertypeOf(entity)) {

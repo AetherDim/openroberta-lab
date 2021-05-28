@@ -1,5 +1,5 @@
 import { Robot } from '../Robot/Robot';
-import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices, Query } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices } from 'matter-js';
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
@@ -13,6 +13,8 @@ import { SceneDebug } from "./../GlobalDebug";
 import {EntityManager} from "./Manager/EntityManager";
 import {ContainerManager} from "./Manager/ContainerManager";
 import {RobotManager} from "./Manager/RobotManager";
+import { RobotSetupData } from '../Robot/RobotSetupData';
+import { EventManager, ParameterTypes } from '../EventManager/EventManager';
 
 export class Scene {
 
@@ -41,6 +43,20 @@ export class Scene {
 	// #############################################################################
 	//
 
+	readonly eventManager = EventManager.init({
+		onStartSimulation: ParameterTypes.none,
+		onPauseSimulation: ParameterTypes.none
+	})
+
+	removeAllEventHandlers() {
+		this.eventManager.removeAllEventHandlers()
+		this.getProgramManager().removeAllEventHandlers()
+	}
+
+	//
+	// #############################################################################
+	//
+
 	addEntities(...entities: IEntity[]) {
 		this.getEntityManager().addEntities(...entities)
 	}
@@ -55,6 +71,15 @@ export class Scene {
 
 	addRobot(robot: Robot) {
 		this.getRobotManager().addRobot(robot)
+	}
+
+	//
+	// #############################################################################
+	//
+	private readonly onChainCompleteListeners: ((chain: AsyncChain) => void)[] = []
+
+	addOnAsyncChainBuildCompleteLister(fnc: (chain: AsyncChain) => void) {
+		this.onChainCompleteListeners.push(fnc)
 	}
 
 	//
@@ -164,11 +189,6 @@ export class Scene {
 			return;
 		}
 
-		this.currentlyLoading = false;
-		this.hasFinishedLoading = true;
-		this.hasBeenInitialized = true;
-
-
 		// update the scene size
 		this.updateBounds()
 
@@ -182,6 +202,10 @@ export class Scene {
 		// update image for rgb sensor
 		this.getContainers().updateGroundImageDataFunction();
 
+		this.currentlyLoading = false;
+		this.hasFinishedLoading = true; // needs to be set before startSim() is called
+		this.hasBeenInitialized = true;
+
 		if(this.autostartSim) {
 			// auto start simulation
 			this.startSim();
@@ -192,18 +216,22 @@ export class Scene {
 		chain.next(); // technically we don't need this
 	}
 
+	isLoadingComplete() {
+		return this.hasFinishedLoading
+	}
+
 	/**
 	 * Reloads the whole scene and force reloads the assets
 	 */
-	fullReset() {
-		this.load(true);
+	fullReset(robotSetupData: RobotSetupData[]) {
+		this.load(robotSetupData, true);
 	}
 
 	/**
 	 * Reloads the whole scene without reloading the assets
 	 */
-	reset() {
-		this.load();
+	reset(robotSetupData: RobotSetupData[]) {
+		this.load(robotSetupData);
 	}
 
 	private unload(chain: AsyncChain) {
@@ -235,14 +263,19 @@ export class Scene {
 	 * load or reload this scene
 	 * @param forceLoadAssets
 	 */
-	load(forceLoadAssets: boolean = false) {
+	load(robotSetupData: RobotSetupData[], forceLoadAssets: boolean = false) {
 		if(this.currentlyLoading) {
 			console.warn('Already loading scene... !');
 			return;
 		}
 
+		this.getRobotManager().configurationManager.setRobotConfigurations(
+			robotSetupData.map(setup => setup.sensorConfiguration)
+		)
+		this.getProgramManager().setPrograms(robotSetupData.map(setup => setup.program))
+
 		// stop the simulation
-		this.stopSim()
+		this.pauseSim()
 
 		this.debug.clearDebugGuiDynamic() // if dynamic debug gui exist, clear it
 
@@ -295,6 +328,8 @@ export class Scene {
 			// swap from loading to scene, remove loading animation, cleanup, ...
 			{func: this.finishedLoading, thisContext: this},
 		);
+
+		this.onChainCompleteListeners.forEach(listener => listener.call(this, this.loadingChain!))
 
 		console.log('starting to load scene!');
 		console.log('Loading stages: ' + this.loadingChain.length());
@@ -397,14 +432,16 @@ export class Scene {
 
 	startSim() {
 		if(this.hasFinishedLoading) {
-			this.simTicker.start();
+			this.simTicker.start()
+			this.eventManager.onStartSimulationCallHandlers()
 		} else {
 			console.warn("'startSim()' is called during the loading process.")
 		}
 	}
 
-	stopSim() {
-		this.simTicker.stop();
+	pauseSim() {
+		this.simTicker.stop()
+		this.eventManager.onPauseSimulationCallHandlers()
 	}
 
 	/**
@@ -434,34 +471,6 @@ export class Scene {
 	//
 
 	/**
-	 * sleep time before calling blockly update
-	 */
-	private blocklyUpdateSleepTime = 1/10;
-
-	/**
-	 * simulation ticker/timer
-	 */
-	private readonly blocklyTicker: Timer;
-
-	private startBlocklyUpdate() {
-		this.blocklyTicker.start();
-	}
-
-	private stopBlocklyUpdate() {
-		this.blocklyTicker.stop();
-	}
-
-	setBlocklyUpdateSleepTime(simSleepTime: number) {
-		this.blocklyUpdateSleepTime = simSleepTime;
-		this.blocklyTicker.sleepTime = simSleepTime;
-	}
-
-	//
-	// #############################################################################
-	//
-
-
-	/**
 	 * Debug renderer used by the scene for all registered physics object
 	 */
 	private debugRenderer?: Render;
@@ -481,34 +490,22 @@ export class Scene {
 		return this.sceneRenderer;
 	}
 
-	setSceneRenderer(sceneRenderer?: SceneRender, allowBlocklyUpdate: boolean = false, noLoad: boolean = false) {
+	setSceneRenderer(robotSetupData: RobotSetupData[], sceneRenderer?: SceneRender, noLoad: boolean = false) {
 
 		if(sceneRenderer != this.sceneRenderer) {
 			this.sceneRenderer = sceneRenderer;
 
 			if(sceneRenderer) {
-				sceneRenderer.switchScene(this); // this will remove all registered rendering containers
+				// this will remove all registered rendering containers
+				sceneRenderer.switchScene(robotSetupData, this); 
 
-				this.getContainers().registerToEngine(); // register rendering containers
-
-				// tell the program manager whether we are allowed to do a blockly breakpoint update
-				// this will be allowed if there is a blockly instance for us to use
-				this.getProgramManager()._setAllowBlocklyUpdate(allowBlocklyUpdate);
-				if(allowBlocklyUpdate) {
-					this.startBlocklyUpdate(); // enable blockly update timer
-				} else {
-					this.stopBlocklyUpdate(); // stop it if this task is running
-				}
-			} else {
-				// disable blockly breakpoint update because we have no scene
-				this.getProgramManager()._setAllowBlocklyUpdate(false);
-				this.stopBlocklyUpdate();
+				// register rendering containers
+				this.getContainers().registerToEngine()
 			}
-
 		}
 
 		if(sceneRenderer && !this.hasFinishedLoading && !noLoad) {
-			this.load();
+			this.load(robotSetupData, true); // force reload assets
 		}
 	}
 
@@ -546,11 +543,6 @@ export class Scene {
 				}
 				_this.update();
 			}
-		});
-
-		this.blocklyTicker = new Timer(this.blocklyUpdateSleepTime, (delta) => {
-			// update blockly
-			_this.getProgramManager().updateBreakpointEvent();
 		});
 
 		// simulation defaults
@@ -636,9 +628,9 @@ export class Scene {
 
 
 		// TODO: Handle multiple robots and waypoints
-		//if (this.robots.length >= 1) {
-		//	this.waypointsManager.update(this.robots[0].body.position)
-		//}
+		if (this.robotManager.getNumberOfRobots() >= 1) {
+			this.waypointsManager.update(this.robotManager.getRobots()[0].body.position)
+		}
 
 		this.getProgramManager().update(); // update breakpoints, ...
 

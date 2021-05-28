@@ -1,3 +1,6 @@
+import * as CONSTANTS from "./simulation.constants";
+
+
 // https://stackoverflow.com/questions/13070054/convert-rgb-strings-to-hex-in-javascript
 export function rgbToNumber(rgb:string): number {
 	var raw = rgb.split("(")[1].split(")")[0];
@@ -84,3 +87,75 @@ export var COLOR_MAP_XKCD: Color[] = [
 	{name: 'olive green', color: '#677a04'},
 	{name: 'dark pink', color: '#cb416b'}
 ].map(c => new Color(c.color, c.name));
+
+
+/**
+* Map a hsv value to a color name.
+* 
+* @memberOf exports
+* @param {Array}
+*            hsv value
+* @returns {Enum} color
+*/
+export function hsvToColorName(hsv: {h: number, s: number, v: number}): string {
+	const h = hsv.h, s = hsv.s, v = hsv.v
+	if (v <= 10) {
+		return CONSTANTS.COLOR_ENUM.BLACK;
+	}
+	if ((h < 10 || h > 350) && s > 90 && v > 50) {
+		return CONSTANTS.COLOR_ENUM.RED;
+	}
+	if (h > 40 && h < 70 && s > 90 && v > 50) {
+		return CONSTANTS.COLOR_ENUM.YELLOW;
+	}
+	if (h < 50 && s > 50 && s < 100 && v < 50) {
+		return CONSTANTS.COLOR_ENUM.BROWN;
+	}
+	if (s < 10 && v > 90) {
+		return CONSTANTS.COLOR_ENUM.WHITE;
+	}
+	if (h > 70 && h < 160 && s > 80) {
+		return CONSTANTS.COLOR_ENUM.GREEN;
+	}
+	if (h > 200 && h < 250 && s > 90 && v > 50) {
+		return CONSTANTS.COLOR_ENUM.BLUE;
+	}
+	return CONSTANTS.COLOR_ENUM.NONE;
+ }
+
+/**
+ * Convert a rgb value to hsv value.
+ * 
+ * @memberOf exports
+ * @param {Number}
+ *            r red value
+ * @param {Number}
+ *            g green value
+ * @param {Number}
+ *            b blue value
+ * @returns {Array} hsv value
+ */
+//copy from http://stackoverflow.com/questions/2348597/why-doesnt-this-javascript-rgb-to-hsl-code-work
+export function rgbToHsv(r: number, g: number, b: number): {h: number, s: number, v: number} {
+	var min = Math.min(r, g, b), max = Math.max(r, g, b), delta = max - min, h, s, v = max;
+
+	v = Math.floor(max / 255 * 100);
+	if (max !== 0) {
+		s = Math.floor(delta / max * 100);
+	} else {
+		// black
+		return {h: 0, s: 0, v: 0};
+	}
+	if (r === max) {
+		h = (g - b) / delta; // between yellow & magenta
+	} else if (g === max) {
+		h = 2 + (b - r) / delta; // between cyan & yellow
+	} else {
+		h = 4 + (r - g) / delta; // between magenta & cyan
+	}
+	h = Math.floor(h * 60); // degrees
+	if (h < 0) {
+		h += 360;
+	}
+	return {h, s, v};
+}

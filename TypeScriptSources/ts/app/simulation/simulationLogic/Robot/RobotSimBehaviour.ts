@@ -42,6 +42,16 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		return this.hardwareState.sensors
 	}
 
+	/**
+	 * Returns the reference angle of the gyro sensor
+	 * 
+	 * @param port port of the gyro sensor
+	 * @returns `this.hardwareState["angleReset"][port]`
+	 */
+	getGyroReferenceAngle(port: string): number | undefined {
+		return this.hardwareState["angleReset"]?.[port]
+	}
+
 	resetCommands() {
 		this.rotate = undefined
 		this.drive = undefined
@@ -114,9 +124,10 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 						if (resetValue != undefined) {
 							var value : number = +v;
 							value = value - resetValue;
-							if (value < 0) {
-								value = value + 360;
-							}
+							// TODO: Maybe use mathematical modulo instead
+							// if (value < 0) {
+							// 	value = value + 360;
+							// }
 							v = '' + value;
 						}
 					}
@@ -591,19 +602,19 @@ export class RobotSimBehaviour extends ARobotBehaviour {
 		this.hardwareState.actions["pin" + pin][mode] = value;
 	}
 
-	public gyroReset(_port: number): void {
+	public gyroReset(port: number): void {
 		var gyro = this.hardwareState.sensors['gyro'];
 		if (gyro !== undefined) {
-				var port = gyro[_port];
-				if (port !== undefined) {
-						var angle = port['angle'];
-						if (angle !== undefined) {
-							if (this.hardwareState['angleReset'] == undefined) {
-							 	 this.hardwareState['angleReset'] = {};
-							}
-								this.hardwareState['angleReset'][_port] = angle;
-						}
+			var gyroSensor = gyro[port];
+			if (gyroSensor !== undefined) {
+				var angle = gyroSensor['angle'];
+				if (angle !== undefined) {
+					if (this.hardwareState['angleReset'] == undefined) {
+						this.hardwareState['angleReset'] = {};
+					}
+					this.hardwareState['angleReset'][port] = angle;
 				}
+			}
 		}
 	}
 

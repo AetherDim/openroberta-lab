@@ -37,6 +37,26 @@ define(["require", "exports"], function (require, exports) {
     var Util = /** @class */ (function () {
         function Util() {
         }
+        Util.safeIndexing = function (value, index) {
+            if (value == undefined) {
+                return undefined;
+            }
+            else {
+                return value[index];
+            }
+        };
+        /**
+         * Equality into the object.
+         *
+         * @see https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
+         */
+        Util.deepEqual = function (x, y) {
+            return (x && y && typeof x === 'object' && typeof y === 'object') ?
+                (Object.keys(x).length === Object.keys(y).length) &&
+                    Object.keys(x).reduce(function (isEqual, key) {
+                        return isEqual && Util.deepEqual(x[key], y[key]);
+                    }, true) : (x === y);
+        };
         /**
          * Returns an array of numbers starting from 'start' to (inclusive) 'end' with a step size 'step'
          *
@@ -44,13 +64,73 @@ define(["require", "exports"], function (require, exports) {
          * @param end inclusive end of range
          * @param step the step size of the range
          */
-        Util.range = function (start, end, step) {
-            if (step === void 0) { step = 1.0; }
+        Util.closedRange = function (start, end, step) {
+            if (step === void 0) { step = 1; }
             var ans = [];
             for (var i = start; i <= end; i += step) {
                 ans.push(i);
             }
             return ans;
+        };
+        /**
+         * Returns an array of numbers starting from 'start' to (exclusive) 'end' with a step size 'step'
+         *
+         * @param start inclusive start of range
+         * @param end exclusive end of range
+         * @param step the step size of the range
+         */
+        Util.range = function (start, end, step) {
+            if (step === void 0) { step = 1; }
+            var ans = [];
+            for (var i = start; i < end; i += step) {
+                ans.push(i);
+            }
+            return ans;
+        };
+        /**
+         * Convert radians to degrees
+         */
+        Util.toDegrees = function (radians) {
+            return radians / Math.PI * 180;
+        };
+        /**
+         * Convert degrees to radians
+         */
+        Util.toRadians = function (degrees) {
+            return degrees / 180 * Math.PI;
+        };
+        /**
+         * Returns `sign(x)` if `abs(x) <= width` otherwise `x/width`.
+         *
+         * @param x the number
+         * @param width the width of the linear region
+         */
+        Util.continuousSign = function (x, width) {
+            if (Math.abs(x) >= width) {
+                return Math.sign(x);
+            }
+            return x / width;
+        };
+        /**
+         * Use this function in the `default` block of a `switch` to check that `value` is of type `never` i.e. this function is never reached.
+         *
+         * @param value the value which is switched over
+         */
+        Util.exhaustiveSwitch = function (value) {
+            throw new Error("The value " + value + " was not exhaustively switched over");
+        };
+        /**
+         * Returns `list.includes(value)` and narrows the type of 'value'.
+         *
+         * @example
+         * const list: readonly ["A", "B"] = ["A", "B"] as const
+         * const value = "C"
+         * if (Util.listIncludesValue(list, value)) {
+         *     value // is of type "A" | "B"
+         * }
+         */
+        Util.listIncludesValue = function (list, value) {
+            return list.includes(value);
         };
         /**
          * Shuffles array in place. ES6 version
@@ -67,6 +147,17 @@ define(["require", "exports"], function (require, exports) {
             return a;
         };
         /**
+         * Maps `value` using `mapping` if `value != undefined` otherwise it returns `undefined`
+         */
+        Util.flatMapOptional = function (value, mapping) {
+            if (value == undefined) {
+                return undefined;
+            }
+            else {
+                return mapping(value);
+            }
+        };
+        /**
          * Generate a unique ID.  This should be globally unique.
          * 87 characters ^ 20 length > 128 bits (better than a UUID).
          * @return {string} A globally unique ID string.
@@ -81,6 +172,27 @@ define(["require", "exports"], function (require, exports) {
             return id.join('');
         };
         ;
+        /**
+         * Generate a unique ID.  This should be globally unique.
+         * 87 characters ^ 20 length > 128 bits (better than a UUID).
+         * @return {string} A globally unique ID string.
+         */
+        Util.genHtmlUid = function () {
+            var length = 25;
+            var soupLength = Util.soupHTML_.length;
+            var id = [];
+            id[0] = Util.soupAlphabet_.charAt(Math.random() * Util.soupAlphabet_.length);
+            for (var i = 1; i < length; i++) {
+                id[i] = Util.soupHTML_.charAt(Math.random() * soupLength);
+            }
+            return id.join('');
+        };
+        ;
+        Util.genHtmlUid2 = function () {
+            var uid = 'uid:' + this.idNumber;
+            this.idNumber++;
+            return uid;
+        };
         Util.flattenArray = function (array) {
             var result = [];
             for (var i = 0; i < array.length; i++) {
@@ -188,6 +300,46 @@ define(["require", "exports"], function (require, exports) {
             return Util.propertiesTuples(type, keys);
         };
         /**
+        * Generates from `values` a list of all multi-sets which has `length` elements.
+        *
+        * Each element in `value` is assumes to be unique.
+        *
+        * @example
+        * value = [A, B, C]
+        * length = 4
+        * // generates (up to some ordering)
+        * [AAAA, AAAB, AAAC, AABB, AABC, AACC, ..., CCCC]
+        *
+        * @param values the values which are used to generate the multi-set permutations
+        * @param length the number of elements in the multi-set
+        */
+        Util.generateMultiSetTuples = function (values, length) {
+            /** repeatedValues[valueIndex][count] returns an array where values[valueIndex] is repeated 'count' times */
+            var repeatedValues = values.map(function (value) {
+                return Util.closedRange(0, length).map(function (len) {
+                    return new Array(len).fill(value);
+                });
+            });
+            var result = [];
+            var valueCount = values.length;
+            function recursiveFor(maxCount, recursionIndex, intermediateValue) {
+                if (recursionIndex >= valueCount) {
+                    result.push(intermediateValue);
+                }
+                else if (recursionIndex == valueCount - 1) {
+                    // last value
+                    result.push(intermediateValue.concat(repeatedValues[recursionIndex][maxCount]));
+                }
+                else {
+                    for (var i = 0; i <= maxCount; i++) {
+                        recursiveFor(maxCount - i, recursionIndex + 1, intermediateValue.concat(repeatedValues[recursionIndex][i]));
+                    }
+                }
+            }
+            recursiveFor(length, 0, []);
+            return result;
+        };
+        /**
          * @param time in seconds
          * @see https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
          * @returns A string of the format "HH:MM:SS"
@@ -233,8 +385,29 @@ define(["require", "exports"], function (require, exports) {
             }
             return string;
         };
-        Util.mapNotNull = function (array, transform) {
+        Util.nonNullObjectValues = function (value) {
             var e_3, _a;
+            var values = Object.values(value);
+            var result = [];
+            try {
+                for (var values_1 = __values(values), values_1_1 = values_1.next(); !values_1_1.done; values_1_1 = values_1.next()) {
+                    var element = values_1_1.value;
+                    if (element !== undefined && element !== null) {
+                        result.push(element);
+                    }
+                }
+            }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            finally {
+                try {
+                    if (values_1_1 && !values_1_1.done && (_a = values_1.return)) _a.call(values_1);
+                }
+                finally { if (e_3) throw e_3.error; }
+            }
+            return result;
+        };
+        Util.mapNotNull = function (array, transform) {
+            var e_4, _a;
             var result = [];
             try {
                 for (var array_1 = __values(array), array_1_1 = array_1.next(); !array_1_1.done; array_1_1 = array_1.next()) {
@@ -245,12 +418,12 @@ define(["require", "exports"], function (require, exports) {
                     }
                 }
             }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            catch (e_4_1) { e_4 = { error: e_4_1 }; }
             finally {
                 try {
                     if (array_1_1 && !array_1_1.done && (_a = array_1.return)) _a.call(array_1);
                 }
-                finally { if (e_3) throw e_3.error; }
+                finally { if (e_4) throw e_4.error; }
             }
             return result;
         };
@@ -302,9 +475,8 @@ define(["require", "exports"], function (require, exports) {
         Util.getPixelRatio = function () {
             return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
         };
-        Util.simulation = {
-            storedPrograms: [],
-            storedRobotType: ""
+        Util.cloneVector = function (value) {
+            return { x: value.x, y: value.y };
         };
         /**
          * Legal characters for the unique ID.  Should be all on a US keyboard.
@@ -315,6 +487,9 @@ define(["require", "exports"], function (require, exports) {
          */
         Util.soup_ = '!#$%()*+,-./:;=?@[]^_`{|}~' +
             'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        Util.soupAlphabet_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        Util.soupHTML_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_:';
+        Util.idNumber = 0;
         return Util;
     }());
     exports.Util = Util;

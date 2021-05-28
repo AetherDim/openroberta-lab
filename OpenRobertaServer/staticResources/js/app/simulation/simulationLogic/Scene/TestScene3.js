@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -17,7 +19,6 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     exports.TestScene3 = void 0;
     function constructProgram(operations) {
         return {
-            javaScriptConfiguration: { 1: "TOUCH", 2: "GYRO", 3: "COLOR", 4: "ULTRASONIC" },
             javaScriptProgram: JSON.stringify({ "ops": Util_1.Util.flattenArray(operations) }, undefined, "\t")
         };
     }
@@ -134,15 +135,15 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     var KeyData = /** @class */ (function () {
         function KeyData() {
             // (0.05, 0.5, 0.05)
-            this.rollingFriction = Util_1.Util.range(0.03, 0.03, 0.1);
+            this.rollingFriction = Util_1.Util.closedRange(0.03, 0.03, 0.1);
             // (0.05, 1.0, 0.05)
-            this.slideFriction = Util_1.Util.range(0.3, 0.3, 0.1);
-            this.otherRollingFriction = Util_1.Util.range(0.03, 0.03, 0.01);
-            this.otherSlideFriction = Util_1.Util.range(0.05, 0.05, 0.01);
-            //driveForwardSpeed = Util.range(10, 100, 10)
-            //driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-            this.rotateSpeed = Util_1.Util.range(5, 100, 5);
-            this.rotateAngle = Util_1.Util.range(0, 180, 10);
+            this.slideFriction = Util_1.Util.closedRange(0.3, 0.3, 0.1);
+            this.otherRollingFriction = Util_1.Util.closedRange(0.03, 0.03, 0.01);
+            this.otherSlideFriction = Util_1.Util.closedRange(0.05, 0.05, 0.01);
+            // driveForwardSpeed = Util.range(60, 100, 1)
+            // driveForwardDistance = Util.range(0, 2.0, 0.04)
+            this.rotateSpeed = Util_1.Util.closedRange(1, 100, 1);
+            this.rotateAngle = Util_1.Util.closedRange(0, 360, 10);
             this.directionRight = [true];
         }
         return KeyData;
@@ -178,6 +179,10 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
         ValueHelper.prototype.getSignedDistanceToInitialValue = function () {
             return this.getSignedDistance(this.initialValue, this._getNewValue(this.context));
         };
+        ValueHelper.prototype.withMappedSignedDistance = function (toNewSignedDistance) {
+            var getSignedDistance = this.getSignedDistance;
+            return new ValueHelper(this.name, this.initialValue, toNewSignedDistance(this.endMaxDelta), this.context, this._getNewValue, function (v1, v2) { return toNewSignedDistance(getSignedDistance(v1, v2)); });
+        };
         ValueHelper.fromNumber = function (opt) {
             return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, function (start, end) { return end - start; });
         };
@@ -199,21 +204,21 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
              * Time since start of test in sections
              */
             _this.startWallTime = 0.0;
-            _this.radianToAngleFactor = 180 / Math.PI;
+            _this.constUnit = _this.getUnitConverter();
             _this.robotPositionValue = ValueHelper.fromVector({
                 name: "initPositionDistance",
                 initialValue: { x: 0.0, y: 0.0 },
                 endMaxDelta: Infinity,
                 context: _this,
                 getNewValue: function (c) { return c.robot.body.position; }
-            });
+            }).withMappedSignedDistance(function (distance) { return _this.constUnit.fromLength(distance); });
             _this.robotRotationValue = ValueHelper.fromNumber({
                 name: "initAngleDelta",
                 initialValue: 0,
                 endMaxDelta: Infinity,
                 context: _this,
-                getNewValue: function (c) { return c.robot.body.angle * c.radianToAngleFactor; }
-            });
+                getNewValue: function (c) { return c.robot.body.angle; }
+            }).withMappedSignedDistance(function (angle) { return Util_1.Util.toDegrees(angle); });
             /**
              * The array of `ValueHelper`s. Note that `initialValue` has to be set in `onInit`
              */
@@ -248,12 +253,12 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Reset", function () {
                 _this.resetData();
                 _this.autostartSim = false;
-                _this.reset();
+                _this.reset([]);
             });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Restart", function () {
                 _this.resetData();
                 _this.autostartSim = true;
-                _this.reset();
+                _this.reset([]);
             });
             return _this;
         }
@@ -266,6 +271,9 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             this.data = [];
         };
         TestScene3.prototype.onInit = function (asyncChain) {
+            this.getRobotManager().configurationManager.setRobotConfigurations([
+                { 1: "TOUCH" }
+            ]);
             this.shouldWait = false;
             this.testTime = Date.now() / 1000 - this.startWallTime;
             if (this.keyIndex == 0) {
@@ -289,15 +297,13 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                         slideFriction: tuple.otherSlideFriction
                     }
                 });
-                // run(false, undefined)
-                var program = true ?
-                    [
-                        constructProgram([
-                            //driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-                            rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
-                        ])
-                    ] : Util_1.Util.simulation.storedPrograms;
-                this.getProgramManager().setPrograms(program, true, undefined);
+                var programs = [
+                    constructProgram([
+                        // driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                        rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
+                    ])
+                ];
+                this.getProgramManager().setPrograms(programs);
                 this.getProgramManager().startProgram();
             }
             asyncChain.next();
@@ -315,7 +321,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             // reset scene and automatically call 'onInit'
             this.keyIndex += 1;
             this.autostartSim = this.keyIndex < this.keyValues.length;
-            this.reset();
+            this.reset([]);
             this.shouldWait = true;
         };
         TestScene3.prototype.onUpdatePostPhysics = function () {

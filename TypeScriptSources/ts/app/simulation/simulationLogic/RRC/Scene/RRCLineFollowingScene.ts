@@ -98,6 +98,8 @@ export class RRCLineFollowingScene extends RRCScene {
 		}
 	]
 
+	readonly obstacleColor: number = 0xf68712
+
 	// Walls
 	readonly wallES = {
 		x: 720,
@@ -191,7 +193,7 @@ export class RRCLineFollowingScene extends RRCScene {
 
 		this.getContainers().groundContainer.addChild(this.goalSprite);
 
-		this.addStaticWallInPixels(this.getWall())
+		this.addStaticWallInPixels(this.getWall(), {color: this.obstacleColor, strokeColor: this.obstacleColor})
 
 		this.addWalls(true);
 

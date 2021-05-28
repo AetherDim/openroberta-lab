@@ -1,5 +1,4 @@
 import './pixijs'
-import {SceneRender} from './SceneRenderer'
 import './ExtendedMatter'
 import {AgeGroup} from "./RRC/AgeGroup";
 import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
@@ -10,105 +9,25 @@ import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
 import {RRCScene} from "./RRC/Scene/RRCScene";
 import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
 import { TestScene3 } from './Scene/TestScene3';
-import { Util } from './Util';
-import { RobotProgram } from './Robot/RobotProgram';
 import { DEBUG } from './GlobalDebug';
+import { RobertaRobotSetupData } from './Robot/RobertaRobotSetupData'
+import { Cyberspace } from './Cyberspace/Cyberspace';
+import { SceneDescriptor } from './Cyberspace/SceneManager';
+import { BlocklyDebug } from './BlocklyDebug';
+import { UIManager } from './UIManager';
 
-// TODO: check whether this has to be defined in here
-// probably not
-export class SceneDescriptor {
-	readonly name: string;
-	readonly description: string;
-	readonly ID: string;
-	private readonly _createScene: (descriptor: SceneDescriptor) => Scene;
+//
+// init all components for a simulation
+//
+const cyberspace = new Cyberspace('sceneCanvas', 'simDiv')
+const sceneManager = cyberspace.getSceneManager()
+const blocklyDebugManager = new BlocklyDebug(cyberspace)
 
-	constructor(name: string, ID: string, description: string, creteScene: (descriptor: SceneDescriptor) => Scene) {
-		this.name = name;
-		this.description = description;
-		this.ID = ID;
-		this._createScene = creteScene;
-	}
-
-	createScene() {
-		return this._createScene(this)
-	}
-
-}
-
-export class SceneManager {
-	private readonly sceneHandleMap = new Map<string, SceneDescriptor>();
-	private readonly sceneMap = new Map<string, Scene>();
-	private currentID?: string;
-
-	getScene(ID: string) {
-		let scene = this.sceneMap.get(ID);
-		if(!scene) {
-			const sceneHandle = this.sceneHandleMap.get(ID);
-			if(sceneHandle) {
-				scene = sceneHandle.createScene();
-				this.sceneMap.set(ID, scene);
-			}
-		}
-		return scene;
-	}
-
-	registerScene(...sceneHandles: SceneDescriptor[]) {
-		sceneHandles.forEach(handle => {
-			if(this.sceneHandleMap.get(handle.ID)) {
-				console.error('Scene with ID: ' + handle.ID + ' already registered!!!');
-				return;
-			}
-			this.sceneHandleMap.set(handle.ID, handle);
-		});
-	}
-
-	getSceneHandleList(): SceneDescriptor[] {
-		return Array.from(this.sceneHandleMap.values());
-	}
-
-	getNextScene(): Scene | undefined {
-		if(this.sceneHandleMap.size < 1) {
-			console.error('No scenes registered!!!');
-			return undefined;
-		}
-
-		if(!this.currentID) {
-			this.currentID = Array.from(this.sceneHandleMap.keys())[0];
-			return this.getScene(this.currentID);
-		}
-
-		const keys = Array.from(this.sceneHandleMap.keys());
-		var idx = keys.indexOf(this.currentID);
-
-		if(idx >= 0) {
-			idx ++;
-			if(idx >= keys.length) {
-				idx = 0;
-			}
-			this.currentID = keys[idx];
-		} else  {
-			// one loop around
-			this.currentID = Array.from(this.sceneHandleMap.keys())[0];
-		}
-
-		return this.getScene(this.currentID);
-	}
-
-	getCurrentHandle(): SceneDescriptor | undefined {
-		if (this.currentID) {
-			return this.sceneHandleMap.get(this.currentID);
-		}
-		return undefined
-	}
-
-	setCurrentScene(ID: string) {
-		this.currentID = ID;
-	}
-}
-
-
-const sceneManager = new SceneManager();
-
+cyberspace.eventManager
+	.onStartPrograms(() => UIManager.setProgramRunButton("STOP"))
+	.onStopPrograms(() => UIManager.setProgramRunButton("START"))
+	.onStartSimulation(() => UIManager.setSimulationRunButton("STOP"))
+	.onPauseSimulation(() => UIManager.setSimulationRunButton("START"))
 
 //
 // register scenes
@@ -122,7 +41,6 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 	'Test Scene',
-	'TestScene',
 	'Test scene with all sim features',
 	(descriptor) => {
 			return new TestScene(descriptor.name);
@@ -130,18 +48,17 @@ sceneManager.registerScene(
 	),
 
 	new SceneDescriptor(
-		"Test Scene 2", "TestScene2", "T",
+		"Test Scene 2", "Test scene for testing different sensor configurations",
 		(descriptor) => new TestScene2(descriptor.name, AgeGroup.ES)
 	),
 
 	new SceneDescriptor(
-		"Test Scene 3", "TestScene3", "Test scene for testing the robot",
+		"Test Scene 3", "Test scene for generating calibration data for the robot",
 		(descriptor) => new TestScene3()
 	),
 
 	new SceneDescriptor(
 		'Empty Scene',
-		'EmptyScene',
 		'Empty Scene',
 		(descriptor) => {
 			return new Scene(descriptor.name);
@@ -150,7 +67,6 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 		'RRC - Test Scene',
-		'RRCTest',
 		'Roborave Cyberspace Test',
 		(descriptor) => {
 			return new RRCScene(descriptor.name, AgeGroup.ES);
@@ -165,7 +81,6 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 		'RRC - Line Following - ES',
-		'RRCLineFollowingES',
 		'Roborave Cyberspace line following ES',
 		(descriptor) => {
 			return new RRCLineFollowingScene(descriptor.name, AgeGroup.ES);
@@ -174,7 +89,6 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 		'RRC - Line Following - MS',
-		'RRCLineFollowingMS',
 		'Roborave Cyberspace line following MS',
 		(descriptor) => {
 			return new RRCLineFollowingScene(descriptor.name, AgeGroup.MS);
@@ -183,41 +97,9 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 		'RRC - Line Following - HS',
-		'RRCLineFollowingHS',
 		'Roborave Cyberspace line following HS',
 		(descriptor) => {
 			return new RRCLineFollowingScene(descriptor.name, AgeGroup.HS);
-		}
-	),
-
-	//
-	// Rainbow
-	//
-
-	new SceneDescriptor(
-		'RRC - Rainbow - ES',
-		'RRCRainbowES',
-		'Roborave Cyberspace Rainbow ES',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.ES);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Rainbow - MS',
-		'RRCRainbowMS',
-		'Roborave Cyberspace Rainbow MS',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.MS);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Rainbow - HS',
-		'RRCRainbowHS',
-		'Roborave Cyberspace Rainbow HS',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.HS);
 		}
 	),
 
@@ -227,7 +109,6 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 		'RRC - Labyrinth - ES',
-		'RRCLabyrinthES',
 		'Roborave Cyberspace Labyrinth ES',
 		(descriptor) => {
 			return new RRCLabyrinthScene(descriptor.name, AgeGroup.ES);
@@ -236,7 +117,6 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 		'RRC - Labyrinth - MS',
-		'RRCLabyrinthMS',
 		'Roborave Cyberspace Labyrinth MS',
 		(descriptor) => {
 			return new RRCLabyrinthScene(descriptor.name, AgeGroup.MS);
@@ -245,7 +125,6 @@ sceneManager.registerScene(
 
 	new SceneDescriptor(
 		'RRC - Labyrinth - HS',
-		'RRCLabyrinthHS',
 		'Roborave Cyberspace Labyrinth HS',
 		(descriptor) => {
 			return new RRCLabyrinthScene(descriptor.name, AgeGroup.HS);
@@ -253,19 +132,37 @@ sceneManager.registerScene(
 	),
 
 
+	//
+	// Rainbow
+	//
+
+	new SceneDescriptor(
+		'RRC - Rainbow - ES',
+		'Roborave Cyberspace Rainbow ES',
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.ES);
+		}
+	),
+
+	new SceneDescriptor(
+		'RRC - Rainbow - MS',
+		'Roborave Cyberspace Rainbow MS',
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.MS);
+		}
+	),
+
+	new SceneDescriptor(
+		'RRC - Rainbow - HS',
+		'Roborave Cyberspace Rainbow HS',
+		(descriptor) => {
+			return new RRCRainbowScene(descriptor.name, AgeGroup.HS);
+		}
+	),
 );
 
-
-
-
-
-//
-// create engine
-//
-var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNextScene());
-//engine.getScene().setupDebugRenderer('notConstantValue');
-//engine.getScene().setupDebugRenderer('simDiv');
-
+// switch to first scene
+cyberspace.switchToNextScene(true)
 
 
 /**
@@ -273,38 +170,40 @@ var engine = new SceneRender('sceneCanvas', true, 'simDiv', sceneManager.getNext
  * @param refresh `true` if "SIM" is pressed, `false` if play is pressed
  * @param robotType 
  */
-export function init(programs: RobotProgram[], refresh: boolean, robotType: string) {
-	Util.simulation.storedPrograms = programs;
-	Util.simulation.storedRobotType = robotType;
+export function init(programs: RobertaRobotSetupData[], refresh: boolean, robotType: string) {
+
 
 	//$('simScene').hide();
 
 	// TODO: prevent clicking run twice
 
-	engine.getScene().getProgramManager().setPrograms(programs, refresh, robotType);
+	cyberspace.setRobertaRobotSetupData(programs, robotType)
 }
 
 
 export function getNumRobots(): number {
-	return engine.getScene().getRobotManager().getNumberOfRobots();
+	return 1;
 }
 
 
 export function setPause(pause:boolean) {
-	engine.getScene().getProgramManager().setProgramPause(pause);
+	if(pause) {
+		cyberspace.pausePrograms()
+	} else {
+		cyberspace.startPrograms()
+	}
 }
 
 export function run(refresh:boolean, robotType: any) {
-	init(Util.simulation.storedPrograms, refresh, robotType);
+	//init(Util.simulation.storedRobertaRobotSetupData, refresh, robotType);
+	console.log("run!")
 }
 
 /**
  * on stop program
  */
 export function stopProgram() {
-	// TODO: reset robot?
-	engine.getScene().getProgramManager().stopProgram();
-	init(Util.simulation.storedPrograms, false, Util.simulation.storedRobotType);
+	cyberspace.stopPrograms()
 }
 
 export function importImage() {
@@ -319,27 +218,26 @@ export function setInfo() {
  * Reset robot position and zoom of ScrollView
  */
 export function resetPose() {
-	engine.getScene()?.reset();
-	//engine.getScene()?.fullReset();
+	cyberspace.resetScene()
 }
 
 export function updateDebugMode(debugMode:boolean) {
-	engine.getScene().getProgramManager().updateDebugMode(debugMode);
+	blocklyDebugManager.setDebugMode(debugMode)
 }
 
 export function endDebugging() {
-	engine.getScene().getProgramManager().endDebugging();
+	blocklyDebugManager.setDebugMode(false)
 }
 
 export function interpreterAddEvent(event:any) {
-	engine.getScene().getProgramManager().interpreterAddEvent(event);
+	blocklyDebugManager.interpreterAddEvent(event)
 }
 
 /**
  * on simulation close
  */
 export function cancel() {
-	engine.getScene().getProgramManager().stopProgram();
+	cyberspace.pausePrograms()
 }
 
 
@@ -348,28 +246,22 @@ export function cancel() {
 //
 
 export function getScenes(): SceneDescriptor[] {
-	return sceneManager.getSceneHandleList();
+	return cyberspace.getScenes()
 }
 
 export function selectScene(ID: string) {
-	const scene = sceneManager.getScene(ID);
-	sceneManager.setCurrentScene(ID);
-	engine.switchScene(scene, true);
-	scene?.fullReset();
+	cyberspace.loadScene(ID)
 }
 
 export function nextScene(): SceneDescriptor | undefined {
-	const scene = sceneManager.getNextScene();
-	engine.switchScene(scene, true);
-	scene?.fullReset();
-	return sceneManager.getCurrentHandle();
+	return cyberspace.switchToNextScene();
 }
 
 export function sim(run: boolean) {
 	if(run) {
-		engine.getScene().startSim();
+		cyberspace.startSimulation()
 	} else {
-		engine.getScene().stopSim();
+		cyberspace.pauseSimulation()
 	}
 }
 
@@ -382,17 +274,17 @@ export function score(score: boolean) {
 }
 
 export function zoomIn() {
-	engine.zoomIn()
+	cyberspace.zoomViewIn()
 }
 
 export function zoomOut() {
-	engine.zoomOut()
+	cyberspace.zoomViewOut()
 }
 
 export function zoomReset() {
-	engine.zoomReset()
+	cyberspace.resetView()
 }
 
 export function setSimSpeed(speedup: number) {
-	engine.setSpeedUpFactor(speedup)
+	cyberspace.setSimulationSpeedupFactor(speedup)
 }

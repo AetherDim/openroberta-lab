@@ -1,12 +1,13 @@
 import { Vector } from "matter-js"
-import { RobotProgram } from "./Robot/RobotProgram"
+import { RobertaRobotSetupData } from "./Robot/RobertaRobotSetupData"
 
-
-export type StringMap<V> = { [key: string]: V }
-export type NumberMap<V> = { [key: number]: V }
+export type StringMap<V> = { [key: string]: V | undefined }
+export type NumberMap<V> = { [key: number]: V | undefined }
 
 export type UnpackArray<T> = T extends readonly (infer U)[] ? U : never
 export type UnpackArrayProperties<T> = { [k in keyof T]: UnpackArray<T[k]> }
+
+export type NumberIndexed<T extends unknown[] | undefined | null> = T extends unknown[] ? T[number] : T
 
 /**
  * expands object types one level deep
@@ -112,13 +113,26 @@ type RestrictedKeysType<T, KeyType> = { [k in keyof T]: T[k] extends KeyType ? T
 
 export class Util {
 
-	static simulation: {
-		storedPrograms: RobotProgram[],
-		storedRobotType: string
-	} = {
-		storedPrograms: [],
-		storedRobotType: ""
+	static safeIndexing<T extends unknown[] | undefined>(value: T, index: number): NumberIndexed<T> {
+		if (value == undefined) {
+			return undefined as NumberIndexed<T>
+		} else {
+			return value[index] as NumberIndexed<T>
+		}
 	}
+
+	/**
+	 * Equality into the object.
+	 * 
+	 * @see https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
+	 */
+	static deepEqual(x: any, y: any): boolean {
+		return (x && y && typeof x === 'object' && typeof y === 'object') ?
+		  (Object.keys(x).length === Object.keys(y).length) &&
+			Object.keys(x).reduce<boolean>((isEqual, key) =>
+				isEqual && Util.deepEqual(x[key], y[key])
+			, true) : (x === y);
+	  }
 
 	/**
 	 * Returns an array of numbers starting from 'start' to (inclusive) 'end' with a step size 'step' 
@@ -127,12 +141,77 @@ export class Util {
 	 * @param end inclusive end of range
 	 * @param step the step size of the range
 	 */
-	static range(start: number, end: number, step: number = 1.0) {
-		var ans = [];
+	static closedRange(start: number, end: number, step: number = 1) {
+		const ans: number[] = [];
 		for (let i = start; i <= end; i += step) {
 			ans.push(i);
 		}
 		return ans;
+	}
+
+	/**
+	 * Returns an array of numbers starting from 'start' to (exclusive) 'end' with a step size 'step' 
+	 * 
+	 * @param start inclusive start of range
+	 * @param end exclusive end of range
+	 * @param step the step size of the range
+	 */
+	static range(start: number, end: number, step: number = 1) {
+		const ans: number[] = [];
+		for (let i = start; i < end; i += step) {
+			ans.push(i);
+		}
+		return ans;
+	}
+
+	/**
+	 * Convert radians to degrees
+	 */
+	static toDegrees(radians: number): number {
+		return radians / Math.PI * 180
+	}
+
+	/**
+	 * Convert degrees to radians
+	 */
+	 static toRadians(degrees: number): number {
+		return degrees / 180 * Math.PI
+	}
+
+	/**
+	 * Returns `sign(x)` if `abs(x) <= width` otherwise `x/width`.
+	 * 
+	 * @param x the number
+	 * @param width the width of the linear region
+	 */
+	static continuousSign(x: number, width: number) {
+		if (Math.abs(x) >= width) {
+			return Math.sign(x)
+		}
+		return x / width
+	}
+
+	/**
+	 * Use this function in the `default` block of a `switch` to check that `value` is of type `never` i.e. this function is never reached.
+	 * 
+	 * @param value the value which is switched over
+	 */
+	static exhaustiveSwitch(value: never): never {
+		throw new Error(`The value ${value} was not exhaustively switched over`)
+	}
+
+	/**
+	 * Returns `list.includes(value)` and narrows the type of 'value'.
+	 * 
+	 * @example
+	 * const list: readonly ["A", "B"] = ["A", "B"] as const
+	 * const value = "C"
+	 * if (Util.listIncludesValue(list, value)) {
+	 *     value // is of type "A" | "B"
+	 * }
+	 */
+	static listIncludesValue<T, A extends readonly T[]>(list: A, value: T): value is typeof list[number] {
+		return list.includes(value)
 	}
 
 	/**
@@ -147,6 +226,17 @@ export class Util {
 			[a[i], a[j]] = [a[j], a[i]]
 		}
 		return a
+	}
+
+	/**
+	 * Maps `value` using `mapping` if `value != undefined` otherwise it returns `undefined`
+	 */
+	static flatMapOptional<T, U>(value: T | undefined, mapping: (value: T) => U): U | undefined {
+		if (value == undefined) {
+			return undefined
+		} else {
+			return mapping(value)
+		}
 	}
 
 	/**
@@ -173,6 +263,32 @@ export class Util {
 	 */
 	private static soup_ = '!#$%()*+,-./:;=?@[]^_`{|}~' +
 		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+	/**
+	 * Generate a unique ID.  This should be globally unique.
+	 * 87 characters ^ 20 length > 128 bits (better than a UUID).
+	 * @return {string} A globally unique ID string.
+	 */
+	static genHtmlUid(): string {
+		const length = 25;
+		const soupLength = Util.soupHTML_.length;
+		const id: string[] = [];
+		id[0] = Util.soupAlphabet_.charAt(Math.random() * Util.soupAlphabet_.length);
+		for (let i = 1; i < length; i++) {
+			id[i] = Util.soupHTML_.charAt(Math.random() * soupLength);
+		}
+		return id.join('');
+	};
+	
+	private static soupAlphabet_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+	private static soupHTML_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_:';
+
+	static idNumber = 0
+	static genHtmlUid2() {
+		const uid = 'uid:' + this.idNumber
+		this.idNumber ++
+		return uid
+	}
 
 	static flattenArray<T>(array: T[][]): T[] {
 		const result: T[] = []
@@ -272,9 +388,56 @@ export class Util {
 		})
 	}
 
-	static allPropertiesTuples<T extends { [k in keyof T]: any[] }>(type: T): Expand<UnpackArrayProperties<T>>[] {
+	static allPropertiesTuples<T extends { [k in keyof T]: readonly any[] }>(type: T): Expand<UnpackArrayProperties<T>>[] {
 		const keys = Object.keys(type) as RestrictedKeys<T, any[]>[]
 		return Util.propertiesTuples(type, keys)
+	}
+
+	/**
+	* Generates from `values` a list of all multi-sets which has `length` elements.
+	* 
+	* Each element in `value` is assumes to be unique.
+	* 
+	* @example
+	* value = [A, B, C]
+	* length = 4
+	* // generates (up to some ordering)
+	* [AAAA, AAAB, AAAC, AABB, AABC, AACC, ..., CCCC]
+	* 
+	* @param values the values which are used to generate the multi-set permutations
+	* @param length the number of elements in the multi-set
+	*/
+	static generateMultiSetTuples<T>(values: T[], length: number): T[][] {
+		
+		/** repeatedValues[valueIndex][count] returns an array where values[valueIndex] is repeated 'count' times */
+		const repeatedValues = values.map(value =>
+			Util.closedRange(0, length).map(len =>
+				new Array<T>(len).fill(value)
+			)
+		)
+
+		const result: T[][] = []
+		const valueCount = values.length
+
+		function recursiveFor(maxCount: number, recursionIndex: number, intermediateValue: T[]) {
+			if (recursionIndex >= valueCount) {
+				result.push(intermediateValue)
+			} else if (recursionIndex == valueCount - 1) {
+				// last value
+				result.push(
+					intermediateValue.concat(repeatedValues[recursionIndex][maxCount])
+				)
+			} else {
+				for (let i = 0; i <= maxCount; i++) {
+					recursiveFor(maxCount - i, recursionIndex + 1,
+						intermediateValue.concat(repeatedValues[recursionIndex][i]))
+				}
+			}
+		}
+
+		recursiveFor(length, 0, [])
+
+		return result
 	}
 
 	/**
@@ -314,6 +477,17 @@ export class Util {
 			}
 		}
 		return string
+	}
+
+	static nonNullObjectValues<T>(value: { [s: string]: T } | ArrayLike<T>): NonNullable<T>[] {
+		const values = Object.values(value)
+		const result: NonNullable<T>[] = []
+		for (const element of values) {
+			if (element !== undefined && element !== null) {
+				result.push(element as NonNullable<T>)
+			}
+		}
+		return result
 	}
 
 	static mapNotNull<T, U>(array: T[], transform: (element: T) => (U | null | undefined)): U[] {
@@ -384,17 +558,8 @@ export class Util {
 		return window.devicePixelRatio || 0.75; // 0.75 is default for old browsers
 	}
 
-}
-
-type ObjectKeys<T> = 
-	T extends object ? (keyof T)[] :
-	T extends number ? [] :
-	T extends Array<any> | string ? string[] :
-	never
-
-declare global {
-	export interface ObjectConstructor {
-		keys<T>(o: T): ObjectKeys<T>
+	static cloneVector(value: Vector): Vector {
+		return { x: value.x, y: value.y }
 	}
-}
 
+}

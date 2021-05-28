@@ -1,6 +1,6 @@
 import { Body } from "matter-js";
-import { DrawablePhysicsEntity, IDrawablePhysicsEntity } from "../Entity";
-import { Scene } from "../Scene/Scene";
+import { DrawablePhysicsEntity, IDrawablePhysicsEntity } from "../../Entity";
+import { Scene } from "../../Scene/Scene";
 
 
 export class TouchSensor extends DrawablePhysicsEntity<PIXI.DisplayObject> {

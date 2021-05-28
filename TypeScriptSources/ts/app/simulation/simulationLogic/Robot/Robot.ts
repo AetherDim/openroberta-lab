@@ -5,22 +5,23 @@ import "../ExtendedMatter"
 import { MAXPOWER } from '../interpreter.constants'
 import { Interpreter } from '../interpreter.interpreter'
 import { RobotSimBehaviour } from './RobotSimBehaviour'
-import { Unit } from '../Unit'
 import { Wheel } from './Wheel'
-import { ColorSensor } from './ColorSensor'
-import { UltrasonicSensor } from './UltrasonicSensor'
+import { ColorSensor } from './Sensors/ColorSensor'
+import { UltrasonicSensor } from './Sensors/UltrasonicSensor'
 import { Ray } from '../Geometry/Ray'
-import { TouchSensor } from './TouchSensor'
+import { TouchSensor } from './Sensors/TouchSensor'
 import { IContainerEntity, IEntity, IPhysicsCompositeEntity, IUpdatableEntity, PhysicsRectEntity } from '../Entity'
 import { Scene } from '../Scene/Scene'
 import { StringMap, Util } from '../Util'
 // Dat Gui
-import {downloadFile, downloadJSONFile} from "./../GlobalDebug";
-import dat = require('dat.gui')
-import {BodyHelper} from "./BodyHelper";
+import { downloadFile } from "./../GlobalDebug";
+import { BodyHelper } from "./BodyHelper";
 import { RobotProgram } from './RobotProgram'
+import { hsvToColorName, rgbToHsv } from '../Color'
+import { GyroSensor } from './Sensors/GyroSensor'
+import { RobotLED, RobotLEDColor, robotLEDColors } from './RobotLED'
 
-const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
+export const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INFRARED", "SOUND", "COMPASS",
 	// german description: "HT Infrarotsensor"
 	"IRSEEKER",
 	// does not work in RobertaLab?!
@@ -61,24 +62,30 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	updateSensorGraphics = true
 
 	/**
-	 * The color sensors of the robot
+	 * The color sensors of the robot where the key is the port.
 	 */
-	private colorSensors: StringMap<ColorSensor> = {}
+	private colorSensors = new Map<string, ColorSensor>()
 
 	/**
-	 * The ultrasonic sensors of the robot
+	 * The ultrasonic sensors of the robot where the key is the port.
 	 */
-	private ultrasonicSensors: StringMap<UltrasonicSensor> = {}
+	private ultrasonicSensors = new Map<string, UltrasonicSensor>()
 
 	/**
-	 * The touch sensors of the robot
+	 * The touch sensors of the robot where the key is the port.
 	 */
-	private touchSensors: StringMap<TouchSensor> = {}
+	private touchSensors = new Map<string, TouchSensor>()
 
-	private robotBehaviour?: RobotSimBehaviour
+	/**
+	 * The gyro sensors of the robot where the key is the port.
+	 */
+	private gyroSensors = new Map<string, GyroSensor>()
 
-	configuration?: StringMap<SensorType> = undefined;
-	programCode: any = null;
+	private LEDs: RobotLED[] = []
+
+	private robotBehaviour: RobotSimBehaviour
+
+	programCode: unknown = null;
 
 	interpreter?: Interpreter
 
@@ -86,6 +93,48 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * Time to wait until the next command should be executed (in internal units)
 	 */
 	private delay = 0
+
+	/**
+	 * Settings for the usage of `endEncoder`
+	 */
+	private endEncoderSettings = {
+		/**
+		 * Maximum encoder angle difference in radians.
+		 * End condition: `abs(encoder - endEncoder) < angleAccuracy`
+		 */
+		maxAngleDifference: 0.02,
+		/**
+		 * Maximum encoder angular velocity accuracy in radians/'internal seconds' of the driving wheels.
+		 * End condition: `abs(wheel.angularVelocity) < maxAngularVelocity`
+		 */
+		maxAngularVelocity: 0.02,
+		/**
+		 * Given the encoder difference `encoderDiff = endEncoder - encoder`, use
+		 * `Util.continuousSign(encoderDiff, maxForceControlEncoderDifference)`
+		 * as multiplier to the maximum force.
+		 */
+		maxForceControlEncoderDifference: 0.2
+	}
+
+	/**
+	 * For given value `vGiven` calculate the actual one `v = vGiven * factor`
+	 */
+	private calibrationParameters = {
+		/**
+		 * Works for all speeds with an error of ±1.2%
+		 */
+		rotationAngleFactor: 0.6333,
+		/**
+		 * Valid for motor force below 84%. At 100% the error is about 10%.
+		 */
+		driveForwardDistanceFactor: 0.76
+	}
+
+	private timeSinceProgramStart = 0
+
+	getTimeSinceProgramStart(): number {
+		return this.timeSinceProgramStart
+	}
 	
 	/**
 	 * robot type
@@ -111,6 +160,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 		this.physicsWheelsList = []
 		this.physicsComposite = Composite.create()
+		this.robotBehaviour = new RobotSimBehaviour(this.scene.unit)
+
 		this.updatePhysicsObject()
 
 		this.addChild(this.bodyEntity)
@@ -119,6 +170,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 		this.addDebugSettings()
 	}
+
+	private transferWheelForcesToRobotBody = false
 
 	private addDebugSettings() {
 
@@ -131,12 +184,30 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			pos.addUpdatable('x', () => this.body.position.x)
 			pos.addUpdatable('y', () => this.body.position.x)
 
+			robotFolder.add(this, "transferWheelForcesToRobotBody")
+
 			const wheelFolder = robotFolder.addFolder('Wheels')
 
+			wheelFolder.add(this.endEncoderSettings, "maxAngleDifference", 0, 0.3)
+			wheelFolder.add(this.endEncoderSettings, "maxAngularVelocity", 0, 0.3)
+			wheelFolder.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 0.3)
+
 			const control = {
+				alongStepFunctionWidth: 0.1,
+				orthStepFunctionWidth: 0.1,
 				rollingFriction: this.wheelsList[0].rollingFriction,
 				slideFriction: this.wheelsList[0].slideFriction
 			}
+
+			wheelFolder.add(control, 'alongStepFunctionWidth', 0, 0.1).onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.alongStepFunctionWidth = value)
+				wheelFolder.updateDisplay()
+			})
+
+			wheelFolder.add(control, 'orthStepFunctionWidth', 0, 0.1).onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.orthStepFunctionWidth = value)
+				wheelFolder.updateDisplay()
+			})
 
 			wheelFolder.add(control, 'rollingFriction').onChange(value => {
 				this.wheelsList.forEach(wheel => wheel.rollingFriction = value)
@@ -260,11 +331,21 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		Composite.rotate(this.physicsComposite, rotation - this.body.angle, this.body.position)
 	}
 
+	removeAllSensors() {
+		this.getColorSensors().forEach(c => c.removeGraphicsFromParent())
+		this.getUltrasonicSensors().forEach(u => u.removeGraphicsFromParent())
+		this.getTouchSensors().forEach(t => t.scene.removeEntity(t))
+		this.colorSensors.clear()
+		this.ultrasonicSensors.clear()
+		this.touchSensors.clear()
+		this.gyroSensors.clear()
+	}
+
 	/**
 	 * Returns the color sensor which can be `undefined`
 	 */
 	getColorSensors(): ColorSensor[] {
-		return Object.values(this.colorSensors)
+		return Array.from(this.colorSensors.values())
 	}
 
 	/**
@@ -273,33 +354,42 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * @param port the port of the sensor
 	 * @param x x position of the sensor in meters
 	 * @param y y position of the sensor in meters
+	 * @param graphicsRadius the radius of the circle graphic in meters
 	 * @returns false if a color sensor at `port` already exists and a new color sensor was not added
 	 */
-	addColorSensor(port: string, x: number, y: number): boolean {
-		if (this.colorSensors[port]) {
+	addColorSensor(port: string, x: number, y: number, graphicsRadius: number): boolean {
+		if (this.colorSensors.has(port)) {
 			return false
 		}
-		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y))
-		this.colorSensors[port] = colorSensor
+		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y), graphicsRadius)
+		this.colorSensors.set(port, colorSensor)
 		this.bodyContainer.addChild(colorSensor.graphics)
 		return true
 	}
 	
 	getUltrasonicSensors(): UltrasonicSensor[] {
-		return Object.values(this.ultrasonicSensors)
+		return Array.from(this.ultrasonicSensors.values())
 	}
 
 	addUltrasonicSensor(port: string, ultrasonicSensor: UltrasonicSensor): boolean {
-		if (this.ultrasonicSensors[port]) {
+		if (this.ultrasonicSensors.has(port)) {
 			return false
 		}
-		this.ultrasonicSensors[port] = ultrasonicSensor
+		this.ultrasonicSensors.set(port, ultrasonicSensor)
 		this.bodyContainer.addChild(ultrasonicSensor.graphics)
 		return true
 	}
 
 	getTouchSensors(): TouchSensor[] {
-		return Object.values(this.touchSensors)
+		return Array.from(this.touchSensors.values())
+	}
+
+	addGyroSensor(port: string, gyroSensor: GyroSensor): boolean {
+		if (this.gyroSensors.has(port)) {
+			return false
+		}
+		this.gyroSensors.set(port, gyroSensor)
+		return true
 	}
 
 	/**
@@ -310,14 +400,32 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * @returns false if a touch sensor at `port` already exists and the new touch sensor was not added
 	 */
 	addTouchSensor(port: string, touchSensor: TouchSensor): boolean {
-		if (this.touchSensors[port]) {
+		if (this.touchSensors.has(port)) {
 			return false
 		}
 		this.addChild(touchSensor)
-		Composite.add(this.physicsComposite, touchSensor.physicsBody)
-		this.physicsComposite.addRigidBodyConstraints(this.body, touchSensor.physicsBody, 0.3, 0.3)
-		this.touchSensors[port] = touchSensor
+		const sensorBody = touchSensor.physicsBody
+
+		Body.rotate(sensorBody, this.body.angle)
+		Body.setPosition(sensorBody,
+			Vector.add(
+				this.body.position,
+				Vector.rotate(touchSensor.physicsBody.position, this.body.angle)
+			)
+		)
+		Composite.add(this.physicsComposite, sensorBody)
+		this.physicsComposite.addRigidBodyConstraints(this.body, sensorBody, 0.3, 0.3)
+		this.touchSensors.set(port, touchSensor)
 		return true
+	}
+
+	getLEDs(): RobotLED[] {
+		return this.LEDs
+	}
+
+	addLED(led: RobotLED) {
+		this.LEDs.push(led)
+		this.bodyContainer.addChild(led.graphics)
 	}
 
 	// TODO: Remove this line
@@ -359,14 +467,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 
 	setProgram(program: RobotProgram, breakpoints: any[]): Interpreter {
 		const _this = this;
-		this.programCode = JSON.parse(program.javaScriptProgram);
-		this.configuration = program.javaScriptConfiguration
-		const allKeys = Object.keys(this.configuration)
-		const allValues = Object.values(this.configuration)
-		const wrongValueCount = allValues.find((e)=>!sensorTypeStrings.includes(e))?.length ?? 0
-		if (wrongValueCount > 0 || allKeys.filter((e) => typeof e === "number").length > 0) {
-			console.error(`The 'configuration' has not the expected type: ${this.configuration}`)
-		}
+		this.programCode = JSON.parse(program.javaScriptProgram)
 		this.robotBehaviour = new RobotSimBehaviour(this.scene.unit);
 		this.interpreter = new Interpreter(this.programCode, this.robotBehaviour, () => {
 			_this.programTerminated();
@@ -399,16 +500,21 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	private needsNewCommands = true
-	private endEncoder: { left: number, right: number } | null = null
+	private endEncoder?: { left: number, right: number }
 
 	/**
-	 * Reset the internal state of the robot. E.g. `endEncoder`, `leftForce`
+	 * Reset the internal state of the robot. E.g. `endEncoder`, `leftForce`, `timeSinceProgramStart`
 	 */
 	private resetInternalState() {
+		// reset program related variables
+		this.timeSinceProgramStart = 0
 		this.needsNewCommands = true
-		this.endEncoder = null
+		this.endEncoder = undefined
 		this.leftForce = 0
 		this.rightForce = 0
+
+		// reset led state
+		this.LEDs.forEach(LED => LED.resetState())
 	}
 
 	// IUpdatableEntity
@@ -421,20 +527,51 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 */
 	update(dt: number) {
 
-		// update wheels velocities
+		// update the forces and torques of all wheels
 		const gravitationalAcceleration = this.scene.unit.getAcceleration(9.81)
 		const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
 		this.wheelsList.forEach(wheel => {
 			wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration)
 			wheel.update(dt)
+			if (this.transferWheelForcesToRobotBody) {
+				const force = wheel._wheelForceVector
+				Body.applyForce(wheel.physicsBody, wheel.physicsBody.position, Vector.neg(force))
+				Body.applyForce(this.body, wheel.physicsBody.position, force)
+			}
 		})
 
-		if(!this.robotBehaviour || !this.interpreter) {
-			return;
-		}
+		// update internal encoders
+		this.encoder.left = this.leftDrivingWheel.wheelAngle
+		this.encoder.right = this.rightDrivingWheel.wheelAngle
 
 		// update sensors
 		this.updateRobotBehaviourHardwareStateSensors()
+
+		// update LEDs
+		const LEDActionState: { color?: string, mode: string } | undefined
+			= this.robotBehaviour.getActionState("led", true)
+		const LEDAction =
+			Util.flatMapOptional(LEDActionState, action => {
+				return {
+					color: Util.flatMapOptional(action.color?.toUpperCase(), color => {
+						if (Util.listIncludesValue(robotLEDColors, color)) {
+							return color
+						} else {
+							console.warn(`The robot LED color ('${color}') is not typed as 'RobotLEDColor'`)
+							return undefined
+						}
+					}),
+					mode: action.mode.toUpperCase()
+				}
+			})
+		this.LEDs.forEach(LED => LED.update(dt, LEDAction))
+
+		if (!this.interpreter) {
+			this.resetInternalState()
+			return;
+		}
+
+		this.timeSinceProgramStart += dt
 
 		if(this.delay > 0) {
 			this.delay -= dt; // reduce delay by dt each tick
@@ -456,21 +593,29 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		 * @param speedRight Use magnitude as maximum right speed (can be negative)
 		 */
 		function useEndEncoder(speedLeft: number, speedRight: number) {
-			if (!t.endEncoder) {
+			if (t.endEncoder == undefined) {
 				return
 			}
 			const encoderDifference = {
 				left: t.endEncoder.left - t.encoder.left,
 				right: t.endEncoder.right - t.encoder.right
 			}
-			if (Math.abs(encoderDifference.left) < 0.1 && Math.abs(encoderDifference.right) < 0.1) {
+			
+			const stopEncoder =
+				Math.abs(encoderDifference.left) < t.endEncoderSettings.maxAngleDifference &&
+				Math.abs(encoderDifference.right) < t.endEncoderSettings.maxAngleDifference &&
+				Math.abs(t.leftDrivingWheel.angularVelocity) < t.endEncoderSettings.maxAngularVelocity &&
+				Math.abs(t.rightDrivingWheel.angularVelocity) < t.endEncoderSettings.maxAngularVelocity
+
+			if (stopEncoder) {
 				// on end
-				t.endEncoder = null
-				t.robotBehaviour?.resetCommands()
+				t.endEncoder = undefined
+				t.robotBehaviour.resetCommands()
 				t.needsNewCommands = true
 			} else {
-				t.leftForce = (encoderDifference.left > 0 ? 1 : -1) * Math.abs(speedLeft)
-				t.rightForce = (encoderDifference.right > 0 ? 1 : -1) * Math.abs(speedRight)
+				const maxDifference = t.endEncoderSettings.maxForceControlEncoderDifference
+				t.leftForce = Util.continuousSign(encoderDifference.left, maxDifference) * Math.abs(speedLeft)
+				t.rightForce = Util.continuousSign(encoderDifference.right, maxDifference) * Math.abs(speedRight)
 			}
 		}
 
@@ -479,12 +624,13 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			// handle `driveAction` and `curveAction`
 			if (driveData.distance && driveData.speed) {
 				// on start
-				if (!this.endEncoder) {
+				if (this.endEncoder == undefined) {
 					this.needsNewCommands = false
 					const averageSpeed = 0.5 * (Math.abs(driveData.speed.left) + Math.abs(driveData.speed.right))
+					const driveFactor = 1 / this.calibrationParameters.driveForwardDistanceFactor
 					this.endEncoder = {
-						left: this.encoder.left + driveData.distance / this.leftDrivingWheel.wheelRadius * driveData.speed.left / averageSpeed,
-						right: this.encoder.right + driveData.distance / this.rightDrivingWheel.wheelRadius * driveData.speed.right / averageSpeed
+						left: this.encoder.left + driveData.distance / this.leftDrivingWheel.wheelRadius * driveData.speed.left / averageSpeed * driveFactor,
+						right: this.encoder.right + driveData.distance / this.rightDrivingWheel.wheelRadius * driveData.speed.right / averageSpeed * driveFactor
 					}
 				}
 				useEndEncoder(driveData.speed.left, driveData.speed.right)
@@ -499,13 +645,13 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		const rotateData = this.robotBehaviour.rotate
 		if (rotateData) {
 			if (rotateData.angle) {
-				if (!this.endEncoder) {
+				if (this.endEncoder == undefined) {
 					this.needsNewCommands = false
 					/** also wheel distance */
 					const axleLength = Util.vectorDistance(this.leftDrivingWheel.physicsBody.position, this.rightDrivingWheel.physicsBody.position)
 					const wheelDrivingDistance = rotateData.angle * 0.5 * axleLength
 					// left rotation for `angle * speed > 0`
-					const rotationFactor = Math.sign(rotateData.speed)
+					const rotationFactor = Math.sign(rotateData.speed) / this.calibrationParameters.rotationAngleFactor
 					this.endEncoder = {
 						left: this.encoder.left - wheelDrivingDistance / this.leftDrivingWheel.wheelRadius * rotationFactor,
 						right: this.encoder.right + wheelDrivingDistance / this.rightDrivingWheel.wheelRadius * rotationFactor
@@ -552,18 +698,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), this.leftForce)
 		this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), this.rightForce)
 
-		// this.driveWithWheel(this.physicsWheels.rearLeft, this.leftForce)
-		// this.driveWithWheel(this.physicsWheels.rearRight, this.rightForce)
-
-		// this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(), this.leftForce)
-		// this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(), this.rightForce)
-
-
-		const leftWheelVelocity = this.velocityAlongBody(this.leftDrivingWheel.physicsBody)
-		const rightWheelVelocity = this.velocityAlongBody(this.rightDrivingWheel.physicsBody)
-		this.encoder.left = this.leftDrivingWheel.wheelAngle//leftWheelVelocity * dt;
-		this.encoder.right = this.rightDrivingWheel.wheelAngle//rightWheelVelocity * dt;
-		let encoder = this.robotBehaviour.getActionState("encoder", true);
+		// reset internal encoder values if necessary
+		const encoder = this.robotBehaviour.getActionState("encoder", true);
 		if (encoder) {
 			if (encoder.leftReset) {
 				this.encoder.left = 0;
@@ -760,26 +896,24 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			list.push({ label: label, value: Math.round(value * 1000000)/1000000 + (end ?? "")})
 		}
 
-		const sensors = this.robotBehaviour?.getHardwareStateSensors()
-		if (sensors == undefined) {
-			return
-		}
+		const sensors = this.robotBehaviour.getHardwareStateSensors()
+
 		append("Robot X", this.body.position.x)
 		append("Robot Y", this.body.position.y)
 		append("Robot θ", this.body.angle * 180 / Math.PI, "°")
-		append("Motor left", sensors.encoder?.left ?? 0, "°")
-		append("Motor right", sensors.encoder?.right ?? 0, "°")
-		for (const port in this.touchSensors) {
-			appendAny("Touch Sensor "+port, this.touchSensors[port].getIsTouched())
+		append("Motor left", Util.toDegrees(sensors.encoder?.left ?? 0), "°")
+		append("Motor right", Util.toDegrees(sensors.encoder?.right ?? 0), "°")
+		for (const [port, touchSensor] of this.touchSensors) {
+			appendAny("Touch Sensor "+port, touchSensor.getIsTouched())
 		}
-		for (const port in this.colorSensors) {
-			append("Light Sensor "+port, this.colorSensors[port].getDetectedBrightness() * 100, "%")
+		for (const [port, colorSensor] of this.colorSensors) {
+			append("Light Sensor "+port, colorSensor.getDetectedBrightness() * 100, "%")
 		}
-		for (const port in this.colorSensors) {
-			appendAny("Color Sensor "+port, JSON.stringify(this.colorSensors[port].getDetectedColor()))
+		for (const [port, colorSensor] of this.colorSensors) {
+			appendAny("Color Sensor "+port, "<span style=\"width: 20px; background-color:" + colorSensor.getColorHexValueString() + "\">&nbsp;</span>")
 		}
-		for (const port in this.ultrasonicSensors) {
-			append("Ultra Sensor "+port, 100 * s.unit.fromLength(this.ultrasonicSensors[port].getMeasuredDistance()), "cm")
+		for (const [port, ultrasonicSensor] of this.ultrasonicSensors) {
+			append("Ultra Sensor "+port, 100 * s.unit.fromLength(ultrasonicSensor.getMeasuredDistance()), "cm")
 		}
         
 	}
@@ -792,46 +926,59 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	private updateRobotBehaviourHardwareStateSensors() {
-		if (!this.robotBehaviour) {
-			return
-		}
+
 		const sensors = this.robotBehaviour.getHardwareStateSensors()
-		
+
 		// encoder
 		sensors.encoder = {
 			left: this.encoder.left,
 			right: this.encoder.right
 		}
-		
+
 		// gyo sensor
 		// Note: OpenRoberta has a bug for the gyro.rate where they calculate it by
 		// angleDifference * timeDifference but it should be angleDifference / timeDifference
-		const gyroRate = this.body.angularVelocity * 180 / Math.PI
-		const oldAngle = sensors.gyro?.[2].angle;
-		sensors.gyro = { 2: {
-			angle: oldAngle ? oldAngle + gyroRate * this.scene.getDT() : this.body.angle * 180 / Math.PI,
-			rate: gyroRate
-		}}
+		const gyroData = sensors.gyro ?? {}
+		const gyroRate = Util.toDegrees(this.body.angularVelocity)
+		const gyroAngleDifference = Util.toDegrees(this.body.angle - this.body.anglePrev)
+		const dt = this.scene.getDT()
+		for (const [port, gyroSensor] of this.gyroSensors) {
+			const referenceAngle = this.robotBehaviour.getGyroReferenceAngle(port) ?? 0
+			const angle = Util.toDegrees(this.body.angle)
+			gyroSensor.update(angle, referenceAngle, dt)
+			// gyroData uses the 'true' angle instead of '' since the referenceAngle/"angleReset" is used
+			// in 'RobotSimBehaviour.getSensorValue'
+			gyroData[port] = {
+				angle: angle,
+				rate: gyroRate
+			}
+		}
+		sensors.gyro = gyroData
 
-		const robotBodies = Object.values(this.touchSensors).map(touchSensor => touchSensor.getPhysicsBody())
+		const robotBodies = this.getTouchSensors().map(touchSensor => touchSensor.getPhysicsBody())
 			.concat(this.physicsWheelsList, this.body)
 
 		// color
 		if (!sensors.color) {
 			sensors.color = {}
 		}
-		for (const port in this.colorSensors) {
-			const colorSensor = this.colorSensors[port]
+		for (const [port, colorSensor] of this.colorSensors) {
 			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
 			const color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
-			colorSensor.setDetectedColor(color[0], color[1], color[2], this.updateSensorGraphics)
+			const r = color[0], g = color[1], b = color[2]
+			
+			colorSensor.setDetectedColor(r, g, b, this.updateSensorGraphics)
+
+			const hsv = rgbToHsv(r, g, b)
+			const colour = hsvToColorName(hsv)
+
 			sensors.color[port] = {
 				ambientlight: 0,
-				colorValue: "none",
-				colour: "none",
-				light: ((color[0] + color[1] + color[2]) / 3 / 2.55),
-				rgb: [color[0], color[1], color[2]]
+				colorValue: colour,
+				colour: colour,
+				light: ((r + g + b) / 3 / 2.55),
+				rgb: [r, g, b]
 			}
 		}
 
@@ -844,8 +991,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		if (!sensors.infrared) {
 			sensors.infrared = {}
 		}
-		for (const port in this.ultrasonicSensors) {
-			const ultrasonicSensor = this.ultrasonicSensors[port]
+		for (const [port, ultrasonicSensor] of this.ultrasonicSensors) {
 			const sensorPosition = this.getAbsolutePosition(ultrasonicSensor.position)
 			let ultrasonicDistance: number
 			let nearestPoint: Vector | undefined
@@ -853,9 +999,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				ultrasonicDistance = 0
 			} else {
 				const halfAngle = ultrasonicSensor.angularRange / 2
+				const angle = ultrasonicSensor.angle
 				const rays = [
-					Vector.rotate(Vector.create(1, 0), halfAngle + this.body.angle),
-					Vector.rotate(Vector.create(1, 0), -halfAngle + this.body.angle)]
+					Vector.rotate(Vector.create(1, 0), angle + halfAngle + this.body.angle),
+					Vector.rotate(Vector.create(1, 0), angle - halfAngle + this.body.angle)]
 					.map(v => new Ray(sensorPosition, v))
 				// (point - sensorPos) * vec > 0
 				const vectors = rays.map(r => Vector.perp(r.directionVector))
@@ -912,8 +1059,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		if (!sensors.touch) {
 			sensors.touch = {}
 		}
-		for (const port in this.touchSensors) {
-			const touchSensor = this.touchSensors[port]
+		for (const [port, touchSensor] of this.touchSensors) {
 			touchSensor.setIsTouched(BodyHelper.bodyIntersectsOther(touchSensor.physicsBody, allBodies))
 			sensors.touch[port] = touchSensor.getIsTouched()
 		}
@@ -956,8 +1102,16 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		})
 	}
 
+	// TODO: Use real robot parameters
 	/**
 	 * Similar to the EV3 LEGO robot
+	 * 
+	 * Real dimensions:
+	 * - brick: (xSize: 0.11m, ySize: 0.072m, mass: 0.268kg)
+	 * - wheel: (diameter: 0.043m, width: 0.022m, mass: 0.013kg, rollingFriction: 1.1°, slideFriction: 47.3°)
+	 * - motor: (mass: 0.080kg)
+	 * - 100% speed: (1m ca. 3.19s)
+	 * - total mass: 0.611kg
 	 */
 	static EV3(scene: Scene): Robot {
 		const wheel = { diameter: 0.05, width: 0.02 }
@@ -977,12 +1131,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				backWheel
 			]
 		})
-		robot.addColorSensor("3", 0.06, 0)
-		robot.addUltrasonicSensor("4" , new UltrasonicSensor(scene.unit, Vector.create(0.095, 0), 90 * 2 * Math.PI / 360))
-		const touchSensorBody = PhysicsRectEntity.create(scene, 0.085, 0, 0.01, 0.12,
-			{ color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 })
-		Body.setMass(touchSensorBody.getPhysicsBody(), scene.unit.getMass(0.05))
-		robot.addTouchSensor("1", new TouchSensor(scene, touchSensorBody))
+		robot.addLED(new RobotLED(scene.unit, { x: 0, y: 0 }, 0.01))
 		return robot
 	}
 }

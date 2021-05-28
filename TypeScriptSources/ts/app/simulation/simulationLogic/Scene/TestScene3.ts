@@ -3,6 +3,7 @@ import { Vector } from "matter-js";
 import { downloadJSONFile } from "../GlobalDebug";
 import { Robot } from "../Robot/Robot";
 import { RobotProgram } from "../Robot/RobotProgram";
+import { RobotSetupData } from "../Robot/RobotSetupData";
 import { RobotTester } from "../Robot/RobotTester";
 import { Unit } from "../Unit";
 import { UnpackArrayProperties, Util, Expand } from "../Util";
@@ -11,7 +12,6 @@ import { Scene } from "./Scene";
 
 function constructProgram(operations: OpCode[][]): RobotProgram {
 	return {
-		javaScriptConfiguration: {1: "TOUCH", 2: "GYRO", 3: "COLOR", 4: "ULTRASONIC"},
 		javaScriptProgram: JSON.stringify({ "ops": Util.flattenArray(operations) }, undefined, "\t")
 	}
 }
@@ -135,17 +135,17 @@ function driveForwardProgram(speed: number, distance: number): OpCode[] {
 
 class KeyData {
 	// (0.05, 0.5, 0.05)
-	rollingFriction = Util.range(0.03, 0.03, 0.1)
+	rollingFriction = Util.closedRange(0.03, 0.03, 0.1)
 	// (0.05, 1.0, 0.05)
-	slideFriction = Util.range(0.3, 0.3, 0.1)
+	slideFriction = Util.closedRange(0.3, 0.3, 0.1)
 
-	otherRollingFriction = Util.range(0.03, 0.03, 0.01)
-	otherSlideFriction = Util.range(0.05, 0.05, 0.01)
+	otherRollingFriction = Util.closedRange(0.03, 0.03, 0.01)
+	otherSlideFriction = Util.closedRange(0.05, 0.05, 0.01)
 
-	//driveForwardSpeed = Util.range(10, 100, 10)
-	//driveForwardDistance = Util.range(0.1, 1.0, 0.1)
-	rotateSpeed = Util.range(5, 100, 5)
-	rotateAngle = Util.range(0, 180, 10)
+	// driveForwardSpeed = Util.range(60, 100, 1)
+	// driveForwardDistance = Util.range(0, 2.0, 0.04)
+	rotateSpeed = Util.closedRange(1, 100, 1)
+	rotateAngle = Util.closedRange(0, 360, 10)
 	directionRight = [true]
 }
 
@@ -195,6 +195,17 @@ class ValueHelper<T, C> {
 		return this.getSignedDistance(this.initialValue, this._getNewValue(this.context))
 	}
 
+	withMappedSignedDistance(toNewSignedDistance: (distance: number) => number) {
+		const getSignedDistance = this.getSignedDistance
+		return new ValueHelper(
+			this.name,
+			this.initialValue,
+			toNewSignedDistance(this.endMaxDelta),
+			this.context,
+			this._getNewValue,
+			(v1, v2) => toNewSignedDistance(getSignedDistance(v1, v2))
+		)
+	}
 
 	static fromNumber<C>(opt: { name: string, initialValue: number, endMaxDelta: number, context: C, getNewValue: (context: C) => number }): ValueHelper<number, C> {
 		return new ValueHelper(opt.name, opt.initialValue, opt.endMaxDelta, opt.context, opt.getNewValue, (start, end) => end - start)
@@ -225,7 +236,7 @@ export class TestScene3 extends Scene {
 	 */
 	startWallTime = 0.0
 
-	readonly radianToAngleFactor = 180 / Math.PI
+	readonly constUnit = this.getUnitConverter()
 
 	readonly robotPositionValue =
 		ValueHelper.fromVector({
@@ -234,7 +245,7 @@ export class TestScene3 extends Scene {
 			endMaxDelta: Infinity,
 			context: this,
 			getNewValue: (c) => c.robot.body.position
-		})
+		}).withMappedSignedDistance(distance => this.constUnit.fromLength(distance))
 
 	readonly robotRotationValue = 
 		ValueHelper.fromNumber({
@@ -242,8 +253,8 @@ export class TestScene3 extends Scene {
 			initialValue: 0,
 			endMaxDelta: Infinity,
 			context: this,
-			getNewValue: (c) => c.robot.body.angle * c.radianToAngleFactor
-		})
+			getNewValue: (c) => c.robot.body.angle
+		}).withMappedSignedDistance(angle => Util.toDegrees(angle))
 
 
 	/**
@@ -251,7 +262,7 @@ export class TestScene3 extends Scene {
 	 */
 	valueHelpers = [this.robotPositionValue, this.robotRotationValue]
 
-	data: any[] = []
+	data: unknown[] = []
 
 	keyIndex = 0
 
@@ -297,12 +308,12 @@ export class TestScene3 extends Scene {
 		DebugGui?.addButton("Reset", () =>  {
 			this.resetData()
 			this.autostartSim = false
-			this.reset()
+			this.reset([])
 		})
 		DebugGui?.addButton("Restart", () =>  {
 			this.resetData()
 			this.autostartSim = true
-			this.reset()
+			this.reset([])
 		})
 
 	}
@@ -320,6 +331,10 @@ export class TestScene3 extends Scene {
 	shouldWait = false
 
 	onInit(asyncChain: AsyncChain) {
+
+		this.getRobotManager().configurationManager.setRobotConfigurations([
+			{ 1: "TOUCH" }
+		])
 
 		this.shouldWait = false
 
@@ -354,15 +369,15 @@ export class TestScene3 extends Scene {
 				}
 			})
 
-			// run(false, undefined)
-			const program = true ? 
+
+			const programs: RobotProgram[] =
 				[
 					constructProgram([
-						//driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+						// driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
 						rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
 					])
-				] : Util.simulation.storedPrograms
-			this.getProgramManager().setPrograms(program, true, undefined)
+				]
+			this.getProgramManager().setPrograms(programs)
 			this.getProgramManager().startProgram()
 		}
 
@@ -383,7 +398,7 @@ export class TestScene3 extends Scene {
 		// reset scene and automatically call 'onInit'
 		this.keyIndex += 1
 		this.autostartSim = this.keyIndex < this.keyValues.length
-		this.reset()
+		this.reset([])
 		this.shouldWait = true
 	}
 

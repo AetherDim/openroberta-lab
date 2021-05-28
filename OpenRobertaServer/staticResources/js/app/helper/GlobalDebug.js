@@ -67,7 +67,7 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
             var range = 0.2;
             for (var x = -range; x < range; x += 0.02) {
                 for (var y = -range; y < range; y += 0.02) {
-                    robot.addColorSensor('SP' + count++, x, y);
+                    robot.addColorSensor('SP' + count++, x, y, 0.01);
                 }
             }
         });
@@ -131,7 +131,6 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
             gui.add(scene, 'dt').min(0.001).max(0.1).step(0.001).onChange(function (dt) { return scene.setDT(dt); });
             gui.add(scene, 'simSleepTime').min(0.001).max(0.1).step(0.001).onChange(function (s) { return scene.setSimSleepTime(s); });
             gui.add(scene, 'simSpeedupFactor').min(1).max(10000).step(1).onChange(function (dt) { return scene.setDT(dt); });
-            gui.add(scene, 'blocklyUpdateSleepTime').min(0.001).max(0.1).step(0.001).onChange(function (s) { return scene.setBlocklyUpdateSleepTime(s); });
             var unit = gui.addFolder('unit converter');
             unit.addUpdatable('m', function () { return scene.unit.getLength(1); });
             unit.addUpdatable('kg', function () { return scene.unit.getMass(1); });
@@ -153,7 +152,6 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
             program.add(pm, 'programPaused');
             program.addUpdatable('debugMode', createReflectionGetter(pm, 'debugMode'));
             program.addUpdatable('initialized', createReflectionGetter(pm, 'initialized'));
-            program.addUpdatable('allowBlocklyUpdate', createReflectionGetter(pm, 'allowBlocklyUpdate'));
             var entity = gui.addFolder('Entity Manager');
             var em = scene.getEntityManager();
             entity.addUpdatable('Number of entities', function () { return em.getNumberOfEntities(); });

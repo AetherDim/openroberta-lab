@@ -1,6 +1,6 @@
 define(['exports', 'message', 'log', 'jquery', 'jquery-validate', 'bootstrap'], function(exports, MSG, LOG, $) {
 
-    const ANIMATION_DURATION = 750;
+    const ANIMATION_DURATION = 500;
 
     var ratioWorkspace = 1;
     /**

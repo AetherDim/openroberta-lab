@@ -5,6 +5,7 @@
 
 - Use `npm ci` instead of `npm install`
 - Do not call `npm update` unless you want to update all packages (and know what you are doing). This changes the `package-lock.json` file.
+- Update TypeScript to the latest version using `npm install -g typescript@latest` (**g**lobally installs the latest TypeScript version)
 
 
 

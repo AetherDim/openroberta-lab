@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -27,24 +29,70 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
-define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAssetLoader", "../Random", "../Waypoints/WaypointList"], function (require, exports, RRCScene_1, Unit_1, RRC, Random_1, WaypointList_1) {
+define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAssetLoader", "../Random", "../Waypoints/WaypointList", "../Util"], function (require, exports, RRCScene_1, Unit_1, RRC, Random_1, WaypointList_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TestScene2 = void 0;
     var TestScene2 = /** @class */ (function (_super) {
         __extends(TestScene2, _super);
-        function TestScene2() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
+        function TestScene2(name, ageGroup) {
+            var _this = _super.call(this, name, ageGroup) || this;
             _this.assets = [
                 RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getAsset(1),
                 RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getAsset(2),
                 RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getAsset(3),
                 RRC.RAINBOW_BACKGROUND_HS_SPACE_INVADERS.getAsset(4)
             ].filter(function (asset) { return asset != undefined; });
+            _this.testSensorTypes = ["COLOR", "ULTRASONIC", "TOUCH"];
+            _this._sensorTypes = __spreadArray(__spreadArray([], __read(_this.testSensorTypes)), [undefined]);
+            _this.useMultiSetCombinations = true;
+            _this.allSensorConfigurations = _this.useMultiSetCombinations ?
+                Util_1.Util.generateMultiSetTuples(_this._sensorTypes, 4).map(function (multiSet) {
+                    return {
+                        1: multiSet[0],
+                        2: multiSet[1],
+                        3: multiSet[2],
+                        4: multiSet[3]
+                    };
+                }) :
+                Util_1.Util.allPropertiesTuples({
+                    1: _this._sensorTypes,
+                    2: _this._sensorTypes,
+                    3: _this._sensorTypes,
+                    4: _this._sensorTypes
+                });
+            _this.configurationIndex = 0;
+            var debug = _this.getDebugGuiStatic();
+            if (debug != undefined) {
+                debug.add(_this, "configurationIndex", 0, _this.allSensorConfigurations.length - 1, 1)
+                    .onChange(function () { return debug.updateDisplay(); })
+                    .onFinishChange(function () { return _this.reset([]); });
+                debug.addUpdatable("configurationIndex: ", function () {
+                    return _this.configurationIndex + "/" + (_this.allSensorConfigurations.length - 1);
+                });
+                debug.addUpdatable("configuration: ", function () {
+                    return JSON.stringify(_this.allSensorConfigurations[_this.configurationIndex], undefined, "\n");
+                });
+                debug.addButton("next", function () {
+                    if (_this.configurationIndex < _this.allSensorConfigurations.length - 1) {
+                        _this.configurationIndex += 1;
+                        debug.updateDisplay();
+                        _this.reset([]);
+                    }
+                });
+                debug.addButton("previous", function () {
+                    if (_this.configurationIndex > 0) {
+                        _this.configurationIndex -= 1;
+                        debug.updateDisplay();
+                        _this.reset([]);
+                    }
+                });
+            }
             return _this;
         }
         TestScene2.prototype.getUnitConverter = function () {
@@ -52,12 +100,14 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
         };
         TestScene2.prototype.onLoadAssets = function (chain) {
             var _a;
-            (_a = RRC.loader).load.apply(_a, __spread([function () { return chain.next(); }], this.assets));
+            (_a = RRC.loader).load.apply(_a, __spreadArray([function () { return chain.next(); }], __read(this.assets)));
         };
         TestScene2.prototype.onInit = function (chain) {
             var _this = this;
             // create dynamic debug gui
             this.initDynamicDebugGui();
+            var robotConfiguration = this.allSensorConfigurations[this.configurationIndex];
+            this.robotManager.configurationManager.setRobotConfigurations([robotConfiguration]);
             var textures = this.assets.map(function (asset) { return RRC.loader.get(asset).texture; });
             textures.forEach(function (texture) {
                 var sprite = new PIXI.Sprite(texture);
@@ -72,7 +122,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
             this.setWaypointList(waypointList);
             this.initRobot({
                 position: { x: 100, y: 400 },
-                rotation: 60
+                rotation: 0
             });
             chain.next();
         };

@@ -6,6 +6,7 @@ import {randomBool, randomWeightedBool} from "../../Random";
 import {Asset} from "../../SharedAssetLoader";
 import {WaypointList} from "../../Waypoints/WaypointList";
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint";
+import {RectEntityOptions} from "../../Entity";
 
 
 export class RRCRainbowScene extends RRCScene {
@@ -249,6 +250,78 @@ export class RRCRainbowScene extends RRCScene {
 
 	]
 
+	readonly obstacleColor: number = 0xff00ff
+
+	readonly obstacleListES_MS = [{
+		x: 285,
+		y: 340,
+		w: 25,
+		h: 40,
+	}, {
+		x: 171,
+		y: 170,
+		w: 40,
+		h: 25,
+
+	}, {
+		x: 750,
+		y: 158,
+		w: 25,
+		h: 40,
+	}, {
+		x: 470,
+		y: 490,
+		w: 40,
+		h: 25,
+	}]
+
+	readonly obstacleListHS = [
+		{
+			x: 288,
+			y: 401,
+			w: 15,
+			h: 20,
+		}, {
+			x: 40,
+			y: 241,
+			w: 15,
+			h: 20,
+		}, {
+			x: 675,
+			y: 263,
+			w: 15,
+			h: 20,
+		}, {
+			x: 462,
+			y: 480,
+			w: 20,
+			h: 15,
+		}, {
+			x: 585,
+			y: 51,
+			w: 15,
+			h: 20,
+		}, {
+			x: 380,
+			y: 120,
+			w: 20,
+			h: 15,
+		}
+	]
+
+
+	getWalls() {
+		switch (this.ageGroup) {
+			case AgeGroup.ES:
+				return this.obstacleListES_MS;
+			case AgeGroup.MS:
+				return this.obstacleListES_MS;
+			case AgeGroup.HS:
+				return this.obstacleListHS;
+		}
+
+	}
+
 	/**
 	 * creates a the Waypoint list in the correct order
 	 */
@@ -359,6 +432,11 @@ export class RRCRainbowScene extends RRCScene {
 		}
 
 		this.sortColour();
+
+		this.getWalls().forEach((wall) => {
+				this.addStaticWallInPixels(wall, {color: this.obstacleColor, strokeColor: this.obstacleColor})
+			}
+		)
 
 		this.addWalls(true);
 

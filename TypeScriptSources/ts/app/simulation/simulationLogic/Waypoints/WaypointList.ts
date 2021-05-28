@@ -11,6 +11,10 @@ export class WaypointList<W extends Waypoint> {
 		this.waypoints = waypoints
 	}
 
+	getWaypoints(): W[] {
+		return this.waypoints
+	}
+
 	/**
 	 * Get the waypoint at `index`
 	 */
@@ -41,7 +45,8 @@ export class WaypointList<W extends Waypoint> {
 	 */
 	appendReversedWaypoints(includingTheLast: boolean = false) {
 		for(var i = this.waypoints.length - 1 + (includingTheLast ? 0 : -1); i >= 0; i--) {
-			this.waypoints.push(this.waypoints[i])
+			// TODO: Find type-safe way to clone an object
+			this.waypoints.push(this.waypoints[i].clone() as W)
 		}
 	}
 

@@ -1,6 +1,7 @@
 import {Robot} from "../../Robot/Robot";
 import {ProgramManager} from "./ProgramManager";
 import {Scene} from "../Scene";
+import { RobotConfigurationManager } from "./RobotConfigurationManager";
 
 
 export class RobotManager {
@@ -27,6 +28,7 @@ export class RobotManager {
     private readonly robots: Array<Robot> = new Array<Robot>();
 
     readonly programManager = new ProgramManager(this);
+    readonly configurationManager = new RobotConfigurationManager(this.robots)
 
     getProgramManager(): ProgramManager {
         return this.programManager;
@@ -42,10 +44,11 @@ export class RobotManager {
     addRobot(robot: Robot) {
         this.robots.push(robot)
         this.scene.getEntityManager().addEntity(robot)
+        this.configurationManager.safeUpdateLastRobot()
     }
 
     getNumberOfRobots(): number {
-        return this.numberOfRobots;
+        return this.robots.length;
     }
 
     updateSensorValueView() {

@@ -2,19 +2,18 @@ import {AsyncChain} from "../../Scene/AsyncChain";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
-import {Body, Vector, World} from "matter-js";
+import {Body, Vector} from "matter-js";
 import {Unit} from "../../Unit";
-import {Scene} from "../../Scene/Scene";
+import {ScoreScene} from "../../Scene/ScoreScene";
 import {PhysicsRectEntity, DrawableEntity, RectEntityOptions} from "../../Entity";
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint"
 import {WaypointList} from "../../Waypoints/WaypointList";
 import {Util} from "../../Util";
-import { DEBUG } from "../../GlobalDebug";
+import { WaypointVisibilityBehavior } from "../../Waypoints/WaypointsManager";
 
-export class RRCScene extends Scene {
+export class RRCScene extends ScoreScene {
 
 	readonly ageGroup: AgeGroup;
-	private addWaypointGraphics = true
 
 	constructor(name: string, ageGroup: AgeGroup) {
 		super(name + " " + ageGroup);
@@ -27,24 +26,29 @@ export class RRCScene extends Scene {
 	 * @param maxDistance The maximum distance in matter units which still reaches the waypoint (default: 50 matter units)
 	 */
 	makeWaypoint(position: Vector, score: number, maxDistance: number = 50): ScoreWaypoint {
-		return new ScoreWaypoint(this.unit, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score)
+		return new ScoreWaypoint(this, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score)
 	}
 
-	setWaypointList(list: WaypointList<ScoreWaypoint>) {
-		if (this.addWaypointGraphics && DEBUG) {
-			for (const waypoint of list.waypoints) {
-				this.addEntity(DrawableEntity.rect(this, waypoint.position.x, waypoint.position.y, waypoint.maxDistance * 2, waypoint.maxDistance * 2, {
-					color: 0xFF0000,
-					alpha: 0.5
-				}))
-			}
-		}
+	setWaypointList(list: WaypointList<ScoreWaypoint>, waypointVisibilityBehavior: WaypointVisibilityBehavior = "showNext") {
 		const t = this
+		this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior
+		
 		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
-			/*t.addToScore(waypoint.score)
+			t.addToScore(waypoint.score)
 			if (idx == list.getLastWaypointIndex()) {
-				t.showScoreScreen(10)
-			}*/
+				//t.showScoreScreen(10)
+			}
+		})
+
+		// add index text graphic to waypoints
+		this.waypointsManager.getWaypoints().forEach((waypoint, index) => {
+			const text = new PIXI.Text(String(index))
+			text.style = new PIXI.TextStyle({ align: 'center' })
+			text.position.x = waypoint.position.x - text.width/2
+			text.position.y = waypoint.position.y - text.height/2
+			text.resolution = 4
+			//text.zIndex = 10000;
+			waypoint.graphics.addChild(text)
 		})
 	}
 
@@ -112,7 +116,7 @@ export class RRCScene extends Scene {
 		}
 	}
 
-	updateScoreText() {
+	//updateScoreText() {
 		/*let text = "Score: " + this.getScore();
 		this.scoreText.text = text;
 		this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
@@ -122,7 +126,7 @@ export class RRCScene extends Scene {
 
 		this.scoreText3.text = text;
 		this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
-	}
+	//}
 
 	getUnitConverter(): Unit {
 		// approx 60px = 20cm

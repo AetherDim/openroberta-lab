@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -26,6 +28,16 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
         }
         RobotSimBehaviour.prototype.getHardwareStateSensors = function () {
             return this.hardwareState.sensors;
+        };
+        /**
+         * Returns the reference angle of the gyro sensor
+         *
+         * @param port port of the gyro sensor
+         * @returns `this.hardwareState["angleReset"][port]`
+         */
+        RobotSimBehaviour.prototype.getGyroReferenceAngle = function (port) {
+            var _a;
+            return (_a = this.hardwareState["angleReset"]) === null || _a === void 0 ? void 0 : _a[port];
         };
         RobotSimBehaviour.prototype.resetCommands = function () {
             this.rotate = undefined;
@@ -94,9 +106,10 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
                             if (resetValue != undefined) {
                                 var value = +v;
                                 value = value - resetValue;
-                                if (value < 0) {
-                                    value = value + 360;
-                                }
+                                // TODO: Maybe use mathematical modulo instead
+                                // if (value < 0) {
+                                // 	value = value + 360;
+                                // }
                                 v = '' + value;
                             }
                         }
@@ -518,17 +531,17 @@ define(["require", "exports", "../interpreter.aRobotBehaviour", "../interpreter.
             this.hardwareState.actions["pin" + pin][mode] = {};
             this.hardwareState.actions["pin" + pin][mode] = value;
         };
-        RobotSimBehaviour.prototype.gyroReset = function (_port) {
+        RobotSimBehaviour.prototype.gyroReset = function (port) {
             var gyro = this.hardwareState.sensors['gyro'];
             if (gyro !== undefined) {
-                var port = gyro[_port];
-                if (port !== undefined) {
-                    var angle = port['angle'];
+                var gyroSensor = gyro[port];
+                if (gyroSensor !== undefined) {
+                    var angle = gyroSensor['angle'];
                     if (angle !== undefined) {
                         if (this.hardwareState['angleReset'] == undefined) {
                             this.hardwareState['angleReset'] = {};
                         }
-                        this.hardwareState['angleReset'][_port] = angle;
+                        this.hardwareState['angleReset'][port] = angle;
                     }
                 }
             }

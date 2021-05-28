@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -238,8 +240,73 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 _this.middleLeftWaypoints,
                 _this.middleRightWaypoint
             ];
+            _this.obstacleColor = 0xff00ff;
+            _this.obstacleListES_MS = [{
+                    x: 285,
+                    y: 340,
+                    w: 25,
+                    h: 40,
+                }, {
+                    x: 171,
+                    y: 170,
+                    w: 40,
+                    h: 25,
+                }, {
+                    x: 750,
+                    y: 158,
+                    w: 25,
+                    h: 40,
+                }, {
+                    x: 470,
+                    y: 490,
+                    w: 40,
+                    h: 25,
+                }];
+            _this.obstacleListHS = [
+                {
+                    x: 288,
+                    y: 401,
+                    w: 15,
+                    h: 20,
+                }, {
+                    x: 40,
+                    y: 241,
+                    w: 15,
+                    h: 20,
+                }, {
+                    x: 675,
+                    y: 263,
+                    w: 15,
+                    h: 20,
+                }, {
+                    x: 462,
+                    y: 480,
+                    w: 20,
+                    h: 15,
+                }, {
+                    x: 585,
+                    y: 51,
+                    w: 15,
+                    h: 20,
+                }, {
+                    x: 380,
+                    y: 120,
+                    w: 20,
+                    h: 15,
+                }
+            ];
             return _this;
         }
+        RRCRainbowScene.prototype.getWalls = function () {
+            switch (this.ageGroup) {
+                case AgeGroup_1.AgeGroup.ES:
+                    return this.obstacleListES_MS;
+                case AgeGroup_1.AgeGroup.MS:
+                    return this.obstacleListES_MS;
+                case AgeGroup_1.AgeGroup.HS:
+                    return this.obstacleListHS;
+            }
+        };
         /**
          * creates a the Waypoint list in the correct order
          */
@@ -328,6 +395,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             }, this.backgroundAsset);
         };
         RRCRainbowScene.prototype.onInit = function (chain) {
+            var _this = this;
             this.initRobot({ position: { x: 402, y: 270 }, rotation: -90 });
             var containers = this.getContainers();
             if (this.backgroundAsset) {
@@ -336,6 +404,9 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 containers.groundContainer.addChild(this.goalSprite);
             }
             this.sortColour();
+            this.getWalls().forEach(function (wall) {
+                _this.addStaticWallInPixels(wall, { color: _this.obstacleColor, strokeColor: _this.obstacleColor });
+            });
             this.addWalls(true);
             chain.next();
         };
