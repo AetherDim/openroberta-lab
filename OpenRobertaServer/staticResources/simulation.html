@@ -50,9 +50,7 @@ limitations under the License.
 
     <!-- Make sure css files are loaded before js files -->
     <script data-main="js/imports" src="js/require.js"></script>
-    <script>
-        require(["simMain"])
-    </script>
+    <body onload="require(['simMain']);"></body>
 
     <link rel="manifest" href="manifest.webapp.json"></link>
 
