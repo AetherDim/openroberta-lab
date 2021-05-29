@@ -55,7 +55,8 @@ export class SceneRender {
 				backgroundColor: rgbToNumber(backgroundColor),
 				antialias: true,
 				resizeTo: resizeTo || undefined,
-				resolution: window.devicePixelRatio || 0.75, // same as ScrollView.getPixelRatio()
+				autoDensity: true,
+				resolution: Util.getPixelRatio(),
 			}
 		);
 
@@ -82,8 +83,8 @@ export class SceneRender {
 				this.scene.renderTick(dt);
 
 				if(this.resizeTo && (
-					this.app.view.clientWidth != Util.getPixelRatio()*this.resizeTo.clientWidth ||
-					this.app.view.clientHeight != Util.getPixelRatio()*this.resizeTo.clientHeight
+					this.app.view.clientWidth != this.resizeTo.clientWidth ||
+					this.app.view.clientHeight != this.resizeTo.clientHeight
 					)) {
 
 					//resize = true
@@ -106,9 +107,8 @@ export class SceneRender {
 	}
 
 	private onResize(oldWidth: number, oldHeight: number) {
-		const pixelRatio = Util.getPixelRatio()
-		this.scrollView.x += (this.app.renderer.screen.width-oldWidth) / 2 / pixelRatio
-		this.scrollView.y += (this.app.renderer.screen.height-oldHeight) / 2 / pixelRatio
+		this.scrollView.x += (this.app.renderer.screen.width-oldWidth) / 2 
+		this.scrollView.y += (this.app.renderer.screen.height-oldHeight) / 2
 
 
 		const zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize)/Math.max(oldWidth, this.scrollView.minScreenSize)

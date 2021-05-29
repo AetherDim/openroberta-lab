@@ -439,7 +439,7 @@ export class ScrollView extends PIXI.Container {
 	 */
 	invertZoom = false;
 
-	public minScreenSize = 400 / Util.getPixelRatio()
+	public minScreenSize = 400
 
 
 
@@ -482,18 +482,16 @@ export class ScrollView extends PIXI.Container {
 	resetCentered(x: number, y: number, width: number, height: number) {
 
 		const screen = this.renderer.screen
-		const pixelRatio = Util.getPixelRatio()
-		const initialZoom = 1 / pixelRatio
 
-		let xp = (screen.width / 2 - (x + width / 2)) / pixelRatio
-		let yp = (screen.height / 2 - (y + height / 2)) / pixelRatio
+		let xp = screen.width / 2 - (x + width / 2)
+		let yp = screen.height / 2 - (y + height / 2)
 
 		if(isNaN(xp) || isNaN(yp)) {
 			xp = 0
 			yp = 0
 		}
 
-		this.setTransform(xp, yp, initialZoom, initialZoom, 0, 0, 0, 0, 0);
+		this.setTransform(xp, yp, 1, 1, 0, 0, 0, 0, 0);
 
 
 		if(screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
@@ -519,7 +517,7 @@ export class ScrollView extends PIXI.Container {
 	}
 	
 	reset() {
-		const initialZoom = 1 / Util.getPixelRatio()
+		const initialZoom = 1
 		this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
 
 		// to fix any touch/mouse issues
@@ -565,8 +563,7 @@ export class ScrollView extends PIXI.Container {
 	}
 
 	public zoomCenter(delta: number) {
-		const ratio = Util.getPixelRatio()
-		this.zoom(delta, {x: this.renderer.screen.width/2/ratio, y: this.renderer.screen.height/2/ratio})
+		this.zoom(delta, {x: this.renderer.screen.width/2, y: this.renderer.screen.height/2})
 	}
 
 
@@ -826,8 +823,6 @@ export class ScrollView extends PIXI.Container {
 	private onWheel(ev: WheelEvent) {
 		//console.log('wheel');
 
-		let pixelRatio = Util.getPixelRatio(); 
-
 		let data: EventData;
 
 		if (ev.type == "wheel") {
@@ -839,8 +834,8 @@ export class ScrollView extends PIXI.Container {
 			// calculate mouse position
 			let rect = this.renderer.view.getBoundingClientRect();
 			data.setNewPosition({
-				x: (ev.clientX - rect.x) / pixelRatio,
-				y: (ev.clientY - rect.y) / pixelRatio
+				x: (ev.clientX - rect.x),
+				y: (ev.clientY - rect.y)
 			});
 		
 			// this should not work with safari mobile
@@ -859,9 +854,9 @@ export class ScrollView extends PIXI.Container {
 				case WheelEvent.DOM_DELTA_LINE:
 					// for old firefox
 					if(ev.ctrlKey) { // 12 for default text height
-						zoomFactor = Math.exp(delta * 12 / pixelRatio / -50); // -50 is good feeling magic number
+						zoomFactor = Math.exp(delta * 12 / -50); // -50 is good feeling magic number
 					} else {
-						zoomFactor = Math.exp(delta * 12 / pixelRatio / 150); // 150 is good feeling magic number
+						zoomFactor = Math.exp(delta * 12 / 150); // 150 is good feeling magic number
 					}
 					break;
 				case WheelEvent.DOM_DELTA_PAGE:
@@ -869,9 +864,9 @@ export class ScrollView extends PIXI.Container {
 					break;
 				case WheelEvent.DOM_DELTA_PIXEL:
 						if(ev.ctrlKey) {
-							zoomFactor = Math.exp(delta / pixelRatio / -50); // -50 is good feeling magic number
+							zoomFactor = Math.exp(delta / -50); // -50 is good feeling magic number
 						} else {
-							zoomFactor = Math.exp(delta / pixelRatio / 150); // 150 is good feeling magic number
+							zoomFactor = Math.exp(delta / 150); // 150 is good feeling magic number
 						}
 					break;
 			
@@ -917,13 +912,11 @@ export class ScrollView extends PIXI.Container {
 
 			if(this.lastTouchDistance > 0) {
 
-				const pixelRatio = Util.getPixelRatio()
-
 				// calculate distance change between fingers
 				const delta = e.scale / this.lastTouchDistance
 				this.mouseEventData.delta = {x: delta, y: 0};
 				if (this.browser.isTouchSafari()) {
-					this.mouseEventData.setNewPosition({x: e.layerX / pixelRatio, y: e.layerY / pixelRatio })
+					this.mouseEventData.setNewPosition({x: e.layerX, y: e.layerY })
 				}
 	
 				this.lastTouchDistance = <number>e.scale;
