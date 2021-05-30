@@ -13,125 +13,10 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/RobotTester", "../Unit", "../Util", "./Scene"], function (require, exports, GlobalDebug_1, Robot_1, RobotTester_1, Unit_1, Util_1, Scene_1) {
+define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/RobotProgramGenerator", "../Robot/RobotTester", "../Unit", "../Util", "./Scene"], function (require, exports, GlobalDebug_1, Robot_1, RobotProgramGenerator_1, RobotTester_1, Unit_1, Util_1, Scene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TestScene3 = void 0;
-    function constructProgram(operations) {
-        return {
-            javaScriptProgram: JSON.stringify({ "ops": Util_1.Util.flattenArray(operations) }, undefined, "\t")
-        };
-    }
-    /**
-     * @param speed from 0 to 100 (in %)
-     * @param distance in meters
-     */
-    function driveForwardProgram(speed, distance) {
-        var uuidExpr1 = Util_1.Util.genUid();
-        var uuidExpr2 = Util_1.Util.genUid();
-        var uuidDriveAction = Util_1.Util.genUid();
-        return [
-            {
-                "opc": "expr",
-                "expr": "NUM_CONST",
-                "+": [
-                    uuidExpr1
-                ],
-                // speed
-                "value": speed.toString()
-            },
-            {
-                "opc": "expr",
-                "expr": "NUM_CONST",
-                "+": [
-                    uuidExpr2
-                ],
-                "-": [
-                    uuidExpr1
-                ],
-                // distance
-                "value": (distance * 100).toString()
-            },
-            {
-                "opc": "DriveAction",
-                "speedOnly": false,
-                "SetTime": false,
-                "name": "ev3",
-                "+": [
-                    uuidDriveAction
-                ],
-                // forward/backward
-                "driveDirection": "FOREWARD",
-                "-": [
-                    uuidExpr2
-                ]
-            },
-            {
-                "opc": "stopDrive",
-                "name": "ev3"
-            },
-            {
-                "opc": "stop",
-                "-": [
-                    uuidDriveAction
-                ]
-            }
-        ];
-    }
-    /**
-     * @param speed from 0 to 100 (in %)
-     * @param angle in degree
-     */
-    function rotateProgram(speed, angle, right) {
-        var uuidExpr1 = Util_1.Util.genUid();
-        var uuidExpr2 = Util_1.Util.genUid();
-        var uuidRotateAction = Util_1.Util.genUid();
-        var dir = right ? 'right' : 'left';
-        return [
-            {
-                "opc": "expr",
-                "expr": "NUM_CONST",
-                "+": [
-                    uuidExpr1
-                ],
-                "value": speed.toString()
-            },
-            {
-                "opc": "expr",
-                "expr": "NUM_CONST",
-                "+": [
-                    uuidExpr2
-                ],
-                "-": [
-                    uuidExpr1
-                ],
-                "value": angle.toString()
-            },
-            {
-                "opc": "TurnAction",
-                "speedOnly": false,
-                "turnDirection": dir,
-                "SetTime": false,
-                "name": "ev3",
-                "+": [
-                    uuidRotateAction
-                ],
-                "-": [
-                    uuidExpr2
-                ]
-            },
-            {
-                "opc": "stopDrive",
-                "name": "ev3"
-            },
-            {
-                "opc": "stop",
-                "-": [
-                    uuidRotateAction
-                ]
-            }
-        ];
-    }
     var KeyData = /** @class */ (function () {
         function KeyData() {
             // (0.05, 0.5, 0.05)
@@ -298,9 +183,9 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                     }
                 });
                 var programs = [
-                    constructProgram([
-                        // driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-                        rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
+                    RobotProgramGenerator_1.RobotProgramGenerator.generateProgram([
+                        // RobotProgramGenerator.driveForwardOpCodes(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                        RobotProgramGenerator_1.RobotProgramGenerator.rotateOpCodes(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
                     ])
                 ];
                 this.getProgramManager().setPrograms(programs);

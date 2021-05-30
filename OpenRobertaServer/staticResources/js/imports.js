@@ -195,6 +195,7 @@ require.config({
                 'Wheel',
                 'RobotHardwareStateSensors',
                 'BodyHelper',
+                'RobotProgramGenerator',
             ]},
         { 'EventManager' : [
             'EventHandlerList',
