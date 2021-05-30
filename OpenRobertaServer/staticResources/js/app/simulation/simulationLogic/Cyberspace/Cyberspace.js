@@ -163,10 +163,8 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
                 // sets the robot programs and sensor configurations based on 'simulationCache'
                 this.resetScene();
             }
-            else {
-                // always set the programs
-                this.getProgramManager().setPrograms(newSimulationCache.toRobotSetupData().map(function (setup) { return setup.program; }));
-            }
+            // always set the programs
+            this.getProgramManager().setPrograms(newSimulationCache.toRobotSetupData().map(function (setup) { return setup.program; }));
         };
         /* ############################################################################################ */
         /* #################################### ScrollView control #################################### */

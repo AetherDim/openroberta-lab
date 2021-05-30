@@ -191,12 +191,11 @@ export class Cyberspace {
 		if (!newSimulationCache.hasEqualConfiguration(oldCache)) {
 			// sets the robot programs and sensor configurations based on 'simulationCache'
 			this.resetScene()
-		} else {
-			// always set the programs
-			this.getProgramManager().setPrograms(
-				newSimulationCache.toRobotSetupData().map(setup => setup.program)
-			)
 		}
+		// always set the programs
+		this.getProgramManager().setPrograms(
+			newSimulationCache.toRobotSetupData().map(setup => setup.program)
+		)
 	}
 
 
