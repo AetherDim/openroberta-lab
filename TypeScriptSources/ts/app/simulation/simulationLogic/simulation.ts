@@ -15,6 +15,7 @@ import { Cyberspace } from './Cyberspace/Cyberspace';
 import { SceneDescriptor } from './Cyberspace/SceneManager';
 import { BlocklyDebug } from './BlocklyDebug';
 import { UIManager } from './UIManager';
+import { interpreterSimBreakEventHandlers } from "interpreter.jsHelper"
 
 //
 // init all components for a simulation
@@ -28,6 +29,11 @@ cyberspace.eventManager
 	.onStopPrograms(() => UIManager.setProgramRunButton("START"))
 	.onStartSimulation(() => UIManager.setSimulationRunButton("STOP"))
 	.onPauseSimulation(() => UIManager.setSimulationRunButton("START"))
+
+interpreterSimBreakEventHandlers.push(() => {
+	cyberspace.pausePrograms()
+})
+
 
 //
 // register scenes

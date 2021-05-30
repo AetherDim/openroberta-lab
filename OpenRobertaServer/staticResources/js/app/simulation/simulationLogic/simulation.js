@@ -1,4 +1,4 @@
-define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./GlobalDebug", "./Cyberspace/Cyberspace", "./Cyberspace/SceneManager", "./BlocklyDebug", "./UIManager", "./pixijs", "./ExtendedMatter"], function (require, exports, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, GlobalDebug_1, Cyberspace_1, SceneManager_1, BlocklyDebug_1, UIManager_1) {
+define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./GlobalDebug", "./Cyberspace/Cyberspace", "./Cyberspace/SceneManager", "./BlocklyDebug", "./UIManager", "interpreter.jsHelper", "./pixijs", "./ExtendedMatter"], function (require, exports, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, GlobalDebug_1, Cyberspace_1, SceneManager_1, BlocklyDebug_1, UIManager_1, interpreter_jsHelper_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
@@ -13,6 +13,9 @@ define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingSce
         .onStopPrograms(function () { return UIManager_1.UIManager.setProgramRunButton("START"); })
         .onStartSimulation(function () { return UIManager_1.UIManager.setSimulationRunButton("STOP"); })
         .onPauseSimulation(function () { return UIManager_1.UIManager.setSimulationRunButton("START"); });
+    interpreter_jsHelper_1.interpreterSimBreakEventHandlers.push(function () {
+        cyberspace.pausePrograms();
+    });
     //
     // register scenes
     //

@@ -1,4 +1,8 @@
-define(["require", "simulation.simulation", "exports"], function (require, SIM, exports) {
+define(["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getJqueryObject = exports.setSimBreak = exports.getBlockById = exports.interpreterSimBreakEventHandlers = void 0;
+    exports.interpreterSimBreakEventHandlers = [];
     //This file contains function which allow the interpreter to communicate with the simulation.
     function getBlockById(id) {
         var ws = Blockly.getMainWorkspace();
@@ -11,7 +15,7 @@ define(["require", "simulation.simulation", "exports"], function (require, SIM, 
     }
     exports.getBlockById = getBlockById;
     function setSimBreak() {
-        SIM.setPause(true);
+        exports.interpreterSimBreakEventHandlers.forEach(function (handler) { return handler(); });
     }
     exports.setSimBreak = setSimBreak;
     function getJqueryObject(object) {
