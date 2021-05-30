@@ -80,7 +80,7 @@ export class TestScene2 extends RRCScene {
 	}
 
 	onLoadAssets(chain: AsyncChain) {
-		RRC.loader.load(()=>chain.next(),
+		this.loader.load(()=>chain.next(),
 			...this.assets
 		)
 	}
@@ -93,7 +93,7 @@ export class TestScene2 extends RRCScene {
 		const robotConfiguration = this.allSensorConfigurations[this.configurationIndex]
 		this.robotManager.configurationManager.setRobotConfigurations([robotConfiguration])
 
-		const textures = this.assets.map(asset => RRC.loader.get(asset).texture)
+		const textures = this.assets.map(asset => this.loader.get(asset).texture)
 		
 		textures.forEach(texture => {
 			const sprite = new PIXI.Sprite(texture)

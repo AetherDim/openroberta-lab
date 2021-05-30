@@ -20,9 +20,6 @@ class RRCMultiAsset extends MultiAsset {
 	}
 }
 
-
-export const loader = new SharedAssetLoader();
-
 export const BLANK_BACKGROUND = new RRCAsset('blank.svg');
 export const GOAL_BACKGROUND = new RRCAsset('goal.svg');
 

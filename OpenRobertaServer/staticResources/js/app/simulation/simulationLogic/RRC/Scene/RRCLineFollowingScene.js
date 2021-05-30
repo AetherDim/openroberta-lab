@@ -162,7 +162,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             }
         };
         RRCLineFollowingScene.prototype.onLoadAssets = function (chain) {
-            RRC.loader.load(function () {
+            this.loader.load(function () {
                 chain.next();
             }, this.getAsset());
         };
@@ -181,7 +181,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             });
             waypointList.appendReversedWaypoints();
             this.setWaypointList(waypointList);
-            var goal = RRC.loader.get(this.getAsset()).texture;
+            var goal = this.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.getContainers().groundContainer.addChild(this.goalSprite);
             this.addStaticWallInPixels(this.getWall(), { color: this.obstacleColor, strokeColor: this.obstacleColor });

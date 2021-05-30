@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/ScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, ScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/ScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util", "../../SharedAssetLoader"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, ScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1, SharedAssetLoader_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -21,6 +21,7 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
         __extends(RRCScene, _super);
         function RRCScene(name, ageGroup) {
             var _this = _super.call(this, name + " " + ageGroup) || this;
+            _this.loader = new SharedAssetLoader_1.SharedAssetLoader();
             _this.scoreText2 = new PIXI.Text("");
             _this.scoreText3 = new PIXI.Text("");
             _this.scoreTextContainer = new PIXI.Container();
@@ -58,14 +59,14 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             });
         };
         RRCScene.prototype.loadScoreAssets = function (chain) {
-            RRC.loader.load(function () {
+            this.loader.load(function () {
                 chain.next();
             }, RRC.PROGGY_TINY_FONT, RRC.GOAL_BACKGROUND);
         };
         RRCScene.prototype.initScoreContainer = function (chain) {
             /*this.scoreContainer.zIndex = this.scoreContainerZ;
     
-            let goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
+            let goal = this.loader.get(RRC.GOAL_BACKGROUND).texture;
             this.goalSprite = new PIXI.Sprite(goal);
     
             this.scoreContainer.addChild(this.goalSprite);

@@ -542,7 +542,7 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
             });
         };
         RRCLabyrinthScene.prototype.onLoadAssets = function (chain) {
-            RRC.loader.load(function () {
+            this.loader.load(function () {
                 chain.next();
             }, this.getAsset());
         };
@@ -559,7 +559,7 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
         RRCLabyrinthScene.prototype.onInit = function (chain) {
             var _this = this;
             this.initRobot({ position: { x: 752, y: 490 }, rotation: -90 });
-            var goal = RRC.loader.get(this.getAsset()).texture;
+            var goal = this.loader.get(this.getAsset()).texture;
             this.goalSprite = new PIXI.Sprite(goal);
             this.getContainers().groundContainer.addChild(this.goalSprite);
             switch (this.ageGroup) {

@@ -390,7 +390,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
         };
         RRCRainbowScene.prototype.onLoadAssets = function (chain) {
             this.backgroundAsset = this.getAsset();
-            RRC.loader.load(function () {
+            this.loader.load(function () {
                 chain.next();
             }, this.backgroundAsset);
         };
@@ -399,7 +399,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             this.initRobot({ position: { x: 402, y: 270 }, rotation: -90 });
             var containers = this.getContainers();
             if (this.backgroundAsset) {
-                var goal = RRC.loader.get(this.backgroundAsset).texture;
+                var goal = this.loader.get(this.backgroundAsset).texture;
                 this.goalSprite = new PIXI.Sprite(goal);
                 containers.groundContainer.addChild(this.goalSprite);
             }

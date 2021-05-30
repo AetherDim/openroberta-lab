@@ -161,7 +161,7 @@ export class RRCLineFollowingScene extends RRCScene {
 
 
 	onLoadAssets(chain: AsyncChain) {
-		RRC.loader.load(() => {
+		this.loader.load(() => {
 			chain.next();
 		},
 			this.getAsset()
@@ -188,7 +188,7 @@ export class RRCLineFollowingScene extends RRCScene {
 
 		this.setWaypointList(waypointList)
 
-		let goal = RRC.loader.get(this.getAsset()).texture;
+		let goal = this.loader.get(this.getAsset()).texture;
 		this.goalSprite = new PIXI.Sprite(goal);
 
 		this.getContainers().groundContainer.addChild(this.goalSprite);

@@ -413,7 +413,7 @@ export class RRCRainbowScene extends RRCScene {
 
 	onLoadAssets(chain: AsyncChain) {
 		this.backgroundAsset = this.getAsset();
-		RRC.loader.load(() => {
+		this.loader.load(() => {
 				chain.next();
 			},
 			this.backgroundAsset
@@ -426,7 +426,7 @@ export class RRCRainbowScene extends RRCScene {
 		const containers = this.getContainers()
 
 		if (this.backgroundAsset) {
-			let goal = RRC.loader.get(this.backgroundAsset).texture;
+			let goal = this.loader.get(this.backgroundAsset).texture;
 			this.goalSprite = new PIXI.Sprite(goal);
 			containers.groundContainer.addChild(this.goalSprite);
 		}

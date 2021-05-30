@@ -10,9 +10,11 @@ import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint"
 import {WaypointList} from "../../Waypoints/WaypointList";
 import {Util} from "../../Util";
 import { WaypointVisibilityBehavior } from "../../Waypoints/WaypointsManager";
+import { SharedAssetLoader } from "../../SharedAssetLoader";
 
 export class RRCScene extends ScoreScene {
 
+	readonly loader = new SharedAssetLoader();
 	readonly ageGroup: AgeGroup;
 
 	constructor(name: string, ageGroup: AgeGroup) {
@@ -54,7 +56,7 @@ export class RRCScene extends ScoreScene {
 
 
 	loadScoreAssets(chain: AsyncChain) {
-		RRC.loader.load(() => {
+		this.loader.load(() => {
 				chain.next();
 			},
 			RRC.PROGGY_TINY_FONT,
@@ -71,7 +73,7 @@ export class RRCScene extends ScoreScene {
 	initScoreContainer(chain: AsyncChain) {
 		/*this.scoreContainer.zIndex = this.scoreContainerZ;
 
-		let goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
+		let goal = this.loader.get(RRC.GOAL_BACKGROUND).texture;
 		this.goalSprite = new PIXI.Sprite(goal);
 
 		this.scoreContainer.addChild(this.goalSprite);

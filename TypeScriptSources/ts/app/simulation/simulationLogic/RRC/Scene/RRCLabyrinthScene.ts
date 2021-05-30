@@ -544,7 +544,7 @@ export class RRCLabyrinthScene extends RRCScene {
 	}
 
 	onLoadAssets(chain: AsyncChain) {
-		RRC.loader.load(() => {
+		this.loader.load(() => {
 			chain.next();
 		},
 			this.getAsset()
@@ -568,7 +568,7 @@ export class RRCLabyrinthScene extends RRCScene {
 
 		this.initRobot({position: {x: 752, y: 490}, rotation: -90});
 
-		let goal = RRC.loader.get(this.getAsset()).texture;
+		let goal = this.loader.get(this.getAsset()).texture;
 		this.goalSprite = new PIXI.Sprite(goal);
 
 		this.getContainers().groundContainer.addChild(this.goalSprite);
