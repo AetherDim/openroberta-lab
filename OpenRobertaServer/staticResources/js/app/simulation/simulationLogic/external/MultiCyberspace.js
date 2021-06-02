@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "../Cyberspace/Cyberspace", "../Cyberspace/SceneManager", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../RRC/AgeGroup", "../RRC/Scene/RRCLineFollowingScene", "../Scene/TestScene", "../Scene/TestScene2", "../Scene/TestScene3", "../Util"], function (require, exports, Cyberspace_1, SceneManager_1, GlobalDebug_1, RobotProgramGenerator_1, AgeGroup_1, RRCLineFollowingScene_1, TestScene_1, TestScene2_1, TestScene3_1, Util_1) {
+define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../Util", "./SceneDesciptorList"], function (require, exports, Cyberspace_1, GlobalDebug_1, RobotProgramGenerator_1, Util_1, SceneDesciptorList_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.init = void 0;
@@ -34,19 +34,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../Cyberspace/SceneMa
     multiCyberspaceDiv.style.height = "100%";
     simDiv.appendChild(multiCyberspaceDiv);
     //simDiv.style.backgroundColor = "black"
-    var sceneDescriptors = [
-        //
-        // Test
-        //
-        new SceneManager_1.SceneDescriptor('Test Scene', 'Test scene with all sim features', function (descriptor) {
-            return new TestScene_1.TestScene(descriptor.name);
-        }),
-        new SceneManager_1.SceneDescriptor("Test Scene 2", "Test scene for testing different sensor configurations", function (descriptor) { return new TestScene2_1.TestScene2(descriptor.name, AgeGroup_1.AgeGroup.ES); }),
-        new SceneManager_1.SceneDescriptor("Test Scene 3", "Test scene for generating calibration data for the robot", function (descriptor) { return new TestScene3_1.TestScene3(); }),
-        new SceneManager_1.SceneDescriptor('RRC - Line Following - ES', 'Roborave Cyberspace line following ES', function (descriptor) {
-            return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-        }),
-    ];
+    var sceneDescriptors = SceneDesciptorList_1.cyberspaceScenes;
     var CyberspaceData = /** @class */ (function () {
         function CyberspaceData(cyberspace, divElement) {
             this.cyberspace = cyberspace;

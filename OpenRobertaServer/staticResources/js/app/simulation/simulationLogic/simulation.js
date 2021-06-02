@@ -1,4 +1,25 @@
-define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingScene", "./Scene/Scene", "./Scene/TestScene", "./Scene/TestScene2", "./RRC/Scene/RRCRainbowScene", "./RRC/Scene/RRCScene", "./RRC/Scene/RRCLabyrinthScene", "./Scene/TestScene3", "./GlobalDebug", "./Cyberspace/Cyberspace", "./Cyberspace/SceneManager", "./BlocklyDebug", "./UIManager", "interpreter.jsHelper", "./pixijs", "./ExtendedMatter"], function (require, exports, AgeGroup_1, RRCLineFollowingScene_1, Scene_1, TestScene_1, TestScene2_1, RRCRainbowScene_1, RRCScene_1, RRCLabyrinthScene_1, TestScene3_1, GlobalDebug_1, Cyberspace_1, SceneManager_1, BlocklyDebug_1, UIManager_1, interpreter_jsHelper_1) {
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
+};
+define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyberspace", "./BlocklyDebug", "./UIManager", "interpreter.jsHelper", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneDesciptorList_1, Cyberspace_1, BlocklyDebug_1, UIManager_1, interpreter_jsHelper_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
@@ -16,52 +37,7 @@ define(["require", "exports", "./RRC/AgeGroup", "./RRC/Scene/RRCLineFollowingSce
     interpreter_jsHelper_1.interpreterSimBreakEventHandlers.push(function () {
         cyberspace.pausePrograms();
     });
-    //
-    // register scenes
-    //
-    if (GlobalDebug_1.DEBUG)
-        sceneManager.registerScene(
-        //
-        // Test
-        //
-        new SceneManager_1.SceneDescriptor('Test Scene', 'Test scene with all sim features', function (descriptor) {
-            return new TestScene_1.TestScene(descriptor.name);
-        }), new SceneManager_1.SceneDescriptor("Test Scene 2", "Test scene for testing different sensor configurations", function (descriptor) { return new TestScene2_1.TestScene2(descriptor.name, AgeGroup_1.AgeGroup.ES); }), new SceneManager_1.SceneDescriptor("Test Scene 3", "Test scene for generating calibration data for the robot", function (descriptor) { return new TestScene3_1.TestScene3(); }), new SceneManager_1.SceneDescriptor('Empty Scene', 'Empty Scene', function (descriptor) {
-            return new Scene_1.Scene(descriptor.name);
-        }), new SceneManager_1.SceneDescriptor('RRC - Test Scene', 'Roborave Cyberspace Test', function (descriptor) {
-            return new RRCScene_1.RRCScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-        }));
-    sceneManager.registerScene(
-    //
-    //  Line Following
-    //
-    new SceneManager_1.SceneDescriptor('RRC - Line Following - ES', 'Roborave Cyberspace line following ES', function (descriptor) {
-        return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }), new SceneManager_1.SceneDescriptor('RRC - Line Following - MS', 'Roborave Cyberspace line following MS', function (descriptor) {
-        return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }), new SceneManager_1.SceneDescriptor('RRC - Line Following - HS', 'Roborave Cyberspace line following HS', function (descriptor) {
-        return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
-    }), 
-    //
-    // Labyrinth
-    //
-    new SceneManager_1.SceneDescriptor('RRC - Labyrinth - ES', 'Roborave Cyberspace Labyrinth ES', function (descriptor) {
-        return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - MS', 'Roborave Cyberspace Labyrinth MS', function (descriptor) {
-        return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - HS', 'Roborave Cyberspace Labyrinth HS', function (descriptor) {
-        return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
-    }), 
-    //
-    // Rainbow
-    //
-    new SceneManager_1.SceneDescriptor('RRC - Rainbow - ES', 'Roborave Cyberspace Rainbow ES', function (descriptor) {
-        return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }), new SceneManager_1.SceneDescriptor('RRC - Rainbow - MS', 'Roborave Cyberspace Rainbow MS', function (descriptor) {
-        return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }), new SceneManager_1.SceneDescriptor('RRC - Rainbow - HS', 'Roborave Cyberspace Rainbow HS', function (descriptor) {
-        return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
-    }));
+    sceneManager.registerScene.apply(sceneManager, __spreadArray([], __read(SceneDesciptorList_1.cyberspaceScenes)));
     // switch to first scene
     cyberspace.switchToNextScene(true);
     /**

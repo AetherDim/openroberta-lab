@@ -10,6 +10,7 @@ import { TestScene } from "../Scene/TestScene"
 import { TestScene2 } from "../Scene/TestScene2"
 import { TestScene3 } from "../Scene/TestScene3"
 import { Util } from "../Util"
+import { cyberspaceScenes } from "./SceneDesciptorList"
 
 
 const cyberspaces: Cyberspace[] = []
@@ -26,37 +27,7 @@ multiCyberspaceDiv.style.height = "100%"
 simDiv.appendChild(multiCyberspaceDiv)
 
 //simDiv.style.backgroundColor = "black"
-const sceneDescriptors = [
-	//
-	// Test
-	//
-
-	new SceneDescriptor(
-		'Test Scene',
-		'Test scene with all sim features',
-		(descriptor) => {
-			return new TestScene(descriptor.name);
-		}
-	),
-
-	new SceneDescriptor(
-		"Test Scene 2", "Test scene for testing different sensor configurations",
-		(descriptor) => new TestScene2(descriptor.name, AgeGroup.ES)
-	),
-
-	new SceneDescriptor(
-		"Test Scene 3", "Test scene for generating calibration data for the robot",
-		(descriptor) => new TestScene3()
-	),
-
-	new SceneDescriptor(
-		'RRC - Line Following - ES',
-		'Roborave Cyberspace line following ES',
-		(descriptor) => {
-			return new RRCLineFollowingScene(descriptor.name, AgeGroup.ES);
-		}
-	),
-]
+const sceneDescriptors = cyberspaceScenes
 
 class CyberspaceData {
 	cyberspace: Cyberspace

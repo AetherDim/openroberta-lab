@@ -7,10 +7,16 @@ export class SceneDescriptor {
 	readonly ID: string
 	private readonly _createScene: (descriptor: SceneDescriptor) => Scene
 
-	constructor(name: string, description: string, createScene: (descriptor: SceneDescriptor) => Scene) {
+	constructor(name: string, description: string, createScene: (descriptor: SceneDescriptor) => Scene, ID:string|undefined=undefined) {
 		this.name = name
 		this.description = description
-		this.ID = Util.genHtmlUid2()
+
+		if(ID) {
+			this.ID = ID
+		} else {
+			this.ID = Util.genHtmlUid2()
+		}
+		
 		this._createScene = createScene
 	}
 

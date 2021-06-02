@@ -3,10 +3,16 @@ define(["require", "exports", "../Util"], function (require, exports, Util_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SceneManager = exports.SceneDescriptor = void 0;
     var SceneDescriptor = /** @class */ (function () {
-        function SceneDescriptor(name, description, createScene) {
+        function SceneDescriptor(name, description, createScene, ID) {
+            if (ID === void 0) { ID = undefined; }
             this.name = name;
             this.description = description;
-            this.ID = Util_1.Util.genHtmlUid2();
+            if (ID) {
+                this.ID = ID;
+            }
+            else {
+                this.ID = Util_1.Util.genHtmlUid2();
+            }
             this._createScene = createScene;
         }
         SceneDescriptor.prototype.createScene = function () {
