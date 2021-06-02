@@ -102,6 +102,11 @@ export class SceneRender {
 		initGlobalSceneDebug(this)
 	}
 
+	destroy() {
+		this.app.stop()
+		this.scene.destroy()
+	}
+
 	onSwitchScene(onSwitchSceneHandler: (scene: Scene) => void) {
 		this.onSwitchSceneEventHandler.push(onSwitchSceneHandler)
 	}

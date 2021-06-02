@@ -66,6 +66,10 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
             //this.app.ticker.maxFPS = 30
             GlobalDebug_1.initGlobalSceneDebug(this);
         }
+        SceneRender.prototype.destroy = function () {
+            this.app.stop();
+            this.scene.destroy();
+        };
         SceneRender.prototype.onSwitchScene = function (onSwitchSceneHandler) {
             this.onSwitchSceneEventHandler.push(onSwitchSceneHandler);
         };

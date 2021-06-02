@@ -26,6 +26,11 @@ export class SceneManager {
 	private currentID?: string
     public disableSceneCache: boolean = false
 
+	destroy() {
+		Array.from(this.sceneMap.values()).forEach(scene => scene.destroy())
+		this.sceneMap.clear()
+	}
+
 	getScene(ID: string) {
 		let scene = this.sceneMap.get(ID)
         if(this.disableSceneCache) {

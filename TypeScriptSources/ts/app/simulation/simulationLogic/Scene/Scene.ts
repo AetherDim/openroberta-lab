@@ -558,6 +558,14 @@ export class Scene {
 	// #############################################################################
 	//
 
+	destroy() {
+		this.simTicker.stop()
+	}
+
+	//
+	// #############################################################################
+	//
+
 	private mouseConstraint?: Constraint
 
 	interactionEvent(ev: ScrollViewEvent) {

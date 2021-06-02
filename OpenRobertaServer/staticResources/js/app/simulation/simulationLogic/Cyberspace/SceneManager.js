@@ -21,6 +21,10 @@ define(["require", "exports", "../Util"], function (require, exports, Util_1) {
             this.sceneMap = new Map();
             this.disableSceneCache = false;
         }
+        SceneManager.prototype.destroy = function () {
+            Array.from(this.sceneMap.values()).forEach(function (scene) { return scene.destroy(); });
+            this.sceneMap.clear();
+        };
         SceneManager.prototype.getScene = function (ID) {
             var scene = this.sceneMap.get(ID);
             if (this.disableSceneCache) {

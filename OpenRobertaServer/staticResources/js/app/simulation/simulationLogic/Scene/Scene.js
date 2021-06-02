@@ -423,6 +423,12 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             this.getRobotManager().updateSensorValueView();
             this.onRenderTick(dt);
         };
+        //
+        // #############################################################################
+        //
+        Scene.prototype.destroy = function () {
+            this.simTicker.stop();
+        };
         Scene.prototype.interactionEvent = function (ev) {
             switch (ev.type) {
                 case ScrollView_1.EventType.PRESS:

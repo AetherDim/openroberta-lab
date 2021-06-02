@@ -48,6 +48,10 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
             var t = this;
             this.renderer.onSwitchScene(function (scene) { return t.resetEventHandlersOfScene(scene); });
         }
+        Cyberspace.prototype.destroy = function () {
+            this.sceneManager.destroy();
+            this.renderer.destroy();
+        };
         /* ############################################################################################ */
         /* ####################################### Scene control ###################################### */
         /* ############################################################################################ */

@@ -27,6 +27,12 @@ export class BlocklyDebug {
 		this.startBlocklyUpdate()
 	}
 
+	destroy() {
+		this.blocklyTicker.stop()
+		// TODO: Do we need/want this?
+		this.cyberspace.destroy()
+	}
+
 	private removeBreakPoint(block: Blockly.Block) {
 		this.cyberspace.getProgramManager().removeBreakpoint(block.id)
 	}

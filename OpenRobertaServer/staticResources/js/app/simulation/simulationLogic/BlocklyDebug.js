@@ -23,6 +23,11 @@ define(["require", "exports", "blockly", "./Timer"], function (require, exports,
             });
             this.startBlocklyUpdate();
         }
+        BlocklyDebug.prototype.destroy = function () {
+            this.blocklyTicker.stop();
+            // TODO: Do we need/want this?
+            this.cyberspace.destroy();
+        };
         BlocklyDebug.prototype.removeBreakPoint = function (block) {
             this.cyberspace.getProgramManager().removeBreakpoint(block.id);
         };

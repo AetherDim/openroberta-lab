@@ -39,6 +39,11 @@ export class Cyberspace {
 		this.renderer.onSwitchScene(scene => t.resetEventHandlersOfScene(scene))
 	}
 
+	destroy() {
+		this.sceneManager.destroy()
+		this.renderer.destroy()
+	}
+
 	/* ############################################################################################ */
 	/* ####################################### Scene control ###################################### */
 	/* ############################################################################################ */
