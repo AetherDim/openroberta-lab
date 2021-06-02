@@ -221,7 +221,10 @@ require.config({
                         "Cyberspace",
                         "SceneManager",
                         "SimulationCache",
-                    ]}
+                    ]},
+        { "external": [
+            "MultiCyberspace",
+        ]}
     ]),
     shim: {
         'bootstrap': {

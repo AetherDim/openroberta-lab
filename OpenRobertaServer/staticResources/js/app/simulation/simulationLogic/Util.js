@@ -208,6 +208,51 @@ define(["require", "exports"], function (require, exports) {
                 array.push(otherArray[i]);
             }
         };
+        Util.map2D = function (array, mapping) {
+            return array.map(function (subArray) { return subArray.map(mapping); });
+        };
+        Util.reshape1Dto2D = function (array, maxSubArrayLength) {
+            var newArray = [];
+            var temp = [];
+            var length = array.length;
+            for (var i = 0; i < length; i++) {
+                var element = array[i];
+                if (temp.length < maxSubArrayLength) {
+                    temp.push(element);
+                }
+                else {
+                    newArray.push(temp);
+                    temp = [element];
+                }
+            }
+            if (temp.length > 0) {
+                newArray.push(temp);
+            }
+            return newArray;
+        };
+        Util.reshape2D = function (array, maxSubArrayLength) {
+            var newArray = [];
+            var temp = [];
+            var l1 = array.length;
+            for (var i = 0; i < l1; i++) {
+                var subArray = array[i];
+                var l2 = subArray.length;
+                for (var j = 0; j < l2; j++) {
+                    var element = subArray[j];
+                    if (temp.length < maxSubArrayLength) {
+                        temp.push(element);
+                    }
+                    else {
+                        newArray.push(temp);
+                        temp = [element];
+                    }
+                }
+            }
+            if (temp.length > 0) {
+                newArray.push(temp);
+            }
+            return newArray;
+        };
         // // unique tuple elements
         // static test<
         // 	N extends Narrowable,

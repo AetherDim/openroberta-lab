@@ -167,6 +167,8 @@ export class Scene {
 	// #############################################################################
 	//
 
+	private finishedLoadingQueue: ((scene: Scene) => void)[] = []
+
 	private currentlyLoading = false;
 	private resourcesLoaded = false;
 	private hasBeenInitialized = false;
@@ -213,7 +215,21 @@ export class Scene {
 
 		console.log('Finished loading!');
 
+		this.finishedLoadingQueue.forEach(func => func(this))
+
 		chain.next(); // technically we don't need this
+	}
+
+	/**
+	 * Runs `func` after the loading is complete.
+	 * If the scene is not loading, then `func` is called directly
+	 */
+	runAfterLoading(func: (scene: Scene) => void) {
+		if (this.isLoadingComplete()) {
+			func(this)
+		} else {
+			this.finishedLoadingQueue.push(func)
+		}
 	}
 
 	isLoadingComplete() {

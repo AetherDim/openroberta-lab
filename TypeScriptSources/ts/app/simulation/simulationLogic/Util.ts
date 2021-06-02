@@ -307,6 +307,52 @@ export class Util {
 		}
 	}
 
+	static map2D<T, U>(array: T[][], mapping: (value: T) => U): U[][] {
+		return array.map(subArray => subArray.map(mapping))
+	}
+	
+	static reshape1Dto2D<T>(array: T[], maxSubArrayLength: number): T[][] {
+		const newArray: T[][] = []
+		let temp: T[] = []
+		const length = array.length
+		for (let i = 0; i < length; i++) {
+			const element = array[i]
+			if (temp.length < maxSubArrayLength) {
+				temp.push(element)
+			} else {
+				newArray.push(temp)
+				temp = [element]
+			}
+		}
+		if (temp.length > 0) {
+			newArray.push(temp)
+		}
+		return newArray
+	}
+
+	static reshape2D<T>(array: T[][], maxSubArrayLength: number): T[][] {
+		const newArray: T[][] = []
+		let temp: T[] = []
+		const l1 = array.length
+		for (let i = 0; i < l1; i++) {
+			const subArray = array[i]
+			const l2 = subArray.length
+			for (let j = 0; j < l2; j++) {
+				const element = subArray[j]
+				if (temp.length < maxSubArrayLength) {
+					temp.push(element)
+				} else {
+					newArray.push(temp)
+					temp = [element]
+				}
+			}
+		}
+		if (temp.length > 0) {
+			newArray.push(temp)
+		}
+		return newArray
+	}
+
 	// // unique tuple elements
 	// static test<
 	// 	N extends Narrowable,

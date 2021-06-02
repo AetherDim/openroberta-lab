@@ -58,6 +58,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             //
             // #############################################################################
             //
+            this.finishedLoadingQueue = [];
             this.currentlyLoading = false;
             this.resourcesLoaded = false;
             this.hasBeenInitialized = false;
@@ -229,7 +230,20 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 this.startSim();
             }
             console.log('Finished loading!');
+            this.finishedLoadingQueue.forEach(function (func) { return func(_this_1); });
             chain.next(); // technically we don't need this
+        };
+        /**
+         * Runs `func` after the loading is complete.
+         * If the scene is not loading, then `func` is called directly
+         */
+        Scene.prototype.runAfterLoading = function (func) {
+            if (this.isLoadingComplete()) {
+                func(this);
+            }
+            else {
+                this.finishedLoadingQueue.push(func);
+            }
         };
         Scene.prototype.isLoadingComplete = function () {
             return this.hasFinishedLoading;
