@@ -19,10 +19,10 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../Util", "./SceneDesciptorList"], function (require, exports, Cyberspace_1, GlobalDebug_1, RobotProgramGenerator_1, Util_1, SceneDesciptorList_1) {
+define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../UIManager", "../Util", "./SceneDesciptorList"], function (require, exports, Cyberspace_1, GlobalDebug_1, RobotProgramGenerator_1, UIManager_1, Util_1, SceneDesciptorList_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.init = void 0;
+    exports.initEvents = exports.init = void 0;
     var cyberspaces = [];
     var simDiv = document.getElementById("simDiv");
     if (simDiv == null) {
@@ -189,4 +189,96 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         });
     }
     exports.init = init;
+    function forEachCyberspace(block) {
+        cyberspaces.forEach(block);
+    }
+    function setPause(pause) {
+        if (pause) {
+            forEachCyberspace(function (c) { return c.pausePrograms(); });
+        }
+        else {
+            forEachCyberspace(function (c) { return c.startPrograms(); });
+        }
+    }
+    // TODO: Remove?
+    function run(refresh, robotType) {
+        console.log("run!");
+    }
+    /**
+     * on stop program
+     */
+    function stopProgram() {
+        forEachCyberspace(function (c) { return c.stopPrograms(); });
+    }
+    /**
+     * Reset robot position and zoom of ScrollView
+     */
+    function resetPose() {
+        forEachCyberspace(function (c) { return c.resetScene(); });
+    }
+    function sim(run) {
+        if (run) {
+            forEachCyberspace(function (c) { return c.startSimulation(); });
+        }
+        else {
+            forEachCyberspace(function (c) { return c.pauseSimulation(); });
+        }
+    }
+    function score(showScore) {
+        if (showScore) {
+            // TODO: show score
+        }
+        else {
+            // TODO: hide score
+        }
+    }
+    function zoomIn() {
+        forEachCyberspace(function (c) { return c.zoomViewIn(); });
+    }
+    function zoomOut() {
+        forEachCyberspace(function (c) { return c.zoomViewOut(); });
+    }
+    function zoomReset() {
+        forEachCyberspace(function (c) { return c.resetView(); });
+    }
+    function setSimSpeed(speedup) {
+        forEachCyberspace(function (c) { return c.setSimulationSpeedupFactor(speedup); });
+    }
+    function setDefaultButtonState() {
+        // do not set 'simSpeedUpButton' since the state will be preserved
+        UIManager_1.UIManager.programControlButton.setState("start");
+        UIManager_1.UIManager.showScoreButton.setState("showScore");
+        UIManager_1.UIManager.physicsSimControlButton.setState("stop");
+    }
+    function initEvents() {
+        setDefaultButtonState();
+        UIManager_1.UIManager.programControlButton.onClick(function (state) {
+            if (state == "start") {
+                // run(true, ...) // cannot get robot type
+                setPause(false);
+            }
+            else {
+                // setPause(true) // not needed
+                stopProgram();
+            }
+        });
+        UIManager_1.UIManager.showScoreButton.onClick(function (state) {
+            return score(state == "showScore");
+        });
+        UIManager_1.UIManager.physicsSimControlButton.onClick(function (state) {
+            return sim(state == "start");
+        });
+        UIManager_1.UIManager.simSpeedUpButton.setState("fastForward");
+        UIManager_1.UIManager.simSpeedUpButton.onClick(function (state) {
+            return setSimSpeed(state == "fastForward" ? 10 : 1);
+        });
+        UIManager_1.UIManager.resetSceneButton.onClick(function () {
+            setDefaultButtonState();
+            resetPose();
+        });
+        UIManager_1.UIManager.zoomOutButton.onClick(zoomOut);
+        UIManager_1.UIManager.zoomInButton.onClick(zoomIn);
+        UIManager_1.UIManager.zoomResetButton.onClick(zoomReset);
+    }
+    exports.initEvents = initEvents;
 });

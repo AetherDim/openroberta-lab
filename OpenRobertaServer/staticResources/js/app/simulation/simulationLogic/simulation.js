@@ -30,10 +30,10 @@ define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyb
     var sceneManager = cyberspace.getSceneManager();
     var blocklyDebugManager = new BlocklyDebug_1.BlocklyDebug(cyberspace);
     cyberspace.eventManager
-        .onStartPrograms(function () { return UIManager_1.UIManager.setProgramRunButton("STOP"); })
-        .onStopPrograms(function () { return UIManager_1.UIManager.setProgramRunButton("START"); })
-        .onStartSimulation(function () { return UIManager_1.UIManager.setSimulationRunButton("STOP"); })
-        .onPauseSimulation(function () { return UIManager_1.UIManager.setSimulationRunButton("START"); });
+        .onStartPrograms(function () { return UIManager_1.UIManager.programControlButton.setState("stop"); })
+        .onStopPrograms(function () { return UIManager_1.UIManager.programControlButton.setState("start"); })
+        .onStartSimulation(function () { return UIManager_1.UIManager.physicsSimControlButton.setState("stop"); })
+        .onPauseSimulation(function () { return UIManager_1.UIManager.physicsSimControlButton.setState("start"); });
     interpreter_jsHelper_1.interpreterSimBreakEventHandlers.push(function () {
         cyberspace.pausePrograms();
     });

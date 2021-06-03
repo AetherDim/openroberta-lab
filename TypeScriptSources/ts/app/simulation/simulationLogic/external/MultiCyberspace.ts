@@ -1,14 +1,9 @@
 import { Cyberspace } from "../Cyberspace/Cyberspace"
-import { SceneDescriptor } from "../Cyberspace/SceneManager"
 import { clearDebugGuiRoot, DebugGuiRoot } from "../GlobalDebug"
 import { RobertaRobotSetupData } from "../Robot/RobertaRobotSetupData"
 import { RobotProgramGenerator } from "../Robot/RobotProgramGenerator"
 import { RobotSetupData } from "../Robot/RobotSetupData"
-import { AgeGroup } from "../RRC/AgeGroup"
-import { RRCLineFollowingScene } from "../RRC/Scene/RRCLineFollowingScene"
-import { TestScene } from "../Scene/TestScene"
-import { TestScene2 } from "../Scene/TestScene2"
-import { TestScene3 } from "../Scene/TestScene3"
+import { UIManager } from "../UIManager"
 import { Util } from "../Util"
 import { cyberspaceScenes } from "./SceneDesciptorList"
 
@@ -211,5 +206,109 @@ export function init(robotSetupDataIDs: number[], secretKey: string) {
 		// TODO
 	})
 
+
+}
+
+function forEachCyberspace(block: (cyberspace: Cyberspace) => void) {
+	cyberspaces.forEach(block)
+}
+
+function setPause(pause: boolean) {
+	if(pause) {
+		forEachCyberspace(c => c.pausePrograms())
+	} else {
+		forEachCyberspace(c => c.startPrograms())
+	}
+}
+
+// TODO: Remove?
+function run(refresh: boolean, robotType: any) {
+	console.log("run!")
+}
+
+/**
+ * on stop program
+ */
+function stopProgram() {
+	forEachCyberspace(c => c.stopPrograms())
+}
+
+/**
+ * Reset robot position and zoom of ScrollView
+ */
+function resetPose() {
+	forEachCyberspace(c => c.resetScene())
+}
+
+function sim(run: boolean) {
+	if(run) {
+		forEachCyberspace(c => c.startSimulation())
+	} else {
+		forEachCyberspace(c => c.pauseSimulation())
+	}
+}
+
+function score(showScore: boolean) {
+	if(showScore) {
+		// TODO: show score
+	} else {
+		// TODO: hide score
+	}
+}
+
+function zoomIn() {
+	forEachCyberspace(c => c.zoomViewIn())
+}
+
+function zoomOut() {
+	forEachCyberspace(c => c.zoomViewOut())
+}
+
+function zoomReset() {
+	forEachCyberspace(c => c.resetView())
+}
+
+function setSimSpeed(speedup: number) {
+	forEachCyberspace(c => c.setSimulationSpeedupFactor(speedup))
+}
+
+function setDefaultButtonState() {
+	// do not set 'simSpeedUpButton' since the state will be preserved
+	UIManager.programControlButton.setState("start")
+	UIManager.showScoreButton.setState("showScore")
+	UIManager.physicsSimControlButton.setState("stop")
+}
+
+export function initEvents() {
+
+	setDefaultButtonState()
+
+	UIManager.programControlButton.onClick(state => {
+		if (state == "start") {
+			// run(true, ...) // cannot get robot type
+			setPause(false)
+		} else {
+			// setPause(true) // not needed
+			stopProgram()
+		}
+	})
+
+	UIManager.showScoreButton.onClick(state =>
+		score(state == "showScore"))
+
+	UIManager.physicsSimControlButton.onClick(state =>
+		sim(state == "start"))
+
+	UIManager.simSpeedUpButton.setState("fastForward")
+	UIManager.simSpeedUpButton.onClick(state =>
+		setSimSpeed(state == "fastForward" ? 10 : 1))
+
+	UIManager.resetSceneButton.onClick(() => {
+		setDefaultButtonState()
+		resetPose()
+	})
+	UIManager.zoomOutButton.onClick(zoomOut)
+	UIManager.zoomInButton.onClick(zoomIn)
+	UIManager.zoomResetButton.onClick(zoomReset)
 
 }

@@ -16,10 +16,10 @@ const sceneManager = cyberspace.getSceneManager()
 const blocklyDebugManager = new BlocklyDebug(cyberspace)
 
 cyberspace.eventManager
-	.onStartPrograms(() => UIManager.setProgramRunButton("STOP"))
-	.onStopPrograms(() => UIManager.setProgramRunButton("START"))
-	.onStartSimulation(() => UIManager.setSimulationRunButton("STOP"))
-	.onPauseSimulation(() => UIManager.setSimulationRunButton("START"))
+	.onStartPrograms(() => UIManager.programControlButton.setState("stop"))
+	.onStopPrograms(() => UIManager.programControlButton.setState("start"))
+	.onStartSimulation(() => UIManager.physicsSimControlButton.setState("stop"))
+	.onPauseSimulation(() => UIManager.physicsSimControlButton.setState("start"))
 
 interpreterSimBreakEventHandlers.push(() => {
 	cyberspace.pausePrograms()

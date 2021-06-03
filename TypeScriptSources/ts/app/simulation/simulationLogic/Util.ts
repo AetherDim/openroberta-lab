@@ -25,6 +25,35 @@ export type ExpandRecursively<T> = T extends object
   ? T extends infer O ? { [K in keyof O]: ExpandRecursively<O[K]> } : never
   : T;
 
+/**
+* Converts a union type e.g. T1 | T2 to a tuple type e.g. [T1, T2]
+* 
+* In the internal comments: `type Id<T> = (t: T) => T`
+*/
+export type UnionToTuple<T> = (
+   (
+	   // union to intersection of functions (convert T1 | T2 to Id<T1> & Id<T2>)
+	   (
+		   // convert T1 | T2 to Id<T1> | Id<T2>
+		   T extends any
+			   ? (t: T) => T
+			   : never
+	   ) extends infer U
+		   ? (// convert Id<T1> | Id<T2> to (Id<T1>) => any | (Id<T2>) => any
+			   U extends any
+			   ? (u: U) => any
+			   : never
+		   ) extends (v: infer V) => any
+			   // convert (Id<T1>) => any | (Id<T2>) => any to Id<T1> & Id<T2>
+			   ? V
+			   : never
+		   // should be never called
+		   : never
+   ) extends (_: any) => infer W
+	   // infer W from Id<T1> & Id<T2> to be T2 and return [...FirstRest, T2] (is this a bug in TypeScript?)
+	   ? [...UnionToTuple<Exclude<T, W>>, W]
+	   : []
+)
 
 export type Equal<T, U> =
 	T extends U

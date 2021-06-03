@@ -110,111 +110,12 @@ function handleQuery() {
     }
 }
 
-function initEvents() {
-    $('#simControl').onWrap('click', function(event) {
-
-        if ($('#simControl').hasClass('typcn-media-play')) {
-            $('#simControl').removeClass('typcn-media-play').addClass('typcn-media-stop');
-            SIM.run(true, GUISTATE_MODEL.gui.robotGroup);
-            SIM.setPause(false);
-        } else {
-            $('#simControl').addClass('typcn-media-play').removeClass('typcn-media-stop');
-            SIM.setPause(true);
-            SIM.stopProgram();
-        }
-
-    });
-
-    $('#simScore').onWrap('click', function(event) {
-        if ($('#simScore').hasClass('typcn-star')) {
-            $('#simScore').addClass('typcn-star-outline').removeClass('typcn-star');
-            SIM.score(true);
-        } else {
-            $('#simScore').addClass('typcn-star').removeClass('typcn-star-outline');
-            SIM.score(false);
-        }
-    }, 'simImport clicked');
-
-    $('#simFLowControl').onWrap('click', function(event) {
-        if ($('#simFLowControl').hasClass('typcn-flash')) {
-            $('#simFLowControl').addClass('typcn-flash-outline').removeClass('typcn-flash');
-            SIM.sim(false);
-        } else {
-            $('#simFLowControl').addClass('typcn-flash').removeClass('typcn-flash-outline');
-            SIM.sim(true);
-        }
-    }, 'simImport clicked');
-
-    $('#simSpeedUp').onWrap('click', function(event) {
-        if ($('#simSpeedUp').hasClass('typcn-media-fast-forward')) {
-            $('#simSpeedUp').addClass('typcn-media-fast-forward-outline').removeClass('typcn-media-fast-forward');
-            SIM.setSimSpeed(1);
-        } else {
-            $('#simSpeedUp').addClass('typcn-media-fast-forward').removeClass('typcn-media-fast-forward-outline');
-            SIM.setSimSpeed(10);
-        }
-    }, 'simImport clicked');
-
-    $('#simRobot').on('click', function(event) {
-        $("#simRobotModal").modal("toggle");
-        var robot = GUISTATE_C.getRobot();
-        var position = $("#simDiv").position();
-        position.top += 12;
-        if (robot == 'calliope' || robot == 'microbit') {
-            position.left = $("#blocklyDiv").width() + 12;
-            $("#simRobotModal").css({
-                top: position.top,
-                left: position.left
-            });
-        } else {
-            position.left += 48;
-            $("#simRobotModal").css({
-                top: position.top,
-                left: position.left
-            });
-        }
-        $('#simRobotModal').draggable();
-        $("#simButtonsCollapse").collapse('hide');
-    });
-
-    $('#simValues').onWrap('click', function(event) {
-        $("#simValuesModal").modal("toggle");
-        var position = $("#simDiv").position();
-        position.top += 12;
-        $("#simValuesModal").css({
-            top: position.top,
-            right: 12,
-            left: 'initial',
-            bottom: 'inherit'
-        });
-        $('#simValuesModal').draggable();
-
-        $("#simButtonsCollapse").collapse('hide');
-    }, 'simValues clicked');
-
-    $('#simResetPose').onWrap('click', function(event) {
-        SIM.resetPose();
-    }, 'simResetPose clicked');
-
-    $('#zoomIn').onWrap('click', function(event) {
-        SIM.zoomIn();
-    }, 'zoomIn clicked');
-
-    $('#zoomOut').onWrap('click', function(event) {
-        SIM.zoomOut();
-    }, 'zoomOut clicked');
-
-    $('#zoomReset').onWrap('click', function(event) {
-        SIM.zoomReset();
-    }, 'zoomOut clicked');
-}
-
 /**
  * Initializations
  */
 function init() {
     GUISTATE_MODEL.init().then(function (res) { // init open roberta gui state
-        initEvents(); // init ui events
+        SIM.initEvents(); // init ui events
         handleQuery(); // handle open program request
     });
 }
