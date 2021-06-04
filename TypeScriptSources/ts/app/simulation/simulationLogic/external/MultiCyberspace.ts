@@ -34,13 +34,31 @@ class CyberspaceData {
 	}
 }
 
-function createCyberspaceData(index: number): CyberspaceData {
+function createCyberspaceData(sceneID: number, groupName: string): CyberspaceData {
 	const canvas = document.createElement("canvas")
 	const cyberspaceDiv = document.createElement("div")
-	//cyberspaceDiv.style.padding = "4px"
 	cyberspaceDiv.appendChild(canvas)
 
-	const cyberspace = new Cyberspace(canvas, cyberspaceDiv, [sceneDescriptors[index]])
+	const groupNameDiv = document.createElement("div")
+	groupNameDiv.style.position = "absolute"
+	groupNameDiv.style.top = "2"
+	groupNameDiv.style.left = "2"
+	groupNameDiv.style.pointerEvents = "none"
+	groupNameDiv.style.zIndex = "100" // above the canvas
+	const groupNameParagraph = document.createElement("p")
+	groupNameParagraph.textContent = groupName
+	groupNameDiv.appendChild(groupNameParagraph)
+	const paragraphStyle = groupNameParagraph.style
+	paragraphStyle.display = "inline"
+	paragraphStyle.backgroundColor = "rgb(255, 255, 255, 0.5)"
+	paragraphStyle.borderRadius = "5px"
+	paragraphStyle.fontSize = "20"
+	paragraphStyle.paddingLeft = "3"
+	paragraphStyle.paddingRight = "3"
+
+	cyberspaceDiv.appendChild(groupNameDiv)
+
+	const cyberspace = new Cyberspace(canvas, cyberspaceDiv, [sceneDescriptors[sceneID]])
 	cyberspace.switchToNextScene(true)
 	return new CyberspaceData(cyberspace, cyberspaceDiv)
 }
@@ -87,12 +105,17 @@ function generateDebugRobertaRobotSetupData(count: number): RobertaRobotSetupDat
 	})
 }
 
-type MultiCyberspaceSetupData = { sceneID: number, robertaRobotSetupData: RobertaRobotSetupData }
+interface MultiCyberspaceSetupData {
+	sceneID: number
+	groupName: string
+	robertaRobotSetupData: RobertaRobotSetupData
+}
 
 function generateRandomMultiSetupData(count: number): MultiCyberspaceSetupData[] {
-	return generateDebugRobertaRobotSetupData(count).map(robertaRobotSetupData => {
+	return generateDebugRobertaRobotSetupData(count).map((robertaRobotSetupData, index) => {
 		return {
 			sceneID: 0,
+			groupName: "Test group " + index,
 			robertaRobotSetupData: robertaRobotSetupData
 		}
 	})
@@ -132,7 +155,7 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 
 
 	const cyberspaceDataList = setupDataList.map(setupData => {
-		const cyberspaceData = createCyberspaceData(setupData.sceneID)
+		const cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName)
 		cyberspaceData.cyberspace.getScene().runAfterLoading(() => {
 			cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], "")
 		})

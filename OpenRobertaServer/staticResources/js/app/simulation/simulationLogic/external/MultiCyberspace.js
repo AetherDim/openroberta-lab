@@ -42,12 +42,28 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         }
         return CyberspaceData;
     }());
-    function createCyberspaceData(index) {
+    function createCyberspaceData(sceneID, groupName) {
         var canvas = document.createElement("canvas");
         var cyberspaceDiv = document.createElement("div");
-        //cyberspaceDiv.style.padding = "4px"
         cyberspaceDiv.appendChild(canvas);
-        var cyberspace = new Cyberspace_1.Cyberspace(canvas, cyberspaceDiv, [sceneDescriptors[index]]);
+        var groupNameDiv = document.createElement("div");
+        groupNameDiv.style.position = "absolute";
+        groupNameDiv.style.top = "2";
+        groupNameDiv.style.left = "2";
+        groupNameDiv.style.pointerEvents = "none";
+        groupNameDiv.style.zIndex = "100"; // above the canvas
+        var groupNameParagraph = document.createElement("p");
+        groupNameParagraph.textContent = groupName;
+        groupNameDiv.appendChild(groupNameParagraph);
+        var paragraphStyle = groupNameParagraph.style;
+        paragraphStyle.display = "inline";
+        paragraphStyle.backgroundColor = "rgb(255, 255, 255, 0.5)";
+        paragraphStyle.borderRadius = "5px";
+        paragraphStyle.fontSize = "20";
+        paragraphStyle.paddingLeft = "3";
+        paragraphStyle.paddingRight = "3";
+        cyberspaceDiv.appendChild(groupNameDiv);
+        var cyberspace = new Cyberspace_1.Cyberspace(canvas, cyberspaceDiv, [sceneDescriptors[sceneID]]);
         cyberspace.switchToNextScene(true);
         return new CyberspaceData(cyberspace, cyberspaceDiv);
     }
@@ -91,9 +107,10 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         });
     }
     function generateRandomMultiSetupData(count) {
-        return generateDebugRobertaRobotSetupData(count).map(function (robertaRobotSetupData) {
+        return generateDebugRobertaRobotSetupData(count).map(function (robertaRobotSetupData, index) {
             return {
                 sceneID: 0,
+                groupName: "Test group " + index,
                 robertaRobotSetupData: robertaRobotSetupData
             };
         });
@@ -128,7 +145,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             debug.add(aspectRatio, "scene", 0.1, 2);
         }
         var cyberspaceDataList = setupDataList.map(function (setupData) {
-            var cyberspaceData = createCyberspaceData(setupData.sceneID);
+            var cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName);
             cyberspaceData.cyberspace.getScene().runAfterLoading(function () {
                 cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], "");
             });
