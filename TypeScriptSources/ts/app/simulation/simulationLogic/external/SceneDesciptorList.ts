@@ -64,17 +64,21 @@ if(DEBUG)
 
 
 export const sceneIDMap = {
-	1: 'idLineFollowingES',
-	2: 'idLineFollowingMS',
-	3: 'idLineFollowingHS',
-
-	4: 'idLabyrinthES',
-	5: 'idLabyrinthMS',
-	6: 'idLabyrinthHS',
-
-	7: 'idRainbowES',
-	8: 'idRainbowMS',
-	9: 'idRainbowHS',
+	2: {
+		0: 'idLineFollowingES',
+		1: 'idLineFollowingMS',
+		2: 'idLineFollowingHS',
+	},
+	1: {
+		0: 'idLabyrinthES',
+		1: 'idLabyrinthMS',
+		2: 'idLabyrinthHS',
+	},
+	3: {
+		0: 'idRainbowES',
+		1: 'idRainbowMS',
+		2: 'idRainbowHS',
+	},
 }
 
 
@@ -89,7 +93,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCLineFollowingScene(descriptor.name, AgeGroup.ES);
 		},
-		sceneIDMap[1]
+		sceneIDMap[2][0]
 	),
 
 	new SceneDescriptor(
@@ -98,7 +102,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCLineFollowingScene(descriptor.name, AgeGroup.MS);
 		},
-		sceneIDMap[2]
+		sceneIDMap[2][1]
 	),
 
 	new SceneDescriptor(
@@ -107,7 +111,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCLineFollowingScene(descriptor.name, AgeGroup.HS);
 		},
-		sceneIDMap[3]
+		sceneIDMap[2][2]
 	),
 
 	//
@@ -120,7 +124,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCLabyrinthScene(descriptor.name, AgeGroup.ES);
 		},
-		sceneIDMap[4]
+		sceneIDMap[1][0]
 	),
 
 	new SceneDescriptor(
@@ -129,7 +133,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCLabyrinthScene(descriptor.name, AgeGroup.MS);
 		},
-		sceneIDMap[5]
+		sceneIDMap[1][1]
 	),
 
 	new SceneDescriptor(
@@ -138,7 +142,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCLabyrinthScene(descriptor.name, AgeGroup.HS);
 		},
-		sceneIDMap[6]
+		sceneIDMap[1][2]
 	),
 
 
@@ -152,7 +156,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCRainbowScene(descriptor.name, AgeGroup.ES);
 		},
-		sceneIDMap[7]
+		sceneIDMap[3][0]
 	),
 
 	new SceneDescriptor(
@@ -161,7 +165,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCRainbowScene(descriptor.name, AgeGroup.MS);
 		},
-		sceneIDMap[8]
+		sceneIDMap[3][1]
 	),
 
 	new SceneDescriptor(
@@ -170,7 +174,7 @@ scenes.push(
 		(descriptor) => {
 			return new RRCRainbowScene(descriptor.name, AgeGroup.HS);
 		},
-		sceneIDMap[9]
+		sceneIDMap[3][2]
 	),
 )
 

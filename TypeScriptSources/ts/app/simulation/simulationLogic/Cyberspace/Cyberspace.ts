@@ -98,7 +98,7 @@ export class Cyberspace {
 		}
 	}
 
-	loadScene(ID: string) {
+	loadScene(ID: string, forced: boolean = false) {
 		if(this.getScene().isLoadingComplete()) {
 			const scene = this.sceneManager.getScene(ID)
 			if(scene) {

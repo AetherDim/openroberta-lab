@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../UIManager", "../Util", "./SceneDesciptorList"], function (require, exports, Cyberspace_1, GlobalDebug_1, RobotProgramGenerator_1, UIManager_1, Util_1, SceneDesciptorList_1) {
+define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../UIManager", "../Util", "./SceneDesciptorList", "./RESTApi", "../program.model", "../guiState.model"], function (require, exports, Cyberspace_1, GlobalDebug_1, RobotProgramGenerator_1, UIManager_1, Util_1, SceneDesciptorList_1, RESTApi_1, PROGRAM_MODEL, GUISTATE_MODEL) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.initEvents = exports.init = void 0;
@@ -63,8 +63,8 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         paragraphStyle.paddingLeft = "3";
         paragraphStyle.paddingRight = "3";
         cyberspaceDiv.appendChild(groupNameDiv);
-        var cyberspace = new Cyberspace_1.Cyberspace(canvas, cyberspaceDiv, [sceneDescriptors[sceneID]]);
-        cyberspace.switchToNextScene(true);
+        var cyberspace = new Cyberspace_1.Cyberspace(canvas, cyberspaceDiv, sceneDescriptors);
+        cyberspace.loadScene(sceneID);
         return new CyberspaceData(cyberspace, cyberspaceDiv);
     }
     function setGridStyle(gridElements, opt) {
@@ -106,10 +106,102 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             };
         });
     }
+    function convertProgramURI(programURI) {
+        // old style queries
+        var target = decodeURI(programURI).split("&&");
+        if (target[0].endsWith("#loadProgram") && target.length >= 4) {
+            return {
+                robotType: target[1],
+                programName: target[2],
+                programXML: target[3]
+            };
+        }
+        else {
+            console.error("Invalid program");
+        }
+        return undefined;
+    }
+    function loadProgramFromXML(name, xml, callback) {
+        if (xml.search("<export") === -1) {
+            xml = '<export xmlns="http://de.fhg.iais.roberta.blockly"><program>' + xml + '</program><config>' + GUISTATE_MODEL.getConfigurationXML()
+                + '</config></export>';
+        }
+        PROGRAM_MODEL.loadProgramFromXML(name, xml, function (result) {
+            if (result.rc !== "ok") {
+                alert('Server did not successfully convert program!');
+                return;
+            }
+            var isNamedConfig = false;
+            var configName = undefined;
+            var language = GUISTATE_MODEL.gui.language;
+            PROGRAM_MODEL.runInSim(result.programName, configName, result.progXML, result.confXML, language, function (result) {
+                if (result.rc == "ok") {
+                    try {
+                        callback(result);
+                        //SIM.init([result], true, GUISTATE_MODEL.gui.robotGroup);
+                    }
+                    catch (e) {
+                        console.error(e);
+                    }
+                }
+                else {
+                    alert('Unable to process program for simulation!');
+                }
+            });
+        });
+    }
+    function loadScenesFromRequest(result) {
+        var res = result.result;
+        if (res) {
+            var map_1 = new Map();
+            var programCount_1 = res.length;
+            res.forEach(function (robotProgramEntry, index) {
+                var programURI = robotProgramEntry.program;
+                var decodedProgramURI = convertProgramURI(programURI);
+                if (decodedProgramURI == undefined) {
+                    programCount_1 -= 1;
+                    return;
+                }
+                // TODO: Use other parameters
+                var programXML = decodedProgramURI.programXML;
+                loadProgramFromXML(decodedProgramURI.programName, programXML, function (setupData) {
+                    map_1.set(index, setupData);
+                    if (map_1.size == programCount_1) {
+                        // if all programs are converted
+                        var setupDataList = Util_1.Util.mapNotNull(Util_1.Util.range(0, map_1.size), function (i) {
+                            var ageGroup = String(res[i].agegroup);
+                            var challenge = String(res[i].challenge);
+                            if (Object.keys(SceneDesciptorList_1.sceneIDMap).includes(challenge)) {
+                                var groups = SceneDesciptorList_1.sceneIDMap[challenge];
+                                if (Object.keys(groups).includes(ageGroup)) {
+                                    return {
+                                        sceneID: groups[ageGroup],
+                                        groupName: res[i].name,
+                                        robertaRobotSetupData: map_1.get(i)
+                                    };
+                                }
+                                else {
+                                    console.error('Unknown age group ID !!!');
+                                }
+                            }
+                            else {
+                                console.error('Unknown challenge ID !!!');
+                            }
+                            return undefined;
+                        });
+                        loadScenes(setupDataList);
+                    }
+                });
+            });
+        }
+        else {
+            console.error("No result for programs request");
+        }
+    }
     function generateRandomMultiSetupData(count) {
         return generateDebugRobertaRobotSetupData(count).map(function (robertaRobotSetupData, index) {
             return {
-                sceneID: 0,
+                sceneID: Util_1.Util.randomElement(SceneDesciptorList_1.cyberspaceScenes).ID,
                 groupName: "Test group " + index,
                 robertaRobotSetupData: robertaRobotSetupData
             };
@@ -147,7 +239,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         var cyberspaceDataList = setupDataList.map(function (setupData) {
             var cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName);
             cyberspaceData.cyberspace.getScene().runAfterLoading(function () {
-                cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], "");
+                cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], ""); // TODO: Robot type???
             });
             return cyberspaceData;
         });
@@ -193,17 +285,13 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             relativePadding: 1
         });
     }
-    loadScenes(generateRandomMultiSetupData(sceneCount));
-    function requestRobotSetupData(ids) {
-        // TODO
-        return new Promise(function (resolve, reject) {
-        });
-    }
+    //loadScenes(generateRandomMultiSetupData(sceneCount))
     // called only once
     function init(robotSetupDataIDs, secretKey) {
-        requestRobotSetupData(robotSetupDataIDs).then(function (robotSetupDataList) {
-            // TODO
-        });
+        RESTApi_1.programRequest({
+            secret: { secret: '' },
+            programs: robotSetupDataIDs
+        }, loadScenesFromRequest);
     }
     exports.init = init;
     function forEachCyberspace(block) {

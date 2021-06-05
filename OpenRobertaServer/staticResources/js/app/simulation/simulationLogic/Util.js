@@ -25,7 +25,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "./Random"], function (require, exports, Random_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Util = exports.asUniqueArray = void 0;
@@ -522,6 +522,22 @@ define(["require", "exports"], function (require, exports) {
         };
         Util.cloneVector = function (value) {
             return { x: value.x, y: value.y };
+        };
+        Util.randomElement = function (array) {
+            if (array.length == 0) {
+                return undefined;
+            }
+            else {
+                return array[Random_1.randomIntBetween(0, array.length - 1)];
+            }
+        };
+        Util.getRootURL = function (ignorePort) {
+            if (ignorePort === void 0) { ignorePort = false; }
+            var part = window.location.protocol + '//' + window.location.hostname;
+            if (!ignorePort) {
+                part += ":" + window.location.port;
+            }
+            return part;
         };
         /**
          * Legal characters for the unique ID.  Should be all on a US keyboard.

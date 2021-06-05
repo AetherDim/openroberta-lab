@@ -18,45 +18,51 @@ define(["require", "exports", "../Cyberspace/SceneManager", "../GlobalDebug", ".
             return new RRCScene_1.RRCScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
         }));
     exports.sceneIDMap = {
-        1: 'idLineFollowingES',
-        2: 'idLineFollowingMS',
-        3: 'idLineFollowingHS',
-        4: 'idLabyrinthES',
-        5: 'idLabyrinthMS',
-        6: 'idLabyrinthHS',
-        7: 'idRainbowES',
-        8: 'idRainbowMS',
-        9: 'idRainbowHS',
+        2: {
+            0: 'idLineFollowingES',
+            1: 'idLineFollowingMS',
+            2: 'idLineFollowingHS',
+        },
+        1: {
+            0: 'idLabyrinthES',
+            1: 'idLabyrinthMS',
+            2: 'idLabyrinthHS',
+        },
+        3: {
+            0: 'idRainbowES',
+            1: 'idRainbowMS',
+            2: 'idRainbowHS',
+        },
     };
     //
     //  Line Following
     //
     scenes.push(new SceneManager_1.SceneDescriptor('RRC - Line Following - ES', 'Roborave Cyberspace line following ES', function (descriptor) {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }, exports.sceneIDMap[1]), new SceneManager_1.SceneDescriptor('RRC - Line Following - MS', 'Roborave Cyberspace line following MS', function (descriptor) {
+    }, exports.sceneIDMap[2][0]), new SceneManager_1.SceneDescriptor('RRC - Line Following - MS', 'Roborave Cyberspace line following MS', function (descriptor) {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }, exports.sceneIDMap[2]), new SceneManager_1.SceneDescriptor('RRC - Line Following - HS', 'Roborave Cyberspace line following HS', function (descriptor) {
+    }, exports.sceneIDMap[2][1]), new SceneManager_1.SceneDescriptor('RRC - Line Following - HS', 'Roborave Cyberspace line following HS', function (descriptor) {
         return new RRCLineFollowingScene_1.RRCLineFollowingScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
-    }, exports.sceneIDMap[3]), 
+    }, exports.sceneIDMap[2][2]), 
     //
     // Labyrinth
     //
     new SceneManager_1.SceneDescriptor('RRC - Labyrinth - ES', 'Roborave Cyberspace Labyrinth ES', function (descriptor) {
         return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }, exports.sceneIDMap[4]), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - MS', 'Roborave Cyberspace Labyrinth MS', function (descriptor) {
+    }, exports.sceneIDMap[1][0]), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - MS', 'Roborave Cyberspace Labyrinth MS', function (descriptor) {
         return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }, exports.sceneIDMap[5]), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - HS', 'Roborave Cyberspace Labyrinth HS', function (descriptor) {
+    }, exports.sceneIDMap[1][1]), new SceneManager_1.SceneDescriptor('RRC - Labyrinth - HS', 'Roborave Cyberspace Labyrinth HS', function (descriptor) {
         return new RRCLabyrinthScene_1.RRCLabyrinthScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
-    }, exports.sceneIDMap[6]), 
+    }, exports.sceneIDMap[1][2]), 
     //
     // Rainbow
     //
     new SceneManager_1.SceneDescriptor('RRC - Rainbow - ES', 'Roborave Cyberspace Rainbow ES', function (descriptor) {
         return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.ES);
-    }, exports.sceneIDMap[7]), new SceneManager_1.SceneDescriptor('RRC - Rainbow - MS', 'Roborave Cyberspace Rainbow MS', function (descriptor) {
+    }, exports.sceneIDMap[3][0]), new SceneManager_1.SceneDescriptor('RRC - Rainbow - MS', 'Roborave Cyberspace Rainbow MS', function (descriptor) {
         return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.MS);
-    }, exports.sceneIDMap[8]), new SceneManager_1.SceneDescriptor('RRC - Rainbow - HS', 'Roborave Cyberspace Rainbow HS', function (descriptor) {
+    }, exports.sceneIDMap[3][1]), new SceneManager_1.SceneDescriptor('RRC - Rainbow - HS', 'Roborave Cyberspace Rainbow HS', function (descriptor) {
         return new RRCRainbowScene_1.RRCRainbowScene(descriptor.name, AgeGroup_1.AgeGroup.HS);
-    }, exports.sceneIDMap[9]));
+    }, exports.sceneIDMap[3][2]));
     exports.cyberspaceScenes = scenes;
 });

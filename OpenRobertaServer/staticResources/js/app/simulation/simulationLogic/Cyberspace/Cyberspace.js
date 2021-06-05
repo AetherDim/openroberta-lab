@@ -91,7 +91,8 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
                 this.fullResetScene();
             }
         };
-        Cyberspace.prototype.loadScene = function (ID) {
+        Cyberspace.prototype.loadScene = function (ID, forced) {
+            if (forced === void 0) { forced = false; }
             if (this.getScene().isLoadingComplete()) {
                 var scene = this.sceneManager.getScene(ID);
                 if (scene) {

@@ -5,7 +5,12 @@ import { RobotProgramGenerator } from "../Robot/RobotProgramGenerator"
 import { RobotSetupData } from "../Robot/RobotSetupData"
 import { UIManager } from "../UIManager"
 import { Util } from "../Util"
-import { cyberspaceScenes } from "./SceneDesciptorList"
+import { cyberspaceScenes, sceneIDMap } from "./SceneDesciptorList"
+import { programRequest, ProgramsRequestResult } from "./RESTApi"
+import PROGRAM_MODEL = require("../program.model")
+import GUISTATE_MODEL = require("../guiState.model")
+
+
 
 
 const cyberspaces: Cyberspace[] = []
@@ -34,7 +39,7 @@ class CyberspaceData {
 	}
 }
 
-function createCyberspaceData(sceneID: number, groupName: string): CyberspaceData {
+function createCyberspaceData(sceneID: string, groupName: string): CyberspaceData {
 	const canvas = document.createElement("canvas")
 	const cyberspaceDiv = document.createElement("div")
 	cyberspaceDiv.appendChild(canvas)
@@ -58,8 +63,10 @@ function createCyberspaceData(sceneID: number, groupName: string): CyberspaceDat
 
 	cyberspaceDiv.appendChild(groupNameDiv)
 
-	const cyberspace = new Cyberspace(canvas, cyberspaceDiv, [sceneDescriptors[sceneID]])
-	cyberspace.switchToNextScene(true)
+	const cyberspace = new Cyberspace(canvas, cyberspaceDiv, sceneDescriptors)
+
+	cyberspace.loadScene(sceneID)
+	
 	return new CyberspaceData(cyberspace, cyberspaceDiv)
 }
 
@@ -106,15 +113,133 @@ function generateDebugRobertaRobotSetupData(count: number): RobertaRobotSetupDat
 }
 
 interface MultiCyberspaceSetupData {
-	sceneID: number
+	sceneID: string
 	groupName: string
 	robertaRobotSetupData: RobertaRobotSetupData
+}
+
+//
+// The following code is mostly copied from the original open roberta code to preserve as much as possible.
+// We do not want to alter the program code in any way.
+//
+
+interface DecodedProgramURI {
+	robotType: string
+	programName: string
+	programXML: string
+}
+
+function convertProgramURI(programURI: string): DecodedProgramURI | undefined {
+	// old style queries
+    let target = decodeURI(programURI).split("&&");
+    if (target[0].endsWith("#loadProgram") && target.length >= 4) {
+        return {
+			robotType: target[1], 
+			programName: target[2],
+			programXML: target[3]
+		}
+    } else {
+		console.error("Invalid program")
+	}
+	return undefined
+}
+
+
+function loadProgramFromXML(name: string, xml: string, callback: (setupData: RobertaRobotSetupData) => void) {
+    if (xml.search("<export") === -1) {
+        xml = '<export xmlns="http://de.fhg.iais.roberta.blockly"><program>' + xml + '</program><config>' + GUISTATE_MODEL.getConfigurationXML()
+            + '</config></export>';
+    }
+    PROGRAM_MODEL.loadProgramFromXML(name, xml, function(result) {
+
+        if(result.rc !== "ok") {
+            alert('Server did not successfully convert program!');
+            return;
+        }
+
+        var isNamedConfig = false;
+        var configName = undefined;
+        var language = GUISTATE_MODEL.gui.language;
+
+
+        PROGRAM_MODEL.runInSim(result.programName, configName, result.progXML, result.confXML, language, function(result) {
+            if (result.rc == "ok") {
+                try {
+					callback(result)
+                    //SIM.init([result], true, GUISTATE_MODEL.gui.robotGroup);
+                } catch (e) {
+                    console.error(e)
+                }
+            } else {
+                alert('Unable to process program for simulation!');
+            }
+        })
+
+    })
+}
+
+function loadScenesFromRequest(result: ProgramsRequestResult) {
+
+	const res = result.result
+	if (res) {
+		
+		const map = new Map<number, RobertaRobotSetupData>();
+		let programCount = res.length
+
+		res.forEach((robotProgramEntry, index) => {
+			const programURI = robotProgramEntry.program
+			const decodedProgramURI = convertProgramURI(programURI)
+			if (decodedProgramURI == undefined) {
+				programCount -= 1
+				return
+			}
+			// TODO: Use other parameters
+			const programXML = decodedProgramURI.programXML
+			loadProgramFromXML(decodedProgramURI.programName, programXML, setupData => {
+				map.set(index, setupData)
+				if (map.size == programCount) {
+
+					// if all programs are converted
+					const setupDataList = Util.mapNotNull(Util.range(0, map.size), i => {
+
+						const ageGroup = String(res[i].agegroup)
+						const challenge = String(res[i].challenge)
+
+						if(Object.keys(sceneIDMap).includes(challenge)) {
+							const groups = (<any>sceneIDMap)[challenge]
+							if(Object.keys(groups).includes(ageGroup)) {
+								return {
+									sceneID: groups[ageGroup],
+									groupName: res[i].name,
+									robertaRobotSetupData: map.get(i)!
+								}
+							} else {
+								console.error('Unknown age group ID !!!')
+							}
+						} else {
+							console.error('Unknown challenge ID !!!')
+						}
+
+						return undefined
+					})
+
+
+
+					loadScenes(setupDataList)
+				}
+			})
+		})
+		
+	} else {
+		console.error("No result for programs request")
+	}
+	
 }
 
 function generateRandomMultiSetupData(count: number): MultiCyberspaceSetupData[] {
 	return generateDebugRobertaRobotSetupData(count).map((robertaRobotSetupData, index) => {
 		return {
-			sceneID: 0,
+			sceneID: Util.randomElement(cyberspaceScenes)!.ID,
 			groupName: "Test group " + index,
 			robertaRobotSetupData: robertaRobotSetupData
 		}
@@ -157,7 +282,7 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 	const cyberspaceDataList = setupDataList.map(setupData => {
 		const cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName)
 		cyberspaceData.cyberspace.getScene().runAfterLoading(() => {
-			cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], "")
+			cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], "") // TODO: Robot type???
 		})
 		return cyberspaceData
 	})
@@ -212,24 +337,15 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 	)
 }
 
-loadScenes(generateRandomMultiSetupData(sceneCount))
+//loadScenes(generateRandomMultiSetupData(sceneCount))
 
-
-
-function requestRobotSetupData(ids: number[]): Promise<RobotSetupData[]> {
-	// TODO
-	return new Promise((resolve, reject) => {
-
-	})
-}
 
 // called only once
 export function init(robotSetupDataIDs: number[], secretKey: string) {
-	requestRobotSetupData(robotSetupDataIDs).then(robotSetupDataList => {
-		// TODO
-	})
-
-
+	programRequest({
+		secret: {secret: ''},
+		programs: robotSetupDataIDs
+	}, loadScenesFromRequest)
 }
 
 function forEachCyberspace(block: (cyberspace: Cyberspace) => void) {

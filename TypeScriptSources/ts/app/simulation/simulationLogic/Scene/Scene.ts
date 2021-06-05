@@ -565,9 +565,15 @@ export class Scene {
 		// TODO: Gravity scale may depend on the chosen units
 		this.engine.world.gravity = { scale: 1, x: 0, y: 0};
 
+		if(this.constructor.name === Scene.name) {
+			// No specialized scene => finished loading
+			this.autostartSim = false
+			this.finishedLoading(new AsyncChain())
+		}
+
 		// has to be called after the name has been defined
 		// defined 
-		this.debug = new SceneDebug(this, this.name == "")
+		this.debug = new SceneDebug(this, this.constructor.name === Scene.name) // TODO: remove disabled flag???
 	}
 
 	//

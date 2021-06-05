@@ -1,4 +1,5 @@
 import { Vector } from "matter-js"
+import { randomIntBetween } from "./Random"
 import { RobertaRobotSetupData } from "./Robot/RobertaRobotSetupData"
 
 export type StringMap<V> = { [key: string]: V | undefined }
@@ -635,6 +636,25 @@ export class Util {
 
 	static cloneVector(value: Vector): Vector {
 		return { x: value.x, y: value.y }
+	}
+
+	static randomElement<T>(array: T[]): T|undefined {
+		if(array.length == 0) {
+			return undefined
+		} else {
+			return array[randomIntBetween(0, array.length-1)]
+		}
+	}
+
+	static getRootURL(ignorePort: boolean = false) {
+
+		let part = window.location.protocol + '//' + window.location.hostname
+
+		if(!ignorePort) {
+			part += ":" + window.location.port
+		}
+
+		return part
 	}
 
 }

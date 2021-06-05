@@ -225,6 +225,7 @@ require.config({
         { "external": [
             "MultiCyberspace",
             "SceneDesciptorList",
+            "RESTApi",
         ]}
     ]),
     shim: {
