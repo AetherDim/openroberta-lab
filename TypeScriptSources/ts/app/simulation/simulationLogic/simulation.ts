@@ -15,6 +15,9 @@ const cyberspace = new Cyberspace('sceneCanvas', 'simDiv')
 const sceneManager = cyberspace.getSceneManager()
 const blocklyDebugManager = new BlocklyDebug(cyberspace)
 
+UIManager.simSpeedUpButton.setState("fastForward")
+UIManager.showScoreButton.setState("showScore")
+
 cyberspace.eventManager
 	.onStartPrograms(() => UIManager.programControlButton.setState("stop"))
 	.onStopPrograms(() => UIManager.programControlButton.setState("start"))

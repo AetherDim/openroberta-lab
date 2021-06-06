@@ -16,7 +16,14 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
     exports.DEBUG_UPDATE_TIMER.start();
     function updateDebugDisplay() {
         updatableList.forEach(function (element) {
-            element.updateDisplay();
+            try {
+                element.updateDisplay();
+            }
+            catch (e) {
+                console.warn("An updatable debug element threw an error:");
+                console.warn(e);
+                element.remove();
+            }
         });
     }
     function registerDebugUpdatable(controller) {
@@ -144,11 +151,11 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
         if (!exports.DEBUG) {
             return;
         }
-        exports.DebugGuiRoot.addUpdatable('FPS', function () { return sceneRenderer.app.ticker.FPS; });
-        var renderer = exports.DebugGuiRoot.addFolder('Renderer');
-        renderer.addUpdatable('Screen width', function () { return sceneRenderer.app.screen.width; });
-        renderer.addUpdatable('Screen height', function () { return sceneRenderer.app.screen.height; });
-        renderer.addUpdatable('devicePixelRatio', function () { return window.devicePixelRatio || 0.75; });
+        var rendererFolder = exports.DebugGuiRoot.addFolder('Renderer');
+        rendererFolder.addUpdatable('FPS', function () { return sceneRenderer.app.ticker.FPS; });
+        rendererFolder.addUpdatable('Screen width', function () { return sceneRenderer.app.screen.width; });
+        rendererFolder.addUpdatable('Screen height', function () { return sceneRenderer.app.screen.height; });
+        rendererFolder.addUpdatable('devicePixelRatio', function () { return window.devicePixelRatio || 0.75; });
         var debug = exports.DebugGuiRoot.addFolder('Special Debug Functions');
         debug.addButton('Add color sensors to robot', function () {
             var robot = sceneRenderer.getScene().getRobotManager().getRobots()[0];

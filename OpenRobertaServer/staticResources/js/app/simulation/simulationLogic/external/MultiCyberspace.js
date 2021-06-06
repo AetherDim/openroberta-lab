@@ -93,6 +93,16 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         window: 16 / 9,
         scene: 16 / 9
     };
+    var debug = GlobalDebug_1.DebugGuiRoot;
+    if (debug != undefined) {
+        debug.addButton("Reset and close debug GUI", function () {
+            loadScenes(generateRandomMultiSetupData(sceneCount));
+            GlobalDebug_1.DebugGuiRoot === null || GlobalDebug_1.DebugGuiRoot === void 0 ? void 0 : GlobalDebug_1.DebugGuiRoot.close();
+        });
+        debug.addButton("Reset", function () {
+            loadScenes(generateRandomMultiSetupData(sceneCount));
+        });
+    }
     function generateDebugRobertaRobotSetupData(count) {
         return Util_1.Util.range(0, count).map(function (index) {
             return {

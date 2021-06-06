@@ -98,6 +98,17 @@ const aspectRatio = {
 	scene: 16/9
 }
 
+const debug = DebugGuiRoot
+if (debug != undefined) {
+	debug.addButton("Reset and close debug GUI", () => {
+		loadScenes(generateRandomMultiSetupData(sceneCount))
+		DebugGuiRoot?.close()
+	})
+	debug.addButton("Reset", () => {
+		loadScenes(generateRandomMultiSetupData(sceneCount))
+	})
+}
+
 function generateDebugRobertaRobotSetupData(count: number): RobertaRobotSetupData[] {
 	return Util.range(0, count).map(index => {
 		return {

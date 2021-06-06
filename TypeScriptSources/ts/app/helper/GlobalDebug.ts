@@ -21,7 +21,13 @@ DEBUG_UPDATE_TIMER.start()
 
 function updateDebugDisplay() {
 	updatableList.forEach(element => {
-		element.updateDisplay()
+		try {
+			element.updateDisplay()
+		} catch (e) {
+			console.warn("An updatable debug element threw an error:")
+			console.warn(e)
+			element.remove()
+		}
 	});
 }
 
@@ -171,12 +177,11 @@ export function initGlobalSceneDebug(sceneRenderer: SceneRender) {
 		return
 	}
 
-	DebugGuiRoot.addUpdatable('FPS', () => sceneRenderer.app.ticker.FPS)
-
-	const renderer = DebugGuiRoot.addFolder('Renderer')
-	renderer.addUpdatable('Screen width', () => sceneRenderer.app.screen.width)
-	renderer.addUpdatable('Screen height', () => sceneRenderer.app.screen.height)
-	renderer.addUpdatable('devicePixelRatio', () => window.devicePixelRatio || 0.75)
+	const rendererFolder = DebugGuiRoot.addFolder('Renderer')
+	rendererFolder.addUpdatable('FPS', () => sceneRenderer.app.ticker.FPS)
+	rendererFolder.addUpdatable('Screen width', () => sceneRenderer.app.screen.width)
+	rendererFolder.addUpdatable('Screen height', () => sceneRenderer.app.screen.height)
+	rendererFolder.addUpdatable('devicePixelRatio', () => window.devicePixelRatio || 0.75)
 
 	const debug = DebugGuiRoot.addFolder('Special Debug Functions')
 	debug.addButton('Add color sensors to robot', () => {

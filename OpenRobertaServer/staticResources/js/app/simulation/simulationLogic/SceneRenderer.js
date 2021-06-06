@@ -68,6 +68,7 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
         }
         SceneRender.prototype.destroy = function () {
             this.app.stop();
+            this.app.destroy();
             this.scene.destroy();
         };
         SceneRender.prototype.onSwitchScene = function (onSwitchSceneHandler) {

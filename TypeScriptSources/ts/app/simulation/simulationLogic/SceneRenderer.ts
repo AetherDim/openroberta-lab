@@ -104,6 +104,7 @@ export class SceneRender {
 
 	destroy() {
 		this.app.stop()
+		this.app.destroy()
 		this.scene.destroy()
 	}
 

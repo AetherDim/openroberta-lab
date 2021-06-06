@@ -29,6 +29,8 @@ define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyb
     var cyberspace = new Cyberspace_1.Cyberspace('sceneCanvas', 'simDiv');
     var sceneManager = cyberspace.getSceneManager();
     var blocklyDebugManager = new BlocklyDebug_1.BlocklyDebug(cyberspace);
+    UIManager_1.UIManager.simSpeedUpButton.setState("fastForward");
+    UIManager_1.UIManager.showScoreButton.setState("showScore");
     cyberspace.eventManager
         .onStartPrograms(function () { return UIManager_1.UIManager.programControlButton.setState("stop"); })
         .onStopPrograms(function () { return UIManager_1.UIManager.programControlButton.setState("start"); })
