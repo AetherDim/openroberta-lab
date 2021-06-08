@@ -365,7 +365,7 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
              * Inverts zoom behaviour
              */
             _this.invertZoom = false;
-            _this.minScreenSize = 400;
+            _this.minScreenSize = { width: 400, height: 300 };
             //
             // Event Data
             //
@@ -394,28 +394,25 @@ define(["require", "exports", "./pixijs"], function (require, exports) {
             _this.reset();
             return _this;
         }
-        ScrollView.prototype.resetCentered = function (x, y, width, height) {
+        ScrollView.prototype.resetCentered = function (x, y, width, height, zoomFactorReset) {
+            if (zoomFactorReset === void 0) { zoomFactorReset = "fit"; }
             var screen = this.renderer.screen;
-            var xp = screen.width / 2 - (x + width / 2);
-            var yp = screen.height / 2 - (y + height / 2);
-            if (isNaN(xp) || isNaN(yp)) {
-                xp = 0;
-                yp = 0;
-            }
-            this.setTransform(xp, yp, 1, 1, 0, 0, 0, 0, 0);
-            if (screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
-                if (screen.width / screen.height < width / height) {
-                    // scale to width
-                    this.zoomCenter(screen.width / width);
-                }
-                else {
-                    // scale to height
-                    this.zoomCenter(screen.height / height);
-                }
+            var screenWidth = screen.width;
+            var screenHeight = screen.height;
+            if (isNaN(screenWidth) || isNaN(screenHeight)) {
+                this.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
             }
             else {
-                this.zoomCenter(this.minScreenSize / Math.max(width, height));
+                var translationX = screen.width / 2 - (x + width / 2);
+                var translationY = screen.height / 2 - (y + height / 2);
+                this.setTransform(translationX, translationY, 1, 1, 0, 0, 0, 0, 0);
             }
+            var scalingWith = Math.max(screenWidth, this.minScreenSize.width);
+            var scalingHeight = Math.max(screenHeight, this.minScreenSize.height);
+            this.zoomCenter(zoomFactorReset == "fill" ? Math.max(scalingWith / width, scalingHeight / height) :
+                zoomFactorReset == "fit" ? Math.min(scalingWith / width, scalingHeight / height) :
+                    1 // zoomFactorReset == "none"
+            );
             // to fix any touch/mouse issues
             this.touchEventDataMap.clear();
             this.mouseEventData.clear();

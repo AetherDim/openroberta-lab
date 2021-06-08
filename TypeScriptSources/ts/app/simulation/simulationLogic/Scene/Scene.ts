@@ -1,5 +1,5 @@
 import { Robot } from '../Robot/Robot';
-import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices, Vector } from 'matter-js';
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
@@ -100,11 +100,11 @@ export class Scene {
 	private size = {width: 0, height: 0}
 
 	// TODO: copy coords
-    getSize() {
+    getSize(): { width: number, height: number } {
 		return this.size
 	}
 
-	getOrigin() {
+	getOrigin(): Vector {
 		return this.origin
 	}
 

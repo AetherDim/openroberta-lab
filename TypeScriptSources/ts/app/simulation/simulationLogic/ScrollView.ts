@@ -439,7 +439,7 @@ export class ScrollView extends PIXI.Container {
 	 */
 	invertZoom = false;
 
-	public minScreenSize = 400
+	public minScreenSize = { width: 400, height: 300 }
 
 
 
@@ -479,37 +479,26 @@ export class ScrollView extends PIXI.Container {
 	}
 
 
-	resetCentered(x: number, y: number, width: number, height: number) {
+	resetCentered(x: number, y: number, width: number, height: number, zoomFactorReset: "fit" | "fill" | "none" = "fit") {
 
 		const screen = this.renderer.screen
-
-		let xp = screen.width / 2 - (x + width / 2)
-		let yp = screen.height / 2 - (y + height / 2)
-
-		if(isNaN(xp) || isNaN(yp)) {
-			xp = 0
-			yp = 0
-		}
-
-		this.setTransform(xp, yp, 1, 1, 0, 0, 0, 0, 0);
-
-
-		if(screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
-
-			if(screen.width / screen.height < width/height) {
-				// scale to width
-				this.zoomCenter(screen.width/width)
-			} else {
-				// scale to height
-				this.zoomCenter(screen.height/height)
-			}
-
+		const screenWidth = screen.width
+		const screenHeight = screen.height
+		if(isNaN(screenWidth) || isNaN(screenHeight)) {
+			this.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0)
 		} else {
-
-			this.zoomCenter(this.minScreenSize/Math.max(width, height))
-
+			const translationX = screen.width / 2 - (x + width / 2)
+			const translationY = screen.height / 2 - (y + height / 2)
+			this.setTransform(translationX, translationY, 1, 1, 0, 0, 0, 0, 0)
 		}
 
+		const scalingWith = Math.max(screenWidth, this.minScreenSize.width)
+		const scalingHeight = Math.max(screenHeight, this.minScreenSize.height)
+		this.zoomCenter(
+			zoomFactorReset == "fill" ? Math.max(scalingWith / width, scalingHeight / height) :
+			zoomFactorReset == "fit"  ? Math.min(scalingWith / width, scalingHeight / height) :
+			1 // zoomFactorReset == "none"
+		)
 
 		// to fix any touch/mouse issues
 		this.touchEventDataMap.clear()

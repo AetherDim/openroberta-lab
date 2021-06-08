@@ -25,6 +25,10 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             _this.scoreText2 = new PIXI.Text("");
             _this.scoreText3 = new PIXI.Text("");
             _this.scoreTextContainer = new PIXI.Container();
+            /**
+             * Padding for the scroll view zoom reset in pixels
+             */
+            _this.sceneFramePadding = 10;
             _this.ageGroup = ageGroup;
             return _this;
         }
@@ -167,6 +171,15 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             var entity = Entity_1.PhysicsRectEntity.create(this, x, y, w, h, opts);
             matter_js_1.Body.setStatic(entity.getPhysicsBody(), true);
             this.addEntity(entity);
+        };
+        RRCScene.prototype.getSize = function () {
+            return {
+                width: 800 + 2 * this.sceneFramePadding,
+                height: 540 + 2 * this.sceneFramePadding
+            };
+        };
+        RRCScene.prototype.getOrigin = function () {
+            return { x: -this.sceneFramePadding, y: -this.sceneFramePadding };
         };
         RRCScene.prototype.addWalls = function (visible) {
             if (visible === void 0) { visible = false; }

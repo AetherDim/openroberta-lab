@@ -117,7 +117,7 @@ export class SceneRender {
 		this.scrollView.y += (this.app.renderer.screen.height-oldHeight) / 2
 
 
-		const zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize)/Math.max(oldWidth, this.scrollView.minScreenSize)
+		const zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize.width)/Math.max(oldWidth, this.scrollView.minScreenSize.width)
 		//const zoomY = Math.max(this.app.renderer.screen.height, this.scrollView.minScreenSize)/Math.max(oldHeight, this.scrollView.minScreenSize)
 
 		this.scrollView.zoomCenter(zoomX)

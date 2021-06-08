@@ -77,7 +77,7 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
         SceneRender.prototype.onResize = function (oldWidth, oldHeight) {
             this.scrollView.x += (this.app.renderer.screen.width - oldWidth) / 2;
             this.scrollView.y += (this.app.renderer.screen.height - oldHeight) / 2;
-            var zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize) / Math.max(oldWidth, this.scrollView.minScreenSize);
+            var zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize.width) / Math.max(oldWidth, this.scrollView.minScreenSize.width);
             //const zoomY = Math.max(this.app.renderer.screen.height, this.scrollView.minScreenSize)/Math.max(oldHeight, this.scrollView.minScreenSize)
             this.scrollView.zoomCenter(zoomX);
         };

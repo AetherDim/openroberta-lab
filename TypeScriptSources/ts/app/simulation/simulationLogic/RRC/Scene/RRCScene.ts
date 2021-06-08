@@ -188,6 +188,22 @@ export class RRCScene extends ScoreScene {
 		this.addEntity(entity)
 	}
 
+	/**
+	 * Padding for the scroll view zoom reset in pixels
+	 */
+	private sceneFramePadding = 10
+
+	getSize(): { width: number, height: number } {
+		return {
+			width: 800 + 2 * this.sceneFramePadding,
+			height: 540 + 2 * this.sceneFramePadding
+		}
+	}
+
+	getOrigin(): Vector {
+		return { x: -this.sceneFramePadding, y: -this.sceneFramePadding }
+	}
+
 	addWalls(visible: boolean = false) {
 		const unit = this.getUnitConverter();
 
