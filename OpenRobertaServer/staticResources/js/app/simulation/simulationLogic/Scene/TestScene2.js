@@ -100,7 +100,7 @@ define(["require", "exports", "../RRC/Scene/RRCScene", "../Unit", "../RRC/RRAsse
         };
         TestScene2.prototype.onLoadAssets = function (chain) {
             var _a;
-            (_a = this.loader).load.apply(_a, __spreadArray([function () { return chain.next(); }], __read(this.assets)));
+            (_a = this.loader).load.apply(_a, __spreadArray(__spreadArray([function () { return chain.next(); }], __read(this.assets)), [RRC.GOAL_BACKGROUND]));
         };
         TestScene2.prototype.onInit = function (chain) {
             var _this = this;

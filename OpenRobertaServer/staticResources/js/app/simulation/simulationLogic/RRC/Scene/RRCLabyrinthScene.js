@@ -544,7 +544,7 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
         RRCLabyrinthScene.prototype.onLoadAssets = function (chain) {
             this.loader.load(function () {
                 chain.next();
-            }, this.getAsset());
+            }, this.getAsset(), RRC.GOAL_BACKGROUND);
         };
         RRCLabyrinthScene.prototype.getAsset = function () {
             switch (this.ageGroup) {

@@ -38,7 +38,7 @@ export class RRCScene extends ScoreScene {
 		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
 			t.addToScore(waypoint.score)
 			if (idx == list.getLastWaypointIndex()) {
-				//t.showScoreScreen(10)
+				t.showScoreScreen(true)
 			}
 		})
 
@@ -56,8 +56,10 @@ export class RRCScene extends ScoreScene {
 
 
 	loadScoreAssets(chain: AsyncChain) {
+	    console.log("start")
 		this.loader.load(() => {
 				chain.next();
+				console.log("loaded")
 			},
 			RRC.PROGGY_TINY_FONT,
 			RRC.GOAL_BACKGROUND,

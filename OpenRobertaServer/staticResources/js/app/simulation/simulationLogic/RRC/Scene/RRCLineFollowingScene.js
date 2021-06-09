@@ -164,7 +164,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
         RRCLineFollowingScene.prototype.onLoadAssets = function (chain) {
             this.loader.load(function () {
                 chain.next();
-            }, this.getAsset());
+            }, this.getAsset(), RRC.GOAL_BACKGROUND);
         };
         RRCLineFollowingScene.prototype.onInit = function (chain) {
             var _this = this;

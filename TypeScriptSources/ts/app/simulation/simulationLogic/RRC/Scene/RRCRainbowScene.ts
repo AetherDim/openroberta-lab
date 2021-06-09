@@ -416,7 +416,8 @@ export class RRCRainbowScene extends RRCScene {
 		this.loader.load(() => {
 				chain.next();
 			},
-			this.backgroundAsset
+			this.backgroundAsset,
+			RRC.GOAL_BACKGROUND
 		);
 	}
 

@@ -164,7 +164,8 @@ export class RRCLineFollowingScene extends RRCScene {
 		this.loader.load(() => {
 			chain.next();
 		},
-			this.getAsset()
+			this.getAsset(),
+			RRC.GOAL_BACKGROUND
 		);
 	}
 

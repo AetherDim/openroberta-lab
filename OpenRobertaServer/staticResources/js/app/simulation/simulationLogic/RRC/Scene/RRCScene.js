@@ -48,7 +48,7 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
                 t.addToScore(waypoint.score);
                 if (idx == list.getLastWaypointIndex()) {
-                    //t.showScoreScreen(10)
+                    t.showScoreScreen(true);
                 }
             });
             // add index text graphic to waypoints
@@ -63,8 +63,10 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             });
         };
         RRCScene.prototype.loadScoreAssets = function (chain) {
+            console.log("start");
             this.loader.load(function () {
                 chain.next();
+                console.log("loaded");
             }, RRC.PROGGY_TINY_FONT, RRC.GOAL_BACKGROUND);
         };
         RRCScene.prototype.initScoreContainer = function (chain) {

@@ -547,7 +547,8 @@ export class RRCLabyrinthScene extends RRCScene {
 		this.loader.load(() => {
 			chain.next();
 		},
-			this.getAsset()
+			this.getAsset(),
+			RRC.GOAL_BACKGROUND
 		);
 	}
 

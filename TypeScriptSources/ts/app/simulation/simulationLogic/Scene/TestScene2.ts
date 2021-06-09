@@ -81,7 +81,8 @@ export class TestScene2 extends RRCScene {
 
 	onLoadAssets(chain: AsyncChain) {
 		this.loader.load(()=>chain.next(),
-			...this.assets
+			...this.assets,
+			RRC.GOAL_BACKGROUND
 		)
 	}
 

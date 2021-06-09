@@ -392,7 +392,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             this.backgroundAsset = this.getAsset();
             this.loader.load(function () {
                 chain.next();
-            }, this.backgroundAsset);
+            }, this.backgroundAsset, RRC.GOAL_BACKGROUND);
         };
         RRCRainbowScene.prototype.onInit = function (chain) {
             var _this = this;
