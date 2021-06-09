@@ -93,10 +93,10 @@ export type AsUniqueArray<
   B extends ReadonlyArray<any>
 > = {
   [I in keyof A]: unknown extends {
-    [J in keyof B]: J extends I ? never : B[J] extends A[I] ? unknown : never
+	  [J in keyof B]: J extends I ? never : B[J] extends A[I] ? unknown : never
   }[number]
-    ? Invalid<[A[I], "is repeated"]>
-    : A[I]
+	? Invalid<[A[I], "is repeated"]>
+	: A[I]
 };
 
 export type Narrowable =

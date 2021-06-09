@@ -493,15 +493,15 @@ export const TEST = "test";
 export const CONSOLE_DEBUG = "createConsoleDebugAction";
 
 export const COLOR_ENUM = {
-        NONE: "NONE",
-        BLACK: "BLACK",
-        BLUE: "BLUE",
-        GREEN: "GREEN",
-        YELLOW: "YELLOW",
-        RED: "RED",
-        WHITE: "WHITE",
-        BROWN: "BROWN"
-    };
+	NONE: "NONE",
+	BLACK: "BLACK",
+	BLUE: "BLUE",
+	GREEN: "GREEN",
+	YELLOW: "YELLOW",
+	RED: "RED",
+	WHITE: "WHITE",
+	BROWN: "BROWN"
+};
 
 export const TIMER = "timer";
 

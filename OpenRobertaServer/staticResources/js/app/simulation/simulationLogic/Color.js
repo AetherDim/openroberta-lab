@@ -87,9 +87,8 @@ define(["require", "exports", "./simulation.constants"], function (require, expo
     * Map a hsv value to a color name.
     *
     * @memberOf exports
-    * @param {Array}
-    *            hsv value
-    * @returns {Enum} color
+    * @param hsv value
+    * @returns color
     */
     function hsvToColorName(hsv) {
         var h = hsv.h, s = hsv.s, v = hsv.v;
@@ -121,13 +120,10 @@ define(["require", "exports", "./simulation.constants"], function (require, expo
      * Convert a rgb value to hsv value.
      *
      * @memberOf exports
-     * @param {Number}
-     *            r red value
-     * @param {Number}
-     *            g green value
-     * @param {Number}
-     *            b blue value
-     * @returns {Array} hsv value
+     * @param r red value
+     * @param g green value
+     * @param b blue value
+     * @returns hsv value
      */
     //copy from http://stackoverflow.com/questions/2348597/why-doesnt-this-javascript-rgb-to-hsl-code-work
     function rgbToHsv(r, g, b) {

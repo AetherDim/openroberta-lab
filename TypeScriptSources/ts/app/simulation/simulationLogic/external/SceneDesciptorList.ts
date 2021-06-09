@@ -21,41 +21,41 @@ if(DEBUG)
 	//
 	// Test
 	//
-    scenes.push(
-        new SceneDescriptor(
-        'Test Scene',
-        'Test scene with all sim features',
-        (descriptor) => {
-                return new TestScene(descriptor.name);
-            }
-        ),
+	scenes.push(
+		new SceneDescriptor(
+		'Test Scene',
+		'Test scene with all sim features',
+		(descriptor) => {
+				return new TestScene(descriptor.name);
+			}
+		),
 
-        new SceneDescriptor(
-            "Test Scene 2", "Test scene for testing different sensor configurations",
-            (descriptor) => new TestScene2(descriptor.name, AgeGroup.ES)
-        ),
+		new SceneDescriptor(
+			"Test Scene 2", "Test scene for testing different sensor configurations",
+			(descriptor) => new TestScene2(descriptor.name, AgeGroup.ES)
+		),
 
-        new SceneDescriptor(
-            "Test Scene 3", "Test scene for generating calibration data for the robot",
-            (descriptor) => new TestScene3()
-        ),
+		new SceneDescriptor(
+			"Test Scene 3", "Test scene for generating calibration data for the robot",
+			(descriptor) => new TestScene3()
+		),
 
-        new SceneDescriptor(
-            'Empty Scene',
-            'Empty Scene',
-            (descriptor) => {
-                return new Scene(descriptor.name);
-            }
-        ),
+		new SceneDescriptor(
+			'Empty Scene',
+			'Empty Scene',
+			(descriptor) => {
+				return new Scene(descriptor.name);
+			}
+		),
 
-        new SceneDescriptor(
-            'RRC - Test Scene',
-            'Roborave Cyberspace Test',
-            (descriptor) => {
-                return new RRCScene(descriptor.name, AgeGroup.ES);
-            }
-        )
-    )
+		new SceneDescriptor(
+			'RRC - Test Scene',
+			'Roborave Cyberspace Test',
+			(descriptor) => {
+				return new RRCScene(descriptor.name, AgeGroup.ES);
+			}
+		)
+	)
 
 
 

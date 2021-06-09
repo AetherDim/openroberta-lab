@@ -100,7 +100,7 @@ export class Scene {
 	private size = {width: 0, height: 0}
 
 	// TODO: copy coords
-    getSize(): { width: number, height: number } {
+	getSize(): { width: number, height: number } {
 		return this.size
 	}
 
@@ -108,7 +108,7 @@ export class Scene {
 		return this.origin
 	}
 
-    updateBounds() {
+	updateBounds() {
 		this.origin = {x: 0, y: 0}
 		this.size = {width: 0, height: 0}
 		
@@ -135,7 +135,7 @@ export class Scene {
 
 		this.size.width -= this.origin.x
 		this.size.height -= this.origin.y
-    }
+	}
 
 	//
 	// #############################################################################

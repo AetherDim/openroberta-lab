@@ -142,14 +142,14 @@ interface DecodedProgramURI {
 
 function convertProgramURI(programURI: string): DecodedProgramURI | undefined {
 	// old style queries
-    let target = decodeURI(programURI).split("&&");
-    if (target[0].endsWith("#loadProgram") && target.length >= 4) {
-        return {
+	let target = decodeURI(programURI).split("&&");
+	if (target[0].endsWith("#loadProgram") && target.length >= 4) {
+		return {
 			robotType: target[1], 
 			programName: target[2],
 			programXML: target[3]
 		}
-    } else {
+	} else {
 		console.error("Invalid program")
 	}
 	return undefined
@@ -157,36 +157,36 @@ function convertProgramURI(programURI: string): DecodedProgramURI | undefined {
 
 
 function loadProgramFromXML(name: string, xml: string, callback: (setupData: RobertaRobotSetupData) => void) {
-    if (xml.search("<export") === -1) {
-        xml = '<export xmlns="http://de.fhg.iais.roberta.blockly"><program>' + xml + '</program><config>' + GUISTATE_MODEL.getConfigurationXML()
-            + '</config></export>';
-    }
-    PROGRAM_MODEL.loadProgramFromXML(name, xml, function(result) {
+	if (xml.search("<export") === -1) {
+		xml = '<export xmlns="http://de.fhg.iais.roberta.blockly"><program>' + xml + '</program><config>' + GUISTATE_MODEL.getConfigurationXML()
+			+ '</config></export>';
+	}
+	PROGRAM_MODEL.loadProgramFromXML(name, xml, function(result) {
 
-        if(result.rc !== "ok") {
-            alert('Server did not successfully convert program!');
-            return;
-        }
+		if(result.rc !== "ok") {
+			alert('Server did not successfully convert program!');
+			return;
+		}
 
-        var isNamedConfig = false;
-        var configName = undefined;
-        var language = GUISTATE_MODEL.gui.language;
+		var isNamedConfig = false;
+		var configName = undefined;
+		var language = GUISTATE_MODEL.gui.language;
 
 
-        PROGRAM_MODEL.runInSim(result.programName, configName, result.progXML, result.confXML, language, function(result) {
-            if (result.rc == "ok") {
-                try {
+		PROGRAM_MODEL.runInSim(result.programName, configName, result.progXML, result.confXML, language, function(result) {
+			if (result.rc == "ok") {
+				try {
 					callback(result)
-                    //SIM.init([result], true, GUISTATE_MODEL.gui.robotGroup);
-                } catch (e) {
-                    console.error(e)
-                }
-            } else {
-                alert('Unable to process program for simulation!');
-            }
-        })
+					//SIM.init([result], true, GUISTATE_MODEL.gui.robotGroup);
+				} catch (e) {
+					console.error(e)
+				}
+			} else {
+				alert('Unable to process program for simulation!');
+			}
+		})
 
-    })
+	})
 }
 
 function loadScenesFromRequest(result: ProgramsRequestResult) {

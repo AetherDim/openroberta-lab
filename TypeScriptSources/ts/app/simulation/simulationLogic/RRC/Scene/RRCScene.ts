@@ -56,7 +56,7 @@ export class RRCScene extends ScoreScene {
 
 
 	loadScoreAssets(chain: AsyncChain) {
-	    console.log("start")
+		console.log("start")
 		this.loader.load(() => {
 				chain.next();
 				console.log("loaded")

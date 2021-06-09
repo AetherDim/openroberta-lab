@@ -915,7 +915,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		for (const [port, ultrasonicSensor] of this.ultrasonicSensors) {
 			append("Ultra Sensor "+port, 100 * s.unit.fromLength(ultrasonicSensor.getMeasuredDistance()), "cm")
 		}
-        
+
 	}
 
 	/**

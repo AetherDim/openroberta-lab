@@ -30,7 +30,7 @@ export class SceneManager {
 	private readonly sceneHandleMap = new Map<string, SceneDescriptor>()
 	private readonly sceneMap = new Map<string, Scene>()
 	private currentID?: string
-    public disableSceneCache: boolean = false
+	public disableSceneCache: boolean = false
 
 	destroy() {
 		Array.from(this.sceneMap.values()).forEach(scene => scene.destroy())
@@ -39,9 +39,9 @@ export class SceneManager {
 
 	getScene(ID: string) {
 		let scene = this.sceneMap.get(ID)
-        if(this.disableSceneCache) {
-            scene = undefined
-        }
+		if(this.disableSceneCache) {
+			scene = undefined
+		}
 		if(!scene) {
 			const sceneHandle = this.sceneHandleMap.get(ID)
 			if(sceneHandle) {

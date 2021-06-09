@@ -93,9 +93,8 @@ export var COLOR_MAP_XKCD: Color[] = [
 * Map a hsv value to a color name.
 * 
 * @memberOf exports
-* @param {Array}
-*            hsv value
-* @returns {Enum} color
+* @param hsv value
+* @returns color
 */
 export function hsvToColorName(hsv: {h: number, s: number, v: number}): string {
 	const h = hsv.h, s = hsv.s, v = hsv.v
@@ -127,13 +126,10 @@ export function hsvToColorName(hsv: {h: number, s: number, v: number}): string {
  * Convert a rgb value to hsv value.
  * 
  * @memberOf exports
- * @param {Number}
- *            r red value
- * @param {Number}
- *            g green value
- * @param {Number}
- *            b blue value
- * @returns {Array} hsv value
+ * @param r red value
+ * @param g green value
+ * @param b blue value
+ * @returns hsv value
  */
 //copy from http://stackoverflow.com/questions/2348597/why-doesnt-this-javascript-rgb-to-hsl-code-work
 export function rgbToHsv(r: number, g: number, b: number): {h: number, s: number, v: number} {
