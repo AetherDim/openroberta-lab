@@ -43,29 +43,52 @@ define(["require", "exports", "blockly"], function (require, exports, Blockly) {
     exports.UIRobertaButton = UIRobertaButton;
     var UIRobertaStateButton = /** @class */ (function () {
         function UIRobertaStateButton(buttonID, initialState, buttonSettingsState) {
+            this.clickHanders = [];
+            //FIXME: Ugly workaround
+            // Workaround since 'onWrap' is not loaded initially 
+            this.needsOnWrapHandler = true;
             this.buttonID = buttonID;
             this.jQueryHTMLElement = $("#" + buttonID);
             this.stateMappingObject = buttonSettingsState;
             this.state = initialState;
         }
         /**
-         * Adds `onClickHandler` to the html element as click handler
+         * Set the state change handler.
          *
-         * @param onClickHandler will be called with the state in which the button is in **before** the state change.
+         * @param stateChangeHandler will be called with the state in which the button is in **before** the state change.
          * It returns the new button state.
          *
          * @returns `this`
          */
+        UIRobertaStateButton.prototype.setStateChangeHandler = function (stateChangeHandler) {
+            this.stateChangeHandler = stateChangeHandler;
+            return this;
+        };
+        /**
+         * Adds `onClickHandler` to the click handler list.
+         *
+         * @param onClickHandler will be called with the state in which the button is in **before** the state change.
+         *
+         * @returns `this`
+         */
         UIRobertaStateButton.prototype.onClick = function (onClickHandler) {
-            var t = this;
-            this.jQueryHTMLElement.onWrap("click", function () {
-                var _a;
-                t.jQueryHTMLElement.removeClass(t.stateMappingObject[t.state].class);
-                t.state = onClickHandler(t.state);
-                var buttonSettings = t.stateMappingObject[t.state];
-                t.jQueryHTMLElement.addClass(buttonSettings.class);
-                t.jQueryHTMLElement.attr("data-original-title", (_a = buttonSettings.tooltip) !== null && _a !== void 0 ? _a : "");
-            }, this.buttonID + " clicked");
+            if (this.needsOnWrapHandler) {
+                // FIXME: This should be in the constructor
+                // Add some 'require' calls
+                var t_1 = this;
+                this.jQueryHTMLElement.onWrap("click", function () {
+                    var _a, _b, _c;
+                    t_1.jQueryHTMLElement.removeClass(t_1.stateMappingObject[t_1.state].class);
+                    var state = t_1.state;
+                    t_1.state = (_b = (_a = t_1.stateChangeHandler) === null || _a === void 0 ? void 0 : _a.call(t_1, state)) !== null && _b !== void 0 ? _b : state;
+                    t_1.clickHanders.forEach(function (handler) { return handler(state); });
+                    var buttonSettings = t_1.stateMappingObject[t_1.state];
+                    t_1.jQueryHTMLElement.addClass(buttonSettings.class);
+                    t_1.jQueryHTMLElement.attr("data-original-title", (_c = buttonSettings.tooltip) !== null && _c !== void 0 ? _c : "");
+                }, this.buttonID + " clicked");
+                this.needsOnWrapHandler = false;
+            }
+            this.clickHanders.push(onClickHandler);
             return this;
         };
         UIRobertaStateButton.prototype.update = function () {
@@ -89,26 +112,14 @@ define(["require", "exports", "blockly"], function (require, exports, Blockly) {
     exports.UIRobertaStateButton = UIRobertaStateButton;
     var UIRobertaToggleStateButton = /** @class */ (function (_super) {
         __extends(UIRobertaToggleStateButton, _super);
-        function UIRobertaToggleStateButton() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        /**
-         * Adds `onClickHandler` to the html element as click handler
-         *
-         * @param onClickHandler will be called with the state in which the button is in **before** the state change.
-         *
-         * @returns `this`
-         */
-        UIRobertaToggleStateButton.prototype.onClick = function (onClickHandler) {
-            var t = this;
-            _super.prototype.onClick.call(this, function (state) {
-                onClickHandler(state);
-                var keys = Object.keys(t.stateMappingObject);
-                // toggle the state
+        function UIRobertaToggleStateButton(buttonID, initialState, buttonSettingsState) {
+            var _this = _super.call(this, buttonID, initialState, buttonSettingsState) || this;
+            _this.setStateChangeHandler(function (state) {
+                var keys = Object.keys(buttonSettingsState);
                 return keys[keys.indexOf(state) == 0 ? 1 : 0];
             });
-            return this;
-        };
+            return _this;
+        }
         return UIRobertaToggleStateButton;
     }(UIRobertaStateButton));
     exports.UIRobertaToggleStateButton = UIRobertaToggleStateButton;

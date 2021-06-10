@@ -27,7 +27,7 @@ export class UIRobertaButton {
 	 */
 	onClick(onClickHandler: () => void): UIRobertaButton {
 		const t = this;
-		(this.jQueryHTMLElement as any).onWrap("click", onClickHandler, this.buttonID + " clicked")
+		this.jQueryHTMLElement.onWrap("click", onClickHandler, this.buttonID + " clicked")
 		return this
 	}
 
@@ -42,6 +42,13 @@ export class UIRobertaStateButton<T extends { [key in string]: RobertaButtonSett
 	protected stateMappingObject: T
 	protected state: keyof T
 
+	private stateChangeHandler?: (state: keyof T) => keyof T
+	private clickHanders: ((state: keyof T) => void)[] = []
+	
+	//FIXME: Ugly workaround
+	// Workaround since 'onWrap' is not loaded initially 
+	private needsOnWrapHandler = true
+
 	constructor(buttonID: string, initialState: keyof T, buttonSettingsState: T) {
 		this.buttonID = buttonID
 		this.jQueryHTMLElement = $("#"+buttonID)
@@ -50,22 +57,42 @@ export class UIRobertaStateButton<T extends { [key in string]: RobertaButtonSett
 	}
 
 	/**
-	 * Adds `onClickHandler` to the html element as click handler
+	 * Set the state change handler.
 	 * 
-	 * @param onClickHandler will be called with the state in which the button is in **before** the state change.
+	 * @param stateChangeHandler will be called with the state in which the button is in **before** the state change.
 	 * It returns the new button state.
 	 * 
 	 * @returns `this`
 	 */
-	onClick(onClickHandler: (state: keyof T) => keyof T): UIRobertaStateButton<T> {
-		const t = this;
-		(this.jQueryHTMLElement as any).onWrap("click", () => {
-			t.jQueryHTMLElement.removeClass(t.stateMappingObject[t.state].class)
-			t.state = onClickHandler(t.state)
-			const buttonSettings = t.stateMappingObject[t.state]
-			t.jQueryHTMLElement.addClass(buttonSettings.class)
-			t.jQueryHTMLElement.attr("data-original-title", buttonSettings.tooltip ?? "");
-		}, this.buttonID + " clicked")
+	setStateChangeHandler(stateChangeHandler: (state: keyof T) => keyof T): UIRobertaStateButton<T> {
+		this.stateChangeHandler = stateChangeHandler
+		return this
+	}
+
+	/**
+	 * Adds `onClickHandler` to the click handler list.
+	 * 
+	 * @param onClickHandler will be called with the state in which the button is in **before** the state change.
+	 * 
+	 * @returns `this`
+	 */
+	onClick(onClickHandler: (state: keyof T) => void): UIRobertaStateButton<T> {
+		if (this.needsOnWrapHandler) {
+			// FIXME: This should be in the constructor
+			// Add some 'require' calls
+			const t = this;
+			this.jQueryHTMLElement.onWrap("click", () => {
+				t.jQueryHTMLElement.removeClass(t.stateMappingObject[t.state].class)
+				const state = t.state
+				t.state = t.stateChangeHandler?.(state) ?? state
+				t.clickHanders.forEach(handler => handler(state));
+				const buttonSettings = t.stateMappingObject[t.state]
+				t.jQueryHTMLElement.addClass(buttonSettings.class)
+				t.jQueryHTMLElement.attr("data-original-title", buttonSettings.tooltip ?? "");
+			}, this.buttonID + " clicked")
+			this.needsOnWrapHandler = false
+		}
+		this.clickHanders.push(onClickHandler)
 		return this
 	}
 
@@ -92,22 +119,12 @@ export type TwoProperties<T, PropertyType> =
 
 export class UIRobertaToggleStateButton<T extends TwoProperties<T, RobertaButtonSettings>> extends UIRobertaStateButton<T> {
 
-	/**
-	 * Adds `onClickHandler` to the html element as click handler
-	 * 
-	 * @param onClickHandler will be called with the state in which the button is in **before** the state change.
-	 * 
-	 * @returns `this`
-	 */
-	onClick(onClickHandler: (state: keyof T) => void): UIRobertaToggleStateButton<T> {
-		const t = this;
-		super.onClick(state => {
-			onClickHandler(state)
-			const keys = Object.keys(t.stateMappingObject)
-			// toggle the state
+	constructor(buttonID: string, initialState: keyof T, buttonSettingsState: T) {
+		super(buttonID, initialState, buttonSettingsState)
+		this.setStateChangeHandler(state => {
+			const keys = Object.keys(buttonSettingsState)
 			return keys[keys.indexOf(state as string) == 0 ? 1 : 0]
 		})
-		return this
 	}
 
 }
