@@ -306,7 +306,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
     //loadScenes(generateRandomMultiSetupData(sceneCount))
     // called only once
     function init(robotSetupDataIDs, secretKey) {
-        RESTApi_1.programRequest({
+        RESTApi_1.sendProgramRequest({
             secret: { secret: '' },
             programs: robotSetupDataIDs
         }, loadScenesFromRequest);

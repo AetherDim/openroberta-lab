@@ -6,7 +6,7 @@ import { RobotSetupData } from "../Robot/RobotSetupData"
 import { UIManager } from "../UIManager"
 import { Util } from "../Util"
 import { cyberspaceScenes, sceneIDMap } from "./SceneDesciptorList"
-import { programRequest, ProgramsRequestResult, ResultErrorType } from "./RESTApi"
+import { sendProgramRequest, ProgramsRequestResult, ResultErrorType } from "./RESTApi"
 import PROGRAM_MODEL = require("../program.model")
 import GUISTATE_MODEL = require("../guiState.model")
 
@@ -363,7 +363,7 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 
 // called only once
 export function init(robotSetupDataIDs: number[], secretKey: string) {
-	programRequest({
+	sendProgramRequest({
 		secret: {secret: ''},
 		programs: robotSetupDataIDs
 	}, loadScenesFromRequest)

@@ -42,7 +42,7 @@ export interface ProgramSQLEntry {
 	id: number
 }
 
-export function sendRESTRequest(url: string, programRequest: any, callback: (programsResult?: ProgramsRequestResult) => void) {
+export function sendRESTRequest(url: string, programRequest: ProgramsRequest|SetScoreRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
 	function transferComplete(this: XMLHttpRequest) {
 		const response = JSON.parse(this.responseText) as ProgramsRequestResult
 		callback(response)
@@ -53,7 +53,7 @@ export function sendRESTRequest(url: string, programRequest: any, callback: (pro
 	httpPostAsync(url, JSON.stringify(programRequest), transferComplete, onError, onError)
 }
 
-export function programRequest(programRequest: ProgramsRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
+export function sendProgramRequest(programRequest: ProgramsRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
 	sendRESTRequest(PROGRAMS_URL, programRequest, callback)
 }
 
@@ -67,8 +67,8 @@ export interface SetScoreRequest {
 	modifiedBy: string
 }
 
-export function setScoreRequest(setScoreRequest: SetScoreRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
-	sendRESTRequest(SET_SCORE_URL, programRequest, callback)
+export function sendSetScoreRequest(setScoreRequest: SetScoreRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
+	sendRESTRequest(SET_SCORE_URL, setScoreRequest, callback)
 }
 
 export type Secret = {
