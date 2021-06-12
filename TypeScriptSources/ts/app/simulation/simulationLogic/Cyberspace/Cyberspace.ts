@@ -2,7 +2,7 @@ import { RobertaRobotSetupData } from "../Robot/RobertaRobotSetupData"
 import { RobotProgram } from "../Robot/RobotProgram"
 import { SimulationCache } from "./SimulationCache"
 import { Scene } from "../Scene/Scene"
-import { ScoreScene } from "../Scene/ScoreScene"
+import { RRCScoreScene } from "../RRC/Scene/RRCScoreScene"
 import { SceneRender } from "../SceneRenderer"
 import { SceneDescriptor, SceneManager } from "./SceneManager"
 import { EventManager, ParameterTypes } from "../EventManager/EventManager"
@@ -79,9 +79,9 @@ export class Cyberspace {
 		return this.renderer.getScene()
 	}
 
-	getScoreScene(): ScoreScene|undefined {
+	getScoreScene(): RRCScoreScene|undefined {
 		const scene = this.renderer.getScene()
-		if(scene instanceof ScoreScene) {
+		if(scene instanceof RRCScoreScene) {
 			return scene
 		}
 		return undefined

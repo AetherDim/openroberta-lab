@@ -4,7 +4,7 @@ import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
 import {Body, Vector} from "matter-js";
 import {Unit} from "../../Unit";
-import {ScoreScene} from "../../Scene/ScoreScene";
+import {RRCScoreScene} from "./RRCScoreScene";
 import {PhysicsRectEntity, DrawableEntity, RectEntityOptions} from "../../Entity";
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint"
 import {WaypointList} from "../../Waypoints/WaypointList";
@@ -12,7 +12,7 @@ import {Util} from "../../Util";
 import { WaypointVisibilityBehavior } from "../../Waypoints/WaypointsManager";
 import { SharedAssetLoader } from "../../SharedAssetLoader";
 
-export class RRCScene extends ScoreScene {
+export class RRCScene extends RRCScoreScene {
 
 	readonly loader = new SharedAssetLoader();
 	readonly ageGroup: AgeGroup;

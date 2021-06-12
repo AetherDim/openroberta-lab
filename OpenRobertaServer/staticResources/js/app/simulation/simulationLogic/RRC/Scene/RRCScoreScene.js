@@ -13,13 +13,13 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../SharedAssetLoader", "../RRC/RRAssetLoader"], function (require, exports, AsyncChain_1, Scene_1, UIManager_1, SharedAssetLoader_1, RRAssetLoader_1) {
+define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "../../UIManager", "../../SharedAssetLoader", "../RRAssetLoader"], function (require, exports, AsyncChain_1, Scene_1, UIManager_1, SharedAssetLoader_1, RRAssetLoader_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ScoreScene = void 0;
-    var ScoreScene = /** @class */ (function (_super) {
-        __extends(ScoreScene, _super);
-        function ScoreScene(name) {
+    exports.RRCScoreScene = void 0;
+    var RRCScoreScene = /** @class */ (function (_super) {
+        __extends(RRCScoreScene, _super);
+        function RRCScoreScene(name) {
             var _this = _super.call(this, name) || this;
             _this.loader = new SharedAssetLoader_1.SharedAssetLoader();
             _this.scoreContainer = new PIXI.Container;
@@ -34,10 +34,10 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
             UIManager_1.UIManager.showScoreButton.onClick(function (state) { return T.showScoreScreenNoButtonChange(state == "showScore"); });
             return _this;
         }
-        ScoreScene.prototype.onLoadAssets = function (chain) {
+        RRCScoreScene.prototype.onLoadAssets = function (chain) {
             this.loader.load(function () { return chain.next(); }, RRAssetLoader_1.GOAL_BACKGROUND);
         };
-        ScoreScene.prototype.onInitScore = function (chain) {
+        RRCScoreScene.prototype.onInitScore = function (chain) {
             UIManager_1.UIManager.showScoreButton.setState("showScore");
             this.containerManager.topContainer.addChild(this.timeBonusScoreLabel);
             // image
@@ -57,27 +57,27 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
             this.scoreContainer.addChild(this.scoreText);
             chain.next();
         };
-        ScoreScene.prototype.updateScoreText = function () {
+        RRCScoreScene.prototype.updateScoreText = function () {
             this.scoreText.text = "Score: " + this.score;
             this.scoreText.resolution = 4;
         };
-        ScoreScene.prototype.setScore = function (score) {
+        RRCScoreScene.prototype.setScore = function (score) {
             this.score = score;
             this.updateScoreText();
         };
-        ScoreScene.prototype.resetScoreAndProgramRuntime = function () {
+        RRCScoreScene.prototype.resetScoreAndProgramRuntime = function () {
             this.setScore(0);
             this.programEventTimes = undefined;
         };
-        ScoreScene.prototype.reset = function (robotSetupData) {
+        RRCScoreScene.prototype.reset = function (robotSetupData) {
             this.resetScoreAndProgramRuntime();
             _super.prototype.reset.call(this, robotSetupData);
         };
-        ScoreScene.prototype.fullReset = function (robotSetupData) {
+        RRCScoreScene.prototype.fullReset = function (robotSetupData) {
             this.resetScoreAndProgramRuntime();
             _super.prototype.fullReset.call(this, robotSetupData);
         };
-        ScoreScene.prototype.showScoreScreenNoButtonChange = function (visible) {
+        RRCScoreScene.prototype.showScoreScreenNoButtonChange = function (visible) {
             if (visible) {
                 this.containerManager.topContainer.addChild(this.scoreContainer);
             }
@@ -85,11 +85,11 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
                 this.containerManager.topContainer.removeChild(this.scoreContainer);
             }
         };
-        ScoreScene.prototype.showScoreScreen = function (visible) {
+        RRCScoreScene.prototype.showScoreScreen = function (visible) {
             this.showScoreScreenNoButtonChange(visible);
             UIManager_1.UIManager.showScoreButton.setState(visible ? "hideScore" : "showScore");
         };
-        ScoreScene.prototype.addToScore = function (score) {
+        RRCScoreScene.prototype.addToScore = function (score) {
             this.score += score;
             this.updateScoreText();
         };
@@ -98,7 +98,7 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
          * If the program was stopped, the total program runtime will be returned.
          * It returns `undefined`, if the program was never started.
          */
-        ScoreScene.prototype.getProgramRuntime = function () {
+        RRCScoreScene.prototype.getProgramRuntime = function () {
             var _a;
             if (this.programEventTimes != undefined) {
                 return ((_a = this.programEventTimes.stopTime) !== null && _a !== void 0 ? _a : this.getSimulationTime()) - this.programEventTimes.startTime;
@@ -107,7 +107,7 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
                 return undefined;
             }
         };
-        ScoreScene.prototype.onUpdatePrePhysics = function () {
+        RRCScoreScene.prototype.onUpdatePrePhysics = function () {
             var _a;
             var robots = this.getRobotManager().getRobots();
             if (robots.length > 0) {
@@ -129,7 +129,7 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
                 }
             }
         };
-        return ScoreScene;
+        return RRCScoreScene;
     }(Scene_1.Scene));
-    exports.ScoreScene = ScoreScene;
+    exports.RRCScoreScene = RRCScoreScene;
 });

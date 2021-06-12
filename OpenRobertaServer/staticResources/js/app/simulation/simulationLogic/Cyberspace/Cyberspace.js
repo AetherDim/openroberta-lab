@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager", "../EventManager/EventManager"], function (require, exports, SimulationCache_1, Scene_1, ScoreScene_1, SceneRenderer_1, SceneManager_1, EventManager_1) {
+define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../RRC/Scene/RRCScoreScene", "../SceneRenderer", "./SceneManager", "../EventManager/EventManager"], function (require, exports, SimulationCache_1, Scene_1, RRCScoreScene_1, SceneRenderer_1, SceneManager_1, EventManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Cyberspace = void 0;
@@ -77,7 +77,7 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
         };
         Cyberspace.prototype.getScoreScene = function () {
             var scene = this.renderer.getScene();
-            if (scene instanceof ScoreScene_1.ScoreScene) {
+            if (scene instanceof RRCScoreScene_1.RRCScoreScene) {
                 return scene;
             }
             return undefined;

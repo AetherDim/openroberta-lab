@@ -1,12 +1,12 @@
-import {RobotSetupData} from "../Robot/RobotSetupData";
-import {AsyncChain, AsyncListener} from "./AsyncChain";
-import {Scene} from "./Scene";
-import {UIManager} from "../UIManager";
-import {SharedAssetLoader} from "../SharedAssetLoader";
-import {GOAL_BACKGROUND} from "../RRC/RRAssetLoader";
+import {RobotSetupData} from "../../Robot/RobotSetupData";
+import {AsyncChain, AsyncListener} from "../../Scene/AsyncChain";
+import {Scene} from "../../Scene/Scene";
+import {UIManager} from "../../UIManager";
+import {SharedAssetLoader} from "../../SharedAssetLoader";
+import {GOAL_BACKGROUND} from "../RRAssetLoader";
 
 
-export class ScoreScene extends Scene {
+export class RRCScoreScene extends Scene {
 	readonly loader = new SharedAssetLoader();
 
 	scoreContainer = new PIXI.Container

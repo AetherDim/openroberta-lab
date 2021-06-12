@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/ScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util", "../../SharedAssetLoader"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, ScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1, SharedAssetLoader_1) {
+define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "./RRCScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util", "../../SharedAssetLoader"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, RRCScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1, SharedAssetLoader_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScene = void 0;
@@ -223,6 +223,6 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             right.getDrawable().visible = visible;
         };
         return RRCScene;
-    }(ScoreScene_1.ScoreScene));
+    }(RRCScoreScene_1.RRCScoreScene));
     exports.RRCScene = RRCScene;
 });

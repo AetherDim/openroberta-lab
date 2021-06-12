@@ -157,7 +157,6 @@ require.config({
         'UIManager',
         { 'Scene': [
                 'Scene',
-                'ScoreScene',
                 'TestScene',
                 'TestScene2',
                 'TestScene3',
@@ -205,6 +204,7 @@ require.config({
                 'RRAssetLoader',
                 'AgeGroup',
                 { 'Scene': [
+                        'RRCScoreScene',
                         'RRCScene',
                         'RRCLineFollowingScene',
                         'RRCRainbowScene',
