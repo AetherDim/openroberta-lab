@@ -29,6 +29,31 @@ export class Cyberspace {
 		onStopPrograms: ParameterTypes.none
 	})
 
+	readonly specializedEventManager = new class SpecializedEventManager {
+		private handlerSetters: ((scene: Scene) => void)[] = []
+		/**
+		 * Adds the function `setHandler` which is later called in `Cyberspace.resetEventHandlersOfScene(scene)`.
+		 * 
+		 * @param sceneType The type of the scene
+		 * @param setHandler The function which sets the event handlers of a scene of type `sceneType`.
+		 */
+		addEventHandlerSetter<S extends Scene>(sceneType: new (...args: any) => S, setHandler: (scene: S) => void) {
+			this.handlerSetters.push(scene => {
+				if (scene instanceof sceneType) {
+					setHandler(scene)
+				}
+			})
+		}
+		/**
+		 * Sets the specified event handlers for `scene`.
+		 * 
+		 * This method should only be called inside `Cyberspace`.
+		 */
+		_setEventHandlers(scene: Scene) {
+			this.handlerSetters.forEach(handlerSetter => handlerSetter(scene))
+		}
+	}
+
 	constructor(canvas: HTMLCanvasElement | string, autoResizeTo?: HTMLElement | string, scenes: SceneDescriptor[] = []) {
 		this.sceneManager.registerScene(...scenes)
 		// empty scene as default
@@ -48,8 +73,10 @@ export class Cyberspace {
 	/* ####################################### Scene control ###################################### */
 	/* ############################################################################################ */
 
-	resetEventHandlersOfScene(scene: Scene) {
+	private resetEventHandlersOfScene(scene: Scene) {
 		scene.removeAllEventHandlers()
+
+		this.specializedEventManager._setEventHandlers(scene)
 
 		const eventHandlerLists = this.eventManager.eventHandlerLists
 		const programManagerEventHandlerLists = scene.getProgramManager().eventManager.eventHandlerLists

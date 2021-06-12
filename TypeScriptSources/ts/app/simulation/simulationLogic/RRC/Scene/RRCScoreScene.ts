@@ -1,9 +1,9 @@
 import {RobotSetupData} from "../../Robot/RobotSetupData";
 import {AsyncChain, AsyncListener} from "../../Scene/AsyncChain";
 import {Scene} from "../../Scene/Scene";
-import {UIManager} from "../../UIManager";
 import {SharedAssetLoader} from "../../SharedAssetLoader";
 import {GOAL_BACKGROUND, PROGGY_TINY_FONT} from "../RRAssetLoader";
+import { EventManager, ParameterTypes } from "../../EventManager/EventManager";
 
 
 export class RRCScoreScene extends Scene {
@@ -36,14 +36,21 @@ export class RRCScoreScene extends Scene {
 
 	score: number = 0
 
+	readonly scoreEventManager = EventManager.init({
+		onShowHideScore: new ParameterTypes<["showScore" | "hideScore"]>()
+	})
+
 	constructor(name: string) {
 		super(name)
 		this.addOnAsyncChainBuildCompleteLister(chain => {
 			chain.addBefore(this.onInit, new AsyncListener(this.onInitScore, this))
 			chain.addBefore(this.onLoadAssets, new AsyncListener(this.onLoadScoreAssets, this))
 		})
+	}
 
-		UIManager.showScoreButton.onClick(state => this.showScoreScreenNoButtonChange(state == "showScore"))
+	removeAllEventHandlers() {
+		super.removeAllEventHandlers()
+		this.scoreEventManager.removeAllEventHandlers()
 	}
 
 	onLoadScoreAssets(chain: AsyncChain) {
@@ -54,7 +61,7 @@ export class RRCScoreScene extends Scene {
 	}
 
 	onInitScore(chain: AsyncChain) {
-		UIManager.showScoreButton.setState("showScore")
+		this.showScoreScreen(false)
 
 		this.scoreContainer.zIndex = 1000;
 
@@ -112,8 +119,10 @@ export class RRCScoreScene extends Scene {
 	}
 
 	private showScoreScreenNoButtonChange(visible: boolean) {
-		if (visible && !this.isVisible()) {
-			this.containerManager.topContainer.addChild(this.scoreContainer)
+		if (visible) {
+			if(!this.isVisible()) {
+				this.containerManager.topContainer.addChild(this.scoreContainer)
+			}
 		} else {
 			this.containerManager.topContainer.removeChild(this.scoreContainer)
 		}
@@ -125,7 +134,7 @@ export class RRCScoreScene extends Scene {
 
 	showScoreScreen(visible: boolean) {
 		this.showScoreScreenNoButtonChange(visible)
-		UIManager.showScoreButton.setState(visible ? "hideScore" : "showScore")
+		this.scoreEventManager.onShowHideScoreCallHandlers(visible ? "showScore" : "hideScore")
 	}
 
 	addToScore(score: number) {

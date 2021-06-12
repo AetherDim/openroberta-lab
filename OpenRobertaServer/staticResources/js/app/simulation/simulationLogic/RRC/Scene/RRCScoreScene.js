@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "../../UIManager", "../../SharedAssetLoader", "../RRAssetLoader"], function (require, exports, AsyncChain_1, Scene_1, UIManager_1, SharedAssetLoader_1, RRAssetLoader_1) {
+define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "../../SharedAssetLoader", "../RRAssetLoader", "../../EventManager/EventManager"], function (require, exports, AsyncChain_1, Scene_1, SharedAssetLoader_1, RRAssetLoader_1, EventManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCScoreScene = void 0;
@@ -40,18 +40,24 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
                 fill: 0x00cb01
             });
             _this.score = 0;
+            _this.scoreEventManager = EventManager_1.EventManager.init({
+                onShowHideScore: new EventManager_1.ParameterTypes()
+            });
             _this.addOnAsyncChainBuildCompleteLister(function (chain) {
                 chain.addBefore(_this.onInit, new AsyncChain_1.AsyncListener(_this.onInitScore, _this));
                 chain.addBefore(_this.onLoadAssets, new AsyncChain_1.AsyncListener(_this.onLoadScoreAssets, _this));
             });
-            UIManager_1.UIManager.showScoreButton.onClick(function (state) { return _this.showScoreScreenNoButtonChange(state == "showScore"); });
             return _this;
         }
+        RRCScoreScene.prototype.removeAllEventHandlers = function () {
+            _super.prototype.removeAllEventHandlers.call(this);
+            this.scoreEventManager.removeAllEventHandlers();
+        };
         RRCScoreScene.prototype.onLoadScoreAssets = function (chain) {
             this.loader.load(function () { return chain.next(); }, RRAssetLoader_1.GOAL_BACKGROUND, RRAssetLoader_1.PROGGY_TINY_FONT);
         };
         RRCScoreScene.prototype.onInitScore = function (chain) {
-            UIManager_1.UIManager.showScoreButton.setState("showScore");
+            this.showScoreScreen(false);
             this.scoreContainer.zIndex = 1000;
             var goal = this.loader.get(RRAssetLoader_1.GOAL_BACKGROUND).texture;
             this.scoreBackgroundSprite = new PIXI.Sprite(goal);
@@ -97,8 +103,10 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
             _super.prototype.fullReset.call(this, robotSetupData);
         };
         RRCScoreScene.prototype.showScoreScreenNoButtonChange = function (visible) {
-            if (visible && !this.isVisible()) {
-                this.containerManager.topContainer.addChild(this.scoreContainer);
+            if (visible) {
+                if (!this.isVisible()) {
+                    this.containerManager.topContainer.addChild(this.scoreContainer);
+                }
             }
             else {
                 this.containerManager.topContainer.removeChild(this.scoreContainer);
@@ -109,7 +117,7 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
         };
         RRCScoreScene.prototype.showScoreScreen = function (visible) {
             this.showScoreScreenNoButtonChange(visible);
-            UIManager_1.UIManager.showScoreButton.setState(visible ? "hideScore" : "showScore");
+            this.scoreEventManager.onShowHideScoreCallHandlers(visible ? "showScore" : "hideScore");
         };
         RRCScoreScene.prototype.addToScore = function (score) {
             this.score += score;

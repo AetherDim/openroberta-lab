@@ -2,15 +2,13 @@ import { Cyberspace } from "../Cyberspace/Cyberspace"
 import { clearDebugGuiRoot, DebugGuiRoot } from "../GlobalDebug"
 import { RobertaRobotSetupData } from "../Robot/RobertaRobotSetupData"
 import { RobotProgramGenerator } from "../Robot/RobotProgramGenerator"
-import { RobotSetupData } from "../Robot/RobotSetupData"
 import { UIManager } from "../UIManager"
 import { Util } from "../Util"
 import { cyberspaceScenes, sceneIDMap } from "./SceneDesciptorList"
-import { sendProgramRequest, ProgramsRequestResult, ResultErrorType } from "./RESTApi"
+import { sendProgramRequest, ProgramsRequestResult, ResultErrorType, sendSetScoreRequest } from "./RESTApi"
 import PROGRAM_MODEL = require("../program.model")
 import GUISTATE_MODEL = require("../guiState.model")
-
-
+import { RRCScoreScene } from "../RRC/Scene/RRCScoreScene"
 
 
 const cyberspaces: Cyberspace[] = []
@@ -39,7 +37,18 @@ class CyberspaceData {
 	}
 }
 
-function createCyberspaceData(sceneID: string, groupName: string): CyberspaceData {
+function everyScoreSceneIsFinished(): boolean {
+	return cyberspaces.every(c => {
+		const scene = c.getScene()
+		if (scene instanceof RRCScoreScene) {
+			return scene.getProgramManager().allInterpretersTerminated()
+		} else {
+			return true
+		}
+	})
+}
+
+function createCyberspaceData(sceneID: string, groupName: string, programID?: number): CyberspaceData {
 	const canvas = document.createElement("canvas")
 	const cyberspaceDiv = document.createElement("div")
 	cyberspaceDiv.appendChild(canvas)
@@ -55,7 +64,7 @@ function createCyberspaceData(sceneID: string, groupName: string): CyberspaceDat
 	groupNameDiv.appendChild(groupNameParagraph)
 	const paragraphStyle = groupNameParagraph.style
 	paragraphStyle.display = "inline"
-	paragraphStyle.backgroundColor = "rgb(255, 255, 255, 0.5)"
+	paragraphStyle.backgroundColor = "white"
 	paragraphStyle.borderRadius = "5px"
 	paragraphStyle.fontSize = "20"
 	paragraphStyle.paddingLeft = "3"
@@ -64,6 +73,49 @@ function createCyberspaceData(sceneID: string, groupName: string): CyberspaceDat
 	cyberspaceDiv.appendChild(groupNameDiv)
 
 	const cyberspace = new Cyberspace(canvas, cyberspaceDiv, sceneDescriptors)
+	cyberspace.specializedEventManager
+		.addEventHandlerSetter(RRCScoreScene, scoreScene => {
+			let didSendSetScoreRequest = false
+			scoreScene.scoreEventManager.onShowHideScore(state => {
+				if (state == "showScore" && everyScoreSceneIsFinished()) {
+					UIManager.showScoreButton.setState("hideScore")
+				}
+				if (state == "showScore" && !didSendSetScoreRequest) {
+					if (programID == undefined) {
+						return
+					}
+					didSendSetScoreRequest = true
+					sendSetScoreRequest({
+						secret: {secret: ""},
+						programID: programID,
+						score: Math.round(scoreScene.score),
+						// maximum signed int32 (2^32 - 1)
+						// https://dev.mysql.com/doc/refman/5.6/en/integer-types.html
+						time: Math.round(scoreScene.getProgramRuntime() ?? 2147483647),
+						comment: "",
+						modifiedBy: "Score scene " + new Date(),
+					 }, (result) => {
+
+						if(!result) {
+							alert("Score set for team ${groupName} request failed")
+							didSendSetScoreRequest = false
+							paragraphStyle.backgroundColor = "red"
+							return
+						}
+
+						if(result.error != ResultErrorType.NONE) {
+							alert(result.message)
+							didSendSetScoreRequest = false
+							paragraphStyle.backgroundColor = "red"
+							return
+						}
+
+						paragraphStyle.backgroundColor = "rgb(0, 200, 0)"
+						console.log(`Score for team ${groupName} successfully sent`)
+					 })
+				}
+			})
+		})
 
 	cyberspace.loadScene(sceneID)
 	
@@ -127,6 +179,7 @@ interface MultiCyberspaceSetupData {
 	sceneID: string
 	groupName: string
 	robertaRobotSetupData: RobertaRobotSetupData
+	programID?: number
 }
 
 //
@@ -225,14 +278,15 @@ function loadScenesFromRequest(result?: ProgramsRequestResult) {
 
 						const ageGroup = String(res[i].agegroup)
 						const challenge = String(res[i].challenge)
-
+						const programID = res[i].id
 						if(Object.keys(sceneIDMap).includes(challenge)) {
 							const groups = (<any>sceneIDMap)[challenge]
 							if(Object.keys(groups).includes(ageGroup)) {
 								return {
 									sceneID: groups[ageGroup],
 									groupName: res[i].name,
-									robertaRobotSetupData: map.get(i)!
+									robertaRobotSetupData: map.get(i)!,
+									programID: programID
 								}
 							} else {
 								console.error('Unknown age group ID !!!')
@@ -262,7 +316,8 @@ function generateRandomMultiSetupData(count: number): MultiCyberspaceSetupData[]
 		return {
 			sceneID: Util.randomElement(cyberspaceScenes)!.ID,
 			groupName: "Test group " + index,
-			robertaRobotSetupData: robertaRobotSetupData
+			robertaRobotSetupData: robertaRobotSetupData,
+			programID: undefined
 		}
 	})
 }
@@ -301,7 +356,7 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 
 
 	const cyberspaceDataList = setupDataList.map(setupData => {
-		const cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName)
+		const cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName, setupData.programID)
 		cyberspaceData.cyberspace.getScene().runAfterLoading(() => {
 			cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], "") // TODO: Robot type???
 		})
@@ -408,14 +463,6 @@ function sim(run: boolean) {
 	}
 }
 
-function score(showScore: boolean) {
-	if(showScore) {
-		// TODO: show score
-	} else {
-		// TODO: hide score
-	}
-}
-
 function zoomIn() {
 	forEachCyberspace(c => c.zoomViewIn())
 }
@@ -453,8 +500,15 @@ export function initEvents() {
 		}
 	})
 
-	UIManager.showScoreButton.onClick(state =>
-		score(state == "showScore"))
+	UIManager.showScoreButton.onClick(state => {
+		const visible = state == "showScore"
+		cyberspaces.forEach(cyberspace => {
+			const scene = cyberspace.getScene()
+			if (scene instanceof RRCScoreScene) {
+				scene.showScoreScreen(visible)
+			}
+		})
+	})
 
 	UIManager.physicsSimControlButton.onClick(state =>
 		sim(state == "start"))

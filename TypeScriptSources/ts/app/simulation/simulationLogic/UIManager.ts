@@ -44,9 +44,9 @@ export class UIRobertaStateButton<T extends { [key in string]: RobertaButtonSett
 
 	private stateChangeHandler?: (state: keyof T) => keyof T
 	private clickHanders: ((state: keyof T) => void)[] = []
-	
-	//FIXME: Ugly workaround
-	// Workaround since 'onWrap' is not loaded initially 
+
+	// TODO: Convert all the 'onWrap' js code to use the 'UIManager'
+	// Workaround since 'onWrap' is not loaded initially
 	private needsOnWrapHandler = true
 
 	constructor(buttonID: string, initialState: keyof T, buttonSettingsState: T) {
@@ -54,6 +54,34 @@ export class UIRobertaStateButton<T extends { [key in string]: RobertaButtonSett
 		this.jQueryHTMLElement = $("#"+buttonID)
 		this.stateMappingObject = buttonSettingsState
 		this.state = initialState
+
+		// TODO: Convert all the 'onWrap' js code to use the 'UIManager'
+		// call 'setButtonEventHandler' only for buttons on which 'onClick' is called
+		//this.setButtonEventHandler()
+	}
+
+	/**
+	 * Tries to set the button event handler as long 'onWrap' is not definied for `JQuery`.
+	 */
+	private setButtonEventHandler() {
+		if (!this.needsOnWrapHandler) {
+			return
+		}
+		if (this.jQueryHTMLElement.onWrap !== undefined) {
+			const t = this;
+			this.jQueryHTMLElement.onWrap("click", () => {
+				t.jQueryHTMLElement.removeClass(t.stateMappingObject[t.state].class)
+				const state = t.state
+				t.clickHanders.forEach(handler => handler(state))
+				t.state = t.stateChangeHandler?.(state) ?? state
+				const buttonSettings = t.stateMappingObject[t.state]
+				t.jQueryHTMLElement.addClass(buttonSettings.class)
+				t.jQueryHTMLElement.attr("data-original-title", buttonSettings.tooltip ?? "");
+			}, this.buttonID + " clicked")
+		} else {
+			// workaround for onWrap not loaded
+			setTimeout(() => this.setButtonEventHandler(), 200)
+		}
 	}
 
 	/**
@@ -77,21 +105,8 @@ export class UIRobertaStateButton<T extends { [key in string]: RobertaButtonSett
 	 * @returns `this`
 	 */
 	onClick(onClickHandler: (state: keyof T) => void): UIRobertaStateButton<T> {
-		if (this.needsOnWrapHandler) {
-			// FIXME: This should be in the constructor
-			// Add some 'require' calls
-			const t = this;
-			this.jQueryHTMLElement.onWrap("click", () => {
-				t.jQueryHTMLElement.removeClass(t.stateMappingObject[t.state].class)
-				const state = t.state
-				t.state = t.stateChangeHandler?.(state) ?? state
-				t.clickHanders.forEach(handler => handler(state));
-				const buttonSettings = t.stateMappingObject[t.state]
-				t.jQueryHTMLElement.addClass(buttonSettings.class)
-				t.jQueryHTMLElement.attr("data-original-title", buttonSettings.tooltip ?? "");
-			}, this.buttonID + " clicked")
-			this.needsOnWrapHandler = false
-		}
+		// TODO: 'setButtonEventHandler' to the constructor if all 'onWrap' code is converted to TypeScript 
+		this.setButtonEventHandler()
 		this.clickHanders.push(onClickHandler)
 		return this
 	}

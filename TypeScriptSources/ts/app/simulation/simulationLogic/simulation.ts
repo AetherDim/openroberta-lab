@@ -7,6 +7,7 @@ import { SceneDescriptor } from './Cyberspace/SceneManager';
 import { BlocklyDebug } from './BlocklyDebug';
 import { UIManager } from './UIManager';
 import { interpreterSimBreakEventHandlers } from "interpreter.jsHelper"
+import { RRCScoreScene } from './RRC/Scene/RRCScoreScene';
 
 //
 // init all components for a simulation
@@ -23,6 +24,12 @@ cyberspace.eventManager
 	.onStopPrograms(() => UIManager.programControlButton.setState("start"))
 	.onStartSimulation(() => UIManager.physicsSimControlButton.setState("stop"))
 	.onPauseSimulation(() => UIManager.physicsSimControlButton.setState("start"))
+
+cyberspace.specializedEventManager
+	.addEventHandlerSetter(RRCScoreScene, scoreScene =>
+		scoreScene.scoreEventManager.onShowHideScore(state =>
+			UIManager.showScoreButton.setState(state == "hideScore" ? "showScore" : "hideScore"))
+		)
 
 interpreterSimBreakEventHandlers.push(() => {
 	cyberspace.pausePrograms()
@@ -135,11 +142,10 @@ export function sim(run: boolean) {
 	}
 }
 
-export function score(score: boolean) {
-	if(score) {
-		//engine.getScene().showScoreScreen(0);
-	} else {
-		//engine.getScene().hideScore();
+export function score(visible: boolean) {
+	const scene = cyberspace.getScene()
+	if (scene instanceof RRCScoreScene) {
+		scene.showScoreScreen(visible)
 	}
 }
 

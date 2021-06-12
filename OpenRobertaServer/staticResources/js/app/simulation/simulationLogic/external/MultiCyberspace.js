@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../UIManager", "../Util", "./SceneDesciptorList", "./RESTApi", "../program.model", "../guiState.model"], function (require, exports, Cyberspace_1, GlobalDebug_1, RobotProgramGenerator_1, UIManager_1, Util_1, SceneDesciptorList_1, RESTApi_1, PROGRAM_MODEL, GUISTATE_MODEL) {
+define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../Robot/RobotProgramGenerator", "../UIManager", "../Util", "./SceneDesciptorList", "./RESTApi", "../program.model", "../guiState.model", "../RRC/Scene/RRCScoreScene"], function (require, exports, Cyberspace_1, GlobalDebug_1, RobotProgramGenerator_1, UIManager_1, Util_1, SceneDesciptorList_1, RESTApi_1, PROGRAM_MODEL, GUISTATE_MODEL, RRCScoreScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.initEvents = exports.init = void 0;
@@ -42,7 +42,18 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         }
         return CyberspaceData;
     }());
-    function createCyberspaceData(sceneID, groupName) {
+    function everyScoreSceneIsFinished() {
+        return cyberspaces.every(function (c) {
+            var scene = c.getScene();
+            if (scene instanceof RRCScoreScene_1.RRCScoreScene) {
+                return scene.getProgramManager().allInterpretersTerminated();
+            }
+            else {
+                return true;
+            }
+        });
+    }
+    function createCyberspaceData(sceneID, groupName, programID) {
         var canvas = document.createElement("canvas");
         var cyberspaceDiv = document.createElement("div");
         cyberspaceDiv.appendChild(canvas);
@@ -57,13 +68,54 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         groupNameDiv.appendChild(groupNameParagraph);
         var paragraphStyle = groupNameParagraph.style;
         paragraphStyle.display = "inline";
-        paragraphStyle.backgroundColor = "rgb(255, 255, 255, 0.5)";
+        paragraphStyle.backgroundColor = "white";
         paragraphStyle.borderRadius = "5px";
         paragraphStyle.fontSize = "20";
         paragraphStyle.paddingLeft = "3";
         paragraphStyle.paddingRight = "3";
         cyberspaceDiv.appendChild(groupNameDiv);
         var cyberspace = new Cyberspace_1.Cyberspace(canvas, cyberspaceDiv, sceneDescriptors);
+        cyberspace.specializedEventManager
+            .addEventHandlerSetter(RRCScoreScene_1.RRCScoreScene, function (scoreScene) {
+            var didSendSetScoreRequest = false;
+            scoreScene.scoreEventManager.onShowHideScore(function (state) {
+                var _a;
+                if (state == "showScore" && everyScoreSceneIsFinished()) {
+                    UIManager_1.UIManager.showScoreButton.setState("hideScore");
+                }
+                if (state == "showScore" && !didSendSetScoreRequest) {
+                    if (programID == undefined) {
+                        return;
+                    }
+                    didSendSetScoreRequest = true;
+                    RESTApi_1.sendSetScoreRequest({
+                        secret: { secret: "" },
+                        programID: programID,
+                        score: Math.round(scoreScene.score),
+                        // maximum signed int32 (2^32 - 1)
+                        // https://dev.mysql.com/doc/refman/5.6/en/integer-types.html
+                        time: Math.round((_a = scoreScene.getProgramRuntime()) !== null && _a !== void 0 ? _a : 2147483647),
+                        comment: "",
+                        modifiedBy: "Score scene " + new Date(),
+                    }, function (result) {
+                        if (!result) {
+                            alert("Score set for team ${groupName} request failed");
+                            didSendSetScoreRequest = false;
+                            paragraphStyle.backgroundColor = "red";
+                            return;
+                        }
+                        if (result.error != RESTApi_1.ResultErrorType.NONE) {
+                            alert(result.message);
+                            didSendSetScoreRequest = false;
+                            paragraphStyle.backgroundColor = "red";
+                            return;
+                        }
+                        paragraphStyle.backgroundColor = "rgb(0, 200, 0)";
+                        console.log("Score for team " + groupName + " successfully sent");
+                    });
+                }
+            });
+        });
         cyberspace.loadScene(sceneID);
         return new CyberspaceData(cyberspace, cyberspaceDiv);
     }
@@ -189,13 +241,15 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
                         var setupDataList = Util_1.Util.mapNotNull(Util_1.Util.range(0, map_1.size), function (i) {
                             var ageGroup = String(res[i].agegroup);
                             var challenge = String(res[i].challenge);
+                            var programID = res[i].id;
                             if (Object.keys(SceneDesciptorList_1.sceneIDMap).includes(challenge)) {
                                 var groups = SceneDesciptorList_1.sceneIDMap[challenge];
                                 if (Object.keys(groups).includes(ageGroup)) {
                                     return {
                                         sceneID: groups[ageGroup],
                                         groupName: res[i].name,
-                                        robertaRobotSetupData: map_1.get(i)
+                                        robertaRobotSetupData: map_1.get(i),
+                                        programID: programID
                                     };
                                 }
                                 else {
@@ -221,7 +275,8 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             return {
                 sceneID: Util_1.Util.randomElement(SceneDesciptorList_1.cyberspaceScenes).ID,
                 groupName: "Test group " + index,
-                robertaRobotSetupData: robertaRobotSetupData
+                robertaRobotSetupData: robertaRobotSetupData,
+                programID: undefined
             };
         });
     }
@@ -255,7 +310,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             debug.add(aspectRatio, "scene", 0.1, 2);
         }
         var cyberspaceDataList = setupDataList.map(function (setupData) {
-            var cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName);
+            var cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName, setupData.programID);
             cyberspaceData.cyberspace.getScene().runAfterLoading(function () {
                 cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], ""); // TODO: Robot type???
             });
@@ -347,14 +402,6 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             forEachCyberspace(function (c) { return c.pauseSimulation(); });
         }
     }
-    function score(showScore) {
-        if (showScore) {
-            // TODO: show score
-        }
-        else {
-            // TODO: hide score
-        }
-    }
     function zoomIn() {
         forEachCyberspace(function (c) { return c.zoomViewIn(); });
     }
@@ -386,7 +433,13 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             }
         });
         UIManager_1.UIManager.showScoreButton.onClick(function (state) {
-            return score(state == "showScore");
+            var visible = state == "showScore";
+            cyberspaces.forEach(function (cyberspace) {
+                var scene = cyberspace.getScene();
+                if (scene instanceof RRCScoreScene_1.RRCScoreScene) {
+                    scene.showScoreScreen(visible);
+                }
+            });
         });
         UIManager_1.UIManager.physicsSimControlButton.onClick(function (state) {
             return sim(state == "start");

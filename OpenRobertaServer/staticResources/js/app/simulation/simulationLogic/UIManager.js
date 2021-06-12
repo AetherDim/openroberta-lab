@@ -44,14 +44,43 @@ define(["require", "exports", "blockly"], function (require, exports, Blockly) {
     var UIRobertaStateButton = /** @class */ (function () {
         function UIRobertaStateButton(buttonID, initialState, buttonSettingsState) {
             this.clickHanders = [];
-            //FIXME: Ugly workaround
-            // Workaround since 'onWrap' is not loaded initially 
+            // TODO: Convert all the 'onWrap' js code to use the 'UIManager'
+            // Workaround since 'onWrap' is not loaded initially
             this.needsOnWrapHandler = true;
             this.buttonID = buttonID;
             this.jQueryHTMLElement = $("#" + buttonID);
             this.stateMappingObject = buttonSettingsState;
             this.state = initialState;
+            // TODO: Convert all the 'onWrap' js code to use the 'UIManager'
+            // call 'setButtonEventHandler' only for buttons on which 'onClick' is called
+            //this.setButtonEventHandler()
         }
+        /**
+         * Tries to set the button event handler as long 'onWrap' is not definied for `JQuery`.
+         */
+        UIRobertaStateButton.prototype.setButtonEventHandler = function () {
+            var _this = this;
+            if (!this.needsOnWrapHandler) {
+                return;
+            }
+            if (this.jQueryHTMLElement.onWrap !== undefined) {
+                var t_1 = this;
+                this.jQueryHTMLElement.onWrap("click", function () {
+                    var _a, _b, _c;
+                    t_1.jQueryHTMLElement.removeClass(t_1.stateMappingObject[t_1.state].class);
+                    var state = t_1.state;
+                    t_1.clickHanders.forEach(function (handler) { return handler(state); });
+                    t_1.state = (_b = (_a = t_1.stateChangeHandler) === null || _a === void 0 ? void 0 : _a.call(t_1, state)) !== null && _b !== void 0 ? _b : state;
+                    var buttonSettings = t_1.stateMappingObject[t_1.state];
+                    t_1.jQueryHTMLElement.addClass(buttonSettings.class);
+                    t_1.jQueryHTMLElement.attr("data-original-title", (_c = buttonSettings.tooltip) !== null && _c !== void 0 ? _c : "");
+                }, this.buttonID + " clicked");
+            }
+            else {
+                // workaround for onWrap not loaded
+                setTimeout(function () { return _this.setButtonEventHandler(); }, 200);
+            }
+        };
         /**
          * Set the state change handler.
          *
@@ -72,22 +101,8 @@ define(["require", "exports", "blockly"], function (require, exports, Blockly) {
          * @returns `this`
          */
         UIRobertaStateButton.prototype.onClick = function (onClickHandler) {
-            if (this.needsOnWrapHandler) {
-                // FIXME: This should be in the constructor
-                // Add some 'require' calls
-                var t_1 = this;
-                this.jQueryHTMLElement.onWrap("click", function () {
-                    var _a, _b, _c;
-                    t_1.jQueryHTMLElement.removeClass(t_1.stateMappingObject[t_1.state].class);
-                    var state = t_1.state;
-                    t_1.state = (_b = (_a = t_1.stateChangeHandler) === null || _a === void 0 ? void 0 : _a.call(t_1, state)) !== null && _b !== void 0 ? _b : state;
-                    t_1.clickHanders.forEach(function (handler) { return handler(state); });
-                    var buttonSettings = t_1.stateMappingObject[t_1.state];
-                    t_1.jQueryHTMLElement.addClass(buttonSettings.class);
-                    t_1.jQueryHTMLElement.attr("data-original-title", (_c = buttonSettings.tooltip) !== null && _c !== void 0 ? _c : "");
-                }, this.buttonID + " clicked");
-                this.needsOnWrapHandler = false;
-            }
+            // TODO: 'setButtonEventHandler' to the constructor if all 'onWrap' code is converted to TypeScript 
+            this.setButtonEventHandler();
             this.clickHanders.push(onClickHandler);
             return this;
         };

@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyberspace", "./BlocklyDebug", "./UIManager", "interpreter.jsHelper", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneDesciptorList_1, Cyberspace_1, BlocklyDebug_1, UIManager_1, interpreter_jsHelper_1) {
+define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyberspace", "./BlocklyDebug", "./UIManager", "interpreter.jsHelper", "./RRC/Scene/RRCScoreScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneDesciptorList_1, Cyberspace_1, BlocklyDebug_1, UIManager_1, interpreter_jsHelper_1, RRCScoreScene_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
@@ -36,6 +36,12 @@ define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyb
         .onStopPrograms(function () { return UIManager_1.UIManager.programControlButton.setState("start"); })
         .onStartSimulation(function () { return UIManager_1.UIManager.physicsSimControlButton.setState("stop"); })
         .onPauseSimulation(function () { return UIManager_1.UIManager.physicsSimControlButton.setState("start"); });
+    cyberspace.specializedEventManager
+        .addEventHandlerSetter(RRCScoreScene_1.RRCScoreScene, function (scoreScene) {
+        return scoreScene.scoreEventManager.onShowHideScore(function (state) {
+            return UIManager_1.UIManager.showScoreButton.setState(state == "hideScore" ? "showScore" : "hideScore");
+        });
+    });
     interpreter_jsHelper_1.interpreterSimBreakEventHandlers.push(function () {
         cyberspace.pausePrograms();
     });
@@ -136,12 +142,10 @@ define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyb
         }
     }
     exports.sim = sim;
-    function score(score) {
-        if (score) {
-            //engine.getScene().showScoreScreen(0);
-        }
-        else {
-            //engine.getScene().hideScore();
+    function score(visible) {
+        var scene = cyberspace.getScene();
+        if (scene instanceof RRCScoreScene_1.RRCScoreScene) {
+            scene.showScoreScreen(visible);
         }
     }
     exports.score = score;

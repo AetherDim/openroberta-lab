@@ -41,6 +41,33 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../RRC/Sce
                 /** will be called after the program has been stopped */
                 onStopPrograms: EventManager_1.ParameterTypes.none
             });
+            this.specializedEventManager = new /** @class */ (function () {
+                function SpecializedEventManager() {
+                    this.handlerSetters = [];
+                }
+                /**
+                 * Adds the function `setHandler` which is later called in `Cyberspace.resetEventHandlersOfScene(scene)`.
+                 *
+                 * @param sceneType The type of the scene
+                 * @param setHandler The function which sets the event handlers of a scene of type `sceneType`.
+                 */
+                SpecializedEventManager.prototype.addEventHandlerSetter = function (sceneType, setHandler) {
+                    this.handlerSetters.push(function (scene) {
+                        if (scene instanceof sceneType) {
+                            setHandler(scene);
+                        }
+                    });
+                };
+                /**
+                 * Sets the specified event handlers for `scene`.
+                 *
+                 * This method should only be called inside `Cyberspace`.
+                 */
+                SpecializedEventManager.prototype._setEventHandlers = function (scene) {
+                    this.handlerSetters.forEach(function (handlerSetter) { return handlerSetter(scene); });
+                };
+                return SpecializedEventManager;
+            }());
             (_a = this.sceneManager).registerScene.apply(_a, __spreadArray([], __read(scenes)));
             // empty scene as default
             var emptyScene = new Scene_1.Scene("");
@@ -57,6 +84,7 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../RRC/Sce
         /* ############################################################################################ */
         Cyberspace.prototype.resetEventHandlersOfScene = function (scene) {
             scene.removeAllEventHandlers();
+            this.specializedEventManager._setEventHandlers(scene);
             var eventHandlerLists = this.eventManager.eventHandlerLists;
             var programManagerEventHandlerLists = scene.getProgramManager().eventManager.eventHandlerLists;
             programManagerEventHandlerLists.onStartProgram.pushEventHandleList(eventHandlerLists.onStartPrograms);
