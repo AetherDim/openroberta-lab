@@ -22,44 +22,63 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
         function RRCScoreScene(name) {
             var _this = _super.call(this, name) || this;
             _this.loader = new SharedAssetLoader_1.SharedAssetLoader();
-            _this.scoreContainer = new PIXI.Container;
-            _this.scoreText = new PIXI.Text("");
-            _this.timeBonusScoreLabel = new PIXI.Text("");
-            _this.score = 0;
-            _this.addOnAsyncChainBuildCompleteLister(function (chain) {
-                chain.addBefore(_this.onInit, new AsyncChain_1.AsyncListener(_this.onInitScore, _this));
-            });
-            _this.timeBonusScoreLabel.position.set(0, -10);
-            var T = _this;
-            UIManager_1.UIManager.showScoreButton.onClick(function (state) { return T.showScoreScreenNoButtonChange(state == "showScore"); });
-            return _this;
-        }
-        RRCScoreScene.prototype.onLoadAssets = function (chain) {
-            this.loader.load(function () { return chain.next(); }, RRAssetLoader_1.GOAL_BACKGROUND);
-        };
-        RRCScoreScene.prototype.onInitScore = function (chain) {
-            UIManager_1.UIManager.showScoreButton.setState("showScore");
-            this.containerManager.topContainer.addChild(this.timeBonusScoreLabel);
-            // image
-            var texture = this.loader.get(RRAssetLoader_1.GOAL_BACKGROUND).texture;
-            var scoreImageContainer = new PIXI.Sprite(texture);
-            this.scoreContainer.addChild(scoreImageContainer);
-            // text
-            this.scoreText = new PIXI.Text("", {
+            _this.scoreContainer = new PIXI.Container();
+            _this.scoreTextContainer = new PIXI.Container();
+            _this.scoreText1 = new PIXI.Text("", {
                 fontFamily: 'ProggyTiny',
                 fontSize: 160,
                 fill: 0xf48613
             });
-            this.updateScoreText();
-            this.scoreText.anchor.set(0.5, 0.5);
-            this.scoreText.position.x = scoreImageContainer.width / 2;
-            this.scoreText.position.y = scoreImageContainer.height / 2;
-            this.scoreContainer.addChild(this.scoreText);
+            _this.scoreText2 = new PIXI.Text("", {
+                fontFamily: 'ProggyTiny',
+                fontSize: 160,
+                fill: 0xc00001
+            });
+            _this.scoreText3 = new PIXI.Text("", {
+                fontFamily: 'ProggyTiny',
+                fontSize: 160,
+                fill: 0x00cb01
+            });
+            _this.score = 0;
+            _this.addOnAsyncChainBuildCompleteLister(function (chain) {
+                chain.addBefore(_this.onInit, new AsyncChain_1.AsyncListener(_this.onInitScore, _this));
+                chain.addBefore(_this.onLoadAssets, new AsyncChain_1.AsyncListener(_this.onLoadScoreAssets, _this));
+            });
+            UIManager_1.UIManager.showScoreButton.onClick(function (state) { return _this.showScoreScreenNoButtonChange(state == "showScore"); });
+            return _this;
+        }
+        RRCScoreScene.prototype.onLoadScoreAssets = function (chain) {
+            this.loader.load(function () { return chain.next(); }, RRAssetLoader_1.GOAL_BACKGROUND, RRAssetLoader_1.PROGGY_TINY_FONT);
+        };
+        RRCScoreScene.prototype.onInitScore = function (chain) {
+            UIManager_1.UIManager.showScoreButton.setState("showScore");
+            this.scoreContainer.zIndex = 1000;
+            var goal = this.loader.get(RRAssetLoader_1.GOAL_BACKGROUND).texture;
+            this.scoreBackgroundSprite = new PIXI.Sprite(goal);
+            this.scoreContainer.addChild(this.scoreBackgroundSprite);
+            // text
+            this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText1);
+            this.scoreContainer.addChild(this.scoreTextContainer);
             chain.next();
         };
         RRCScoreScene.prototype.updateScoreText = function () {
-            this.scoreText.text = "Score: " + this.score;
-            this.scoreText.resolution = 4;
+            var text = "Score: " + this.getScore();
+            this.scoreText1.text = text;
+            this.scoreText2.text = text;
+            this.scoreText3.text = text;
+            this.scoreText1.position.set(-this.scoreText1.width / 2, -this.scoreText1.height / 2);
+            this.scoreText2.position.set(-this.scoreText1.width / 2 - 3, -this.scoreText1.height / 2);
+            this.scoreText3.position.set(-this.scoreText1.width / 2 + 3, -this.scoreText1.height / 2);
+        };
+        RRCScoreScene.prototype.getScore = function () {
+            return this.score;
+        };
+        RRCScoreScene.prototype.updateScoreAnimation = function () {
+            if (this.scoreBackgroundSprite) {
+                this.scoreTextContainer.x = this.scoreBackgroundSprite.width / 2;
+                this.scoreTextContainer.y = this.scoreBackgroundSprite.height / 2;
+                this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
+            }
         };
         RRCScoreScene.prototype.setScore = function (score) {
             this.score = score;
@@ -78,12 +97,15 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
             _super.prototype.fullReset.call(this, robotSetupData);
         };
         RRCScoreScene.prototype.showScoreScreenNoButtonChange = function (visible) {
-            if (visible) {
+            if (visible && !this.isVisible()) {
                 this.containerManager.topContainer.addChild(this.scoreContainer);
             }
             else {
                 this.containerManager.topContainer.removeChild(this.scoreContainer);
             }
+        };
+        RRCScoreScene.prototype.isVisible = function () {
+            return this.containerManager.topContainer.children.includes(this.scoreContainer);
         };
         RRCScoreScene.prototype.showScoreScreen = function (visible) {
             this.showScoreScreenNoButtonChange(visible);
@@ -128,6 +150,9 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
                     }
                 }
             }
+        };
+        RRCScoreScene.prototype.onRenderTick = function () {
+            this.updateScoreAnimation();
         };
         return RRCScoreScene;
     }(Scene_1.Scene));

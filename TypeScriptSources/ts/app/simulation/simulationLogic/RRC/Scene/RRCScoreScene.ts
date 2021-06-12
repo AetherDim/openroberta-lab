@@ -3,15 +3,36 @@ import {AsyncChain, AsyncListener} from "../../Scene/AsyncChain";
 import {Scene} from "../../Scene/Scene";
 import {UIManager} from "../../UIManager";
 import {SharedAssetLoader} from "../../SharedAssetLoader";
-import {GOAL_BACKGROUND} from "../RRAssetLoader";
+import {GOAL_BACKGROUND, PROGGY_TINY_FONT} from "../RRAssetLoader";
 
 
 export class RRCScoreScene extends Scene {
+
 	readonly loader = new SharedAssetLoader();
 
-	scoreContainer = new PIXI.Container
-	scoreText = new PIXI.Text("")
-	private timeBonusScoreLabel = new PIXI.Text("")
+	private scoreContainer = new PIXI.Container()
+	private scoreTextContainer = new PIXI.Container()
+
+	private scoreBackgroundSprite?: PIXI.Sprite
+	private scoreText1 = new PIXI.Text("",
+	{
+		fontFamily: 'ProggyTiny',
+		fontSize: 160,
+		fill: 0xf48613
+	})
+	private scoreText2 = new PIXI.Text("",
+	{
+		fontFamily: 'ProggyTiny',
+		fontSize: 160,
+		fill: 0xc00001
+	})
+	private scoreText3 = new PIXI.Text("",
+	{
+		fontFamily: 'ProggyTiny',
+		fontSize: 160,
+		fill: 0x00cb01
+	})
+
 
 	score: number = 0
 
@@ -19,50 +40,55 @@ export class RRCScoreScene extends Scene {
 		super(name)
 		this.addOnAsyncChainBuildCompleteLister(chain => {
 			chain.addBefore(this.onInit, new AsyncListener(this.onInitScore, this))
+			chain.addBefore(this.onLoadAssets, new AsyncListener(this.onLoadScoreAssets, this))
 		})
-		this.timeBonusScoreLabel.position.set(0, -10)
-		const T = this
-		UIManager.showScoreButton.onClick(state => T.showScoreScreenNoButtonChange(state == "showScore"))
+
+		UIManager.showScoreButton.onClick(state => this.showScoreScreenNoButtonChange(state == "showScore"))
 	}
 
-	onLoadAssets(chain: AsyncChain) {
+	onLoadScoreAssets(chain: AsyncChain) {
 		this.loader.load(() => chain.next(),
-			GOAL_BACKGROUND
+			GOAL_BACKGROUND,
+			PROGGY_TINY_FONT
 		)
 	}
 
 	onInitScore(chain: AsyncChain) {
 		UIManager.showScoreButton.setState("showScore")
 
-		this.containerManager.topContainer.addChild(this.timeBonusScoreLabel)
+		this.scoreContainer.zIndex = 1000;
 
-		// image
-
-		const texture = this.loader.get(GOAL_BACKGROUND).texture
-		let scoreImageContainer = new PIXI.Sprite(texture)
-		this.scoreContainer.addChild(scoreImageContainer)
+		let goal = this.loader.get(GOAL_BACKGROUND).texture;
+		this.scoreBackgroundSprite = new PIXI.Sprite(goal)
+		this.scoreContainer.addChild(this.scoreBackgroundSprite);
 
 		// text
-		this.scoreText = new PIXI.Text("",
-			{
-				fontFamily: 'ProggyTiny',
-				fontSize: 160,
-				fill: 0xf48613
-			});
-		this.updateScoreText()
-
-		this.scoreText.anchor.set(0.5, 0.5)
-		this.scoreText.position.x = scoreImageContainer.width / 2
-		this.scoreText.position.y = scoreImageContainer.height / 2
-
-		this.scoreContainer.addChild(this.scoreText);
+		this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText1)
+		this.scoreContainer.addChild(this.scoreTextContainer);
 
 		chain.next()
 	}
 
 	updateScoreText() {
-		this.scoreText.text = "Score: " + this.score
-		this.scoreText.resolution = 4
+		let text = "Score: " + this.getScore();
+		this.scoreText1.text = text;
+		this.scoreText2.text = text;
+		this.scoreText3.text = text;
+		this.scoreText1.position.set(-this.scoreText1.width / 2, -this.scoreText1.height / 2);
+		this.scoreText2.position.set(-this.scoreText1.width / 2 - 3, -this.scoreText1.height / 2);
+		this.scoreText3.position.set(-this.scoreText1.width / 2 + 3, -this.scoreText1.height / 2);
+	}
+
+	getScore() {
+		return this.score
+	}
+
+	updateScoreAnimation() {
+		if(this.scoreBackgroundSprite) {
+			this.scoreTextContainer.x = this.scoreBackgroundSprite.width / 2;
+			this.scoreTextContainer.y = this.scoreBackgroundSprite.height / 2;
+			this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
+		}
 	}
 
 	setScore(score: number) {
@@ -86,11 +112,15 @@ export class RRCScoreScene extends Scene {
 	}
 
 	private showScoreScreenNoButtonChange(visible: boolean) {
-		if (visible) {
+		if (visible && !this.isVisible()) {
 			this.containerManager.topContainer.addChild(this.scoreContainer)
 		} else {
 			this.containerManager.topContainer.removeChild(this.scoreContainer)
 		}
+	}
+
+	isVisible() {
+		return this.containerManager.topContainer.children.includes(this.scoreContainer)
 	}
 
 	showScoreScreen(visible: boolean) {
@@ -137,6 +167,10 @@ export class RRCScoreScene extends Scene {
 				}
 			}
 		}
+	}
+
+	onRenderTick() {
+		this.updateScoreAnimation()
 	}
 
 }

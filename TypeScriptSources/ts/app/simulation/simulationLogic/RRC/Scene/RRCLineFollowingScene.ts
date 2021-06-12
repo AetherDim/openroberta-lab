@@ -193,10 +193,8 @@ export class RRCLineFollowingScene extends RRCScene {
 
 		this.setWaypointList(waypointList)
 
-		let goal = this.loader.get(this.getAsset()).texture;
-		this.goalSprite = new PIXI.Sprite(goal);
-
-		this.getContainers().groundContainer.addChild(this.goalSprite);
+		let backgroundAsset = this.loader.get(this.getAsset()).texture;
+		this.getContainers().groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
 
 		this.addStaticWallInPixels(this.getWall(), {color: this.obstacleColor, strokeColor: this.obstacleColor})
 

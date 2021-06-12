@@ -431,9 +431,8 @@ export class RRCRainbowScene extends RRCScene {
 		const containers = this.getContainers()
 
 		if (this.backgroundAsset) {
-			let goal = this.loader.get(this.backgroundAsset).texture;
-			this.goalSprite = new PIXI.Sprite(goal);
-			containers.groundContainer.addChild(this.goalSprite);
+			let backgroundAsset = this.loader.get(this.backgroundAsset).texture;
+			containers.groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
 		}
 
 		this.sortColour();

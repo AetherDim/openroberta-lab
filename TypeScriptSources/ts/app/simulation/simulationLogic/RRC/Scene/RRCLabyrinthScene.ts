@@ -573,10 +573,8 @@ export class RRCLabyrinthScene extends RRCScene {
 
 		this.initRobot({position: {x: 752, y: 490}, rotation: -90});
 
-		let goal = this.loader.get(this.getAsset()).texture;
-		this.goalSprite = new PIXI.Sprite(goal);
-
-		this.getContainers().groundContainer.addChild(this.goalSprite);
+		let backgroundAsset = this.loader.get(this.getAsset()).texture;
+		this.getContainers().groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
 
 		switch (this.ageGroup) {
 			case AgeGroup.ES:

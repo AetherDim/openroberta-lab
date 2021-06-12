@@ -562,9 +562,8 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
         RRCLabyrinthScene.prototype.onInit = function (chain) {
             var _this = this;
             this.initRobot({ position: { x: 752, y: 490 }, rotation: -90 });
-            var goal = this.loader.get(this.getAsset()).texture;
-            this.goalSprite = new PIXI.Sprite(goal);
-            this.getContainers().groundContainer.addChild(this.goalSprite);
+            var backgroundAsset = this.loader.get(this.getAsset()).texture;
+            this.getContainers().groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
             switch (this.ageGroup) {
                 case AgeGroup_1.AgeGroup.ES:
                     this.addLabyrinth(this.MazeObstacleList_ES);

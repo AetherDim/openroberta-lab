@@ -402,9 +402,8 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             this.initRobot({ position: { x: 402, y: 270 }, rotation: -90 });
             var containers = this.getContainers();
             if (this.backgroundAsset) {
-                var goal = this.loader.get(this.backgroundAsset).texture;
-                this.goalSprite = new PIXI.Sprite(goal);
-                containers.groundContainer.addChild(this.goalSprite);
+                var backgroundAsset = this.loader.get(this.backgroundAsset).texture;
+                containers.groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
             }
             this.sortColour();
             this.getWalls().forEach(function (wall) {

@@ -184,9 +184,8 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
             });
             waypointList.appendReversedWaypoints();
             this.setWaypointList(waypointList);
-            var goal = this.loader.get(this.getAsset()).texture;
-            this.goalSprite = new PIXI.Sprite(goal);
-            this.getContainers().groundContainer.addChild(this.goalSprite);
+            var backgroundAsset = this.loader.get(this.getAsset()).texture;
+            this.getContainers().groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
             this.addStaticWallInPixels(this.getWall(), { color: this.obstacleColor, strokeColor: this.obstacleColor });
             this.addWalls(true);
             chain.next();
