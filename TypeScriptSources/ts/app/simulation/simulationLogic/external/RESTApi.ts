@@ -1,48 +1,30 @@
+import { DEBUG } from "../GlobalDebug";
 import { Util } from "../Util";
 
-function transferComplete(this: XMLHttpRequest) {
-	console.log(this)
-	console.log("The transfer is complete.");
-}
 
-function transferFailed(this: XMLHttpRequest) {
-	console.log("An error occurred while transferring the file.");
-}
-
-function transferCanceled(this: XMLHttpRequest) {
-	console.log("The transfer has been canceled by the user.");
-}
-
-
-function httpPostAsync(url: string, data: string, transferComplete: (this: XMLHttpRequest) => void)
+function httpPostAsync(url: string, data: string,
+	transferComplete: (this: XMLHttpRequest) => void,
+	error: (this: XMLHttpRequest) => void,
+	abort: (this: XMLHttpRequest) => void)
 {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("POST", url, true);
 	xmlHttp.setRequestHeader('Content-Type', 'application/json');
 	xmlHttp.addEventListener("load", transferComplete);
-	xmlHttp.addEventListener("error", transferFailed);
-	xmlHttp.addEventListener("abort", transferCanceled);
+	xmlHttp.addEventListener("error", error);
+	xmlHttp.addEventListener("abort", abort);
 	xmlHttp.send(data);
 }
 
 // FIX: Change URLs
-const GET_URL = Util.getRootURL(true) + ":1515/programs"
-const POST_URL = Util.getRootURL(true) + ":1515/setscore"
+let PROGRAMS_URL = "/sqlrest/programs"
+let SET_SCORE_URL = "/sqlrest/setScore"
 
-/*httpPostAsync(GET_URL, JSON.stringify({
-	secret: {secret: ''},
-	programs: [1, 2, 3]
-}), transferComplete)
-
-
-httpPostAsync(POST_URL, JSON.stringify({
-	secret: {secret: ''},
-	programID: 1,
-	score: 42,
-	comment: "This is a comment!!!",
-	modifiedBy: "Modified by me :D",
-	time: 25664
-}), transferComplete)*/
+if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && DEBUG) {
+	// TODO: change this to a debug address
+	PROGRAMS_URL = "https://next.cyberspace.roborave.de/sqlrest/programs"
+	SET_SCORE_URL = "https://next.cyberspace.roborave.de/sqlrest/setScore"
+}
 
 
 export interface ProgramSQLEntry {
@@ -59,15 +41,35 @@ export interface ProgramSQLEntry {
 	/** id of the program ??????????????????????? */
 	id: number
 }
-export function programRequest(programRequest: ProgramsRequest, callback: (programsResult: ProgramsRequestResult) => void) {
+
+export function sendRESTRequest(url: string, programRequest: any, callback: (programsResult?: ProgramsRequestResult) => void) {
 	function transferComplete(this: XMLHttpRequest) {
 		const response = JSON.parse(this.responseText) as ProgramsRequestResult
 		callback(response)
 	}
-	httpPostAsync(GET_URL, JSON.stringify(programRequest), transferComplete)
+	function onError(this: XMLHttpRequest) {
+		callback()
+	}
+	httpPostAsync(url, JSON.stringify(programRequest), transferComplete, onError, onError)
+}
+
+export function programRequest(programRequest: ProgramsRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
+	sendRESTRequest(PROGRAMS_URL, programRequest, callback)
 }
 
 
+export interface SetScoreRequest {
+	secret?: Secret,
+	programID: number
+	score: number
+	time: number
+	comment: string
+	modifiedBy: string
+}
+
+export function setScoreRequest(setScoreRequest: SetScoreRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
+	sendRESTRequest(SET_SCORE_URL, programRequest, callback)
+}
 
 export type Secret = {
 	secret: string
@@ -79,23 +81,12 @@ export interface ProgramsRequest {
 	programs: number[]
 }
 
-export interface SetScoreRequest {
-	secret?: Secret,
-	programID: number
-	score: number
-	time: number
-	comment: string
-	modifiedBy: string
-}
-
 export enum ResultErrorType {
 	NONE,
 	USER_VERIFICATION_FAILED,
 	INVALID_ARGUMENTS,
 	SQL_ERROR
 }
-
-
 
 export interface ProgramsRequestResult {
 	error: ResultErrorType

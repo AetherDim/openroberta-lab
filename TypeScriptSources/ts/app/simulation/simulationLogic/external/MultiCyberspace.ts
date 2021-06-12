@@ -6,7 +6,7 @@ import { RobotSetupData } from "../Robot/RobotSetupData"
 import { UIManager } from "../UIManager"
 import { Util } from "../Util"
 import { cyberspaceScenes, sceneIDMap } from "./SceneDesciptorList"
-import { programRequest, ProgramsRequestResult } from "./RESTApi"
+import { programRequest, ProgramsRequestResult, ResultErrorType } from "./RESTApi"
 import PROGRAM_MODEL = require("../program.model")
 import GUISTATE_MODEL = require("../guiState.model")
 
@@ -189,7 +189,17 @@ function loadProgramFromXML(name: string, xml: string, callback: (setupData: Rob
 	})
 }
 
-function loadScenesFromRequest(result: ProgramsRequestResult) {
+function loadScenesFromRequest(result?: ProgramsRequestResult) {
+
+	if(!result) {
+		alert("Program request failed")
+		return
+	}
+
+	if(result.error != ResultErrorType.NONE) {
+		alert(result.message)
+		return
+	}
 
 	const res = result.result
 	if (res) {

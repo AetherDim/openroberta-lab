@@ -1,37 +1,43 @@
-define(["require", "exports", "../Util"], function (require, exports, Util_1) {
+define(["require", "exports", "../GlobalDebug"], function (require, exports, GlobalDebug_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ResultErrorType = exports.programRequest = void 0;
-    function transferComplete() {
-        console.log(this);
-        console.log("The transfer is complete.");
-    }
-    function transferFailed() {
-        console.log("An error occurred while transferring the file.");
-    }
-    function transferCanceled() {
-        console.log("The transfer has been canceled by the user.");
-    }
-    function httpPostAsync(url, data, transferComplete) {
+    exports.ResultErrorType = exports.setScoreRequest = exports.programRequest = exports.sendRESTRequest = void 0;
+    function httpPostAsync(url, data, transferComplete, error, abort) {
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.open("POST", url, true);
         xmlHttp.setRequestHeader('Content-Type', 'application/json');
         xmlHttp.addEventListener("load", transferComplete);
-        xmlHttp.addEventListener("error", transferFailed);
-        xmlHttp.addEventListener("abort", transferCanceled);
+        xmlHttp.addEventListener("error", error);
+        xmlHttp.addEventListener("abort", abort);
         xmlHttp.send(data);
     }
     // FIX: Change URLs
-    var GET_URL = Util_1.Util.getRootURL(true) + ":1515/programs";
-    var POST_URL = Util_1.Util.getRootURL(true) + ":1515/setscore";
-    function programRequest(programRequest, callback) {
+    var PROGRAMS_URL = "/sqlrest/programs";
+    var SET_SCORE_URL = "/sqlrest/setScore";
+    if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && GlobalDebug_1.DEBUG) {
+        // TODO: change this to a debug address
+        PROGRAMS_URL = "https://next.cyberspace.roborave.de/sqlrest/programs";
+        SET_SCORE_URL = "https://next.cyberspace.roborave.de/sqlrest/setScore";
+    }
+    function sendRESTRequest(url, programRequest, callback) {
         function transferComplete() {
             var response = JSON.parse(this.responseText);
             callback(response);
         }
-        httpPostAsync(GET_URL, JSON.stringify(programRequest), transferComplete);
+        function onError() {
+            callback();
+        }
+        httpPostAsync(url, JSON.stringify(programRequest), transferComplete, onError, onError);
+    }
+    exports.sendRESTRequest = sendRESTRequest;
+    function programRequest(programRequest, callback) {
+        sendRESTRequest(PROGRAMS_URL, programRequest, callback);
     }
     exports.programRequest = programRequest;
+    function setScoreRequest(setScoreRequest, callback) {
+        sendRESTRequest(SET_SCORE_URL, programRequest, callback);
+    }
+    exports.setScoreRequest = setScoreRequest;
     var ResultErrorType;
     (function (ResultErrorType) {
         ResultErrorType[ResultErrorType["NONE"] = 0] = "NONE";

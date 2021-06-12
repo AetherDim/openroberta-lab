@@ -161,6 +161,14 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         });
     }
     function loadScenesFromRequest(result) {
+        if (!result) {
+            alert("Program request failed");
+            return;
+        }
+        if (result.error != RESTApi_1.ResultErrorType.NONE) {
+            alert(result.message);
+            return;
+        }
         var res = result.result;
         if (res) {
             var map_1 = new Map();
