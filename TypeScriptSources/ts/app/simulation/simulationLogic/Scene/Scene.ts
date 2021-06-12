@@ -339,7 +339,11 @@ export class Scene {
 
 		// 4. init scene and finish loading
 		this.loadingChain.push(
-			{func: chain => { this._unit = this.getUnitConverter(); chain.next() }, thisContext: this },
+			{func: chain => {
+				this._unit = this.getUnitConverter()
+				this.simulationTime = 0
+				chain.next()
+			}, thisContext: this },
 			{func: this.onInit, thisContext: this}, // init scene
 			// swap from loading to scene, remove loading animation, cleanup, ...
 			{func: this.finishedLoading, thisContext: this},
@@ -379,6 +383,15 @@ export class Scene {
 	 * current delta time for the physics simulation (internal units)
 	 */
 	private dt = 0.016;
+
+	private simulationTime = 0
+
+	/**
+	 * Returns the time since the simulation is running in seconds
+	 */
+	getSimulationTime(): number {
+		return this.unit.fromTime(this.simulationTime)
+	}
 
 	/**
 	 * Sets the simulation DT in seconds (SI-Unit)
@@ -649,6 +662,8 @@ export class Scene {
 	private update() {
 
 		this.onUpdatePrePhysics();
+
+		this.simulationTime += this.dt
 
 		// update physics
 		Engine.update(this.engine, this.dt)

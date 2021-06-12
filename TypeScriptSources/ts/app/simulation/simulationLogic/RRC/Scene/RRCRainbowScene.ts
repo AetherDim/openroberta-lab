@@ -421,6 +421,10 @@ export class RRCRainbowScene extends RRCScene {
 		);
 	}
 
+	getMaximumTimeBonusScore() {
+		return 60 * 5
+	}
+
 	onInit(chain: AsyncChain) {
 		this.initRobot({position: {x: 402, y: 270}, rotation: -90});
 

@@ -42,13 +42,14 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             return new ScoreWaypoint_1.ScoreWaypoint(this, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score);
         };
         RRCScene.prototype.setWaypointList = function (list, waypointVisibilityBehavior) {
+            var _this = this;
             if (waypointVisibilityBehavior === void 0) { waypointVisibilityBehavior = "showNext"; }
-            var t = this;
             this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior;
             this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
-                t.addToScore(waypoint.score);
+                _this.addToScore(waypoint.score);
                 if (idx == list.getLastWaypointIndex()) {
-                    t.showScoreScreen(true);
+                    _this.addToScore(_this.getTimeBonusScore());
+                    _this.showScoreScreen(true);
                 }
             });
             // add index text graphic to waypoints
@@ -68,6 +69,13 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
                 chain.next();
                 console.log("loaded");
             }, RRC.PROGGY_TINY_FONT, RRC.GOAL_BACKGROUND);
+        };
+        RRCScene.prototype.getTimeBonusScore = function () {
+            var _a;
+            return Math.floor(Math.max(0, this.getMaximumTimeBonusScore() - ((_a = this.getProgramRuntime()) !== null && _a !== void 0 ? _a : Infinity)));
+        };
+        RRCScene.prototype.getMaximumTimeBonusScore = function () {
+            return 0;
         };
         RRCScene.prototype.initScoreContainer = function (chain) {
             /*this.scoreContainer.zIndex = this.scoreContainerZ;

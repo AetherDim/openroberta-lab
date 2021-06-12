@@ -169,6 +169,10 @@ export class RRCLineFollowingScene extends RRCScene {
 		);
 	}
 
+	getMaximumTimeBonusScore() {
+		return 60 * 2
+	}
+
 	onInit(chain: AsyncChain) {
 		this.initRobot({ position: {x: 62, y: 450 }, rotation: -90 });
 

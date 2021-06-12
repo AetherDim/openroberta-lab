@@ -78,6 +78,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
              * current delta time for the physics simulation (internal units)
              */
             this.dt = 0.016;
+            this.simulationTime = 0;
             //
             // #############################################################################
             //
@@ -326,7 +327,11 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 { func: function (chain) { _this_1.resourcesLoaded = true; chain.next(); }, thisContext: this });
             }
             // 4. init scene and finish loading
-            this.loadingChain.push({ func: function (chain) { _this_1._unit = _this_1.getUnitConverter(); chain.next(); }, thisContext: this }, { func: this.onInit, thisContext: this }, // init scene
+            this.loadingChain.push({ func: function (chain) {
+                    _this_1._unit = _this_1.getUnitConverter();
+                    _this_1.simulationTime = 0;
+                    chain.next();
+                }, thisContext: this }, { func: this.onInit, thisContext: this }, // init scene
             // swap from loading to scene, remove loading animation, cleanup, ...
             { func: this.finishedLoading, thisContext: this });
             this.onChainCompleteListeners.forEach(function (listener) { return listener.call(_this_1, _this_1.loadingChain); });
@@ -341,6 +346,12 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         };
         Scene.prototype.getWorld = function () {
             return this.world;
+        };
+        /**
+         * Returns the time since the simulation is running in seconds
+         */
+        Scene.prototype.getSimulationTime = function () {
+            return this.unit.fromTime(this.simulationTime);
         };
         /**
          * Sets the simulation DT in seconds (SI-Unit)
@@ -494,6 +505,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
          */
         Scene.prototype.update = function () {
             this.onUpdatePrePhysics();
+            this.simulationTime += this.dt;
             // update physics
             matter_js_1.Engine.update(this.engine, this.dt);
             // update entities e.g. robots

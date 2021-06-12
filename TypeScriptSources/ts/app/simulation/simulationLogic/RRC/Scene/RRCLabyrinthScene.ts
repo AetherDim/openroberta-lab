@@ -565,6 +565,10 @@ export class RRCLabyrinthScene extends RRCScene {
 		}
 	}
 
+	getMaximumTimeBonusScore() {
+		return 60 * 3
+	}
+
 	onInit(chain: AsyncChain) {
 
 		this.initRobot({position: {x: 752, y: 490}, rotation: -90});

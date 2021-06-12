@@ -24,10 +24,12 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
             _this.loader = new SharedAssetLoader_1.SharedAssetLoader();
             _this.scoreContainer = new PIXI.Container;
             _this.scoreText = new PIXI.Text("");
+            _this.timeBonusScoreLabel = new PIXI.Text("");
             _this.score = 0;
             _this.addOnAsyncChainBuildCompleteLister(function (chain) {
                 chain.addBefore(_this.onInit, new AsyncChain_1.AsyncListener(_this.onInitScore, _this));
             });
+            _this.timeBonusScoreLabel.position.set(0, -10);
             var T = _this;
             UIManager_1.UIManager.showScoreButton.onClick(function (state) { return T.showScoreScreenNoButtonChange(state == "showScore"); });
             return _this;
@@ -37,6 +39,7 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
         };
         ScoreScene.prototype.onInitScore = function (chain) {
             UIManager_1.UIManager.showScoreButton.setState("showScore");
+            this.containerManager.topContainer.addChild(this.timeBonusScoreLabel);
             // image
             var texture = this.loader.get(RRAssetLoader_1.GOAL_BACKGROUND).texture;
             var scoreImageContainer = new PIXI.Sprite(texture);
@@ -62,15 +65,16 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
             this.score = score;
             this.updateScoreText();
         };
-        ScoreScene.prototype.resetScore = function () {
+        ScoreScene.prototype.resetScoreAndProgramRuntime = function () {
             this.setScore(0);
+            this.programEventTimes = undefined;
         };
         ScoreScene.prototype.reset = function (robotSetupData) {
-            this.resetScore();
+            this.resetScoreAndProgramRuntime();
             _super.prototype.reset.call(this, robotSetupData);
         };
         ScoreScene.prototype.fullReset = function (robotSetupData) {
-            this.resetScore();
+            this.resetScoreAndProgramRuntime();
             _super.prototype.fullReset.call(this, robotSetupData);
         };
         ScoreScene.prototype.showScoreScreenNoButtonChange = function (visible) {
@@ -88,6 +92,42 @@ define(["require", "exports", "./AsyncChain", "./Scene", "../UIManager", "../Sha
         ScoreScene.prototype.addToScore = function (score) {
             this.score += score;
             this.updateScoreText();
+        };
+        /**
+         * Returns the time since the program was started.
+         * If the program was stopped, the total program runtime will be returned.
+         * It returns `undefined`, if the program was never started.
+         */
+        ScoreScene.prototype.getProgramRuntime = function () {
+            var _a;
+            if (this.programEventTimes != undefined) {
+                return ((_a = this.programEventTimes.stopTime) !== null && _a !== void 0 ? _a : this.getSimulationTime()) - this.programEventTimes.startTime;
+            }
+            else {
+                return undefined;
+            }
+        };
+        ScoreScene.prototype.onUpdatePrePhysics = function () {
+            var _a;
+            var robots = this.getRobotManager().getRobots();
+            if (robots.length > 0) {
+                if (((_a = robots[0].interpreter) === null || _a === void 0 ? void 0 : _a.isTerminated()) === false && !this.getProgramManager().isProgramPaused()) {
+                    // program is running
+                    if (this.programEventTimes == undefined || this.programEventTimes.stopTime != undefined) {
+                        // set the start time, if it was not set before, or if both time values were set
+                        this.programEventTimes = { startTime: this.getSimulationTime() };
+                    }
+                }
+                else {
+                    // robot has no interpreter or program is terminated
+                    if (this.programEventTimes != undefined) {
+                        // set the stop time, if it was not set before
+                        if (this.programEventTimes.stopTime == undefined) {
+                            this.programEventTimes.stopTime = this.getSimulationTime();
+                        }
+                    }
+                }
+            }
         };
         return ScoreScene;
     }(Scene_1.Scene));

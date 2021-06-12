@@ -60,6 +60,9 @@ define(["require", "exports", "matter-js"], function (require, exports, matter_j
         Unit.prototype.getPositionVec = function (x, y) {
             return matter_js_1.Vector.create(x * this.m, y * this.m);
         };
+        Unit.prototype.fromTime = function (time) {
+            return time / this.s;
+        };
         Unit.prototype.fromLength = function (meter) {
             return meter / this.m;
         };

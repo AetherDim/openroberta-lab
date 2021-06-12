@@ -87,6 +87,10 @@ export class Unit {
 	}
 
 
+	fromTime(time: number): number {
+		return time / this.s
+	}
+
 	fromLength(meter: number): number {
 		return meter / this.m
 	}

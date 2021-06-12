@@ -556,6 +556,9 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     return RRC.LABYRINTH_BLANK_BACKGROUND_HS;
             }
         };
+        RRCLabyrinthScene.prototype.getMaximumTimeBonusScore = function () {
+            return 60 * 3;
+        };
         RRCLabyrinthScene.prototype.onInit = function (chain) {
             var _this = this;
             this.initRobot({ position: { x: 752, y: 490 }, rotation: -90 });

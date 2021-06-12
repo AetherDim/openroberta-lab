@@ -11,6 +11,7 @@ export class ScoreScene extends Scene {
 
 	scoreContainer = new PIXI.Container
 	scoreText = new PIXI.Text("")
+	private timeBonusScoreLabel = new PIXI.Text("")
 
 	score: number = 0
 
@@ -19,6 +20,7 @@ export class ScoreScene extends Scene {
 		this.addOnAsyncChainBuildCompleteLister(chain => {
 			chain.addBefore(this.onInit, new AsyncListener(this.onInitScore, this))
 		})
+		this.timeBonusScoreLabel.position.set(0, -10)
 		const T = this
 		UIManager.showScoreButton.onClick(state => T.showScoreScreenNoButtonChange(state == "showScore"))
 	}
@@ -31,6 +33,8 @@ export class ScoreScene extends Scene {
 
 	onInitScore(chain: AsyncChain) {
 		UIManager.showScoreButton.setState("showScore")
+
+		this.containerManager.topContainer.addChild(this.timeBonusScoreLabel)
 
 		// image
 
@@ -66,17 +70,18 @@ export class ScoreScene extends Scene {
 		this.updateScoreText()
 	}
 
-	resetScore() {
+	resetScoreAndProgramRuntime() {
 		this.setScore(0)
+		this.programEventTimes = undefined
 	}
 
 	reset(robotSetupData: RobotSetupData[]) {
-		this.resetScore()
+		this.resetScoreAndProgramRuntime()
 		super.reset(robotSetupData)
 	}
 
 	fullReset(robotSetupData: RobotSetupData[]) {
-		this.resetScore()
+		this.resetScoreAndProgramRuntime()
 		super.fullReset(robotSetupData)
 	}
 
@@ -96,6 +101,42 @@ export class ScoreScene extends Scene {
 	addToScore(score: number) {
 		this.score += score
 		this.updateScoreText()
+	}
+
+	/**
+	 * Returns the time since the program was started.
+	 * If the program was stopped, the total program runtime will be returned.
+	 * It returns `undefined`, if the program was never started.
+	 */
+	getProgramRuntime(): number | undefined {
+		if (this.programEventTimes != undefined) {
+			return (this.programEventTimes.stopTime ?? this.getSimulationTime()) - this.programEventTimes.startTime
+		} else {
+			return undefined
+		}
+	}
+
+	private programEventTimes?: { startTime: number, stopTime?: number }
+
+	onUpdatePrePhysics() {
+		const robots = this.getRobotManager().getRobots()
+		if (robots.length > 0) {
+			if (robots[0].interpreter?.isTerminated() === false && !this.getProgramManager().isProgramPaused()) {
+				// program is running
+				if (this.programEventTimes == undefined || this.programEventTimes.stopTime != undefined) {
+					// set the start time, if it was not set before, or if both time values were set
+					this.programEventTimes = { startTime: this.getSimulationTime() }
+				}
+			} else {
+				// robot has no interpreter or program is terminated
+				if (this.programEventTimes != undefined) {
+					// set the stop time, if it was not set before
+					if (this.programEventTimes.stopTime == undefined) {
+						this.programEventTimes.stopTime = this.getSimulationTime()
+					}
+				}
+			}
+		}
 	}
 
 }

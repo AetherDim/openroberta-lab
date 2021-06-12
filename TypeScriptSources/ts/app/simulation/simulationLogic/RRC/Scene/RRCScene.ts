@@ -32,13 +32,13 @@ export class RRCScene extends ScoreScene {
 	}
 
 	setWaypointList(list: WaypointList<ScoreWaypoint>, waypointVisibilityBehavior: WaypointVisibilityBehavior = "showNext") {
-		const t = this
 		this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior
 		
 		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
-			t.addToScore(waypoint.score)
+			this.addToScore(waypoint.score)
 			if (idx == list.getLastWaypointIndex()) {
-				t.showScoreScreen(true)
+				this.addToScore(this.getTimeBonusScore())
+				this.showScoreScreen(true)
 			}
 		})
 
@@ -64,6 +64,16 @@ export class RRCScene extends ScoreScene {
 			RRC.PROGGY_TINY_FONT,
 			RRC.GOAL_BACKGROUND,
 		);
+	}
+
+	private getTimeBonusScore(): number {
+		return Math.floor(
+			Math.max(0, this.getMaximumTimeBonusScore() - (this.getProgramRuntime() ?? Infinity)) 
+		)
+	}
+
+	getMaximumTimeBonusScore(): number {
+		return 0
 	}
 
 	protected goalSprite?: PIXI.Sprite;

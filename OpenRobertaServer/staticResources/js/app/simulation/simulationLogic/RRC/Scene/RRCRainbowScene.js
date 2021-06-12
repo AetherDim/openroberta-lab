@@ -394,6 +394,9 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 chain.next();
             }, this.backgroundAsset, RRC.GOAL_BACKGROUND);
         };
+        RRCRainbowScene.prototype.getMaximumTimeBonusScore = function () {
+            return 60 * 5;
+        };
         RRCRainbowScene.prototype.onInit = function (chain) {
             var _this = this;
             this.initRobot({ position: { x: 402, y: 270 }, rotation: -90 });
