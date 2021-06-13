@@ -111,7 +111,7 @@ function createCyberspaceData(sceneID: string, groupName: string, programID?: nu
 						}
 
 						paragraphStyle.backgroundColor = "rgb(0, 200, 0)"
-						console.log(`Score for team ${groupName} successfully sent`)
+						console.log(`Score for team ${groupName} [ID: ${programID}] successfully sent`)
 					 })
 				}
 			})
@@ -503,6 +503,7 @@ export function initEvents() {
 	UIManager.showScoreButton.onClick(state => {
 		const visible = state == "showScore"
 		cyberspaces.forEach(cyberspace => {
+			cyberspace.stopPrograms()
 			const scene = cyberspace.getScene()
 			if (scene instanceof RRCScoreScene) {
 				scene.showScoreScreen(visible)

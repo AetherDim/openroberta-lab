@@ -111,7 +111,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
                             return;
                         }
                         paragraphStyle.backgroundColor = "rgb(0, 200, 0)";
-                        console.log("Score for team " + groupName + " successfully sent");
+                        console.log("Score for team " + groupName + " [ID: " + programID + "] successfully sent");
                     });
                 }
             });
@@ -435,6 +435,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         UIManager_1.UIManager.showScoreButton.onClick(function (state) {
             var visible = state == "showScore";
             cyberspaces.forEach(function (cyberspace) {
+                cyberspace.stopPrograms();
                 var scene = cyberspace.getScene();
                 if (scene instanceof RRCScoreScene_1.RRCScoreScene) {
                     scene.showScoreScreen(visible);
