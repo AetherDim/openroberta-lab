@@ -404,10 +404,10 @@ export class RRCLabyrinthScene extends RRCScene {
 			h: 100,
 			score: 10
 		},{
-			x: 240,
-			y: 475,
-			w: 50,
-			h: 50,
+			x: 200,
+			y: 450,
+			w: 100,
+			h: 100,
 			score: 10
 		}
 	]
@@ -535,10 +535,10 @@ export class RRCLabyrinthScene extends RRCScene {
 			h: 100,
 			score: 10
 		},{
-			x: 240,
-			y: 475,
-			w: 50,
-			h: 50,
+			x: 200,
+			y: 450,
+			w: 100,
+			h: 100,
 			score: 10
 		}
 	]
