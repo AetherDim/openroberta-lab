@@ -67,67 +67,52 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 _this.blue,
                 _this.purple
             ];
+            _this.bigWaypointSize = 50;
             // Waypoints for MS and ES
             _this.topWaypoints = [
-                {
-                    x: 390,
-                    y: 160,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                }, {
-                    x: 680,
-                    y: 165,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                }
+                RRCScene_1.wp(400, 177, 0),
+                RRCScene_1.wp(402, 71, 0),
+                RRCScene_1.wp(480, 72, 0),
+                RRCScene_1.wp(479, 119, 0),
+                RRCScene_1.wp(520, 117, 0),
+                RRCScene_1.wp(520, 181, 0),
+                RRCScene_1.wp(611, 178, 0),
+                RRCScene_1.wp(762, 178, 0, _this.bigWaypointSize),
             ];
             _this.rightWaypoints = [
-                {
-                    x: 485,
-                    y: 250,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                },
-                {
-                    x: 470,
-                    y: 440,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                }
+                RRCScene_1.wp(505, 270, 0),
+                RRCScene_1.wp(620, 270, 0),
+                RRCScene_1.wp(730, 272, 0),
+                RRCScene_1.wp(730, 345, 0),
+                RRCScene_1.wp(730, 410, 0),
+                RRCScene_1.wp(610, 411, 0),
+                RRCScene_1.wp(492, 408, 0),
+                RRCScene_1.wp(490, 503, 0, _this.bigWaypointSize),
             ];
             _this.downWaypoints = [
-                {
-                    x: 400,
-                    y: 350,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                }, {
-                    x: 230,
-                    y: 340,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                }
+                RRCScene_1.wp(400, 362, 0),
+                RRCScene_1.wp(400, 415, 0),
+                RRCScene_1.wp(400, 470, 0),
+                RRCScene_1.wp(286, 470, 0),
+                RRCScene_1.wp(210, 470, 0),
+                RRCScene_1.wp(120, 470, 0),
+                RRCScene_1.wp(120, 423, 0),
+                RRCScene_1.wp(68, 423, 0),
+                RRCScene_1.wp(68, 360, 0),
+                RRCScene_1.wp(180, 360, 0),
+                RRCScene_1.wp(297, 360, 0, _this.bigWaypointSize),
             ];
             _this.leftWaypoints = [
-                {
-                    x: 270,
-                    y: 250,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                }, {
-                    x: 170,
-                    y: 195,
-                    w: 40,
-                    h: 40,
-                    score: 10
-                }
+                RRCScene_1.wp(280, 268, 0),
+                RRCScene_1.wp(280, 182, 0),
+                RRCScene_1.wp(280, 112, 0),
+                RRCScene_1.wp(174, 112, 0),
+                RRCScene_1.wp(72, 112, 0),
+                RRCScene_1.wp(72, 185, 0),
+                RRCScene_1.wp(72, 270, 0),
+                RRCScene_1.wp(130, 270, 0),
+                RRCScene_1.wp(188, 270, 0),
+                RRCScene_1.wp(188, 183, 0, _this.bigWaypointSize),
             ];
             _this.waypointListES_MS = [
                 _this.topWaypoints,
@@ -137,100 +122,61 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             ];
             // Waypoints for HS
             _this.topLeftWaypoints = [
-                {
-                    x: 310,
-                    y: 175,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                },
-                {
-                    x: 382,
-                    y: 95,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                }
+                RRCScene_1.wp(357, 196, 0),
+                RRCScene_1.wp(207, 196, 0),
+                RRCScene_1.wp(62, 196, 0),
+                RRCScene_1.wp(62, 100, 0),
+                RRCScene_1.wp(207, 100, 0),
+                RRCScene_1.wp(279, 100, 0),
+                RRCScene_1.wp(360, 60, 0),
+                RRCScene_1.wp(387, 90, 0),
+                RRCScene_1.wp(389, 128, 0, _this.bigWaypointSize),
             ];
             _this.topRightWaypoints = [
-                {
-                    x: 445,
-                    y: 175,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                },
-                {
-                    x: 565,
-                    y: 57,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                }
-            ];
-            _this.downLeftWaypoints = [
-                {
-                    x: 345,
-                    y: 385,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                },
-                {
-                    x: 245,
-                    y: 403,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                }
-            ];
-            _this.downRightWaypoints = [
-                {
-                    x: 470,
-                    y: 363,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                },
-                {
-                    x: 470,
-                    y: 450,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                }
-            ];
-            _this.middleLeftWaypoints = [
-                {
-                    x: 278,
-                    y: 263,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                },
-                {
-                    x: 64,
-                    y: 245,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                }
+                RRCScene_1.wp(445, 190, 0),
+                RRCScene_1.wp(460, 165, 0),
+                RRCScene_1.wp(463, 138, 0),
+                RRCScene_1.wp(501, 100, 0),
+                RRCScene_1.wp(560, 100, 0),
+                RRCScene_1.wp(543, 61, 0),
+                RRCScene_1.wp(592, 61, 0, _this.bigWaypointSize),
             ];
             _this.middleRightWaypoint = [
-                {
-                    x: 490,
-                    y: 265,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                },
-                {
-                    x: 660,
-                    y: 265,
-                    w: 20,
-                    h: 20,
-                    score: 10
-                }
+                RRCScene_1.wp(500, 268, 0),
+                RRCScene_1.wp(591, 180, 0),
+                RRCScene_1.wp(740, 180, 0),
+                RRCScene_1.wp(740, 270, 0),
+                RRCScene_1.wp(740, 400, 0),
+                RRCScene_1.wp(712, 392, 0),
+                RRCScene_1.wp(604, 270, 0),
+                RRCScene_1.wp(682, 270, 0, _this.bigWaypointSize),
+            ];
+            _this.downRightWaypoints = [
+                RRCScene_1.wp(441, 344, 0),
+                RRCScene_1.wp(456, 369, 0),
+                RRCScene_1.wp(589, 351, 0),
+                RRCScene_1.wp(611, 389, 0),
+                RRCScene_1.wp(559, 420, 0),
+                RRCScene_1.wp(469, 449, 0),
+                RRCScene_1.wp(469, 490, 0, _this.bigWaypointSize),
+            ];
+            _this.downLeftWaypoints = [
+                RRCScene_1.wp(357, 341, 0),
+                RRCScene_1.wp(341, 369, 0),
+                RRCScene_1.wp(389, 450, 0),
+                RRCScene_1.wp(301, 469, 0),
+                RRCScene_1.wp(142, 469, 0),
+                RRCScene_1.wp(84, 410, 0),
+                RRCScene_1.wp(297, 410, 0, _this.bigWaypointSize),
+            ];
+            _this.middleLeftWaypoints = [
+                RRCScene_1.wp(317, 270, 0),
+                RRCScene_1.wp(281, 270, 0),
+                RRCScene_1.wp(281, 339, 0),
+                RRCScene_1.wp(187, 339, 0),
+                RRCScene_1.wp(83, 339, 0),
+                RRCScene_1.wp(159, 251, 0),
+                RRCScene_1.wp(47, 251, 0, _this.bigWaypointSize),
             ];
             _this.waypointListHS = [
                 _this.topLeftWaypoints,
@@ -295,6 +241,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                     h: 15,
                 }
             ];
+            _this.centerWaypoint = RRCScene_1.wp(402, 270, 0);
             return _this;
         }
         RRCRainbowScene.prototype.getWalls = function () {
@@ -322,9 +269,9 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                         if (colour.r == waypointColour[0] && colour.g == waypointColour[1] && colour.b == waypointColour[2]) {
                             waypoints = waypoint;
                             waypoints.forEach(function (waypoint) {
-                                var x = waypoint.x + waypoint.w / 2;
-                                var y = waypoint.y + waypoint.h / 2;
-                                var wp = _this.makeWaypoint({ x: x, y: y }, waypoint.score);
+                                var x = waypoint.x;
+                                var y = waypoint.y;
+                                var wp = _this.makeWaypoint({ x: x, y: y }, waypoint.score, waypoint.r);
                                 waypointList.appendWaypoints(wp);
                             });
                             waypointList.appendReversedWaypoints();
@@ -333,6 +280,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 });
                 finalWaypointList.append(waypointList);
             });
+            finalWaypointList.appendWaypoints(this.makeWaypoint({ x: this.centerWaypoint.x, y: this.centerWaypoint.y }, this.centerWaypoint.score, this.centerWaypoint.r));
             this.setWaypointList(finalWaypointList);
         };
         /**

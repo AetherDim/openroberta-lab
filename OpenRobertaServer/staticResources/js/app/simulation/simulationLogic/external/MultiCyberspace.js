@@ -435,7 +435,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         UIManager_1.UIManager.showScoreButton.onClick(function (state) {
             var visible = state == "showScore";
             cyberspaces.forEach(function (cyberspace) {
-                cyberspace.stopPrograms();
+                cyberspace.pauseSimulation();
                 var scene = cyberspace.getScene();
                 if (scene instanceof RRCScoreScene_1.RRCScoreScene) {
                     scene.showScoreScreen(visible);

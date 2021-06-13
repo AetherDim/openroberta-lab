@@ -503,7 +503,7 @@ export function initEvents() {
 	UIManager.showScoreButton.onClick(state => {
 		const visible = state == "showScore"
 		cyberspaces.forEach(cyberspace => {
-			cyberspace.stopPrograms()
+			cyberspace.pauseSimulation()
 			const scene = cyberspace.getScene()
 			if (scene instanceof RRCScoreScene) {
 				scene.showScoreScreen(visible)

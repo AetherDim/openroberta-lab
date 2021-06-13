@@ -46,12 +46,40 @@ export class RRCScene extends RRCScoreScene {
 
 		// add index text graphic to waypoints
 		this.waypointsManager.getWaypoints().forEach((waypoint, index) => {
-			const text = new PIXI.Text(String(index))
-			text.style = new PIXI.TextStyle({ align: 'center' })
+
+			let score = String(index)
+			let size = 80
+			if(waypoint.score > 0) {
+				score += "\nPoints: " + waypoint.score
+				size = 50
+			}
+
+			const text = new PIXI.Text(score,
+			{
+				fontFamily: 'ProggyTiny',
+				fontSize: size,
+				fill: 0x000000,
+				align: 'center',
+				
+			})
+			const textBackground = new PIXI.Text(score,
+			{
+				fontFamily: 'ProggyTiny',
+				fontSize: size,
+				fill: 0xffffff,
+				align: 'center',
+				blur: 6
+			})
+			textBackground.position.x = waypoint.position.x - text.width/2+1
+			textBackground.position.y = waypoint.position.y - text.height/2+1
+			textBackground.resolution = 4
+			//textBackground.zIndex = 10000;
+
 			text.position.x = waypoint.position.x - text.width/2
 			text.position.y = waypoint.position.y - text.height/2
 			text.resolution = 4
 			//text.zIndex = 10000;
+			waypoint.graphics.addChild(textBackground)
 			waypoint.graphics.addChild(text)
 		})
 	}
@@ -178,4 +206,13 @@ export class RRCScene extends RRCScoreScene {
 	}
 
 
+}
+
+export function wp(x: number, y: number, score: number, r: number = 30) {
+	return {
+		x: x,
+		y: y,
+		r: r,
+		score: score
+	}
 }

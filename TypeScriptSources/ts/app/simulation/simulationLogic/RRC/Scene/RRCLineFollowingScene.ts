@@ -1,4 +1,4 @@
-import {RRCScene} from "./RRCScene";
+import {RRCScene, wp} from "./RRCScene";
 import { AsyncChain } from "../../Scene/AsyncChain";
 import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
@@ -9,93 +9,89 @@ export class RRCLineFollowingScene extends RRCScene {
 
 	// Waypoints
 	readonly waypointsES = [
-		{
-			x: 35,
-			y: 235,
-			w: 80,
-			h: 20,
-			score: 50
-		}, {
-			x: 165,
-			y: 70,
-			w: 20,
-			h: 80,
-			score: 0
-		}, {
-			x: 700,
-			y: 280,
-			w: 50,
-			h: 50,
-			score: 50
-		}, {
-			x: 710,
-			y: 40,
-			w: 100,
-			h: 80,
-			score: 100
-		}
+		wp( 62, 470, 0),
+		wp( 62, 360, 0),
+		wp( 62, 280, 0),
+		wp( 62, 200, 0),
+		wp(105, 128, 0),
+		wp(156, 115, 0),
+		wp(259, 154, 0),
+		wp(266, 191, 0),
+		wp(258, 237, 0),
+		wp(207, 339, 0),
+		wp(228, 399, 0),
+		wp(282, 434, 0),
+		wp(338, 435, 0),
+		wp(397, 395, 0),
+		wp(421, 346, 0),
+		wp(472, 309, 0),
+		wp(559, 307, 0),
+		wp(671, 309, 0),
+		wp(735, 280, 0),
+		wp(753, 184, 0),
+		wp(756, 121, 0),
+		wp(755,  60, 0),
 	]
 
 	readonly waypointsMS = [
-		{
-			x: 35,
-			y: 350,
-			w: 80,
-			h: 20,
-			score: 25
-		}, {
-			x: 650,
-			y: 340,
-			w: 50,
-			h: 50,
-			score: 50
-		}, {
-			x: 730,
-			y: 230,
-			w: 50,
-			h: 50,
-			score: 25
-		}, {
-			x: 710,
-			y: 40,
-			w: 100,
-			h: 80,
-			score: 100
-		}
+		wp( 62, 470, 0),
+		wp( 62, 360, 0),
+		wp( 62, 280, 0),
+		wp( 86, 226, 0),
+		wp(146, 226, 0),
+		wp(191, 253, 0),
+		wp(245, 310, 0),
+		wp(258, 326, 0),
+		wp(300, 373, 0),
+		wp(367, 419, 0),
+		wp(432, 384, 0),
+		wp(435, 333, 0),
+		wp(434, 268, 0),
+		wp(465, 221, 0),
+		wp(519, 219, 0),
+		wp(592, 291, 0),
+		wp(608, 312, 0),
+		wp(643, 350, 0),
+		wp(706, 348, 0),
+		wp(740, 325, 0),
+		wp(751, 300, 0),
+		wp(757, 252, 0),
+		wp(753, 184, 0),
+		wp(756, 121, 0),
+		wp(755,  60, 0),
 	]
 
 	readonly waypointsHS = [
-		{
-			x: 35,
-			y: 350,
-			w: 80,
-			h: 20,
-			score: 25
-		}, {
-			x: 250,
-			y: 320,
-			w: 50,
-			h: 50,
-			score: 50
-		}, {
-			x: 650,
-			y: 330,
-			w: 50,
-			h: 50,
-			score: 50
-		},{
-			x: 730,
-			y: 230,
-			w: 50,
-			h: 50,
-			score: 25
-		},  {
-			x: 710,
-			y: 40,
-			w: 100,
-			h: 80,
-			score: 50
-		}
+		wp( 62, 470, 0),
+		wp( 62, 360, 0),
+		wp( 62, 280, 0),
+		wp( 86, 226, 0),
+		wp(146, 226, 0),
+		wp(191, 253, 0),
+		wp(245, 310, 0),
+		wp(258, 326, 0),
+		wp(253, 253, 0),
+		wp(271, 220, 0),
+		wp(319, 223, 0),
+		wp(346, 259, 0),
+		wp(378, 310, 0),
+		wp(412, 366, 0),
+		wp(469, 419, 0),
+		wp(510, 372, 0),
+		wp(509, 329, 0),
+		wp(510, 289, 0),
+		wp(512, 255, 0),
+		wp(537, 217, 0),
+		wp(586, 237, 0),
+		wp(612, 281, 0),
+		wp(652, 350, 0),
+		wp(706, 348, 0),
+		wp(740, 325, 0),
+		wp(751, 300, 0),
+		wp(757, 252, 0),
+		wp(753, 184, 0),
+		wp(756, 121, 0),
+		wp(755,  60, 0),
 	]
 
 	readonly obstacleColor: number = 0xf68712
@@ -181,9 +177,9 @@ export class RRCLineFollowingScene extends RRCScene {
 		const waypoints = this.getWaypoints()
 
 		waypoints.forEach(waypoint => {
-			const x = waypoint.x + waypoint.w/2
-			const y = waypoint.y + waypoint.h/2
-			const r = Math.sqrt(Math.pow(waypoint.w, 2) + Math.pow(waypoint.h, 2))
+			const x = waypoint.x
+			const y = waypoint.y
+			const r = waypoint.r
 			const wp = this.makeWaypoint({x: x, y: y}, waypoint.score, r)
 			waypointList.appendWaypoints(wp)
 		})

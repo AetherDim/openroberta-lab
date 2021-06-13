@@ -9,7 +9,7 @@ import { Util } from '../Util';
 import { AsyncChain } from "./AsyncChain";
 import { WaypointsManager } from '../Waypoints/WaypointsManager';
 import { ScoreWaypoint } from '../Waypoints/ScoreWaypoint';
-import { SceneDebug } from "./../GlobalDebug";
+import { DEBUG, SceneDebug } from "./../GlobalDebug";
 import {EntityManager} from "./Manager/EntityManager";
 import {ContainerManager} from "./Manager/ContainerManager";
 import {RobotManager} from "./Manager/RobotManager";
@@ -606,9 +606,15 @@ export class Scene {
 	interactionEvent(ev: ScrollViewEvent) {
 		switch (ev.type) {
 			case EventType.PRESS:
+
 				// get bodies
 				const mousePosition = ev.data.getCurrentLocalPosition()
 				const bodies = this.getBodiesAt(mousePosition);
+
+				if(DEBUG) {
+					console.log(`Mouse position: ${JSON.stringify(mousePosition)}`)
+				}
+
 				if (bodies.length >= 1) {
 					const body = bodies[0]
 					ev.cancel()

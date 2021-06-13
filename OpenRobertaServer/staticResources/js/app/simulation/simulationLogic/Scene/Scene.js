@@ -465,6 +465,9 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                     // get bodies
                     var mousePosition = ev.data.getCurrentLocalPosition();
                     var bodies = this.getBodiesAt(mousePosition);
+                    if (GlobalDebug_1.DEBUG) {
+                        console.log("Mouse position: " + JSON.stringify(mousePosition));
+                    }
                     if (bodies.length >= 1) {
                         var body = bodies[0];
                         ev.cancel();

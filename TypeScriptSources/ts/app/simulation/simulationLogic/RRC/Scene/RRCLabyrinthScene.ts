@@ -27,7 +27,8 @@ class LabyrinthRect {
 
 export class RRCLabyrinthScene extends RRCScene {
 
-	readonly MazeObstacleList_ES: LabyrinthRect[] = [{ // add obstacles with lists like this
+	readonly MazeObstacleList_ES: LabyrinthRect[] = [
+	{ // add obstacles with lists like this
 		x: 500,
 		y: 100,
 		w: 200,
@@ -295,6 +296,13 @@ export class RRCLabyrinthScene extends RRCScene {
 	readonly waypointES_MS = [
 		{
 			x: 700,
+			y: 436,
+			w: 100,
+			h: 100,
+			score: 0
+		},
+		{
+			x: 700,
 			y: 0,
 			w: 100,
 			h: 100,
@@ -394,11 +402,24 @@ export class RRCLabyrinthScene extends RRCScene {
 			y: 440,
 			w: 100,
 			h: 100,
+			score: 10
+		},{
+			x: 240,
+			y: 475,
+			w: 50,
+			h: 50,
 			score: 10
 		}
 	]
 
 	readonly waypointsHS = [
+		{
+			x: 700,
+			y: 436,
+			w: 100,
+			h: 100,
+			score: 0
+		},
 		{
 			x: 700,
 			y: 0,
@@ -512,6 +533,12 @@ export class RRCLabyrinthScene extends RRCScene {
 			y: 440,
 			w: 100,
 			h: 100,
+			score: 10
+		},{
+			x: 240,
+			y: 475,
+			w: 50,
+			h: 50,
 			score: 10
 		}
 	]

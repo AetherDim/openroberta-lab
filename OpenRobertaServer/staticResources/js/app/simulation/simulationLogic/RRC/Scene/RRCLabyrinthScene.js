@@ -32,7 +32,8 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
         __extends(RRCLabyrinthScene, _super);
         function RRCLabyrinthScene() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.MazeObstacleList_ES = [{
+            _this.MazeObstacleList_ES = [
+                {
                     x: 500,
                     y: 100,
                     w: 200,
@@ -109,7 +110,8 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     h: 350,
                     rotation: 0,
                     color: 0x000000
-                }];
+                }
+            ];
             _this.MazeObstacleList_MS = [{
                     x: 500,
                     y: 100,
@@ -297,6 +299,13 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
             _this.waypointES_MS = [
                 {
                     x: 700,
+                    y: 436,
+                    w: 100,
+                    h: 100,
+                    score: 0
+                },
+                {
+                    x: 700,
                     y: 0,
                     w: 100,
                     h: 100,
@@ -396,10 +405,23 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     y: 440,
                     w: 100,
                     h: 100,
+                    score: 10
+                }, {
+                    x: 240,
+                    y: 475,
+                    w: 50,
+                    h: 50,
                     score: 10
                 }
             ];
             _this.waypointsHS = [
+                {
+                    x: 700,
+                    y: 436,
+                    w: 100,
+                    h: 100,
+                    score: 0
+                },
                 {
                     x: 700,
                     y: 0,
@@ -513,6 +535,12 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     y: 440,
                     w: 100,
                     h: 100,
+                    score: 10
+                }, {
+                    x: 240,
+                    y: 475,
+                    w: 50,
+                    h: 50,
                     score: 10
                 }
             ];

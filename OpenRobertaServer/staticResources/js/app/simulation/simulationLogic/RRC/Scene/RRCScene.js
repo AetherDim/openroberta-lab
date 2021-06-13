@@ -16,7 +16,7 @@ var __extends = (this && this.__extends) || (function () {
 define(["require", "exports", "../../Scene/AsyncChain", "../../Robot/Robot", "matter-js", "../../Unit", "./RRCScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, AsyncChain_1, Robot_1, matter_js_1, Unit_1, RRCScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RRCScene = void 0;
+    exports.wp = exports.RRCScene = void 0;
     var RRCScene = /** @class */ (function (_super) {
         __extends(RRCScene, _super);
         function RRCScene(name, ageGroup) {
@@ -54,12 +54,34 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Robot/Robot", "ma
             });
             // add index text graphic to waypoints
             this.waypointsManager.getWaypoints().forEach(function (waypoint, index) {
-                var text = new PIXI.Text(String(index));
-                text.style = new PIXI.TextStyle({ align: 'center' });
+                var score = String(index);
+                var size = 80;
+                if (waypoint.score > 0) {
+                    score += "\nPoints: " + waypoint.score;
+                    size = 50;
+                }
+                var text = new PIXI.Text(score, {
+                    fontFamily: 'ProggyTiny',
+                    fontSize: size,
+                    fill: 0x000000,
+                    align: 'center',
+                });
+                var textBackground = new PIXI.Text(score, {
+                    fontFamily: 'ProggyTiny',
+                    fontSize: size,
+                    fill: 0xffffff,
+                    align: 'center',
+                    blur: 6
+                });
+                textBackground.position.x = waypoint.position.x - text.width / 2 + 1;
+                textBackground.position.y = waypoint.position.y - text.height / 2 + 1;
+                textBackground.resolution = 4;
+                //textBackground.zIndex = 10000;
                 text.position.x = waypoint.position.x - text.width / 2;
                 text.position.y = waypoint.position.y - text.height / 2;
                 text.resolution = 4;
                 //text.zIndex = 10000;
+                waypoint.graphics.addChild(textBackground);
                 waypoint.graphics.addChild(text);
             });
         };
@@ -163,4 +185,14 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Robot/Robot", "ma
         return RRCScene;
     }(RRCScoreScene_1.RRCScoreScene));
     exports.RRCScene = RRCScene;
+    function wp(x, y, score, r) {
+        if (r === void 0) { r = 30; }
+        return {
+            x: x,
+            y: y,
+            r: r,
+            score: score
+        };
+    }
+    exports.wp = wp;
 });
