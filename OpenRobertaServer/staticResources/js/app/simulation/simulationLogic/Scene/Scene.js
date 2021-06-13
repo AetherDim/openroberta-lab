@@ -86,7 +86,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
              * sleep time before calling update (SI-Unit)
              */
             this.simSleepTime = this.dt;
-            this.simSpeedupFactor = 1;
+            this.simMinSpeedupFactor = 2;
+            this.simSpeedupFactor = this.simMinSpeedupFactor;
             /**
              * whether to create debug displayables to show all physics objects
              */
@@ -423,7 +424,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 console.error("Sim speed needs to be greater than 0!");
                 return;
             }
-            this.simSpeedupFactor = speedup;
+            this.simSpeedupFactor = Math.max(speedup, this.simMinSpeedupFactor);
         };
         Scene.prototype.getCurrentSimTickRate = function () {
             return Math.round(1000 / this.simTicker.lastDT) * this.simSpeedupFactor;

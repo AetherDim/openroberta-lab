@@ -149,7 +149,7 @@ export class RRCScoreScene extends Scene {
 	 */
 	getProgramRuntime(): number | undefined {
 		if (this.programEventTimes != undefined) {
-			return (this.programEventTimes.stopTime ?? this.getSimulationTime()) - this.programEventTimes.startTime
+			return ((this.programEventTimes.stopTime ?? this.getSimulationTime()) - this.programEventTimes.startTime)/2
 		} else {
 			return undefined
 		}

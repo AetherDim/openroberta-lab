@@ -448,7 +448,8 @@ export class Scene {
 	 * sleep time before calling update (SI-Unit)
 	 */
 	private simSleepTime = this.dt;
-	private simSpeedupFactor = 1;
+	private simMinSpeedupFactor = 2;
+	private simSpeedupFactor = this.simMinSpeedupFactor;
 
 	/**
 	 * simulation ticker/timer
@@ -488,7 +489,8 @@ export class Scene {
 			console.error("Sim speed needs to be greater than 0!")
 			return
 		}
-		this.simSpeedupFactor = speedup
+
+		this.simSpeedupFactor = Math.max(speedup, this.simMinSpeedupFactor)
 	}
 
 	getCurrentSimTickRate(): number {

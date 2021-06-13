@@ -131,7 +131,7 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
         RRCScoreScene.prototype.getProgramRuntime = function () {
             var _a;
             if (this.programEventTimes != undefined) {
-                return ((_a = this.programEventTimes.stopTime) !== null && _a !== void 0 ? _a : this.getSimulationTime()) - this.programEventTimes.startTime;
+                return (((_a = this.programEventTimes.stopTime) !== null && _a !== void 0 ? _a : this.getSimulationTime()) - this.programEventTimes.startTime) / 2;
             }
             else {
                 return undefined;
