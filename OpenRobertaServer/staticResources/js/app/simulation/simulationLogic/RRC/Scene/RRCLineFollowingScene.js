@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "../../Waypoints/WaypointList"], function (require, exports, RRCScene_1, RRC, AgeGroup_1, WaypointList_1) {
+define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "../../Waypoints/WaypointList", "../../Util"], function (require, exports, RRCScene_1, RRC, AgeGroup_1, WaypointList_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RRCLineFollowingScene = void 0;
@@ -21,6 +21,7 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
         __extends(RRCLineFollowingScene, _super);
         function RRCLineFollowingScene() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.bigWaypointSize = 70;
             // Waypoints
             _this.waypointsES = [
                 RRCScene_1.wp(62, 470, 0),
@@ -165,6 +166,17 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
         RRCLineFollowingScene.prototype.getMaximumTimeBonusScore = function () {
             return 60 * 2;
         };
+        /**
+         * Returns the indices of the waypoints where a junction is
+         */
+        RRCLineFollowingScene.prototype.junctionIndices = function () {
+            switch (this.ageGroup) {
+                case AgeGroup_1.AgeGroup.ES: return [];
+                case AgeGroup_1.AgeGroup.MS: return [17];
+                case AgeGroup_1.AgeGroup.HS: return [7, 22];
+                default: Util_1.Util.exhaustiveSwitch(this.ageGroup);
+            }
+        };
         RRCLineFollowingScene.prototype.onInit = function (chain) {
             var _this = this;
             this.initRobot({ position: { x: 62, y: 450 }, rotation: -90 });
@@ -178,7 +190,27 @@ define(["require", "exports", "./RRCScene", "../RRAssetLoader", "../AgeGroup", "
                 var wp = _this.makeWaypoint({ x: x, y: y }, waypoint.score, r);
                 waypointList.appendWaypoints(wp);
             });
-            waypointList.appendReversedWaypoints();
+            var reversedWaypoints = waypointList.reversed(false);
+            // === set graphics ===
+            waypointList.getLastWaypoint().setMaxDistanceInMatterUnits(this.bigWaypointSize);
+            reversedWaypoints.getLastWaypoint().setMaxDistanceInMatterUnits(this.bigWaypointSize);
+            // === set score ===
+            // leaves the starting position 
+            waypointList.get(1).score = this.ageGroup == AgeGroup_1.AgeGroup.ES ? 50 : 25;
+            // arrives at the "tower"
+            waypointList.getLastWaypoint().score = this.ageGroup == AgeGroup_1.AgeGroup.HS ? 50 : 100;
+            // on the way back to the starting point
+            reversedWaypoints.get(2).score = this.ageGroup == AgeGroup_1.AgeGroup.ES ? 50 : 25;
+            // arrives at the starting position
+            reversedWaypoints.getLastWaypoint().score = 100;
+            // set junction waypoint scores
+            var waypointsAfterTheJunction = 2;
+            var junctionScore = 25;
+            this.junctionIndices().forEach(function (index) {
+                waypointList.get(index + waypointsAfterTheJunction).score = junctionScore;
+                reversedWaypoints.get((reversedWaypoints.getLength() - 1) - (index - waypointsAfterTheJunction)).score = junctionScore;
+            });
+            waypointList.append(reversedWaypoints);
             this.setWaypointList(waypointList);
             var backgroundAsset = this.loader.get(this.getAsset()).texture;
             this.getContainers().groundContainer.addChild(new PIXI.Sprite(backgroundAsset));

@@ -67,30 +67,30 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 _this.blue,
                 _this.purple
             ];
-            _this.bigWaypointSize = 50;
+            _this.bigWaypointSize = 70;
             // Waypoints for MS and ES
             _this.topWaypoints = [
-                RRCScene_1.wp(400, 177, 0),
+                RRCScene_1.wp(400, 177, 10),
                 RRCScene_1.wp(402, 71, 0),
                 RRCScene_1.wp(480, 72, 0),
                 RRCScene_1.wp(479, 119, 0),
                 RRCScene_1.wp(520, 117, 0),
                 RRCScene_1.wp(520, 181, 0),
                 RRCScene_1.wp(611, 178, 0),
-                RRCScene_1.wp(762, 178, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(762, 178, 10, _this.bigWaypointSize),
             ];
             _this.rightWaypoints = [
-                RRCScene_1.wp(505, 270, 0),
+                RRCScene_1.wp(505, 270, 10),
                 RRCScene_1.wp(620, 270, 0),
                 RRCScene_1.wp(730, 272, 0),
                 RRCScene_1.wp(730, 345, 0),
                 RRCScene_1.wp(730, 410, 0),
                 RRCScene_1.wp(610, 411, 0),
                 RRCScene_1.wp(492, 408, 0),
-                RRCScene_1.wp(490, 503, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(490, 503, 10, _this.bigWaypointSize),
             ];
             _this.downWaypoints = [
-                RRCScene_1.wp(400, 362, 0),
+                RRCScene_1.wp(400, 362, 10),
                 RRCScene_1.wp(400, 415, 0),
                 RRCScene_1.wp(400, 470, 0),
                 RRCScene_1.wp(286, 470, 0),
@@ -100,10 +100,10 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 RRCScene_1.wp(68, 423, 0),
                 RRCScene_1.wp(68, 360, 0),
                 RRCScene_1.wp(180, 360, 0),
-                RRCScene_1.wp(297, 360, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(297, 360, 10, _this.bigWaypointSize),
             ];
             _this.leftWaypoints = [
-                RRCScene_1.wp(280, 268, 0),
+                RRCScene_1.wp(280, 268, 10),
                 RRCScene_1.wp(280, 182, 0),
                 RRCScene_1.wp(280, 112, 0),
                 RRCScene_1.wp(174, 112, 0),
@@ -112,7 +112,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 RRCScene_1.wp(72, 270, 0),
                 RRCScene_1.wp(130, 270, 0),
                 RRCScene_1.wp(188, 270, 0),
-                RRCScene_1.wp(188, 183, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(188, 183, 10, _this.bigWaypointSize),
             ];
             _this.waypointListES_MS = [
                 _this.topWaypoints,
@@ -122,7 +122,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
             ];
             // Waypoints for HS
             _this.topLeftWaypoints = [
-                RRCScene_1.wp(357, 196, 0),
+                RRCScene_1.wp(357, 196, 10),
                 RRCScene_1.wp(207, 196, 0),
                 RRCScene_1.wp(62, 196, 0),
                 RRCScene_1.wp(62, 100, 0),
@@ -130,53 +130,53 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
                 RRCScene_1.wp(279, 100, 0),
                 RRCScene_1.wp(360, 60, 0),
                 RRCScene_1.wp(387, 90, 0),
-                RRCScene_1.wp(389, 128, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(389, 128, 10, _this.bigWaypointSize),
             ];
             _this.topRightWaypoints = [
-                RRCScene_1.wp(445, 190, 0),
+                RRCScene_1.wp(445, 190, 10),
                 RRCScene_1.wp(460, 165, 0),
                 RRCScene_1.wp(463, 138, 0),
                 RRCScene_1.wp(501, 100, 0),
                 RRCScene_1.wp(560, 100, 0),
                 RRCScene_1.wp(543, 61, 0),
-                RRCScene_1.wp(592, 61, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(592, 61, 10, _this.bigWaypointSize),
             ];
             _this.middleRightWaypoint = [
-                RRCScene_1.wp(500, 268, 0),
+                RRCScene_1.wp(500, 268, 10),
                 RRCScene_1.wp(591, 180, 0),
                 RRCScene_1.wp(740, 180, 0),
                 RRCScene_1.wp(740, 270, 0),
                 RRCScene_1.wp(740, 400, 0),
                 RRCScene_1.wp(712, 392, 0),
                 RRCScene_1.wp(604, 270, 0),
-                RRCScene_1.wp(682, 270, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(682, 270, 10, _this.bigWaypointSize),
             ];
             _this.downRightWaypoints = [
-                RRCScene_1.wp(441, 344, 0),
+                RRCScene_1.wp(441, 344, 10),
                 RRCScene_1.wp(456, 369, 0),
                 RRCScene_1.wp(589, 351, 0),
                 RRCScene_1.wp(611, 389, 0),
                 RRCScene_1.wp(559, 420, 0),
                 RRCScene_1.wp(469, 449, 0),
-                RRCScene_1.wp(469, 490, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(469, 490, 10, _this.bigWaypointSize),
             ];
             _this.downLeftWaypoints = [
-                RRCScene_1.wp(357, 341, 0),
+                RRCScene_1.wp(357, 341, 10),
                 RRCScene_1.wp(341, 369, 0),
                 RRCScene_1.wp(389, 450, 0),
                 RRCScene_1.wp(301, 469, 0),
                 RRCScene_1.wp(142, 469, 0),
                 RRCScene_1.wp(84, 410, 0),
-                RRCScene_1.wp(297, 410, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(297, 410, 10, _this.bigWaypointSize),
             ];
             _this.middleLeftWaypoints = [
-                RRCScene_1.wp(317, 270, 0),
+                RRCScene_1.wp(317, 270, 10),
                 RRCScene_1.wp(281, 270, 0),
                 RRCScene_1.wp(281, 339, 0),
                 RRCScene_1.wp(187, 339, 0),
                 RRCScene_1.wp(83, 339, 0),
                 RRCScene_1.wp(159, 251, 0),
-                RRCScene_1.wp(47, 251, 0, _this.bigWaypointSize),
+                RRCScene_1.wp(47, 251, 10, _this.bigWaypointSize),
             ];
             _this.waypointListHS = [
                 _this.topLeftWaypoints,

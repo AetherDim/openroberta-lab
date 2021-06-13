@@ -47,40 +47,32 @@ export class RRCScene extends RRCScoreScene {
 		// add index text graphic to waypoints
 		this.waypointsManager.getWaypoints().forEach((waypoint, index) => {
 
-			let score = String(index)
-			let size = 80
+			let waypointText = String(index)
+			let fontSize = 80
 			if(waypoint.score > 0) {
-				score += "\nPoints: " + waypoint.score
-				size = 50
+				waypointText += "\n" + waypoint.score + " Pts."
+				fontSize = 50
 			}
 
-			const text = new PIXI.Text(score,
-			{
-				fontFamily: 'ProggyTiny',
-				fontSize: size,
-				fill: 0x000000,
-				align: 'center',
-				
-			})
-			const textBackground = new PIXI.Text(score,
-			{
-				fontFamily: 'ProggyTiny',
-				fontSize: size,
-				fill: 0xffffff,
-				align: 'center',
-				blur: 6
-			})
-			textBackground.position.x = waypoint.position.x - text.width/2+1
-			textBackground.position.y = waypoint.position.y - text.height/2+1
-			textBackground.resolution = 4
-			//textBackground.zIndex = 10000;
+			function makeText(color: number, xOffset: number, yOffset: number): PIXI.Text {
+				const text = new PIXI.Text(waypointText, {
+					fontFamily: 'ProggyTiny',
+					fontSize: fontSize,
+					fill: color,
+					align: 'center',
+				})
+				text.resolution = 4
+				text.position.set(
+					waypoint.position.x - text.width/2 + xOffset,
+					waypoint.position.y - text.height/2 + yOffset)
+				return text
+			}
 
-			text.position.x = waypoint.position.x - text.width/2
-			text.position.y = waypoint.position.y - text.height/2
-			text.resolution = 4
-			//text.zIndex = 10000;
-			waypoint.graphics.addChild(textBackground)
-			waypoint.graphics.addChild(text)
+			waypoint.graphics.addChild(
+				makeText(0x000000, +1, +1),
+				makeText(0x000000, -1, -1),
+				makeText(0xf48613,  0,  0)
+			)
 		})
 	}
 

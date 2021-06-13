@@ -54,35 +54,24 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Robot/Robot", "ma
             });
             // add index text graphic to waypoints
             this.waypointsManager.getWaypoints().forEach(function (waypoint, index) {
-                var score = String(index);
-                var size = 80;
+                var waypointText = String(index);
+                var fontSize = 80;
                 if (waypoint.score > 0) {
-                    score += "\nPoints: " + waypoint.score;
-                    size = 50;
+                    waypointText += "\n" + waypoint.score + " Pts.";
+                    fontSize = 50;
                 }
-                var text = new PIXI.Text(score, {
-                    fontFamily: 'ProggyTiny',
-                    fontSize: size,
-                    fill: 0x000000,
-                    align: 'center',
-                });
-                var textBackground = new PIXI.Text(score, {
-                    fontFamily: 'ProggyTiny',
-                    fontSize: size,
-                    fill: 0xffffff,
-                    align: 'center',
-                    blur: 6
-                });
-                textBackground.position.x = waypoint.position.x - text.width / 2 + 1;
-                textBackground.position.y = waypoint.position.y - text.height / 2 + 1;
-                textBackground.resolution = 4;
-                //textBackground.zIndex = 10000;
-                text.position.x = waypoint.position.x - text.width / 2;
-                text.position.y = waypoint.position.y - text.height / 2;
-                text.resolution = 4;
-                //text.zIndex = 10000;
-                waypoint.graphics.addChild(textBackground);
-                waypoint.graphics.addChild(text);
+                function makeText(color, xOffset, yOffset) {
+                    var text = new PIXI.Text(waypointText, {
+                        fontFamily: 'ProggyTiny',
+                        fontSize: fontSize,
+                        fill: color,
+                        align: 'center',
+                    });
+                    text.resolution = 4;
+                    text.position.set(waypoint.position.x - text.width / 2 + xOffset, waypoint.position.y - text.height / 2 + yOffset);
+                    return text;
+                }
+                waypoint.graphics.addChild(makeText(0x000000, +1, +1), makeText(0x000000, -1, -1), makeText(0xf48613, 0, 0));
             });
         };
         RRCScene.prototype.getTimeBonusScore = function () {

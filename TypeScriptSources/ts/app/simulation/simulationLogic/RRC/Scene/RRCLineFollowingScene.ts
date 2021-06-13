@@ -4,8 +4,11 @@ import * as RRC from '../RRAssetLoader'
 import {AgeGroup} from "../AgeGroup";
 import { WaypointList } from "../../Waypoints/WaypointList";
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint";
+import { Util } from "../../Util";
 
 export class RRCLineFollowingScene extends RRCScene {
+
+	readonly bigWaypointSize = 70
 
 	// Waypoints
 	readonly waypointsES = [
@@ -169,6 +172,18 @@ export class RRCLineFollowingScene extends RRCScene {
 		return 60 * 2
 	}
 
+	/**
+	 * Returns the indices of the waypoints where a junction is
+	 */
+	junctionIndices(): number[] {
+		switch (this.ageGroup) {
+		case AgeGroup.ES: return []
+		case AgeGroup.MS: return [17]
+		case AgeGroup.HS: return [7, 22]
+		default: Util.exhaustiveSwitch(this.ageGroup)
+		}
+	}
+
 	onInit(chain: AsyncChain) {
 		this.initRobot({ position: {x: 62, y: 450 }, rotation: -90 });
 
@@ -184,7 +199,33 @@ export class RRCLineFollowingScene extends RRCScene {
 			waypointList.appendWaypoints(wp)
 		})
 
-		waypointList.appendReversedWaypoints()
+		const reversedWaypoints = waypointList.reversed(false)
+
+		// === set graphics ===
+		waypointList.getLastWaypoint().setMaxDistanceInMatterUnits(this.bigWaypointSize)
+		reversedWaypoints.getLastWaypoint().setMaxDistanceInMatterUnits(this.bigWaypointSize)
+
+		// === set score ===
+
+		// leaves the starting position 
+		waypointList.get(1).score = this.ageGroup == AgeGroup.ES ? 50 : 25
+		// arrives at the "tower"
+		waypointList.getLastWaypoint().score = this.ageGroup == AgeGroup.HS ? 50 : 100
+
+		// on the way back to the starting point
+		reversedWaypoints.get(2).score = this.ageGroup == AgeGroup.ES ? 50 : 25
+		// arrives at the starting position
+		reversedWaypoints.getLastWaypoint().score = 100
+
+		// set junction waypoint scores
+		const waypointsAfterTheJunction = 2
+		const junctionScore = 25
+		this.junctionIndices().forEach(index => {
+			waypointList.get(index + waypointsAfterTheJunction).score = junctionScore
+			reversedWaypoints.get((reversedWaypoints.getLength() - 1) - (index - waypointsAfterTheJunction)).score = junctionScore
+		})
+
+		waypointList.append(reversedWaypoints)
 
 
 		this.setWaypointList(waypointList)

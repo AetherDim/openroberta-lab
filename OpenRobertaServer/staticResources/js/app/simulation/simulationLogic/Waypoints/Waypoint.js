@@ -18,7 +18,8 @@ define(["require", "exports", "../Entity"], function (require, exports, Entity_1
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Waypoint = void 0;
     /**
-     * A waypoint with a position and maximum distance to reach it
+     * A waypoint with a position and maximum distance to reach it.
+     * By default it is added to the `topContainer`.
      */
     var Waypoint = /** @class */ (function (_super) {
         __extends(Waypoint, _super);
@@ -35,19 +36,32 @@ define(["require", "exports", "../Entity"], function (require, exports, Entity_1
             var _this = this;
             var pos = scene.unit.getPosition(position);
             var radius = scene.unit.getLength(maxDistance);
-            var container = new PIXI.Container();
-            var graphics = new PIXI.Graphics()
-                .lineStyle(2, 0x0000FF)
-                .beginFill(undefined, 0)
-                .drawCircle(pos.x, pos.y, radius)
-                .endFill();
-            container.addChild(graphics);
-            _this = _super.call(this, scene, container) || this;
-            _this.graphics = container;
+            var graphics = new PIXI.Graphics();
+            _this = _super.call(this, scene, graphics) || this;
+            _this.graphics = graphics;
             _this.position = pos;
             _this.maxDistance = radius;
+            _this.updateGraphics();
             return _this;
         }
+        /**
+         * Set `maxDistance` and updates the graphics
+         */
+        Waypoint.prototype.setMaxDistanceInMatterUnits = function (distance) {
+            this.maxDistance = distance;
+            this.updateGraphics();
+        };
+        Waypoint.prototype.updateGraphics = function () {
+            this.graphics
+                .clear()
+                .lineStyle(4, 0x0000FF)
+                .beginFill(undefined, 0)
+                .drawCircle(this.position.x, this.position.y, this.maxDistance)
+                .endFill();
+        };
+        Waypoint.prototype.getContainer = function () {
+            return this.getScene().containerManager.topContainer;
+        };
         Waypoint.prototype.clone = function () {
             var scene = this.getScene();
             return new Waypoint(scene, scene.unit.fromPosition(this.position), scene.unit.fromLength(this.maxDistance));

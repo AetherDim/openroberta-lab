@@ -1,13 +1,12 @@
 import { Vector } from "matter-js"
-import { DrawableEntity, IContainerEntity, IEntity } from "../Entity"
+import { DrawableEntity } from "../Entity"
 import { Scene } from "../Scene/Scene"
-import { Unit } from "../Unit"
-import { Util } from "../Util"
 
 /**
- * A waypoint with a position and maximum distance to reach it
+ * A waypoint with a position and maximum distance to reach it.
+ * By default it is added to the `topContainer`.
  */
-export class Waypoint extends DrawableEntity<PIXI.Container> {
+export class Waypoint extends DrawableEntity<PIXI.Graphics> {
 
 	/**
 	 * Position in matter coordinates
@@ -18,7 +17,7 @@ export class Waypoint extends DrawableEntity<PIXI.Container> {
 	 */
 	maxDistance: number
 
-	readonly graphics: PIXI.Container
+	readonly graphics: PIXI.Graphics
 
 	/**
 	 * Creates a Waypoint at the specified `position` which is by default visible.
@@ -32,17 +31,34 @@ export class Waypoint extends DrawableEntity<PIXI.Container> {
 	constructor(scene: Scene, position: Vector, maxDistance: number) {
 		const pos = scene.unit.getPosition(position)
 		const radius = scene.unit.getLength(maxDistance)
-		const container = new PIXI.Container()
 		const graphics = new PIXI.Graphics()
-			.lineStyle(2, 0x0000FF)
-			.beginFill(undefined, 0)
-			.drawCircle(pos.x, pos.y, radius)
-			.endFill()
-		container.addChild(graphics)
-		super(scene, container)
-		this.graphics = container
+		super(scene, graphics)
+		this.graphics = graphics
 		this.position = pos
 		this.maxDistance = radius
+
+		this.updateGraphics()
+	}
+
+	/**
+	 * Set `maxDistance` and updates the graphics
+	 */
+	setMaxDistanceInMatterUnits(distance: number) {
+		this.maxDistance = distance
+		this.updateGraphics()
+	}
+
+	updateGraphics() {
+		this.graphics
+			.clear()
+			.lineStyle(4, 0x0000FF)
+			.beginFill(undefined, 0)
+			.drawCircle(this.position.x, this.position.y, this.maxDistance)
+			.endFill()
+	}
+
+	getContainer(): PIXI.Container {
+		return this.getScene().containerManager.topContainer
 	}
 
 	clone(): Waypoint {
