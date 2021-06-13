@@ -13,18 +13,23 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-js", "../../Unit", "../../Scene/ScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, RRC, Robot_1, matter_js_1, Unit_1, ScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1) {
+define(["require", "exports", "../../Scene/AsyncChain", "../../Robot/Robot", "matter-js", "../../Unit", "./RRCScoreScene", "../../Entity", "../../Waypoints/ScoreWaypoint", "../../Util"], function (require, exports, AsyncChain_1, Robot_1, matter_js_1, Unit_1, RRCScoreScene_1, Entity_1, ScoreWaypoint_1, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RRCScene = void 0;
+    exports.wp = exports.RRCScene = void 0;
     var RRCScene = /** @class */ (function (_super) {
         __extends(RRCScene, _super);
         function RRCScene(name, ageGroup) {
             var _this = _super.call(this, name + " " + ageGroup) || this;
-            _this.scoreText2 = new PIXI.Text("");
-            _this.scoreText3 = new PIXI.Text("");
-            _this.scoreTextContainer = new PIXI.Container();
+            /**
+             * Padding for the scroll view zoom reset in pixels
+             */
+            _this.sceneFramePadding = 10;
             _this.ageGroup = ageGroup;
+            _this.addOnAsyncChainBuildCompleteLister(function (chain) {
+                // after score init but before onInit
+                chain.addAfter(_this.onInitScore, new AsyncChain_1.AsyncListener(_this.onRRCInit, _this));
+            });
             return _this;
         }
         /**
@@ -37,94 +42,53 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             return new ScoreWaypoint_1.ScoreWaypoint(this, this.unit.fromPosition(position), this.unit.fromLength(maxDistance), score);
         };
         RRCScene.prototype.setWaypointList = function (list, waypointVisibilityBehavior) {
+            var _this = this;
             if (waypointVisibilityBehavior === void 0) { waypointVisibilityBehavior = "showNext"; }
-            var t = this;
             this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior;
             this.waypointsManager.resetListAndEvent(list, function (idx, waypoint) {
-                t.addToScore(waypoint.score);
+                _this.addToScore(waypoint.score);
                 if (idx == list.getLastWaypointIndex()) {
-                    //t.showScoreScreen(10)
+                    _this.addToScore(_this.getTimeBonusScore());
+                    _this.showScoreScreen(true);
                 }
             });
             // add index text graphic to waypoints
             this.waypointsManager.getWaypoints().forEach(function (waypoint, index) {
-                var text = new PIXI.Text(String(index));
-                text.style = new PIXI.TextStyle({ align: 'center' });
-                text.position.x = waypoint.position.x - text.width / 2;
-                text.position.y = waypoint.position.y - text.height / 2;
-                text.resolution = 4;
-                //text.zIndex = 10000;
-                waypoint.graphics.addChild(text);
+                var waypointText = String(index);
+                var fontSize = 80;
+                if (waypoint.score > 0) {
+                    waypointText += "\n" + waypoint.score + " Pts.";
+                    fontSize = 50;
+                }
+                function makeText(color, xOffset, yOffset) {
+                    var text = new PIXI.Text(waypointText, {
+                        fontFamily: 'ProggyTiny',
+                        fontSize: fontSize,
+                        fill: color,
+                        align: 'center',
+                    });
+                    text.resolution = 4;
+                    text.position.set(waypoint.position.x - text.width / 2 + xOffset, waypoint.position.y - text.height / 2 + yOffset);
+                    return text;
+                }
+                waypoint.graphics.addChild(makeText(0x000000, +1, +1), makeText(0x000000, -1, -1), makeText(0xf48613, 0, 0));
             });
         };
-        RRCScene.prototype.loadScoreAssets = function (chain) {
-            RRC.loader.load(function () {
-                chain.next();
-            }, RRC.PROGGY_TINY_FONT, RRC.GOAL_BACKGROUND);
+        RRCScene.prototype.getTimeBonusScore = function () {
+            var _a;
+            return Math.floor(Math.max(0, this.getMaximumTimeBonusScore() - ((_a = this.getProgramRuntime()) !== null && _a !== void 0 ? _a : Infinity)));
         };
-        RRCScene.prototype.initScoreContainer = function (chain) {
-            /*this.scoreContainer.zIndex = this.scoreContainerZ;
-    
-            let goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
-            this.goalSprite = new PIXI.Sprite(goal);
-    
-            this.scoreContainer.addChild(this.goalSprite);
-    
-    
-            // text
-    
-            this.scoreText = new PIXI.Text("",
-                {
-                    fontFamily: 'ProggyTiny',
-                    fontSize: 160,
-                    fill: 0xf48613
-                });
-    
-            this.scoreText2 = new PIXI.Text("",
-                {
-                    fontFamily: 'ProggyTiny',
-                    fontSize: 160,
-                    fill: 0xc00001
-                });
-    
-            this.scoreText3 = new PIXI.Text("",
-                {
-                    fontFamily: 'ProggyTiny',
-                    fontSize: 160,
-                    fill: 0x00cb01
-                });
-    
-            this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText);
-    
-            this.scoreContainer.addChild(this.scoreTextContainer);*/
-            chain.next();
+        RRCScene.prototype.getMaximumTimeBonusScore = function () {
+            return 0;
         };
-        RRCScene.prototype.updateScoreAnimation = function (dt) {
-            if (this.goalSprite != undefined) {
-                this.scoreTextContainer.x = this.goalSprite.width / 2;
-                this.scoreTextContainer.y = this.goalSprite.height / 2;
-                this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
-            }
-        };
-        //updateScoreText() {
-        /*let text = "Score: " + this.getScore();
-        this.scoreText.text = text;
-        this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
-
-        this.scoreText2.text = text;
-        this.scoreText2.position.set(-this.scoreText.width / 2 - 3, -this.scoreText.height / 2);
-
-        this.scoreText3.text = text;
-        this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
-        //}
         RRCScene.prototype.getUnitConverter = function () {
             // approx 60px = 20cm
             return new Unit_1.Unit({ m: 350 });
         };
-        RRCScene.prototype.onInit = function (chain) {
+        RRCScene.prototype.onRRCInit = function (chain) {
             // create dynamic debug gui
             this.initDynamicDebugGui();
-            this.initRobot();
+            //this.initRobot();
             //this.setScore(266);
             //this.showScoreScreen(100);
             chain.next();
@@ -167,6 +131,15 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             matter_js_1.Body.setStatic(entity.getPhysicsBody(), true);
             this.addEntity(entity);
         };
+        RRCScene.prototype.getSize = function () {
+            return {
+                width: 800 + 2 * this.sceneFramePadding,
+                height: 540 + 2 * this.sceneFramePadding
+            };
+        };
+        RRCScene.prototype.getOrigin = function () {
+            return { x: -this.sceneFramePadding, y: -this.sceneFramePadding };
+        };
         RRCScene.prototype.addWalls = function (visible) {
             if (visible === void 0) { visible = false; }
             var unit = this.getUnitConverter();
@@ -199,6 +172,16 @@ define(["require", "exports", "../RRAssetLoader", "../../Robot/Robot", "matter-j
             right.getDrawable().visible = visible;
         };
         return RRCScene;
-    }(ScoreScene_1.ScoreScene));
+    }(RRCScoreScene_1.RRCScoreScene));
     exports.RRCScene = RRCScene;
+    function wp(x, y, score, r) {
+        if (r === void 0) { r = 30; }
+        return {
+            x: x,
+            y: y,
+            r: r,
+            score: score
+        };
+    }
+    exports.wp = wp;
 });

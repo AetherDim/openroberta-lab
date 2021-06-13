@@ -1,4 +1,5 @@
 import { Vector } from "matter-js"
+import { randomIntBetween } from "./Random"
 import { RobertaRobotSetupData } from "./Robot/RobertaRobotSetupData"
 
 export type StringMap<V> = { [key: string]: V | undefined }
@@ -25,6 +26,35 @@ export type ExpandRecursively<T> = T extends object
   ? T extends infer O ? { [K in keyof O]: ExpandRecursively<O[K]> } : never
   : T;
 
+/**
+* Converts a union type e.g. T1 | T2 to a tuple type e.g. [T1, T2]
+* 
+* In the internal comments: `type Id<T> = (t: T) => T`
+*/
+export type UnionToTuple<T> = (
+   (
+	   // union to intersection of functions (convert T1 | T2 to Id<T1> & Id<T2>)
+	   (
+		   // convert T1 | T2 to Id<T1> | Id<T2>
+		   T extends any
+			   ? (t: T) => T
+			   : never
+	   ) extends infer U
+		   ? (// convert Id<T1> | Id<T2> to (Id<T1>) => any | (Id<T2>) => any
+			   U extends any
+			   ? (u: U) => any
+			   : never
+		   ) extends (v: infer V) => any
+			   // convert (Id<T1>) => any | (Id<T2>) => any to Id<T1> & Id<T2>
+			   ? V
+			   : never
+		   // should be never called
+		   : never
+   ) extends (_: any) => infer W
+	   // infer W from Id<T1> & Id<T2> to be T2 and return [...FirstRest, T2] (is this a bug in TypeScript?)
+	   ? [...UnionToTuple<Exclude<T, W>>, W]
+	   : []
+)
 
 export type Equal<T, U> =
 	T extends U
@@ -63,10 +93,10 @@ export type AsUniqueArray<
   B extends ReadonlyArray<any>
 > = {
   [I in keyof A]: unknown extends {
-    [J in keyof B]: J extends I ? never : B[J] extends A[I] ? unknown : never
+	  [J in keyof B]: J extends I ? never : B[J] extends A[I] ? unknown : never
   }[number]
-    ? Invalid<[A[I], "is repeated"]>
-    : A[I]
+	? Invalid<[A[I], "is repeated"]>
+	: A[I]
 };
 
 export type Narrowable =
@@ -305,6 +335,52 @@ export class Util {
 		for (let i = 0; i < otherArray.length; i++) {
 			array.push(otherArray[i])
 		}
+	}
+
+	static map2D<T, U>(array: T[][], mapping: (value: T) => U): U[][] {
+		return array.map(subArray => subArray.map(mapping))
+	}
+	
+	static reshape1Dto2D<T>(array: T[], maxSubArrayLength: number): T[][] {
+		const newArray: T[][] = []
+		let temp: T[] = []
+		const length = array.length
+		for (let i = 0; i < length; i++) {
+			const element = array[i]
+			if (temp.length < maxSubArrayLength) {
+				temp.push(element)
+			} else {
+				newArray.push(temp)
+				temp = [element]
+			}
+		}
+		if (temp.length > 0) {
+			newArray.push(temp)
+		}
+		return newArray
+	}
+
+	static reshape2D<T>(array: T[][], maxSubArrayLength: number): T[][] {
+		const newArray: T[][] = []
+		let temp: T[] = []
+		const l1 = array.length
+		for (let i = 0; i < l1; i++) {
+			const subArray = array[i]
+			const l2 = subArray.length
+			for (let j = 0; j < l2; j++) {
+				const element = subArray[j]
+				if (temp.length < maxSubArrayLength) {
+					temp.push(element)
+				} else {
+					newArray.push(temp)
+					temp = [element]
+				}
+			}
+		}
+		if (temp.length > 0) {
+			newArray.push(temp)
+		}
+		return newArray
 	}
 
 	// // unique tuple elements
@@ -560,6 +636,25 @@ export class Util {
 
 	static cloneVector(value: Vector): Vector {
 		return { x: value.x, y: value.y }
+	}
+
+	static randomElement<T>(array: T[]): T|undefined {
+		if(array.length == 0) {
+			return undefined
+		} else {
+			return array[randomIntBetween(0, array.length-1)]
+		}
+	}
+
+	static getRootURL(ignorePort: boolean = false) {
+
+		let part = window.location.protocol + '//' + window.location.hostname
+
+		if(!ignorePort) {
+			part += ":" + window.location.port
+		}
+
+		return part
 	}
 
 }

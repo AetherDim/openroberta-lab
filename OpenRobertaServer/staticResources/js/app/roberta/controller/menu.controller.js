@@ -421,6 +421,33 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
             }
         }, 'program edit clicked');
 
+        // UPLOAD Menu
+        $('#head-navigation-upload').onWrap('click', '.dropdown-menu li:not(.disabled) a', function(event) {
+            switch (event.target.id) {
+            case 'menuSubmitSolution':
+                var form = document.createElement("form");
+                form.setAttribute("method", "post");
+                form.setAttribute("action", "https://my.roborave.de/submitSolution.php");
+                form.setAttribute("target", "view");
+                var hiddenField = document.createElement("input");
+                hiddenField.setAttribute("type", "hidden");
+                hiddenField.setAttribute("name", "link");
+                hiddenField.setAttribute("value", PROGRAM_C.getLink());
+                var hiddenField2 = document.createElement("input");
+                hiddenField2.setAttribute("type", "hidden");
+                hiddenField2.setAttribute("name", "account");
+                hiddenField2.setAttribute("value", GUISTATE_C.getUserAccountName());
+                form.appendChild(hiddenField);
+                form.appendChild(hiddenField2);
+                document.body.appendChild(form);
+                window.open('', 'view');
+                form.submit();
+                break;
+            default:
+                break;
+            }
+        }, 'upload edit clicked');
+
         // CONF Menu
         $('#head-navigation-configuration-edit').onWrap('click', '.dropdown-menu li:not(.disabled) a', function(event) {
             $('.modal').modal('hide'); // close all opened popups

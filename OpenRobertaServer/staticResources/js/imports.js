@@ -157,7 +157,6 @@ require.config({
         'UIManager',
         { 'Scene': [
                 'Scene',
-                'ScoreScene',
                 'TestScene',
                 'TestScene2',
                 'TestScene3',
@@ -195,6 +194,7 @@ require.config({
                 'Wheel',
                 'RobotHardwareStateSensors',
                 'BodyHelper',
+                'RobotProgramGenerator',
             ]},
         { 'EventManager' : [
             'EventHandlerList',
@@ -204,6 +204,7 @@ require.config({
                 'RRAssetLoader',
                 'AgeGroup',
                 { 'Scene': [
+                        'RRCScoreScene',
                         'RRCScene',
                         'RRCLineFollowingScene',
                         'RRCRainbowScene',
@@ -220,7 +221,12 @@ require.config({
                         "Cyberspace",
                         "SceneManager",
                         "SimulationCache",
-                    ]}
+                    ]},
+        { "external": [
+            "MultiCyberspace",
+            "SceneDesciptorList",
+            "RESTApi",
+        ]}
     ]),
     shim: {
         'bootstrap': {

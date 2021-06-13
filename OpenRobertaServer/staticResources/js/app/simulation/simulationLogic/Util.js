@@ -25,7 +25,7 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "./Random"], function (require, exports, Random_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Util = exports.asUniqueArray = void 0;
@@ -207,6 +207,51 @@ define(["require", "exports"], function (require, exports) {
             for (var i = 0; i < otherArray.length; i++) {
                 array.push(otherArray[i]);
             }
+        };
+        Util.map2D = function (array, mapping) {
+            return array.map(function (subArray) { return subArray.map(mapping); });
+        };
+        Util.reshape1Dto2D = function (array, maxSubArrayLength) {
+            var newArray = [];
+            var temp = [];
+            var length = array.length;
+            for (var i = 0; i < length; i++) {
+                var element = array[i];
+                if (temp.length < maxSubArrayLength) {
+                    temp.push(element);
+                }
+                else {
+                    newArray.push(temp);
+                    temp = [element];
+                }
+            }
+            if (temp.length > 0) {
+                newArray.push(temp);
+            }
+            return newArray;
+        };
+        Util.reshape2D = function (array, maxSubArrayLength) {
+            var newArray = [];
+            var temp = [];
+            var l1 = array.length;
+            for (var i = 0; i < l1; i++) {
+                var subArray = array[i];
+                var l2 = subArray.length;
+                for (var j = 0; j < l2; j++) {
+                    var element = subArray[j];
+                    if (temp.length < maxSubArrayLength) {
+                        temp.push(element);
+                    }
+                    else {
+                        newArray.push(temp);
+                        temp = [element];
+                    }
+                }
+            }
+            if (temp.length > 0) {
+                newArray.push(temp);
+            }
+            return newArray;
         };
         // // unique tuple elements
         // static test<
@@ -477,6 +522,22 @@ define(["require", "exports"], function (require, exports) {
         };
         Util.cloneVector = function (value) {
             return { x: value.x, y: value.y };
+        };
+        Util.randomElement = function (array) {
+            if (array.length == 0) {
+                return undefined;
+            }
+            else {
+                return array[Random_1.randomIntBetween(0, array.length - 1)];
+            }
+        };
+        Util.getRootURL = function (ignorePort) {
+            if (ignorePort === void 0) { ignorePort = false; }
+            var part = window.location.protocol + '//' + window.location.hostname;
+            if (!ignorePort) {
+                part += ":" + window.location.port;
+            }
+            return part;
         };
         /**
          * Legal characters for the unique ID.  Should be all on a US keyboard.

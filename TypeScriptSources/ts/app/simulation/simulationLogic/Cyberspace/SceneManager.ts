@@ -7,10 +7,16 @@ export class SceneDescriptor {
 	readonly ID: string
 	private readonly _createScene: (descriptor: SceneDescriptor) => Scene
 
-	constructor(name: string, description: string, createScene: (descriptor: SceneDescriptor) => Scene) {
+	constructor(name: string, description: string, createScene: (descriptor: SceneDescriptor) => Scene, ID:string|undefined=undefined) {
 		this.name = name
 		this.description = description
-		this.ID = Util.genHtmlUid2()
+
+		if(ID) {
+			this.ID = ID
+		} else {
+			this.ID = Util.genHtmlUid2()
+		}
+		
 		this._createScene = createScene
 	}
 
@@ -24,13 +30,18 @@ export class SceneManager {
 	private readonly sceneHandleMap = new Map<string, SceneDescriptor>()
 	private readonly sceneMap = new Map<string, Scene>()
 	private currentID?: string
-    public disableSceneCache: boolean = false
+	public disableSceneCache: boolean = false
+
+	destroy() {
+		Array.from(this.sceneMap.values()).forEach(scene => scene.destroy())
+		this.sceneMap.clear()
+	}
 
 	getScene(ID: string) {
 		let scene = this.sceneMap.get(ID)
-        if(this.disableSceneCache) {
-            scene = undefined
-        }
+		if(this.disableSceneCache) {
+			scene = undefined
+		}
 		if(!scene) {
 			const sceneHandle = this.sceneHandleMap.get(ID)
 			if(sceneHandle) {

@@ -27,7 +27,8 @@ class LabyrinthRect {
 
 export class RRCLabyrinthScene extends RRCScene {
 
-	readonly MazeObstacleList_ES: LabyrinthRect[] = [{ // add obstacles with lists like this
+	readonly MazeObstacleList_ES: LabyrinthRect[] = [
+	{ // add obstacles with lists like this
 		x: 500,
 		y: 100,
 		w: 200,
@@ -295,6 +296,13 @@ export class RRCLabyrinthScene extends RRCScene {
 	readonly waypointES_MS = [
 		{
 			x: 700,
+			y: 436,
+			w: 100,
+			h: 100,
+			score: 0
+		},
+		{
+			x: 700,
 			y: 0,
 			w: 100,
 			h: 100,
@@ -392,6 +400,12 @@ export class RRCLabyrinthScene extends RRCScene {
 		},{
 			x: 0,
 			y: 440,
+			w: 100,
+			h: 100,
+			score: 10
+		},{
+			x: 200,
+			y: 450,
 			w: 100,
 			h: 100,
 			score: 10
@@ -399,6 +413,13 @@ export class RRCLabyrinthScene extends RRCScene {
 	]
 
 	readonly waypointsHS = [
+		{
+			x: 700,
+			y: 436,
+			w: 100,
+			h: 100,
+			score: 0
+		},
 		{
 			x: 700,
 			y: 0,
@@ -513,6 +534,12 @@ export class RRCLabyrinthScene extends RRCScene {
 			w: 100,
 			h: 100,
 			score: 10
+		},{
+			x: 200,
+			y: 450,
+			w: 100,
+			h: 100,
+			score: 10
 		}
 	]
 
@@ -544,10 +571,11 @@ export class RRCLabyrinthScene extends RRCScene {
 	}
 
 	onLoadAssets(chain: AsyncChain) {
-		RRC.loader.load(() => {
+		this.loader.load(() => {
 			chain.next();
 		},
-			this.getAsset()
+			this.getAsset(),
+			RRC.GOAL_BACKGROUND
 		);
 	}
 
@@ -564,14 +592,16 @@ export class RRCLabyrinthScene extends RRCScene {
 		}
 	}
 
+	getMaximumTimeBonusScore() {
+		return 60 * 3
+	}
+
 	onInit(chain: AsyncChain) {
 
 		this.initRobot({position: {x: 752, y: 490}, rotation: -90});
 
-		let goal = RRC.loader.get(this.getAsset()).texture;
-		this.goalSprite = new PIXI.Sprite(goal);
-
-		this.getContainers().groundContainer.addChild(this.goalSprite);
+		let backgroundAsset = this.loader.get(this.getAsset()).texture;
+		this.getContainers().groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
 
 		switch (this.ageGroup) {
 			case AgeGroup.ES:

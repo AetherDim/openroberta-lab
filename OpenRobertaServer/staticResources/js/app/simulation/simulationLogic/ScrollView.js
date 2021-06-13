@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define(["require", "exports", "./Util", "./pixijs"], function (require, exports, Util_1) {
+define(["require", "exports", "./pixijs"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScrollView = exports.EventData = exports.ScrollViewEvent = exports.cloneVectorOrUndefined = exports.cloneVector = exports.MouseButton = exports.EventType = exports.getBrowser = exports.Browser = void 0;
@@ -365,7 +365,7 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
              * Inverts zoom behaviour
              */
             _this.invertZoom = false;
-            _this.minScreenSize = 400 / Util_1.Util.getPixelRatio();
+            _this.minScreenSize = { width: 400, height: 300 };
             //
             // Event Data
             //
@@ -394,36 +394,31 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             _this.reset();
             return _this;
         }
-        ScrollView.prototype.resetCentered = function (x, y, width, height) {
+        ScrollView.prototype.resetCentered = function (x, y, width, height, zoomFactorReset) {
+            if (zoomFactorReset === void 0) { zoomFactorReset = "fit"; }
             var screen = this.renderer.screen;
-            var pixelRatio = Util_1.Util.getPixelRatio();
-            var initialZoom = 1 / pixelRatio;
-            var xp = (screen.width / 2 - (x + width / 2)) / pixelRatio;
-            var yp = (screen.height / 2 - (y + height / 2)) / pixelRatio;
-            if (isNaN(xp) || isNaN(yp)) {
-                xp = 0;
-                yp = 0;
-            }
-            this.setTransform(xp, yp, initialZoom, initialZoom, 0, 0, 0, 0, 0);
-            if (screen.width > this.minScreenSize && screen.height > this.minScreenSize) {
-                if (screen.width / screen.height < width / height) {
-                    // scale to width
-                    this.zoomCenter(screen.width / width);
-                }
-                else {
-                    // scale to height
-                    this.zoomCenter(screen.height / height);
-                }
+            var screenWidth = screen.width;
+            var screenHeight = screen.height;
+            if (isNaN(screenWidth) || isNaN(screenHeight)) {
+                this.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
             }
             else {
-                this.zoomCenter(this.minScreenSize / Math.max(width, height));
+                var translationX = screen.width / 2 - (x + width / 2);
+                var translationY = screen.height / 2 - (y + height / 2);
+                this.setTransform(translationX, translationY, 1, 1, 0, 0, 0, 0, 0);
             }
+            var scalingWith = Math.max(screenWidth, this.minScreenSize.width);
+            var scalingHeight = Math.max(screenHeight, this.minScreenSize.height);
+            this.zoomCenter(zoomFactorReset == "fill" ? Math.max(scalingWith / width, scalingHeight / height) :
+                zoomFactorReset == "fit" ? Math.min(scalingWith / width, scalingHeight / height) :
+                    1 // zoomFactorReset == "none"
+            );
             // to fix any touch/mouse issues
             this.touchEventDataMap.clear();
             this.mouseEventData.clear();
         };
         ScrollView.prototype.reset = function () {
-            var initialZoom = 1 / Util_1.Util.getPixelRatio();
+            var initialZoom = 1;
             this.setTransform(0, 0, initialZoom, initialZoom, 0, 0, 0, 0, 0);
             // to fix any touch/mouse issues
             this.touchEventDataMap.clear();
@@ -464,8 +459,7 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             this.scale.y *= delta;
         };
         ScrollView.prototype.zoomCenter = function (delta) {
-            var ratio = Util_1.Util.getPixelRatio();
-            this.zoom(delta, { x: this.renderer.screen.width / 2 / ratio, y: this.renderer.screen.height / 2 / ratio });
+            this.zoom(delta, { x: this.renderer.screen.width / 2, y: this.renderer.screen.height / 2 });
         };
         //
         // Events
@@ -675,7 +669,6 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
          */
         ScrollView.prototype.onWheel = function (ev) {
             //console.log('wheel');
-            var pixelRatio = Util_1.Util.getPixelRatio();
             var data;
             if (ev.type == "wheel") {
                 var type = void 0;
@@ -683,8 +676,8 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
                 // calculate mouse position
                 var rect = this.renderer.view.getBoundingClientRect();
                 data.setNewPosition({
-                    x: (ev.clientX - rect.x) / pixelRatio,
-                    y: (ev.clientY - rect.y) / pixelRatio
+                    x: (ev.clientX - rect.x),
+                    y: (ev.clientY - rect.y)
                 });
                 // this should not work with safari mobile
                 /*if(ev.ctrlKey) {
@@ -700,10 +693,10 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
                     case WheelEvent.DOM_DELTA_LINE:
                         // for old firefox
                         if (ev.ctrlKey) { // 12 for default text height
-                            zoomFactor = Math.exp(delta * 12 / pixelRatio / -50); // -50 is good feeling magic number
+                            zoomFactor = Math.exp(delta * 12 / -50); // -50 is good feeling magic number
                         }
                         else {
-                            zoomFactor = Math.exp(delta * 12 / pixelRatio / 150); // 150 is good feeling magic number
+                            zoomFactor = Math.exp(delta * 12 / 150); // 150 is good feeling magic number
                         }
                         break;
                     case WheelEvent.DOM_DELTA_PAGE:
@@ -711,10 +704,10 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
                         break;
                     case WheelEvent.DOM_DELTA_PIXEL:
                         if (ev.ctrlKey) {
-                            zoomFactor = Math.exp(delta / pixelRatio / -50); // -50 is good feeling magic number
+                            zoomFactor = Math.exp(delta / -50); // -50 is good feeling magic number
                         }
                         else {
-                            zoomFactor = Math.exp(delta / pixelRatio / 150); // 150 is good feeling magic number
+                            zoomFactor = Math.exp(delta / 150); // 150 is good feeling magic number
                         }
                         break;
                     default:
@@ -745,12 +738,11 @@ define(["require", "exports", "./Util", "./pixijs"], function (require, exports,
             // TODO: we could use this for other browsers if there is another with support
             if (this.browser.isSafariEvent(e)) {
                 if (this.lastTouchDistance > 0) {
-                    var pixelRatio = Util_1.Util.getPixelRatio();
                     // calculate distance change between fingers
                     var delta = e.scale / this.lastTouchDistance;
                     this.mouseEventData.delta = { x: delta, y: 0 };
                     if (this.browser.isTouchSafari()) {
-                        this.mouseEventData.setNewPosition({ x: e.layerX / pixelRatio, y: e.layerY / pixelRatio });
+                        this.mouseEventData.setNewPosition({ x: e.layerX, y: e.layerY });
                     }
                     this.lastTouchDistance = e.scale;
                     var cancel = this.fireEvent(this.mouseEventData, EventType.ZOOM);

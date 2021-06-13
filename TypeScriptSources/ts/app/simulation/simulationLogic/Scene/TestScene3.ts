@@ -3,6 +3,7 @@ import { Vector } from "matter-js";
 import { downloadJSONFile } from "../GlobalDebug";
 import { Robot } from "../Robot/Robot";
 import { RobotProgram } from "../Robot/RobotProgram";
+import { RobotProgramGenerator } from "../Robot/RobotProgramGenerator";
 import { RobotSetupData } from "../Robot/RobotSetupData";
 import { RobotTester } from "../Robot/RobotTester";
 import { Unit } from "../Unit";
@@ -10,128 +11,10 @@ import { UnpackArrayProperties, Util, Expand } from "../Util";
 import { AsyncChain } from "./AsyncChain";
 import { Scene } from "./Scene";
 
-function constructProgram(operations: OpCode[][]): RobotProgram {
-	return {
-		javaScriptProgram: JSON.stringify({ "ops": Util.flattenArray(operations) }, undefined, "\t")
-	}
-}
 
-interface OpCode {
-	opc: string
-	[others: string]: unknown
-}
 
-/**
- * @param speed from 0 to 100 (in %)
- * @param distance in meters
- */
-function driveForwardProgram(speed: number, distance: number): OpCode[] {
-	const uuidExpr1 = Util.genUid()
-	const uuidExpr2 = Util.genUid()
-	const uuidDriveAction= Util.genUid()
-	return [
-		{
-			"opc": "expr",
-			"expr": "NUM_CONST",
-			"+": [
-				uuidExpr1
-			],
-			// speed
-			"value": speed.toString()
-		},
-		{
-			"opc": "expr",
-			"expr": "NUM_CONST",
-			"+": [
-				uuidExpr2
-			],
-			"-": [
-				uuidExpr1
-			],
-			// distance
-			"value": (distance*100).toString()
-		},
-		{
-			"opc": "DriveAction",
-			"speedOnly": false,
-			"SetTime": false,
-			"name": "ev3",
-			"+": [
-				uuidDriveAction
-			],
-			// forward/backward
-			"driveDirection": "FOREWARD",
-			"-": [
-				uuidExpr2
-			]
-		},
-		{
-			"opc": "stopDrive",
-			"name": "ev3"
-		},
-		{
-			"opc": "stop",
-			"-": [
-				uuidDriveAction
-			]
-		}
-	]
-}
 
-/**
- * @param speed from 0 to 100 (in %)
- * @param angle in degree
- */
- function rotateProgram(speed: number, angle: number, right: boolean): OpCode[] {
-	const uuidExpr1 = Util.genUid()
-	const uuidExpr2 = Util.genUid()
-	const uuidRotateAction= Util.genUid()
-	const dir = right ? 'right' : 'left'
-	return [
-		{
-			"opc": "expr",
-			"expr": "NUM_CONST",
-			"+": [
-				uuidExpr1
-			],
-			"value": speed.toString()
-		},
-		{
-			"opc": "expr",
-			"expr": "NUM_CONST",
-			"+": [
-				uuidExpr2
-			],
-			"-": [
-				uuidExpr1
-			],
-			"value": angle.toString()
-		},
-		{
-			"opc": "TurnAction",
-			"speedOnly": false,
-			"turnDirection": dir,
-			"SetTime": false,
-			"name": "ev3",
-			"+": [
-				uuidRotateAction
-			],
-			"-": [
-				uuidExpr2
-			]
-		},
-		{
-			"opc": "stopDrive",
-			"name": "ev3"
-		},
-		{
-			"opc": "stop",
-			"-": [
-				uuidRotateAction
-			]
-		}
-	]
-}
+
 
 class KeyData {
 	// (0.05, 0.5, 0.05)
@@ -372,9 +255,9 @@ export class TestScene3 extends Scene {
 
 			const programs: RobotProgram[] =
 				[
-					constructProgram([
-						// driveForwardProgram(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-						rotateProgram(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
+					RobotProgramGenerator.generateProgram([
+						// RobotProgramGenerator.driveForwardOpCodes(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+						RobotProgramGenerator.rotateOpCodes(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
 					])
 				]
 			this.getProgramManager().setPrograms(programs)

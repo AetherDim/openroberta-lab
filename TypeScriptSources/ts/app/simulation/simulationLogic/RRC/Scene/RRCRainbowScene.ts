@@ -1,4 +1,4 @@
-import {RRCScene} from "./RRCScene";
+import {RRCScene, wp} from "./RRCScene";
 import {AgeGroup} from "../AgeGroup";
 import * as RRC from "../RRAssetLoader";
 import {AsyncChain} from "../../Scene/AsyncChain";
@@ -65,71 +65,56 @@ export class RRCRainbowScene extends RRCScene {
 		this.purple
 	]
 
+	readonly bigWaypointSize = 70
 
 	// Waypoints for MS and ES
 	readonly topWaypoints = [
-		{
-			x: 390,
-			y: 160,
-			w: 40,
-			h: 40,
-			score: 10
-		}, {
-			x: 680,
-			y: 165,
-			w: 40,
-			h: 40,
-			score: 10
-		}
+		wp(400, 177, 10),
+		wp(402, 71, 0),
+		wp(480, 72, 0),
+		wp(479, 119, 0),
+		wp(520, 117, 0),
+		wp(520, 181, 0),
+		wp(611, 178, 0),
+		wp(762, 178, 10, this.bigWaypointSize),
 	]
 
 	readonly rightWaypoints = [
-		{
-			x: 485,
-			y: 250,
-			w: 40,
-			h: 40,
-			score: 10
-		},
-		{
-			x: 470,
-			y: 440,
-			w: 40,
-			h: 40,
-			score: 10
-		}
+		wp(505, 270, 10),
+		wp(620, 270, 0),
+		wp(730, 272, 0),
+		wp(730, 345, 0),
+		wp(730, 410, 0),
+		wp(610, 411, 0),
+		wp(492, 408, 0),
+		wp(490, 503, 10, this.bigWaypointSize),
 	]
 
 	readonly downWaypoints = [
-		{
-			x: 400,
-			y: 350,
-			w: 40,
-			h: 40,
-			score: 10
-		}, {
-			x: 230,
-			y: 340,
-			w: 40,
-			h: 40,
-			score: 10
-		}
+		wp(400, 362, 10),
+		wp(400, 415, 0),
+		wp(400, 470, 0),
+		wp(286, 470, 0),
+		wp(210, 470, 0),
+		wp(120, 470, 0),
+		wp(120, 423, 0),
+		wp(68, 423, 0),
+		wp(68, 360, 0),
+		wp(180, 360, 0),
+		wp(297, 360, 10, this.bigWaypointSize),
 	]
 
 	readonly leftWaypoints = [
-		{
-			x: 270,
-			y: 250,
-			w: 40,
-			h: 40,
-			score: 10
-		}, {
-			x: 170,
-			y: 195,
-			w: 40,
-			h: 40,
-			score: 10
-		}
+		wp(280, 268, 10),
+		wp(280, 182, 0),
+		wp(280, 112, 0),
+		wp(174, 112, 0),
+		wp(72, 112, 0),
+		wp(72, 185, 0),
+		wp(72, 270, 0),
+		wp(130, 270, 0),
+		wp(188, 270, 0),
+		wp(188, 183, 10, this.bigWaypointSize),
 	]
 
 	waypointListES_MS = [
@@ -142,102 +127,65 @@ export class RRCRainbowScene extends RRCScene {
 
 	// Waypoints for HS
 	readonly topLeftWaypoints = [
-		{
-			x: 310,
-			y: 175,
-			w: 20,
-			h: 20,
-			score: 10
-		},
-		{
-			x: 382,
-			y: 95,
-			w: 20,
-			h: 20,
-			score: 10
-		}
+		wp(357, 196, 10),
+		wp(207, 196, 0),
+		wp(62, 196, 0),
+		wp(62, 100, 0),
+		wp(207, 100, 0),
+		wp(279, 100, 0),
+		wp(360, 60, 0),
+		wp(387, 90, 0),
+		wp(389, 128, 10, this.bigWaypointSize),	
 	]
 	readonly topRightWaypoints = [
-		{
-			x: 445,
-			y: 175,
-			w: 20,
-			h: 20,
-			score: 10
-		},
-		{
-			x: 565,
-			y: 57,
-			w: 20,
-			h: 20,
-			score: 10
-		}
+		wp(445, 190, 10),
+		wp(460, 165, 0),
+		wp(463, 138, 0),
+		wp(501, 100, 0),
+		wp(560, 100, 0),
+		wp(543, 61, 0),
+		wp(592, 61, 10, this.bigWaypointSize),
+	]
+
+	readonly middleRightWaypoint = [
+		wp(500, 268, 10),
+		wp(591, 180, 0),
+		wp(740, 180, 0),
+		wp(740, 270, 0),
+		wp(740, 400, 0),
+		wp(712, 392, 0),
+		wp(604, 270, 0),
+		wp(682, 270, 10, this.bigWaypointSize),	
+	]
+
+	readonly downRightWaypoints = [
+		wp(441, 344, 10),
+		wp(456, 369, 0),
+		wp(589, 351, 0),
+		wp(611, 389, 0),
+		wp(559, 420, 0),
+		wp(469, 449, 0),
+		wp(469, 490, 10, this.bigWaypointSize),
 	]
 
 	readonly downLeftWaypoints = [
-		{
-			x: 345,
-			y: 385,
-			w: 20,
-			h: 20,
-			score: 10
-		},
-		{
-			x: 245,
-			y: 403,
-			w: 20,
-			h: 20,
-			score: 10
-		}
-	]
-	readonly downRightWaypoints = [
-		{
-			x: 470,
-			y: 363,
-			w: 20,
-			h: 20,
-			score: 10
-		},
-		{
-			x: 470,
-			y: 450,
-			w: 20,
-			h: 20,
-			score: 10
-		}
+		wp(357, 341, 10),
+		wp(341, 369, 0),
+		wp(389, 450, 0),
+		wp(301, 469, 0),
+		wp(142, 469, 0),
+		wp(84, 410, 0),
+		wp(297, 410, 10, this.bigWaypointSize),
 	]
 
 	readonly middleLeftWaypoints = [
-		{
-			x: 278,
-			y: 263,
-			w: 20,
-			h: 20,
-			score: 10
-		},
-		{
-			x: 64,
-			y: 245,
-			w: 20,
-			h: 20,
-			score: 10
-		}
-	]
-	readonly middleRightWaypoint = [
-		{
-			x: 490,
-			y: 265,
-			w: 20,
-			h: 20,
-			score: 10
-		},
-		{
-			x: 660,
-			y: 265,
-			w: 20,
-			h: 20,
-			score: 10
-		}
+		wp(317, 270, 10),
+		wp(281, 270, 0),
+		wp(281, 339, 0),
+		wp(187, 339, 0),
+		wp(83, 339, 0),
+		wp(159, 251, 0),
+		wp(47, 251, 10, this.bigWaypointSize),
 	]
 
 	waypointListHS = [
@@ -247,7 +195,6 @@ export class RRCRainbowScene extends RRCScene {
 		this.downRightWaypoints,
 		this.middleLeftWaypoints,
 		this.middleRightWaypoint
-
 	]
 
 	readonly obstacleColor: number = 0xff00ff
@@ -309,6 +256,8 @@ export class RRCRainbowScene extends RRCScene {
 		}
 	]
 
+	readonly centerWaypoint = wp(402, 270, 0)
+
 
 	getWalls() {
 		switch (this.ageGroup) {
@@ -336,9 +285,9 @@ export class RRCRainbowScene extends RRCScene {
 					if (colour.r == waypointColour[0] && colour.g == waypointColour[1] && colour.b == waypointColour[2]) {
 						waypoints = waypoint
 						waypoints.forEach(waypoint => {
-							const x = waypoint.x + waypoint.w / 2
-							const y = waypoint.y + waypoint.h / 2
-							const wp = this.makeWaypoint({x: x, y: y}, waypoint.score)
+							const x = waypoint.x
+							const y = waypoint.y
+							const wp = this.makeWaypoint({x: x, y: y}, waypoint.score, waypoint.r)
 							waypointList.appendWaypoints(wp)
 						})
 						waypointList.appendReversedWaypoints()
@@ -347,6 +296,7 @@ export class RRCRainbowScene extends RRCScene {
 			})
 			finalWaypointList.append(waypointList)
 		})
+		finalWaypointList.appendWaypoints(this.makeWaypoint({x: this.centerWaypoint.x, y: this.centerWaypoint.y}, this.centerWaypoint.score, this.centerWaypoint.r))
 		this.setWaypointList(finalWaypointList)
 	}
 
@@ -384,7 +334,6 @@ export class RRCRainbowScene extends RRCScene {
 	 * @returns returns one-dimensional array of the colour (red, green, blue) at pos
 	 */
 	getColourFromPosition(pos: { x: number, y: number }) {
-
 		return this.getContainers().getGroundImageData(pos.x, pos.y, 1, 1).data
 	}
 
@@ -413,11 +362,16 @@ export class RRCRainbowScene extends RRCScene {
 
 	onLoadAssets(chain: AsyncChain) {
 		this.backgroundAsset = this.getAsset();
-		RRC.loader.load(() => {
+		this.loader.load(() => {
 				chain.next();
 			},
-			this.backgroundAsset
+			this.backgroundAsset,
+			RRC.GOAL_BACKGROUND
 		);
+	}
+
+	getMaximumTimeBonusScore() {
+		return 60 * 5
 	}
 
 	onInit(chain: AsyncChain) {
@@ -426,9 +380,8 @@ export class RRCRainbowScene extends RRCScene {
 		const containers = this.getContainers()
 
 		if (this.backgroundAsset) {
-			let goal = RRC.loader.get(this.backgroundAsset).texture;
-			this.goalSprite = new PIXI.Sprite(goal);
-			containers.groundContainer.addChild(this.goalSprite);
+			let backgroundAsset = this.loader.get(this.backgroundAsset).texture;
+			containers.groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
 		}
 
 		this.sortColour();

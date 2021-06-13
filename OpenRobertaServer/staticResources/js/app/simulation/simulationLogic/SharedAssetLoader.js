@@ -70,19 +70,18 @@ define(["require", "exports", "webfontloader", "./Random", "./Util", "./pixijs"]
     var SharedAssetLoader = /** @class */ (function () {
         function SharedAssetLoader() {
             this.loader = new PIXI.Loader(); // you can also create your own if you want
-            this.fontMap = new Map();
         }
         SharedAssetLoader.prototype.get = function (asset) {
             return this.loader.resources[asset.name];
         };
         SharedAssetLoader.prototype.load = function (callback) {
-            var _this_1 = this;
+            var _this = this;
             var assets = [];
             for (var _i = 1; _i < arguments.length; _i++) {
                 assets[_i - 1] = arguments[_i];
             }
             var fontsToLoad = assets.filter(function (asset) {
-                return (asset instanceof FontAsset) && !_this_1.fontMap.get(asset.name);
+                return (asset instanceof FontAsset) && !SharedAssetLoader.fontMap.get(asset.name);
             });
             var assetsToLoad = Util_1.Util.mapNotNull(assets, function (asset) {
                 var assetToLoad = null;
@@ -92,7 +91,7 @@ define(["require", "exports", "webfontloader", "./Random", "./Util", "./pixijs"]
                 else {
                     assetToLoad = asset;
                 }
-                if (_this_1.get(assetToLoad)) {
+                if (_this.get(assetToLoad)) {
                     console.log('asset found!');
                     return null;
                 }
@@ -108,29 +107,39 @@ define(["require", "exports", "webfontloader", "./Random", "./Util", "./pixijs"]
                 callback();
                 return;
             }
-            // TODO: threadless, lock?
             fontsToLoad.forEach(function (font) {
-                var _this = _this_1;
-                WebFont.load({
-                    inactive: function () {
-                        console.warn('Font inactive');
-                    },
-                    active: function () {
-                        _this.fontMap.set(font.name, font);
-                        countToLoad--;
-                        if (countToLoad == 0) {
-                            callback();
+                if (!SharedAssetLoader.fontMap.has(font.name)) {
+                    SharedAssetLoader.fontMap.set(font.name, font);
+                    WebFont.load({
+                        inactive: function () {
+                            console.warn('Font inactive');
+                            countToLoad--;
+                            if (countToLoad == 0) {
+                                callback();
+                            }
+                        },
+                        active: function () {
+                            countToLoad--;
+                            if (countToLoad == 0) {
+                                callback();
+                            }
+                        },
+                        custom: {
+                            families: font.families,
+                            urls: [font.css],
                         }
-                    },
-                    custom: {
-                        families: font.families,
-                        urls: [font.css],
+                    });
+                }
+                else {
+                    countToLoad--;
+                    if (countToLoad == 0) {
+                        callback();
                     }
-                });
+                }
             });
             assetsToLoad.forEach(function (asset) {
                 if (asset) {
-                    _this_1.loader.add(asset.name, asset.path);
+                    _this.loader.add(asset.name, asset.path);
                 }
             });
             this.loader.load(function () {
@@ -140,6 +149,7 @@ define(["require", "exports", "webfontloader", "./Random", "./Util", "./pixijs"]
                 }
             });
         };
+        SharedAssetLoader.fontMap = new Map();
         return SharedAssetLoader;
     }());
     exports.SharedAssetLoader = SharedAssetLoader;

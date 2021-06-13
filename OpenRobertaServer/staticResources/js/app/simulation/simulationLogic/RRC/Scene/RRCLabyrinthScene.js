@@ -32,7 +32,8 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
         __extends(RRCLabyrinthScene, _super);
         function RRCLabyrinthScene() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.MazeObstacleList_ES = [{
+            _this.MazeObstacleList_ES = [
+                {
                     x: 500,
                     y: 100,
                     w: 200,
@@ -109,7 +110,8 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     h: 350,
                     rotation: 0,
                     color: 0x000000
-                }];
+                }
+            ];
             _this.MazeObstacleList_MS = [{
                     x: 500,
                     y: 100,
@@ -297,6 +299,13 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
             _this.waypointES_MS = [
                 {
                     x: 700,
+                    y: 436,
+                    w: 100,
+                    h: 100,
+                    score: 0
+                },
+                {
+                    x: 700,
                     y: 0,
                     w: 100,
                     h: 100,
@@ -394,12 +403,25 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                 }, {
                     x: 0,
                     y: 440,
+                    w: 100,
+                    h: 100,
+                    score: 10
+                }, {
+                    x: 200,
+                    y: 450,
                     w: 100,
                     h: 100,
                     score: 10
                 }
             ];
             _this.waypointsHS = [
+                {
+                    x: 700,
+                    y: 436,
+                    w: 100,
+                    h: 100,
+                    score: 0
+                },
                 {
                     x: 700,
                     y: 0,
@@ -514,6 +536,12 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     w: 100,
                     h: 100,
                     score: 10
+                }, {
+                    x: 200,
+                    y: 450,
+                    w: 100,
+                    h: 100,
+                    score: 10
                 }
             ];
             return _this;
@@ -542,9 +570,9 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
             });
         };
         RRCLabyrinthScene.prototype.onLoadAssets = function (chain) {
-            RRC.loader.load(function () {
+            this.loader.load(function () {
                 chain.next();
-            }, this.getAsset());
+            }, this.getAsset(), RRC.GOAL_BACKGROUND);
         };
         RRCLabyrinthScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
@@ -556,12 +584,14 @@ define(["require", "exports", "../AgeGroup", "./RRCScene", "../RRAssetLoader", "
                     return RRC.LABYRINTH_BLANK_BACKGROUND_HS;
             }
         };
+        RRCLabyrinthScene.prototype.getMaximumTimeBonusScore = function () {
+            return 60 * 3;
+        };
         RRCLabyrinthScene.prototype.onInit = function (chain) {
             var _this = this;
             this.initRobot({ position: { x: 752, y: 490 }, rotation: -90 });
-            var goal = RRC.loader.get(this.getAsset()).texture;
-            this.goalSprite = new PIXI.Sprite(goal);
-            this.getContainers().groundContainer.addChild(this.goalSprite);
+            var backgroundAsset = this.loader.get(this.getAsset()).texture;
+            this.getContainers().groundContainer.addChild(new PIXI.Sprite(backgroundAsset));
             switch (this.ageGroup) {
                 case AgeGroup_1.AgeGroup.ES:
                     this.addLabyrinth(this.MazeObstacleList_ES);

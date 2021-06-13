@@ -21,7 +21,13 @@ DEBUG_UPDATE_TIMER.start()
 
 function updateDebugDisplay() {
 	updatableList.forEach(element => {
-		element.updateDisplay()
+		try {
+			element.updateDisplay()
+		} catch (e) {
+			console.warn("An updatable debug element threw an error:")
+			console.warn(e)
+			element.remove()
+		}
 	});
 }
 
@@ -62,11 +68,108 @@ export function createDebugGuiRoot() {
 		//style.position = 'absolute'
 		//style.left = '70%'
 		//style.top = '500'
+		registerSearchBar()
 	}
 }
 
 createDebugGuiRoot()
 
+function registerSearchBar() {
+	const fieldName = "Search:"
+	const search = {}
+	search[fieldName] = ""
+	const searchField = DebugGuiRoot.add(search, fieldName)
+	searchField.onChange((search) => {
+		console.log(search)
+		searchGUI(search, searchField)
+	})
+}
+
+function nameContains(searchParams: string[], name: string): boolean {
+	name = name.toLowerCase()
+	return searchParams.map(param => name.includes(param)).every(v => v === true)
+}
+
+function searchGUI(search: string, ignoreController: dat.GUIController) {
+	search = search.trim().toLowerCase()
+	if(search.length == 0) {
+		resetAllFolders(DebugGuiRoot)
+	} else {
+		const searchParams = search.split(' ').filter(el => el.trim().length > 0)
+		for(const key in DebugGuiRoot.__folders) {
+			_searchGUI(DebugGuiRoot.__folders[key], searchParams)
+		}
+		_searchGUIElements(DebugGuiRoot, searchParams, ignoreController)
+	}
+}
+
+function resetAllFolders(gui: dat.GUI, ignoreFirst=true) {
+	if(!ignoreFirst) {
+		gui.show()
+		gui.close()
+		setFolderColor(gui, null)
+	}
+	
+	gui.__controllers.forEach(controller => {
+		setControllerColor(controller, null)
+	})
+
+	for(const key in gui.__folders) {
+		resetAllFolders(gui.__folders[key], false)
+	}
+}
+
+function setFolderColor(gui: dat.GUI, color: string) {
+	const element = gui.domElement.getElementsByClassName("title").item(0) as HTMLElement
+	element.style.backgroundColor = color
+}
+
+function setControllerColor(controller: dat.GUIController, color:string) {
+	controller.domElement.parentElement.parentElement.style.backgroundColor = color
+}
+
+function _searchGUI(gui: dat.GUI, searchParams: string[]): boolean {
+	let hasElementName = _searchGUIElements(gui, searchParams)
+
+	for(const key in gui.__folders) {
+		const subGui = gui.__folders[key]
+		if (_searchGUI(subGui, searchParams)) {
+			hasElementName = true
+		}
+	}
+
+	const foundThisFolder = nameContains(searchParams, gui.name)
+	hasElementName = hasElementName||foundThisFolder
+	
+	if(hasElementName) {
+		gui.show() // TODO: need both?
+		gui.open()
+		
+		if(foundThisFolder) {
+			setFolderColor(gui, 'green')
+		} else {
+			setFolderColor(gui, '#084E08')
+		}
+	} else {
+		gui.hide()
+		//gui.close()
+		setFolderColor(gui, null)
+	}
+	return hasElementName
+}
+
+function _searchGUIElements(gui: dat.GUI, searchParams: string[], ignoreController?: dat.GUIController): boolean {
+	let hasElementName = false
+	gui.__controllers.forEach(controller => {
+		if(nameContains(searchParams, controller.property) && controller !== ignoreController) {
+			setControllerColor(controller, 'green')
+			hasElementName = true
+		} else {
+			setControllerColor(controller, null)
+		}
+	})
+	return hasElementName
+}
 
 
 export function initGlobalSceneDebug(sceneRenderer: SceneRender) {
@@ -74,12 +177,11 @@ export function initGlobalSceneDebug(sceneRenderer: SceneRender) {
 		return
 	}
 
-	DebugGuiRoot.addUpdatable('FPS', () => sceneRenderer.app.ticker.FPS)
-
-	const renderer = DebugGuiRoot.addFolder('Renderer')
-	renderer.addUpdatable('Screen width', () => sceneRenderer.app.screen.width)
-	renderer.addUpdatable('Screen height', () => sceneRenderer.app.screen.height)
-	renderer.addUpdatable('devicePixelRatio', () => window.devicePixelRatio || 0.75)
+	const rendererFolder = DebugGuiRoot.addFolder('Renderer')
+	rendererFolder.addUpdatable('FPS', () => sceneRenderer.app.ticker.FPS)
+	rendererFolder.addUpdatable('Screen width', () => sceneRenderer.app.screen.width)
+	rendererFolder.addUpdatable('Screen height', () => sceneRenderer.app.screen.height)
+	rendererFolder.addUpdatable('devicePixelRatio', () => window.devicePixelRatio || 0.75)
 
 	const debug = DebugGuiRoot.addFolder('Special Debug Functions')
 	debug.addButton('Add color sensors to robot', () => {
@@ -185,7 +287,7 @@ export class SceneDebug {
 		gui.add(scene, 'autostartSim')
 		gui.add(scene, 'dt').min(0.001).max(0.1).step(0.001).onChange((dt) => scene.setDT(dt))
 		gui.add(scene, 'simSleepTime').min(0.001).max(0.1).step(0.001).onChange((s) => scene.setSimSleepTime(s))
-		gui.add(scene, 'simSpeedupFactor').min(1).max(10000).step(1).onChange((dt) => scene.setDT(dt))
+		gui.add(scene, 'simSpeedupFactor').min(1).max(1000).step(1).onChange((dt) => scene.setDT(dt))
 
 		const unit = gui.addFolder('unit converter')
 		unit.addUpdatable('m', () => scene.unit.getLength(1))

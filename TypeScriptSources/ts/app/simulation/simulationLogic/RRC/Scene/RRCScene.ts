@@ -1,23 +1,27 @@
-import {AsyncChain} from "../../Scene/AsyncChain";
-import * as RRC from '../RRAssetLoader'
+import {AsyncChain, AsyncListener} from "../../Scene/AsyncChain";
 import {AgeGroup} from "../AgeGroup";
 import {Robot} from "../../Robot/Robot";
 import {Body, Vector} from "matter-js";
 import {Unit} from "../../Unit";
-import {ScoreScene} from "../../Scene/ScoreScene";
+import {RRCScoreScene} from "./RRCScoreScene";
 import {PhysicsRectEntity, DrawableEntity, RectEntityOptions} from "../../Entity";
 import {ScoreWaypoint} from "../../Waypoints/ScoreWaypoint"
 import {WaypointList} from "../../Waypoints/WaypointList";
 import {Util} from "../../Util";
 import { WaypointVisibilityBehavior } from "../../Waypoints/WaypointsManager";
 
-export class RRCScene extends ScoreScene {
+export class RRCScene extends RRCScoreScene {
 
 	readonly ageGroup: AgeGroup;
 
 	constructor(name: string, ageGroup: AgeGroup) {
 		super(name + " " + ageGroup);
 		this.ageGroup = ageGroup;
+
+		this.addOnAsyncChainBuildCompleteLister(chain => {
+			// after score init but before onInit
+			chain.addAfter(this.onInitScore, new AsyncListener(this.onRRCInit, this))
+		})
 	}
 
 	/**
@@ -30,114 +34,69 @@ export class RRCScene extends ScoreScene {
 	}
 
 	setWaypointList(list: WaypointList<ScoreWaypoint>, waypointVisibilityBehavior: WaypointVisibilityBehavior = "showNext") {
-		const t = this
 		this.waypointsManager.waypointVisibilityBehavior = waypointVisibilityBehavior
 		
 		this.waypointsManager.resetListAndEvent(list, (idx, waypoint) => {
-			t.addToScore(waypoint.score)
+			this.addToScore(waypoint.score)
 			if (idx == list.getLastWaypointIndex()) {
-				//t.showScoreScreen(10)
+				this.addToScore(this.getTimeBonusScore())
+				this.showScoreScreen(true)
 			}
 		})
 
 		// add index text graphic to waypoints
 		this.waypointsManager.getWaypoints().forEach((waypoint, index) => {
-			const text = new PIXI.Text(String(index))
-			text.style = new PIXI.TextStyle({ align: 'center' })
-			text.position.x = waypoint.position.x - text.width/2
-			text.position.y = waypoint.position.y - text.height/2
-			text.resolution = 4
-			//text.zIndex = 10000;
-			waypoint.graphics.addChild(text)
+
+			let waypointText = String(index)
+			let fontSize = 80
+			if(waypoint.score > 0) {
+				waypointText += "\n" + waypoint.score + " Pts."
+				fontSize = 50
+			}
+
+			function makeText(color: number, xOffset: number, yOffset: number): PIXI.Text {
+				const text = new PIXI.Text(waypointText, {
+					fontFamily: 'ProggyTiny',
+					fontSize: fontSize,
+					fill: color,
+					align: 'center',
+				})
+				text.resolution = 4
+				text.position.set(
+					waypoint.position.x - text.width/2 + xOffset,
+					waypoint.position.y - text.height/2 + yOffset)
+				return text
+			}
+
+			waypoint.graphics.addChild(
+				makeText(0x000000, +1, +1),
+				makeText(0x000000, -1, -1),
+				makeText(0xf48613,  0,  0)
+			)
 		})
 	}
 
-
-	loadScoreAssets(chain: AsyncChain) {
-		RRC.loader.load(() => {
-				chain.next();
-			},
-			RRC.PROGGY_TINY_FONT,
-			RRC.GOAL_BACKGROUND,
-		);
+	private getTimeBonusScore(): number {
+		return Math.floor(
+			Math.max(0, this.getMaximumTimeBonusScore() - (this.getProgramRuntime() ?? Infinity)) 
+		)
 	}
 
-	protected goalSprite?: PIXI.Sprite;
-
-	scoreText2 = new PIXI.Text("")
-	scoreText3 = new PIXI.Text("")
-	scoreTextContainer: PIXI.Container = new PIXI.Container()
-
-	initScoreContainer(chain: AsyncChain) {
-		/*this.scoreContainer.zIndex = this.scoreContainerZ;
-
-		let goal = RRC.loader.get(RRC.GOAL_BACKGROUND).texture;
-		this.goalSprite = new PIXI.Sprite(goal);
-
-		this.scoreContainer.addChild(this.goalSprite);
-
-
-		// text
-
-		this.scoreText = new PIXI.Text("",
-			{
-				fontFamily: 'ProggyTiny',
-				fontSize: 160,
-				fill: 0xf48613
-			});
-
-		this.scoreText2 = new PIXI.Text("",
-			{
-				fontFamily: 'ProggyTiny',
-				fontSize: 160,
-				fill: 0xc00001
-			});
-
-		this.scoreText3 = new PIXI.Text("",
-			{
-				fontFamily: 'ProggyTiny',
-				fontSize: 160,
-				fill: 0x00cb01
-			});
-
-		this.scoreTextContainer.addChild(this.scoreText3, this.scoreText2, this.scoreText);
-
-		this.scoreContainer.addChild(this.scoreTextContainer);*/
-
-		chain.next();
+	getMaximumTimeBonusScore(): number {
+		return 0
 	}
 
-	updateScoreAnimation(dt: number) {
-		if (this.goalSprite != undefined) {
-			this.scoreTextContainer.x = this.goalSprite.width / 2;
-			this.scoreTextContainer.y = this.goalSprite.height / 2;
-
-			this.scoreTextContainer.rotation = 5 * Math.PI / 180 + Math.sin(Date.now() / 700) / Math.PI;
-		}
-	}
-
-	//updateScoreText() {
-		/*let text = "Score: " + this.getScore();
-		this.scoreText.text = text;
-		this.scoreText.position.set(-this.scoreText.width / 2, -this.scoreText.height / 2);
-
-		this.scoreText2.text = text;
-		this.scoreText2.position.set(-this.scoreText.width / 2 - 3, -this.scoreText.height / 2);
-
-		this.scoreText3.text = text;
-		this.scoreText3.position.set(-this.scoreText.width / 2 + 3, -this.scoreText.height / 2);*/
-	//}
 
 	getUnitConverter(): Unit {
 		// approx 60px = 20cm
 		return new Unit({m: 350})
 	}
 
-	onInit(chain: AsyncChain) {
+	onRRCInit(chain: AsyncChain) {
 		// create dynamic debug gui
 		this.initDynamicDebugGui()
 
-		this.initRobot();
+		//this.initRobot();
 		//this.setScore(266);
 		//this.showScoreScreen(100);
 		chain.next();
@@ -186,6 +145,22 @@ export class RRCScene extends ScoreScene {
 		this.addEntity(entity)
 	}
 
+	/**
+	 * Padding for the scroll view zoom reset in pixels
+	 */
+	private sceneFramePadding = 10
+
+	getSize(): { width: number, height: number } {
+		return {
+			width: 800 + 2 * this.sceneFramePadding,
+			height: 540 + 2 * this.sceneFramePadding
+		}
+	}
+
+	getOrigin(): Vector {
+		return { x: -this.sceneFramePadding, y: -this.sceneFramePadding }
+	}
+
 	addWalls(visible: boolean = false) {
 		const unit = this.getUnitConverter();
 
@@ -223,4 +198,13 @@ export class RRCScene extends ScoreScene {
 	}
 
 
+}
+
+export function wp(x: number, y: number, score: number, r: number = 30) {
+	return {
+		x: x,
+		y: y,
+		r: r,
+		score: score
+	}
 }

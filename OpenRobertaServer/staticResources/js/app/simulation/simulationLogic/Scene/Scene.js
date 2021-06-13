@@ -58,6 +58,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             //
             // #############################################################################
             //
+            this.finishedLoadingQueue = [];
             this.currentlyLoading = false;
             this.resourcesLoaded = false;
             this.hasBeenInitialized = false;
@@ -77,6 +78,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
              * current delta time for the physics simulation (internal units)
              */
             this.dt = 0.016;
+            this.simulationTime = 0;
             //
             // #############################################################################
             //
@@ -84,7 +86,8 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
              * sleep time before calling update (SI-Unit)
              */
             this.simSleepTime = this.dt;
-            this.simSpeedupFactor = 1;
+            this.simMinSpeedupFactor = 2;
+            this.simSpeedupFactor = this.simMinSpeedupFactor;
             /**
              * whether to create debug displayables to show all physics objects
              */
@@ -109,9 +112,14 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             // simulation defaults
             // TODO: Gravity scale may depend on the chosen units
             this.engine.world.gravity = { scale: 1, x: 0, y: 0 };
+            if (this.constructor.name === Scene.name) {
+                // No specialized scene => finished loading
+                this.autostartSim = false;
+                this.finishedLoading(new AsyncChain_1.AsyncChain());
+            }
             // has to be called after the name has been defined
             // defined 
-            this.debug = new GlobalDebug_1.SceneDebug(this, this.name == "");
+            this.debug = new GlobalDebug_1.SceneDebug(this, this.constructor.name === Scene.name); // TODO: remove disabled flag???
         }
         Scene.prototype.getContainers = function () {
             return this.containerManager;
@@ -229,7 +237,20 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 this.startSim();
             }
             console.log('Finished loading!');
+            this.finishedLoadingQueue.forEach(function (func) { return func(_this_1); });
             chain.next(); // technically we don't need this
+        };
+        /**
+         * Runs `func` after the loading is complete.
+         * If the scene is not loading, then `func` is called directly
+         */
+        Scene.prototype.runAfterLoading = function (func) {
+            if (this.isLoadingComplete()) {
+                func(this);
+            }
+            else {
+                this.finishedLoadingQueue.push(func);
+            }
         };
         Scene.prototype.isLoadingComplete = function () {
             return this.hasFinishedLoading;
@@ -307,7 +328,11 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 { func: function (chain) { _this_1.resourcesLoaded = true; chain.next(); }, thisContext: this });
             }
             // 4. init scene and finish loading
-            this.loadingChain.push({ func: function (chain) { _this_1._unit = _this_1.getUnitConverter(); chain.next(); }, thisContext: this }, { func: this.onInit, thisContext: this }, // init scene
+            this.loadingChain.push({ func: function (chain) {
+                    _this_1._unit = _this_1.getUnitConverter();
+                    _this_1.simulationTime = 0;
+                    chain.next();
+                }, thisContext: this }, { func: this.onInit, thisContext: this }, // init scene
             // swap from loading to scene, remove loading animation, cleanup, ...
             { func: this.finishedLoading, thisContext: this });
             this.onChainCompleteListeners.forEach(function (listener) { return listener.call(_this_1, _this_1.loadingChain); });
@@ -322,6 +347,12 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
         };
         Scene.prototype.getWorld = function () {
             return this.world;
+        };
+        /**
+         * Returns the time since the simulation is running in seconds
+         */
+        Scene.prototype.getSimulationTime = function () {
+            return this.unit.fromTime(this.simulationTime);
         };
         /**
          * Sets the simulation DT in seconds (SI-Unit)
@@ -393,7 +424,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
                 console.error("Sim speed needs to be greater than 0!");
                 return;
             }
-            this.simSpeedupFactor = speedup;
+            this.simSpeedupFactor = Math.max(speedup, this.simMinSpeedupFactor);
         };
         Scene.prototype.getCurrentSimTickRate = function () {
             return Math.round(1000 / this.simTicker.lastDT) * this.simSpeedupFactor;
@@ -423,12 +454,21 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
             this.getRobotManager().updateSensorValueView();
             this.onRenderTick(dt);
         };
+        //
+        // #############################################################################
+        //
+        Scene.prototype.destroy = function () {
+            this.simTicker.stop();
+        };
         Scene.prototype.interactionEvent = function (ev) {
             switch (ev.type) {
                 case ScrollView_1.EventType.PRESS:
                     // get bodies
                     var mousePosition = ev.data.getCurrentLocalPosition();
                     var bodies = this.getBodiesAt(mousePosition);
+                    if (GlobalDebug_1.DEBUG) {
+                        console.log("Mouse position: " + JSON.stringify(mousePosition));
+                    }
                     if (bodies.length >= 1) {
                         var body = bodies[0];
                         ev.cancel();
@@ -469,6 +509,7 @@ define(["require", "exports", "matter-js", "../Timer", "../ScrollView", "../Unit
          */
         Scene.prototype.update = function () {
             this.onUpdatePrePhysics();
+            this.simulationTime += this.dt;
             // update physics
             matter_js_1.Engine.update(this.engine, this.dt);
             // update entities e.g. robots

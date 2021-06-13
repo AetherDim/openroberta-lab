@@ -545,7 +545,7 @@ div.rightMenuButton:hover,
 #toastContainer {
     position: absolute;
     top: 0;
-    left: 50%;
+    left: 70%;
 }
 
 #toastLeftContainer {

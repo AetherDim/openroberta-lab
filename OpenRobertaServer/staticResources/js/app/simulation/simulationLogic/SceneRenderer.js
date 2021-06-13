@@ -33,7 +33,8 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
                 backgroundColor: Color_1.rgbToNumber(backgroundColor),
                 antialias: true,
                 resizeTo: resizeTo || undefined,
-                resolution: window.devicePixelRatio || 0.75, // same as ScrollView.getPixelRatio()
+                autoDensity: true,
+                resolution: Util_1.Util.getPixelRatio(),
             });
             // add mouse/touch control
             this.scrollView = new ScrollView_1.ScrollView(this.app.stage, this.app.renderer);
@@ -51,8 +52,8 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
             this.app.ticker.add(function (dt) {
                 if (_this.scene) {
                     _this.scene.renderTick(dt);
-                    if (_this.resizeTo && (_this.app.view.clientWidth != Util_1.Util.getPixelRatio() * _this.resizeTo.clientWidth ||
-                        _this.app.view.clientHeight != Util_1.Util.getPixelRatio() * _this.resizeTo.clientHeight)) {
+                    if (_this.resizeTo && (_this.app.view.clientWidth != _this.resizeTo.clientWidth ||
+                        _this.app.view.clientHeight != _this.resizeTo.clientHeight)) {
                         //resize = true
                         var oldWidth = _this.app.renderer.screen.width;
                         var oldHeight = _this.app.renderer.screen.height;
@@ -65,14 +66,18 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
             //this.app.ticker.maxFPS = 30
             GlobalDebug_1.initGlobalSceneDebug(this);
         }
+        SceneRender.prototype.destroy = function () {
+            this.app.stop();
+            this.app.destroy();
+            this.scene.destroy();
+        };
         SceneRender.prototype.onSwitchScene = function (onSwitchSceneHandler) {
             this.onSwitchSceneEventHandler.push(onSwitchSceneHandler);
         };
         SceneRender.prototype.onResize = function (oldWidth, oldHeight) {
-            var pixelRatio = Util_1.Util.getPixelRatio();
-            this.scrollView.x += (this.app.renderer.screen.width - oldWidth) / 2 / pixelRatio;
-            this.scrollView.y += (this.app.renderer.screen.height - oldHeight) / 2 / pixelRatio;
-            var zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize) / Math.max(oldWidth, this.scrollView.minScreenSize);
+            this.scrollView.x += (this.app.renderer.screen.width - oldWidth) / 2;
+            this.scrollView.y += (this.app.renderer.screen.height - oldHeight) / 2;
+            var zoomX = Math.max(this.app.renderer.screen.width, this.scrollView.minScreenSize.width) / Math.max(oldWidth, this.scrollView.minScreenSize.width);
             //const zoomY = Math.max(this.app.renderer.screen.height, this.scrollView.minScreenSize)/Math.max(oldHeight, this.scrollView.minScreenSize)
             this.scrollView.zoomCenter(zoomX);
         };

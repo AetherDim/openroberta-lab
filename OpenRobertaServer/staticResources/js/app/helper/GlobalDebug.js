@@ -16,7 +16,14 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
     exports.DEBUG_UPDATE_TIMER.start();
     function updateDebugDisplay() {
         updatableList.forEach(function (element) {
-            element.updateDisplay();
+            try {
+                element.updateDisplay();
+            }
+            catch (e) {
+                console.warn("An updatable debug element threw an error:");
+                console.warn(e);
+                element.remove();
+            }
         });
     }
     function registerDebugUpdatable(controller) {
@@ -47,19 +54,108 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
             //style.position = 'absolute'
             //style.left = '70%'
             //style.top = '500'
+            registerSearchBar();
         }
     }
     exports.createDebugGuiRoot = createDebugGuiRoot;
     createDebugGuiRoot();
+    function registerSearchBar() {
+        var fieldName = "Search:";
+        var search = {};
+        search[fieldName] = "";
+        var searchField = exports.DebugGuiRoot.add(search, fieldName);
+        searchField.onChange(function (search) {
+            console.log(search);
+            searchGUI(search, searchField);
+        });
+    }
+    function nameContains(searchParams, name) {
+        name = name.toLowerCase();
+        return searchParams.map(function (param) { return name.includes(param); }).every(function (v) { return v === true; });
+    }
+    function searchGUI(search, ignoreController) {
+        search = search.trim().toLowerCase();
+        if (search.length == 0) {
+            resetAllFolders(exports.DebugGuiRoot);
+        }
+        else {
+            var searchParams = search.split(' ').filter(function (el) { return el.trim().length > 0; });
+            for (var key in exports.DebugGuiRoot.__folders) {
+                _searchGUI(exports.DebugGuiRoot.__folders[key], searchParams);
+            }
+            _searchGUIElements(exports.DebugGuiRoot, searchParams, ignoreController);
+        }
+    }
+    function resetAllFolders(gui, ignoreFirst) {
+        if (ignoreFirst === void 0) { ignoreFirst = true; }
+        if (!ignoreFirst) {
+            gui.show();
+            gui.close();
+            setFolderColor(gui, null);
+        }
+        gui.__controllers.forEach(function (controller) {
+            setControllerColor(controller, null);
+        });
+        for (var key in gui.__folders) {
+            resetAllFolders(gui.__folders[key], false);
+        }
+    }
+    function setFolderColor(gui, color) {
+        var element = gui.domElement.getElementsByClassName("title").item(0);
+        element.style.backgroundColor = color;
+    }
+    function setControllerColor(controller, color) {
+        controller.domElement.parentElement.parentElement.style.backgroundColor = color;
+    }
+    function _searchGUI(gui, searchParams) {
+        var hasElementName = _searchGUIElements(gui, searchParams);
+        for (var key in gui.__folders) {
+            var subGui = gui.__folders[key];
+            if (_searchGUI(subGui, searchParams)) {
+                hasElementName = true;
+            }
+        }
+        var foundThisFolder = nameContains(searchParams, gui.name);
+        hasElementName = hasElementName || foundThisFolder;
+        if (hasElementName) {
+            gui.show(); // TODO: need both?
+            gui.open();
+            if (foundThisFolder) {
+                setFolderColor(gui, 'green');
+            }
+            else {
+                setFolderColor(gui, '#084E08');
+            }
+        }
+        else {
+            gui.hide();
+            //gui.close()
+            setFolderColor(gui, null);
+        }
+        return hasElementName;
+    }
+    function _searchGUIElements(gui, searchParams, ignoreController) {
+        var hasElementName = false;
+        gui.__controllers.forEach(function (controller) {
+            if (nameContains(searchParams, controller.property) && controller !== ignoreController) {
+                setControllerColor(controller, 'green');
+                hasElementName = true;
+            }
+            else {
+                setControllerColor(controller, null);
+            }
+        });
+        return hasElementName;
+    }
     function initGlobalSceneDebug(sceneRenderer) {
         if (!exports.DEBUG) {
             return;
         }
-        exports.DebugGuiRoot.addUpdatable('FPS', function () { return sceneRenderer.app.ticker.FPS; });
-        var renderer = exports.DebugGuiRoot.addFolder('Renderer');
-        renderer.addUpdatable('Screen width', function () { return sceneRenderer.app.screen.width; });
-        renderer.addUpdatable('Screen height', function () { return sceneRenderer.app.screen.height; });
-        renderer.addUpdatable('devicePixelRatio', function () { return window.devicePixelRatio || 0.75; });
+        var rendererFolder = exports.DebugGuiRoot.addFolder('Renderer');
+        rendererFolder.addUpdatable('FPS', function () { return sceneRenderer.app.ticker.FPS; });
+        rendererFolder.addUpdatable('Screen width', function () { return sceneRenderer.app.screen.width; });
+        rendererFolder.addUpdatable('Screen height', function () { return sceneRenderer.app.screen.height; });
+        rendererFolder.addUpdatable('devicePixelRatio', function () { return window.devicePixelRatio || 0.75; });
         var debug = exports.DebugGuiRoot.addFolder('Special Debug Functions');
         debug.addButton('Add color sensors to robot', function () {
             var robot = sceneRenderer.getScene().getRobotManager().getRobots()[0];
@@ -130,7 +226,7 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
             gui.add(scene, 'autostartSim');
             gui.add(scene, 'dt').min(0.001).max(0.1).step(0.001).onChange(function (dt) { return scene.setDT(dt); });
             gui.add(scene, 'simSleepTime').min(0.001).max(0.1).step(0.001).onChange(function (s) { return scene.setSimSleepTime(s); });
-            gui.add(scene, 'simSpeedupFactor').min(1).max(10000).step(1).onChange(function (dt) { return scene.setDT(dt); });
+            gui.add(scene, 'simSpeedupFactor').min(1).max(1000).step(1).onChange(function (dt) { return scene.setDT(dt); });
             var unit = gui.addFolder('unit converter');
             unit.addUpdatable('m', function () { return scene.unit.getLength(1); });
             unit.addUpdatable('kg', function () { return scene.unit.getMass(1); });

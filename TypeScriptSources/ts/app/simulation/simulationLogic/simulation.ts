@@ -1,20 +1,14 @@
 import './pixijs'
 import './ExtendedMatter'
-import {AgeGroup} from "./RRC/AgeGroup";
-import {RRCLineFollowingScene} from "./RRC/Scene/RRCLineFollowingScene";
-import {Scene} from "./Scene/Scene";
-import {TestScene} from "./Scene/TestScene";
-import {TestScene2} from "./Scene/TestScene2"
-import {RRCRainbowScene} from "./RRC/Scene/RRCRainbowScene";
-import {RRCScene} from "./RRC/Scene/RRCScene";
-import {RRCLabyrinthScene} from "./RRC/Scene/RRCLabyrinthScene";
-import { TestScene3 } from './Scene/TestScene3';
-import { DEBUG } from './GlobalDebug';
+import { cyberspaceScenes } from './external/SceneDesciptorList'
 import { RobertaRobotSetupData } from './Robot/RobertaRobotSetupData'
 import { Cyberspace } from './Cyberspace/Cyberspace';
 import { SceneDescriptor } from './Cyberspace/SceneManager';
 import { BlocklyDebug } from './BlocklyDebug';
 import { UIManager } from './UIManager';
+import { interpreterSimBreakEventHandlers } from "interpreter.jsHelper"
+import { RRCScoreScene } from './RRC/Scene/RRCScoreScene';
+import { RESTState, ResultErrorType, sendStateRequest } from './external/RESTApi';
 
 //
 // init all components for a simulation
@@ -23,143 +17,38 @@ const cyberspace = new Cyberspace('sceneCanvas', 'simDiv')
 const sceneManager = cyberspace.getSceneManager()
 const blocklyDebugManager = new BlocklyDebug(cyberspace)
 
+UIManager.simSpeedUpButton.setState("fastForward")
+UIManager.showScoreButton.setState("showScore")
+
+
+sendStateRequest(res => {
+	if(res && res.error == ResultErrorType.NONE) {
+		const result: RESTState = <RESTState><any>(res!.result);
+		if(result.uploadEnabled) {
+			$('#head-navigation-upload').css('display', 'inline');
+		}
+	}
+})
+
+
 cyberspace.eventManager
-	.onStartPrograms(() => UIManager.setProgramRunButton("STOP"))
-	.onStopPrograms(() => UIManager.setProgramRunButton("START"))
-	.onStartSimulation(() => UIManager.setSimulationRunButton("STOP"))
-	.onPauseSimulation(() => UIManager.setSimulationRunButton("START"))
+	.onStartPrograms(() => UIManager.programControlButton.setState("stop"))
+	.onStopPrograms(() => UIManager.programControlButton.setState("start"))
+	.onStartSimulation(() => UIManager.physicsSimControlButton.setState("stop"))
+	.onPauseSimulation(() => UIManager.physicsSimControlButton.setState("start"))
 
-//
-// register scenes
-//
-if(DEBUG)
-sceneManager.registerScene(
+cyberspace.specializedEventManager
+	.addEventHandlerSetter(RRCScoreScene, scoreScene =>
+		scoreScene.scoreEventManager.onShowHideScore(state =>
+			UIManager.showScoreButton.setState(state == "hideScore" ? "showScore" : "hideScore"))
+		)
 
-	//
-	// Test
-	//
-
-	new SceneDescriptor(
-	'Test Scene',
-	'Test scene with all sim features',
-	(descriptor) => {
-			return new TestScene(descriptor.name);
-		}
-	),
-
-	new SceneDescriptor(
-		"Test Scene 2", "Test scene for testing different sensor configurations",
-		(descriptor) => new TestScene2(descriptor.name, AgeGroup.ES)
-	),
-
-	new SceneDescriptor(
-		"Test Scene 3", "Test scene for generating calibration data for the robot",
-		(descriptor) => new TestScene3()
-	),
-
-	new SceneDescriptor(
-		'Empty Scene',
-		'Empty Scene',
-		(descriptor) => {
-			return new Scene(descriptor.name);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Test Scene',
-		'Roborave Cyberspace Test',
-		(descriptor) => {
-			return new RRCScene(descriptor.name, AgeGroup.ES);
-		}
-	)
-)
-
-sceneManager.registerScene(
-	//
-	//  Line Following
-	//
-
-	new SceneDescriptor(
-		'RRC - Line Following - ES',
-		'Roborave Cyberspace line following ES',
-		(descriptor) => {
-			return new RRCLineFollowingScene(descriptor.name, AgeGroup.ES);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Line Following - MS',
-		'Roborave Cyberspace line following MS',
-		(descriptor) => {
-			return new RRCLineFollowingScene(descriptor.name, AgeGroup.MS);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Line Following - HS',
-		'Roborave Cyberspace line following HS',
-		(descriptor) => {
-			return new RRCLineFollowingScene(descriptor.name, AgeGroup.HS);
-		}
-	),
-
-	//
-	// Labyrinth
-	//
-
-	new SceneDescriptor(
-		'RRC - Labyrinth - ES',
-		'Roborave Cyberspace Labyrinth ES',
-		(descriptor) => {
-			return new RRCLabyrinthScene(descriptor.name, AgeGroup.ES);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Labyrinth - MS',
-		'Roborave Cyberspace Labyrinth MS',
-		(descriptor) => {
-			return new RRCLabyrinthScene(descriptor.name, AgeGroup.MS);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Labyrinth - HS',
-		'Roborave Cyberspace Labyrinth HS',
-		(descriptor) => {
-			return new RRCLabyrinthScene(descriptor.name, AgeGroup.HS);
-		}
-	),
+interpreterSimBreakEventHandlers.push(() => {
+	cyberspace.pausePrograms()
+})
 
 
-	//
-	// Rainbow
-	//
-
-	new SceneDescriptor(
-		'RRC - Rainbow - ES',
-		'Roborave Cyberspace Rainbow ES',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.ES);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Rainbow - MS',
-		'Roborave Cyberspace Rainbow MS',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.MS);
-		}
-	),
-
-	new SceneDescriptor(
-		'RRC - Rainbow - HS',
-		'Roborave Cyberspace Rainbow HS',
-		(descriptor) => {
-			return new RRCRainbowScene(descriptor.name, AgeGroup.HS);
-		}
-	),
-);
+sceneManager.registerScene(...cyberspaceScenes)
 
 // switch to first scene
 cyberspace.switchToNextScene(true)
@@ -265,11 +154,10 @@ export function sim(run: boolean) {
 	}
 }
 
-export function score(score: boolean) {
-	if(score) {
-		//engine.getScene().showScoreScreen(0);
-	} else {
-		//engine.getScene().hideScore();
+export function score(visible: boolean) {
+	const scene = cyberspace.getScene()
+	if (scene instanceof RRCScoreScene) {
+		scene.showScoreScreen(visible)
 	}
 }
 

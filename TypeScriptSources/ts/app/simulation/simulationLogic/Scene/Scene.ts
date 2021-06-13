@@ -1,5 +1,5 @@
 import { Robot } from '../Robot/Robot';
-import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices } from 'matter-js';
+import { Engine, Mouse, World, Render, MouseConstraint, Composite, Body, Constraint, Sleeping, Bounds, Vertices, Vector } from 'matter-js';
 import { SceneRender } from '../SceneRenderer';
 import { Timer } from '../Timer';
 import { EventType, ScrollViewEvent } from '../ScrollView';
@@ -9,7 +9,7 @@ import { Util } from '../Util';
 import { AsyncChain } from "./AsyncChain";
 import { WaypointsManager } from '../Waypoints/WaypointsManager';
 import { ScoreWaypoint } from '../Waypoints/ScoreWaypoint';
-import { SceneDebug } from "./../GlobalDebug";
+import { DEBUG, SceneDebug } from "./../GlobalDebug";
 import {EntityManager} from "./Manager/EntityManager";
 import {ContainerManager} from "./Manager/ContainerManager";
 import {RobotManager} from "./Manager/RobotManager";
@@ -100,15 +100,15 @@ export class Scene {
 	private size = {width: 0, height: 0}
 
 	// TODO: copy coords
-    getSize() {
+	getSize(): { width: number, height: number } {
 		return this.size
 	}
 
-	getOrigin() {
+	getOrigin(): Vector {
 		return this.origin
 	}
 
-    updateBounds() {
+	updateBounds() {
 		this.origin = {x: 0, y: 0}
 		this.size = {width: 0, height: 0}
 		
@@ -135,7 +135,7 @@ export class Scene {
 
 		this.size.width -= this.origin.x
 		this.size.height -= this.origin.y
-    }
+	}
 
 	//
 	// #############################################################################
@@ -166,6 +166,8 @@ export class Scene {
 	//
 	// #############################################################################
 	//
+
+	private finishedLoadingQueue: ((scene: Scene) => void)[] = []
 
 	private currentlyLoading = false;
 	private resourcesLoaded = false;
@@ -213,7 +215,21 @@ export class Scene {
 
 		console.log('Finished loading!');
 
+		this.finishedLoadingQueue.forEach(func => func(this))
+
 		chain.next(); // technically we don't need this
+	}
+
+	/**
+	 * Runs `func` after the loading is complete.
+	 * If the scene is not loading, then `func` is called directly
+	 */
+	runAfterLoading(func: (scene: Scene) => void) {
+		if (this.isLoadingComplete()) {
+			func(this)
+		} else {
+			this.finishedLoadingQueue.push(func)
+		}
 	}
 
 	isLoadingComplete() {
@@ -323,7 +339,11 @@ export class Scene {
 
 		// 4. init scene and finish loading
 		this.loadingChain.push(
-			{func: chain => { this._unit = this.getUnitConverter(); chain.next() }, thisContext: this },
+			{func: chain => {
+				this._unit = this.getUnitConverter()
+				this.simulationTime = 0
+				chain.next()
+			}, thisContext: this },
 			{func: this.onInit, thisContext: this}, // init scene
 			// swap from loading to scene, remove loading animation, cleanup, ...
 			{func: this.finishedLoading, thisContext: this},
@@ -363,6 +383,15 @@ export class Scene {
 	 * current delta time for the physics simulation (internal units)
 	 */
 	private dt = 0.016;
+
+	private simulationTime = 0
+
+	/**
+	 * Returns the time since the simulation is running in seconds
+	 */
+	getSimulationTime(): number {
+		return this.unit.fromTime(this.simulationTime)
+	}
 
 	/**
 	 * Sets the simulation DT in seconds (SI-Unit)
@@ -419,7 +448,8 @@ export class Scene {
 	 * sleep time before calling update (SI-Unit)
 	 */
 	private simSleepTime = this.dt;
-	private simSpeedupFactor = 1;
+	private simMinSpeedupFactor = 2;
+	private simSpeedupFactor = this.simMinSpeedupFactor;
 
 	/**
 	 * simulation ticker/timer
@@ -459,7 +489,8 @@ export class Scene {
 			console.error("Sim speed needs to be greater than 0!")
 			return
 		}
-		this.simSpeedupFactor = speedup
+
+		this.simSpeedupFactor = Math.max(speedup, this.simMinSpeedupFactor)
 	}
 
 	getCurrentSimTickRate(): number {
@@ -549,9 +580,23 @@ export class Scene {
 		// TODO: Gravity scale may depend on the chosen units
 		this.engine.world.gravity = { scale: 1, x: 0, y: 0};
 
+		if(this.constructor.name === Scene.name) {
+			// No specialized scene => finished loading
+			this.autostartSim = false
+			this.finishedLoading(new AsyncChain())
+		}
+
 		// has to be called after the name has been defined
 		// defined 
-		this.debug = new SceneDebug(this, this.name == "")
+		this.debug = new SceneDebug(this, this.constructor.name === Scene.name) // TODO: remove disabled flag???
+	}
+
+	//
+	// #############################################################################
+	//
+
+	destroy() {
+		this.simTicker.stop()
 	}
 
 	//
@@ -563,9 +608,15 @@ export class Scene {
 	interactionEvent(ev: ScrollViewEvent) {
 		switch (ev.type) {
 			case EventType.PRESS:
+
 				// get bodies
 				const mousePosition = ev.data.getCurrentLocalPosition()
 				const bodies = this.getBodiesAt(mousePosition);
+
+				if(DEBUG) {
+					console.log(`Mouse position: ${JSON.stringify(mousePosition)}`)
+				}
+
 				if (bodies.length >= 1) {
 					const body = bodies[0]
 					ev.cancel()
@@ -619,6 +670,8 @@ export class Scene {
 	private update() {
 
 		this.onUpdatePrePhysics();
+
+		this.simulationTime += this.dt
 
 		// update physics
 		Engine.update(this.engine, this.dt)

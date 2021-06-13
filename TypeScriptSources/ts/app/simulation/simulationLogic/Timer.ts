@@ -1,5 +1,4 @@
 import {AsyncChain, AsyncListener} from "./Scene/AsyncChain";
-import {time} from "d3";
 
 
 export class Timer {

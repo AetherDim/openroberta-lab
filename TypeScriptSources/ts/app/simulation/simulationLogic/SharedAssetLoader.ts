@@ -92,7 +92,7 @@ export class MultiAsset {
 export class SharedAssetLoader {
 
 	private readonly loader = new PIXI.Loader(); // you can also create your own if you want
-	private readonly fontMap = new Map<string, FontAsset>();
+	private static readonly fontMap = new Map<string, FontAsset>();
 
 	get(asset: Asset): PIXI.LoaderResource {
 		return this.loader.resources[asset.name];
@@ -100,7 +100,7 @@ export class SharedAssetLoader {
 
 	load(callback:() => void, ...assets: (Asset|FontAsset|undefined)[]) {
 		let fontsToLoad: FontAsset[] = <FontAsset[]>assets.filter(asset => {
-			return (asset instanceof FontAsset) && !this.fontMap.get(asset.name);
+			return (asset instanceof FontAsset) && !SharedAssetLoader.fontMap.get(asset.name);
 		});
 
 		const assetsToLoad = Util.mapNotNull(assets, asset => {
@@ -131,25 +131,34 @@ export class SharedAssetLoader {
 		}
 
 
-		// TODO: threadless, lock?
 		fontsToLoad.forEach(font => {
-			const _this = this;
-			WebFont.load({
-				inactive: () => {
-					console.warn('Font inactive');
-				},
-				active: () => {
-					_this.fontMap.set(font.name, font);
-					countToLoad --;
-					if(countToLoad == 0) {
-						callback();
+			if(!SharedAssetLoader.fontMap.has(font.name)) {
+				SharedAssetLoader.fontMap.set(font.name, font);
+				WebFont.load({
+					inactive: () => {
+						console.warn('Font inactive');
+						countToLoad --;
+						if(countToLoad == 0) {
+							callback();
+						}
+					},
+					active: () => {
+						countToLoad --;
+						if(countToLoad == 0) {
+							callback();
+						}
+					},
+					custom: {
+						families: font.families,
+						urls: [font.css],
 					}
-				},
-				custom: {
-					families: font.families,
-					urls: [font.css],
+				});
+			} else {
+				countToLoad --;
+				if(countToLoad == 0) {
+					callback();
 				}
-			});
+			}
 		});
 
 		assetsToLoad.forEach(asset => {

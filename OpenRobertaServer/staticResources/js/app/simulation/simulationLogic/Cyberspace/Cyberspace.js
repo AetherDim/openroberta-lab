@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/ScoreScene", "../SceneRenderer", "./SceneManager", "../EventManager/EventManager"], function (require, exports, SimulationCache_1, Scene_1, ScoreScene_1, SceneRenderer_1, SceneManager_1, EventManager_1) {
+define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../RRC/Scene/RRCScoreScene", "../SceneRenderer", "./SceneManager", "../EventManager/EventManager"], function (require, exports, SimulationCache_1, Scene_1, RRCScoreScene_1, SceneRenderer_1, SceneManager_1, EventManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Cyberspace = void 0;
@@ -41,6 +41,33 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
                 /** will be called after the program has been stopped */
                 onStopPrograms: EventManager_1.ParameterTypes.none
             });
+            this.specializedEventManager = new /** @class */ (function () {
+                function SpecializedEventManager() {
+                    this.handlerSetters = [];
+                }
+                /**
+                 * Adds the function `setHandler` which is later called in `Cyberspace.resetEventHandlersOfScene(scene)`.
+                 *
+                 * @param sceneType The type of the scene
+                 * @param setHandler The function which sets the event handlers of a scene of type `sceneType`.
+                 */
+                SpecializedEventManager.prototype.addEventHandlerSetter = function (sceneType, setHandler) {
+                    this.handlerSetters.push(function (scene) {
+                        if (scene instanceof sceneType) {
+                            setHandler(scene);
+                        }
+                    });
+                };
+                /**
+                 * Sets the specified event handlers for `scene`.
+                 *
+                 * This method should only be called inside `Cyberspace`.
+                 */
+                SpecializedEventManager.prototype._setEventHandlers = function (scene) {
+                    this.handlerSetters.forEach(function (handlerSetter) { return handlerSetter(scene); });
+                };
+                return SpecializedEventManager;
+            }());
             (_a = this.sceneManager).registerScene.apply(_a, __spreadArray([], __read(scenes)));
             // empty scene as default
             var emptyScene = new Scene_1.Scene("");
@@ -48,11 +75,16 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
             var t = this;
             this.renderer.onSwitchScene(function (scene) { return t.resetEventHandlersOfScene(scene); });
         }
+        Cyberspace.prototype.destroy = function () {
+            this.sceneManager.destroy();
+            this.renderer.destroy();
+        };
         /* ############################################################################################ */
         /* ####################################### Scene control ###################################### */
         /* ############################################################################################ */
         Cyberspace.prototype.resetEventHandlersOfScene = function (scene) {
             scene.removeAllEventHandlers();
+            this.specializedEventManager._setEventHandlers(scene);
             var eventHandlerLists = this.eventManager.eventHandlerLists;
             var programManagerEventHandlerLists = scene.getProgramManager().eventManager.eventHandlerLists;
             programManagerEventHandlerLists.onStartProgram.pushEventHandleList(eventHandlerLists.onStartPrograms);
@@ -73,7 +105,7 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
         };
         Cyberspace.prototype.getScoreScene = function () {
             var scene = this.renderer.getScene();
-            if (scene instanceof ScoreScene_1.ScoreScene) {
+            if (scene instanceof RRCScoreScene_1.RRCScoreScene) {
                 return scene;
             }
             return undefined;
@@ -87,7 +119,8 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
                 this.fullResetScene();
             }
         };
-        Cyberspace.prototype.loadScene = function (ID) {
+        Cyberspace.prototype.loadScene = function (ID, forced) {
+            if (forced === void 0) { forced = false; }
             if (this.getScene().isLoadingComplete()) {
                 var scene = this.sceneManager.getScene(ID);
                 if (scene) {
@@ -163,10 +196,8 @@ define(["require", "exports", "./SimulationCache", "../Scene/Scene", "../Scene/S
                 // sets the robot programs and sensor configurations based on 'simulationCache'
                 this.resetScene();
             }
-            else {
-                // always set the programs
-                this.getProgramManager().setPrograms(newSimulationCache.toRobotSetupData().map(function (setup) { return setup.program; }));
-            }
+            // always set the programs
+            this.getProgramManager().setPrograms(newSimulationCache.toRobotSetupData().map(function (setup) { return setup.program; }));
         };
         /* ############################################################################################ */
         /* #################################### ScrollView control #################################### */

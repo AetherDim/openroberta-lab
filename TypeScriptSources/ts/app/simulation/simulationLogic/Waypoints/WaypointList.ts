@@ -38,6 +38,21 @@ export class WaypointList<W extends Waypoint> {
 	}
 
 	/**
+	 * Return a `WaypointList` with reversed waypoints. See `includingTheLast`.
+	 * 
+	 * @param includingTheLast If `true`: Return all waypoints including the last waypoint of `this`.
+	 * If `false` do not add the last waypoint to the list. (default: `false`)
+	 */
+	reversed(includingTheLast: boolean = true): WaypointList<W> {
+		const waypoints: W[] = []
+		for(var i = this.waypoints.length - 1 + (includingTheLast ? 0 : -1); i >= 0; i--) {
+			// TODO: Find type-safe way to clone an object
+			waypoints.push(this.waypoints[i].clone() as W)
+		}
+		return new WaypointList(waypoints)
+	}
+
+	/**
 	 * Append (almost) all current waypoints in reverse order to `this`. See `includingTheLast`.
 	 * 
 	 * @param includingTheLast If `true`: Append all waypoints including the last waypoint.
