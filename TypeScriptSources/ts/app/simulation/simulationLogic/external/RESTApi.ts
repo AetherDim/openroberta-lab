@@ -2,13 +2,13 @@ import { DEBUG } from "../GlobalDebug";
 import { Util } from "../Util";
 
 
-function httpPostAsync(url: string, data: string,
+function httpAsync(req: string, url: string, data: string|undefined,
 	transferComplete: (this: XMLHttpRequest) => void,
 	error: (this: XMLHttpRequest) => void,
 	abort: (this: XMLHttpRequest) => void)
 {
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open("POST", url, true);
+	xmlHttp.open(req, url, true);
 	xmlHttp.setRequestHeader('Content-Type', 'application/json');
 	xmlHttp.addEventListener("load", transferComplete);
 	xmlHttp.addEventListener("error", error);
@@ -16,14 +16,32 @@ function httpPostAsync(url: string, data: string,
 	xmlHttp.send(data);
 }
 
+function httpPostAsync(url: string, data: string,
+	transferComplete: (this: XMLHttpRequest) => void,
+	error: (this: XMLHttpRequest) => void,
+	abort: (this: XMLHttpRequest) => void)
+{
+	httpAsync("POST", url, data, transferComplete, error, abort)
+}
+
+function httpGetAsync(url: string,
+	transferComplete: (this: XMLHttpRequest) => void,
+	error: (this: XMLHttpRequest) => void,
+	abort: (this: XMLHttpRequest) => void)
+{
+	httpAsync("GET", url, undefined, transferComplete, error, abort)
+}
+
 // FIX: Change URLs
 let PROGRAMS_URL = "/sqlrest/programs"
 let SET_SCORE_URL = "/sqlrest/setScore"
+let GET_STATUS_URL = "/sqlrest/state"
 
 if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && DEBUG) {
 	// TODO: change this to a debug address
 	PROGRAMS_URL = "https://next.cyberspace.roborave.de/sqlrest/programs"
 	SET_SCORE_URL = "https://next.cyberspace.roborave.de/sqlrest/setScore"
+	GET_STATUS_URL = "https://next.cyberspace.roborave.de/sqlrest/state"
 }
 
 
@@ -55,6 +73,17 @@ export function sendRESTRequest(url: string, programRequest: ProgramsRequest|Set
 
 export function sendProgramRequest(programRequest: ProgramsRequest, callback: (programsResult?: ProgramsRequestResult) => void) {
 	sendRESTRequest(PROGRAMS_URL, programRequest, callback)
+}
+
+export function sendStateRequest(callback: (programsResult?: ProgramsRequestResult) => void) {
+	function transferComplete(this: XMLHttpRequest) {
+		const response = JSON.parse(this.responseText) as ProgramsRequestResult
+		callback(response)
+	}
+	function onError(this: XMLHttpRequest) {
+		callback()
+	}
+	httpGetAsync(GET_STATUS_URL, transferComplete, onError, onError)
 }
 
 
@@ -92,4 +121,8 @@ export interface ProgramsRequestResult {
 	error: ResultErrorType
 	message?: string
 	result?: ProgramSQLEntry[]
+}
+
+export type RESTState = {
+	uploadEnabled: boolean
 }

@@ -343,6 +343,21 @@ define([ 'exports', 'comm', 'message', 'log', 'util', 'guiState.controller', 'ro
         }
     }
 
+    function getLink() {
+            var dom = Blockly.Xml.workspaceToDom(blocklyWorkspace);
+            var xml = Blockly.Xml.domToText(dom);
+            //TODO this should be removed after the next release
+            xml = '<export xmlns="http://de.fhg.iais.roberta.blockly"><program>' + xml + '</program><config>' + GUISTATE_C.getConfigurationXML()
+                    + '</config></export>';
+            var link = 'https://cyberspace.roborave.de/#loadProgram';
+            link += '&&' + GUISTATE_C.getRobot();
+            link += '&&' + GUISTATE_C.getProgramName();
+            link += '&&' + xml;
+            link = encodeURI(link);
+            return link;
+    }
+    exports.getLink = getLink;
+
     function linkProgram() {
         var dom = Blockly.Xml.workspaceToDom(blocklyWorkspace);
         var xml = Blockly.Xml.domToText(dom);

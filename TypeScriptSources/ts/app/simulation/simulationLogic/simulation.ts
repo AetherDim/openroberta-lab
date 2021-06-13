@@ -8,6 +8,7 @@ import { BlocklyDebug } from './BlocklyDebug';
 import { UIManager } from './UIManager';
 import { interpreterSimBreakEventHandlers } from "interpreter.jsHelper"
 import { RRCScoreScene } from './RRC/Scene/RRCScoreScene';
+import { RESTState, ResultErrorType, sendStateRequest } from './external/RESTApi';
 
 //
 // init all components for a simulation
@@ -18,6 +19,17 @@ const blocklyDebugManager = new BlocklyDebug(cyberspace)
 
 UIManager.simSpeedUpButton.setState("fastForward")
 UIManager.showScoreButton.setState("showScore")
+
+
+sendStateRequest(res => {
+	if(res && res.error == ResultErrorType.NONE) {
+		const result: RESTState = <RESTState><any>(res!.result);
+		if(result.uploadEnabled) {
+			$('#head-navigation-upload').css('display', 'inline');
+		}
+	}
+})
+
 
 cyberspace.eventManager
 	.onStartPrograms(() => UIManager.programControlButton.setState("stop"))

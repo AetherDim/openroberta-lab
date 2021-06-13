@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyberspace", "./BlocklyDebug", "./UIManager", "interpreter.jsHelper", "./RRC/Scene/RRCScoreScene", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneDesciptorList_1, Cyberspace_1, BlocklyDebug_1, UIManager_1, interpreter_jsHelper_1, RRCScoreScene_1) {
+define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyberspace", "./BlocklyDebug", "./UIManager", "interpreter.jsHelper", "./RRC/Scene/RRCScoreScene", "./external/RESTApi", "./pixijs", "./ExtendedMatter"], function (require, exports, SceneDesciptorList_1, Cyberspace_1, BlocklyDebug_1, UIManager_1, interpreter_jsHelper_1, RRCScoreScene_1, RESTApi_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setSimSpeed = exports.zoomReset = exports.zoomOut = exports.zoomIn = exports.score = exports.sim = exports.nextScene = exports.selectScene = exports.getScenes = exports.cancel = exports.interpreterAddEvent = exports.endDebugging = exports.updateDebugMode = exports.resetPose = exports.setInfo = exports.importImage = exports.stopProgram = exports.run = exports.setPause = exports.getNumRobots = exports.init = void 0;
@@ -31,6 +31,14 @@ define(["require", "exports", "./external/SceneDesciptorList", "./Cyberspace/Cyb
     var blocklyDebugManager = new BlocklyDebug_1.BlocklyDebug(cyberspace);
     UIManager_1.UIManager.simSpeedUpButton.setState("fastForward");
     UIManager_1.UIManager.showScoreButton.setState("showScore");
+    RESTApi_1.sendStateRequest(function (res) {
+        if (res && res.error == RESTApi_1.ResultErrorType.NONE) {
+            var result = (res.result);
+            if (result.uploadEnabled) {
+                $('#head-navigation-upload').css('display', 'inline');
+            }
+        }
+    });
     cyberspace.eventManager
         .onStartPrograms(function () { return UIManager_1.UIManager.programControlButton.setState("stop"); })
         .onStopPrograms(function () { return UIManager_1.UIManager.programControlButton.setState("start"); })
