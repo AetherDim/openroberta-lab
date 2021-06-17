@@ -21,6 +21,19 @@ define(["require", "exports"], function (require, exports) {
                 }
             });
         };
+        RobotTester.prototype.setWheelsPseudoPhysicsParameters = function (options) {
+            var _this = this;
+            this.robot.wheelsList.forEach(function (wheel) {
+                if (wheel !== _this.robot.leftDrivingWheel && wheel !== _this.robot.rightDrivingWheel) {
+                    wheel.pseudoRollingFriction = options.otherWheels.rollingFriction;
+                    wheel.slideFriction = options.otherWheels.slideFriction;
+                }
+                else {
+                    wheel.slideFriction = options.driveWheels.slideFriction;
+                    wheel.slideFriction = options.driveWheels.slideFriction;
+                }
+            });
+        };
         return RobotTester;
     }());
     exports.RobotTester = RobotTester;
