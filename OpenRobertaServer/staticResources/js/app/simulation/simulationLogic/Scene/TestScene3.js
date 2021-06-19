@@ -19,26 +19,17 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
     exports.TestScene3 = void 0;
     var KeyData = /** @class */ (function () {
         function KeyData() {
-            this.usePseudoPhysics = [true];
             // (0.05, 0.5, 0.05)
             this.rollingFriction = Util_1.Util.closedRange(0.03, 0.03, 0.1);
             // (0.05, 1.0, 0.05)
             this.slideFriction = Util_1.Util.closedRange(0.3, 0.3, 0.1);
             this.otherRollingFriction = Util_1.Util.closedRange(0.03, 0.03, 0.01);
             this.otherSlideFriction = Util_1.Util.closedRange(0.05, 0.05, 0.01);
-            this.programType = ["driveForward"];
-            this.driveForwardSpeed = true ? [100] : Util_1.Util.range(60, 100, 1);
-            this.driveForwardDistance = true ? [1] : Util_1.Util.range(0, 2.0, 0.04);
-            this.rotateSpeed = true ? [100] : Util_1.Util.closedRange(1, 100, 1);
-            this.rotateAngle = true ? [360] : Util_1.Util.closedRange(0, 360, 10);
+            // driveForwardSpeed = Util.range(60, 100, 1)
+            // driveForwardDistance = Util.range(0, 2.0, 0.04)
+            this.rotateSpeed = Util_1.Util.closedRange(1, 100, 1);
+            this.rotateAngle = Util_1.Util.closedRange(0, 360, 10);
             this.directionRight = [true];
-            this.maxForceControlEncoderDifference = Util_1.Util.closedRange(0, 5, 0.2);
-            this.encoderAngleDampingFactor = Util_1.Util.closedRange(0, 40, 2);
-            this.pseudoMotorTorqueMultiplier = Util_1.Util.closedRange(1, 20, 2);
-            this.pseudoRollingFriction = [2.0];
-            this.pseudoSlideFriction = [2.0];
-            this.otherPseudoRollingFriction = [2.0];
-            this.otherPseudoSlideFriction = [2.0];
         }
         return KeyData;
     }());
@@ -93,7 +84,7 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             /**
              * A timeout for this simulation test in internal simulation time
              */
-            _this.simulationTestTimeout = 50.0;
+            _this.simulationTestTimeout = 300.0;
             /**
              * Time since start of test in sections
              */
@@ -191,33 +182,10 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
                         slideFriction: tuple.otherSlideFriction
                     }
                 });
-                this.robotTester.setWheelsPseudoPhysicsParameters({
-                    driveWheels: {
-                        rollingFriction: tuple.pseudoRollingFriction,
-                        slideFriction: tuple.pseudoSlideFriction
-                    },
-                    otherWheels: {
-                        rollingFriction: tuple.otherPseudoRollingFriction,
-                        slideFriction: tuple.otherPseudoSlideFriction
-                    }
-                });
-                if (tuple.usePseudoPhysics) {
-                    this.robot.calibrationParameters = {
-                        rotationAngleFactor: 1,
-                        driveForwardDistanceFactor: 1
-                    };
-                }
-                else {
-                    this.robot.calibrationParameters = Robot_1.Robot.realPhysicsCalibrationParameters;
-                }
-                this.robot.pseudoMotorTorqueMultiplier = tuple.pseudoMotorTorqueMultiplier;
-                this.robot.endEncoderSettings.maxForceControlEncoderDifference = tuple.maxForceControlEncoderDifference;
-                this.robot.endEncoderSettings.encoderAngleDampingFactor = tuple.encoderAngleDampingFactor;
                 var programs = [
                     RobotProgramGenerator_1.RobotProgramGenerator.generateProgram([
-                        tuple.programType == "driveForward"
-                            ? RobotProgramGenerator_1.RobotProgramGenerator.driveForwardOpCodes(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-                            : RobotProgramGenerator_1.RobotProgramGenerator.rotateOpCodes(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
+                        // RobotProgramGenerator.driveForwardOpCodes(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+                        RobotProgramGenerator_1.RobotProgramGenerator.rotateOpCodes(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
                     ])
                 ];
                 this.getProgramManager().setPrograms(programs);

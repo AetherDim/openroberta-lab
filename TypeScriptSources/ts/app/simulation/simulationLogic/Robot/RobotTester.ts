@@ -29,16 +29,4 @@ export class RobotTester {
 
 	}
 
-	setWheelsPseudoPhysicsParameters(options: { driveWheels: WheelFriction, otherWheels: WheelFriction}) {
-		this.robot.wheelsList.forEach(wheel => {
-			if (wheel !== this.robot.leftDrivingWheel && wheel !== this.robot.rightDrivingWheel) {
-				wheel.pseudoRollingFriction = options.otherWheels.rollingFriction
-				wheel.slideFriction = options.otherWheels.slideFriction
-			} else {
-				wheel.slideFriction = options.driveWheels.slideFriction
-				wheel.slideFriction = options.driveWheels.slideFriction
-			}
-		})
-	}
-
 }

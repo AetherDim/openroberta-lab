@@ -285,50 +285,6 @@ export class Wheel extends DrawablePhysicsEntity<PIXI.Container> {
 		this.wheelAngle += this.angularVelocity * dt
 	}
 
-	slippingFactor = 0.1
-	pseudoSlideFriction = 2.0
-	pseudoRollingFriction = 2.0
-
-	frictionFunction(friction: number): number {
-		return friction//this.customFunction(friction, 0.01)
-	}
-
-	pseudoPhysicsUpdate(dt: number) {
-
-		const wheel = this.physicsBody
-
-		const vec = wheel.vectorAlongBody()
-		const orthVec: Vector = {x: -vec.y, y: vec.x}
-		const velocityAlong = Vector.dot(wheel.velocity, vec)
-		const velocityOrthogonal = Vector.dot(wheel.velocity, orthVec)
-		const velocityWheelEdge = this.angularVelocity * this.wheelRadius
-
-		const torque = this.torque
-		const forwardForce = torque / this.wheelRadius
-
-		const alongForceVec = Vector.mult(orthVec, -this.pseudoSlideFriction*velocityOrthogonal)
-		const orthSlideFrictionForceVec = Vector.mult(vec, this.frictionFunction(
-			-this.pseudoRollingFriction*velocityAlong
-			+ (-this.pseudoSlideFriction)*(velocityAlong - velocityWheelEdge)
-			+ forwardForce
-				//* Math.abs(forwardForce)
-				//* this.customFunction(this.pseudoSpeedControllerVelocity - velocityWheelEdge, 0.1)
-		))
-
-		// apply forces
-		this._wheelForceVector = Util.vectorAdd(alongForceVec, orthSlideFrictionForceVec)
-		Body.applyForce(wheel, wheel.position, this._wheelForceVector)
-
-		// angularVelocity * this.wheelRadius = velocity
-		this.angularVelocity = velocityAlong / this.wheelRadius
-		this.wheelAngle += this.angularVelocity * dt
-
-		// reset torque and normalForce
-		this.torque = 0.0
-		this.normalForce = 0.0
-
-		this.updateWheelProfile()
-	}
 
 	_addDebugGui(gui: GUI) {
 		gui.add(this, 'rollingFriction', 0)
