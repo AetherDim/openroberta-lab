@@ -29,6 +29,11 @@ export const sensorTypeStrings =  ["TOUCH", "GYRO", "COLOR", "ULTRASONIC", "INF
 ] as const
 export type SensorType = typeof sensorTypeStrings[number]
 
+interface RobotCalibration {
+	readonly rotationAngleFactor: number
+	readonly driveForwardDistanceFactor: number
+}
+
 export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompositeEntity {
 
 	/**
@@ -58,6 +63,9 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	 * The list of all wheels
 	 */
 	physicsWheelsList: Body[]
+
+	usePseudoWheelPhysics = false
+	pseudoMotorTorqueMultiplier = 6.0
 
 	updateSensorGraphics = true
 
@@ -97,7 +105,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	/**
 	 * Settings for the usage of `endEncoder`
 	 */
-	private endEncoderSettings = {
+	endEncoderSettings = {
 		/**
 		 * Maximum encoder angle difference in radians.
 		 * End condition: `abs(encoder - endEncoder) < angleAccuracy`
@@ -113,13 +121,14 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		 * `Util.continuousSign(encoderDiff, maxForceControlEncoderDifference)`
 		 * as multiplier to the maximum force.
 		 */
-		maxForceControlEncoderDifference: 0.2
+		maxForceControlEncoderDifference: 0.2,
+		/**
+		 * The factor before the angular velocity in the force calculation
+		 */
+		encoderAngleDampingFactor: 0
 	}
 
-	/**
-	 * For given value `vGiven` calculate the actual one `v = vGiven * factor`
-	 */
-	private calibrationParameters = {
+	static readonly realPhysicsCalibrationParameters = {
 		/**
 		 * Works for all speeds with an error of ±1.2%
 		 */
@@ -128,7 +137,12 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		 * Valid for motor force below 84%. At 100% the error is about 10%.
 		 */
 		driveForwardDistanceFactor: 0.76
-	}
+	} as const
+
+	/**
+	 * For given value `vGiven` calculate the actual one `v = vGiven * factor`
+	 */
+	calibrationParameters: RobotCalibration = Robot.realPhysicsCalibrationParameters
 
 	private timeSinceProgramStart = 0
 
@@ -185,19 +199,35 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			pos.addUpdatable('y', () => this.body.position.x)
 
 			robotFolder.add(this, "transferWheelForcesToRobotBody")
+			robotFolder.add(this, "pseudoMotorTorqueMultiplier", 1, 20)
+			robotFolder.add(this, "usePseudoWheelPhysics")
 
 			const wheelFolder = robotFolder.addFolder('Wheels')
 
 			wheelFolder.add(this.endEncoderSettings, "maxAngleDifference", 0, 0.3)
 			wheelFolder.add(this.endEncoderSettings, "maxAngularVelocity", 0, 0.3)
-			wheelFolder.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 0.3)
+			wheelFolder.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 3)
+			wheelFolder.add(this.endEncoderSettings, "encoderAngleDampingFactor", 0, 100)
+
 
 			const control = {
 				alongStepFunctionWidth: 0.1,
 				orthStepFunctionWidth: 0.1,
 				rollingFriction: this.wheelsList[0].rollingFriction,
-				slideFriction: this.wheelsList[0].slideFriction
+				slideFriction: this.wheelsList[0].slideFriction,
+				pseudoSlideFriction: this.wheelsList[0].pseudoSlideFriction,
+				pseudoRollingFriction: this.wheelsList[0].pseudoRollingFriction
 			}
+
+			robotFolder.add(control, 'pseudoSlideFriction', 0, 10).onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.pseudoSlideFriction = value)
+				robotFolder.updateDisplay()
+			})
+
+			robotFolder.add(control, 'pseudoRollingFriction', 0, 10).onChange(value => {
+				this.wheelsList.forEach(wheel => wheel.pseudoRollingFriction = value)
+				robotFolder.updateDisplay()
+			})
 
 			wheelFolder.add(control, 'alongStepFunctionWidth', 0, 0.1).onChange(value => {
 				this.wheelsList.forEach(wheel => wheel.alongStepFunctionWidth = value)
@@ -532,7 +562,11 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		const robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length
 		this.wheelsList.forEach(wheel => {
 			wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration)
-			wheel.update(dt)
+			if (this.usePseudoWheelPhysics) {
+				wheel.pseudoPhysicsUpdate(dt)
+			} else {
+				wheel.update(dt)
+			}
 			if (this.transferWheelForcesToRobotBody) {
 				const force = wheel._wheelForceVector
 				Body.applyForce(wheel.physicsBody, wheel.physicsBody.position, Vector.neg(force))
@@ -614,8 +648,11 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 				t.needsNewCommands = true
 			} else {
 				const maxDifference = t.endEncoderSettings.maxForceControlEncoderDifference
-				t.leftForce = Util.continuousSign(encoderDifference.left, maxDifference) * Math.abs(speedLeft)
-				t.rightForce = Util.continuousSign(encoderDifference.right, maxDifference) * Math.abs(speedRight)
+				const dampingFactor = t.endEncoderSettings.encoderAngleDampingFactor
+				t.leftForce = Util.continuousSign(
+					encoderDifference.left - t.leftDrivingWheel.angularVelocity * dampingFactor * dt, maxDifference) * Math.abs(speedLeft)
+				t.rightForce = Util.continuousSign(
+					encoderDifference.right - t.rightDrivingWheel.angularVelocity * dampingFactor * dt, maxDifference) * Math.abs(speedRight)
 			}
 		}
 
@@ -695,6 +732,10 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			}
 		}
 
+		if (this.usePseudoWheelPhysics) {
+			this.leftForce *= this.pseudoMotorTorqueMultiplier
+			this.rightForce *= this.pseudoMotorTorqueMultiplier
+		}
 		this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), this.leftForce)
 		this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor.EV3(this.scene.unit), this.rightForce)
 

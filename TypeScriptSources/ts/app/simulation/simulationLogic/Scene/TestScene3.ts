@@ -17,6 +17,9 @@ import { Scene } from "./Scene";
 
 
 class KeyData {
+
+	usePseudoPhysics = [true]
+
 	// (0.05, 0.5, 0.05)
 	rollingFriction = Util.closedRange(0.03, 0.03, 0.1)
 	// (0.05, 1.0, 0.05)
@@ -25,11 +28,23 @@ class KeyData {
 	otherRollingFriction = Util.closedRange(0.03, 0.03, 0.01)
 	otherSlideFriction = Util.closedRange(0.05, 0.05, 0.01)
 
-	// driveForwardSpeed = Util.range(60, 100, 1)
-	// driveForwardDistance = Util.range(0, 2.0, 0.04)
-	rotateSpeed = Util.closedRange(1, 100, 1)
-	rotateAngle = Util.closedRange(0, 360, 10)
+	programType: ("driveForward" | "rotate")[] = ["driveForward"]
+
+	driveForwardSpeed = true ? [100] : Util.range(60, 100, 1)
+	driveForwardDistance = true ? [1] : Util.range(0, 2.0, 0.04)
+	rotateSpeed = true ? [100] : Util.closedRange(1, 100, 1)
+	rotateAngle = true ? [360] : Util.closedRange(0, 360, 10)
 	directionRight = [true]
+
+	maxForceControlEncoderDifference = Util.closedRange(0, 5, 0.2)
+	encoderAngleDampingFactor = Util.closedRange(0, 40, 2)
+	pseudoMotorTorqueMultiplier = Util.closedRange(1, 20, 2)
+
+	pseudoRollingFriction = [2.0]
+	pseudoSlideFriction = [2.0]
+
+	otherPseudoRollingFriction = [2.0]
+	otherPseudoSlideFriction = [2.0]
 }
 
 class ValueHelper<T, C> {
@@ -112,7 +127,7 @@ export class TestScene3 extends Scene {
 	/**
 	 * A timeout for this simulation test in internal simulation time
 	 */
-	simulationTestTimeout = 300.0
+	simulationTestTimeout = 50.0
 
 	/**
 	 * Time since start of test in sections
@@ -251,13 +266,34 @@ export class TestScene3 extends Scene {
 					slideFriction: tuple.otherSlideFriction
 				}
 			})
-
+			this.robotTester.setWheelsPseudoPhysicsParameters({
+				driveWheels: {
+					rollingFriction: tuple.pseudoRollingFriction,
+					slideFriction: tuple.pseudoSlideFriction
+				},
+				otherWheels: {
+					rollingFriction: tuple.otherPseudoRollingFriction,
+					slideFriction: tuple.otherPseudoSlideFriction
+				}
+			})
+			if (tuple.usePseudoPhysics) {
+				this.robot.calibrationParameters = {
+					rotationAngleFactor: 1,
+					driveForwardDistanceFactor: 1
+				}
+			} else {
+				this.robot.calibrationParameters = Robot.realPhysicsCalibrationParameters
+			}
+			this.robot.pseudoMotorTorqueMultiplier = tuple.pseudoMotorTorqueMultiplier
+			this.robot.endEncoderSettings.maxForceControlEncoderDifference = tuple.maxForceControlEncoderDifference
+			this.robot.endEncoderSettings.encoderAngleDampingFactor = tuple.encoderAngleDampingFactor
 
 			const programs: RobotProgram[] =
 				[
 					RobotProgramGenerator.generateProgram([
-						// RobotProgramGenerator.driveForwardOpCodes(tuple.driveForwardSpeed, tuple.driveForwardDistance)
-						RobotProgramGenerator.rotateOpCodes(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
+						tuple.programType == "driveForward"
+							? RobotProgramGenerator.driveForwardOpCodes(tuple.driveForwardSpeed, tuple.driveForwardDistance)
+							: RobotProgramGenerator.rotateOpCodes(tuple.rotateSpeed, tuple.rotateAngle, tuple.directionRight)
 					])
 				]
 			this.getProgramManager().setPrograms(programs)

@@ -35,6 +35,7 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
                 resizeTo: resizeTo || undefined,
                 autoDensity: true,
                 resolution: Util_1.Util.getPixelRatio(),
+                forceCanvas: true
             });
             // add mouse/touch control
             this.scrollView = new ScrollView_1.ScrollView(this.app.stage, this.app.renderer);
