@@ -57,6 +57,7 @@ export class SceneRender {
 				resizeTo: resizeTo || undefined,
 				autoDensity: true,
 				resolution: Util.getPixelRatio(),
+				forceCanvas: true
 			}
 		);
 
