@@ -37,6 +37,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
     ];
     var Robot = /** @class */ (function () {
         function Robot(robot) {
+            this.usePseudoWheelPhysics = false;
+            this.pseudoMotorTorqueMultiplier = 6.0;
             this.updateSensorGraphics = true;
             /**
              * The color sensors of the robot where the key is the port.
@@ -79,21 +81,16 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                  * `Util.continuousSign(encoderDiff, maxForceControlEncoderDifference)`
                  * as multiplier to the maximum force.
                  */
-                maxForceControlEncoderDifference: 0.2
+                maxForceControlEncoderDifference: 0.2,
+                /**
+                 * The factor before the angular velocity in the force calculation
+                 */
+                encoderAngleDampingFactor: 0
             };
             /**
              * For given value `vGiven` calculate the actual one `v = vGiven * factor`
              */
-            this.calibrationParameters = {
-                /**
-                 * Works for all speeds with an error of ±1.2%
-                 */
-                rotationAngleFactor: 0.6333,
-                /**
-                 * Valid for motor force below 84%. At 100% the error is about 10%.
-                 */
-                driveForwardDistanceFactor: 0.76
-            };
+            this.calibrationParameters = Robot.realPhysicsCalibrationParameters;
             this.timeSinceProgramStart = 0;
             /**
              * robot type
@@ -143,21 +140,34 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var _this_1 = this;
             var DebugGui = this.scene.getDebugGuiDynamic();
             if (DebugGui) {
-                var robotFolder = DebugGui.addFolder('Robot');
-                var pos = robotFolder.addFolder('Position');
+                var robotFolder_1 = DebugGui.addFolder('Robot');
+                var pos = robotFolder_1.addFolder('Position');
                 pos.addUpdatable('x', function () { return _this_1.body.position.x; });
                 pos.addUpdatable('y', function () { return _this_1.body.position.x; });
-                robotFolder.add(this, "transferWheelForcesToRobotBody");
-                var wheelFolder_1 = robotFolder.addFolder('Wheels');
+                robotFolder_1.add(this, "transferWheelForcesToRobotBody");
+                robotFolder_1.add(this, "pseudoMotorTorqueMultiplier", 1, 20);
+                robotFolder_1.add(this, "usePseudoWheelPhysics");
+                var wheelFolder_1 = robotFolder_1.addFolder('Wheels');
                 wheelFolder_1.add(this.endEncoderSettings, "maxAngleDifference", 0, 0.3);
                 wheelFolder_1.add(this.endEncoderSettings, "maxAngularVelocity", 0, 0.3);
-                wheelFolder_1.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 0.3);
+                wheelFolder_1.add(this.endEncoderSettings, "maxForceControlEncoderDifference", 0, 3);
+                wheelFolder_1.add(this.endEncoderSettings, "encoderAngleDampingFactor", 0, 100);
                 var control = {
                     alongStepFunctionWidth: 0.1,
                     orthStepFunctionWidth: 0.1,
                     rollingFriction: this.wheelsList[0].rollingFriction,
-                    slideFriction: this.wheelsList[0].slideFriction
+                    slideFriction: this.wheelsList[0].slideFriction,
+                    pseudoSlideFriction: this.wheelsList[0].pseudoSlideFriction,
+                    pseudoRollingFriction: this.wheelsList[0].pseudoRollingFriction
                 };
+                robotFolder_1.add(control, 'pseudoSlideFriction', 0, 10).onChange(function (value) {
+                    _this_1.wheelsList.forEach(function (wheel) { return wheel.pseudoSlideFriction = value; });
+                    robotFolder_1.updateDisplay();
+                });
+                robotFolder_1.add(control, 'pseudoRollingFriction', 0, 10).onChange(function (value) {
+                    _this_1.wheelsList.forEach(function (wheel) { return wheel.pseudoRollingFriction = value; });
+                    robotFolder_1.updateDisplay();
+                });
                 wheelFolder_1.add(control, 'alongStepFunctionWidth', 0, 0.1).onChange(function (value) {
                     _this_1.wheelsList.forEach(function (wheel) { return wheel.alongStepFunctionWidth = value; });
                     wheelFolder_1.updateDisplay();
@@ -407,7 +417,12 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             var robotBodyGravitationalForce = gravitationalAcceleration * this.body.mass / this.wheelsList.length;
             this.wheelsList.forEach(function (wheel) {
                 wheel.applyNormalForce(robotBodyGravitationalForce + wheel.physicsBody.mass * gravitationalAcceleration);
-                wheel.update(dt);
+                if (_this_1.usePseudoWheelPhysics) {
+                    wheel.pseudoPhysicsUpdate(dt);
+                }
+                else {
+                    wheel.update(dt);
+                }
                 if (_this_1.transferWheelForcesToRobotBody) {
                     var force = wheel._wheelForceVector;
                     matter_js_1.Body.applyForce(wheel.physicsBody, wheel.physicsBody.position, matter_js_1.Vector.neg(force));
@@ -481,8 +496,9 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                 }
                 else {
                     var maxDifference = t.endEncoderSettings.maxForceControlEncoderDifference;
-                    t.leftForce = Util_1.Util.continuousSign(encoderDifference.left, maxDifference) * Math.abs(speedLeft);
-                    t.rightForce = Util_1.Util.continuousSign(encoderDifference.right, maxDifference) * Math.abs(speedRight);
+                    var dampingFactor = t.endEncoderSettings.encoderAngleDampingFactor;
+                    t.leftForce = Util_1.Util.continuousSign(encoderDifference.left - t.leftDrivingWheel.angularVelocity * dampingFactor * dt, maxDifference) * Math.abs(speedLeft);
+                    t.rightForce = Util_1.Util.continuousSign(encoderDifference.right - t.rightDrivingWheel.angularVelocity * dampingFactor * dt, maxDifference) * Math.abs(speedRight);
                 }
             }
             var driveData = this.robotBehaviour.drive;
@@ -561,6 +577,10 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
                     }
                     this.rightForce = right * maxForce;
                 }
+            }
+            if (this.usePseudoWheelPhysics) {
+                this.leftForce *= this.pseudoMotorTorqueMultiplier;
+                this.rightForce *= this.pseudoMotorTorqueMultiplier;
             }
             this.leftDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), this.leftForce);
             this.rightDrivingWheel.applyTorqueFromMotor(ElectricMotor_1.ElectricMotor.EV3(this.scene.unit), this.rightForce);
@@ -1060,6 +1080,16 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             });
             robot.addLED(new RobotLED_1.RobotLED(scene.unit, { x: 0, y: 0 }, 0.01));
             return robot;
+        };
+        Robot.realPhysicsCalibrationParameters = {
+            /**
+             * Works for all speeds with an error of ±1.2%
+             */
+            rotationAngleFactor: 0.6333,
+            /**
+             * Valid for motor force below 84%. At 100% the error is about 10%.
+             */
+            driveForwardDistanceFactor: 0.76
         };
         return Robot;
     }());
