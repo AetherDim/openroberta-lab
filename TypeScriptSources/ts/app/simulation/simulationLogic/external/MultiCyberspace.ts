@@ -509,6 +509,8 @@ export function initEvents() {
 				scene.showScoreScreen(visible)
 			}
 		})
+		// set to "start" state since the simulation is paused
+		UIManager.physicsSimControlButton.setState("start")
 	})
 
 	UIManager.physicsSimControlButton.onClick(state =>

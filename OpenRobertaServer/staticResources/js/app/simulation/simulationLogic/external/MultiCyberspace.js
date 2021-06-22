@@ -441,6 +441,8 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
                     scene.showScoreScreen(visible);
                 }
             });
+            // set to "start" state since the simulation is paused
+            UIManager_1.UIManager.physicsSimControlButton.setState("start");
         });
         UIManager_1.UIManager.physicsSimControlButton.onClick(function (state) {
             return sim(state == "start");
