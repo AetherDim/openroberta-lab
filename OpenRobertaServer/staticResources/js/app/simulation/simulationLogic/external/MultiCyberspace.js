@@ -53,9 +53,23 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             }
         });
     }
+    function setCSSnoUserDragAndSelect(style) {
+        // no text selection
+        // see https://stackoverflow.com/questions/3779534/how-do-i-disable-text-selection-with-css-or-javascript
+        style.setProperty("-webkit-touch-callout", "none"); /* iOS Safari */
+        style.setProperty("-webkit-user-select", "none"); /* Safari */
+        style.setProperty("-khtml-user-select", "none"); /* Konqueror HTML */
+        style.setProperty("-moz-user-select", "none"); /* Firefox */
+        style.setProperty("-ms-user-select", "none"); /* Internet Explorer/Edge */
+        style.setProperty("user-select", "none"); /* Non-prefixed version, currently supported by Chrome and Opera */
+        // no text dragging
+        style.setProperty("user-drag", "none");
+        style.setProperty("-webkit-user-drag", "none");
+    }
     function createCyberspaceData(sceneID, groupName, programID) {
         var canvas = document.createElement("canvas");
         var cyberspaceDiv = document.createElement("div");
+        setCSSnoUserDragAndSelect(cyberspaceDiv.style);
         cyberspaceDiv.appendChild(canvas);
         var groupNameDiv = document.createElement("div");
         groupNameDiv.style.position = "absolute";
@@ -441,6 +455,8 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
                     scene.showScoreScreen(visible);
                 }
             });
+            // set to "start" state since the simulation is paused
+            UIManager_1.UIManager.physicsSimControlButton.setState("start");
         });
         UIManager_1.UIManager.physicsSimControlButton.onClick(function (state) {
             return sim(state == "start");
