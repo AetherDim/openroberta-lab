@@ -48,9 +48,24 @@ function everyScoreSceneIsFinished(): boolean {
 	})
 }
 
+function setCSSnoUserDragAndSelect(style: CSSStyleDeclaration) {
+	// no text selection
+	// see https://stackoverflow.com/questions/3779534/how-do-i-disable-text-selection-with-css-or-javascript
+	style.setProperty("-webkit-touch-callout", "none") /* iOS Safari */
+	style.setProperty("-webkit-user-select", "none") /* Safari */
+	style.setProperty("-khtml-user-select", "none") /* Konqueror HTML */
+	style.setProperty("-moz-user-select", "none") /* Firefox */
+	style.setProperty("-ms-user-select", "none") /* Internet Explorer/Edge */
+	style.setProperty("user-select", "none") /* Non-prefixed version, currently supported by Chrome and Opera */
+	// no text dragging
+	style.setProperty("user-drag", "none")
+	style.setProperty("-webkit-user-drag", "none")
+}
+
 function createCyberspaceData(sceneID: string, groupName: string, programID?: number): CyberspaceData {
 	const canvas = document.createElement("canvas")
 	const cyberspaceDiv = document.createElement("div")
+	setCSSnoUserDragAndSelect(cyberspaceDiv.style)
 	cyberspaceDiv.appendChild(canvas)
 
 	const groupNameDiv = document.createElement("div")
