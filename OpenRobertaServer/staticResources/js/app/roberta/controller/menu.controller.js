@@ -1,7 +1,7 @@
 define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socket.controller', 'user.controller', 'user.model', 'notification.controller','userGroup.controller' ,'guiState.controller',
         'program.controller', 'program.model', 'multSim.controller', 'progRun.controller', 'configuration.controller', 'import.controller', 'enjoyHint',
-        'tour.controller', 'simulation.simulation', 'progList.model', 'jquery', 'blockly', 'slick' ], function(exports, LOG, UTIL, MSG, COMM, ROBOT_C, SOCKET_C,
-        USER_C, USER,NOTIFICATION_C, USERGROUP_C, GUISTATE_C, PROGRAM_C, PROGRAM_M, MULT_SIM, RUN_C, CONFIGURATION_C, IMPORT_C, EnjoyHint, TOUR_C, SIM, PROGLIST, $, Blockly) {
+        'tour.controller', 'simulation.simulation', 'progList.model', 'jquery', 'blockly', 'slick', 'GlobalDebug' ], function(exports, LOG, UTIL, MSG, COMM, ROBOT_C, SOCKET_C,
+        USER_C, USER,NOTIFICATION_C, USERGROUP_C, GUISTATE_C, PROGRAM_C, PROGRAM_M, MULT_SIM, RUN_C, CONFIGURATION_C, IMPORT_C, EnjoyHint, TOUR_C, SIM, PROGLIST, $, Blockly, slick, GlobalDebug) {
 
     var n = 0;
 
@@ -427,7 +427,10 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
             case 'menuSubmitSolution':
                 var form = document.createElement("form");
                 form.setAttribute("method", "post");
-                form.setAttribute("action", "https://my.roborave.de/submitSolution.php");
+                form.setAttribute("action",
+                    GlobalDebug.DEBUG ?
+                        "https://my-dev.roborave.de/submitSolution.php" :
+                        "https://my.roborave.de/submitSolution.php");
                 form.setAttribute("target", "view");
                 var hiddenField = document.createElement("input");
                 hiddenField.setAttribute("type", "hidden");

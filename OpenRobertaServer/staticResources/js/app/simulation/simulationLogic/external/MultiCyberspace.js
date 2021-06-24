@@ -66,7 +66,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         style.setProperty("user-drag", "none");
         style.setProperty("-webkit-user-drag", "none");
     }
-    function createCyberspaceData(sceneID, groupName, programID) {
+    function createCyberspaceData(sceneID, groupName, programID, secretKey) {
         var canvas = document.createElement("canvas");
         var cyberspaceDiv = document.createElement("div");
         setCSSnoUserDragAndSelect(cyberspaceDiv.style);
@@ -103,7 +103,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
                     }
                     didSendSetScoreRequest = true;
                     RESTApi_1.sendSetScoreRequest({
-                        secret: { secret: "" },
+                        secret: { secret: secretKey },
                         programID: programID,
                         score: Math.round(scoreScene.score),
                         // maximum signed int32 (2^32 - 1)
@@ -161,12 +161,13 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
     };
     var debug = GlobalDebug_1.DebugGuiRoot;
     if (debug != undefined) {
+        var secretKey_1 = "";
         debug.addButton("Reset and close debug GUI", function () {
-            loadScenes(generateRandomMultiSetupData(sceneCount));
+            loadScenes(generateRandomMultiSetupData(sceneCount), secretKey_1);
             GlobalDebug_1.DebugGuiRoot === null || GlobalDebug_1.DebugGuiRoot === void 0 ? void 0 : GlobalDebug_1.DebugGuiRoot.close();
         });
         debug.addButton("Reset", function () {
-            loadScenes(generateRandomMultiSetupData(sceneCount));
+            loadScenes(generateRandomMultiSetupData(sceneCount), secretKey_1);
         });
     }
     function generateDebugRobertaRobotSetupData(count) {
@@ -226,7 +227,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             });
         });
     }
-    function loadScenesFromRequest(result) {
+    function loadScenesFromRequest(result, secretKey) {
         if (!result) {
             alert("Program request failed");
             return;
@@ -275,7 +276,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
                             }
                             return undefined;
                         });
-                        loadScenes(setupDataList);
+                        loadScenes(setupDataList, secretKey);
                     }
                 });
             });
@@ -297,7 +298,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
     function startPrograms() {
         cyberspaces.forEach(function (cyberspace) { return cyberspace.startPrograms(); });
     }
-    function loadScenes(setupDataList) {
+    function loadScenes(setupDataList, secretKey) {
         var _a;
         // clear complete debug
         GlobalDebug_1.clearDebugGuiRoot();
@@ -306,16 +307,16 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
         if (debug != undefined) {
             debug.addButton("Add scene", function () {
                 sceneCount += 1;
-                loadScenes(generateRandomMultiSetupData(sceneCount));
+                loadScenes(generateRandomMultiSetupData(sceneCount), secretKey);
             });
             debug.addButton("Remove scene", function () {
                 if (sceneCount > 0) {
                     sceneCount -= 1;
-                    loadScenes(generateRandomMultiSetupData(sceneCount));
+                    loadScenes(generateRandomMultiSetupData(sceneCount), secretKey);
                 }
             });
             debug.addButton("Reload", function () {
-                loadScenes(generateRandomMultiSetupData(sceneCount));
+                loadScenes(generateRandomMultiSetupData(sceneCount), secretKey);
             });
             debug.addButton("Start programs", function () {
                 startPrograms();
@@ -324,7 +325,7 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             debug.add(aspectRatio, "scene", 0.1, 2);
         }
         var cyberspaceDataList = setupDataList.map(function (setupData) {
-            var cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName, setupData.programID);
+            var cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName, setupData.programID, secretKey);
             cyberspaceData.cyberspace.getScene().runAfterLoading(function () {
                 cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], ""); // TODO: Robot type???
             });
@@ -376,9 +377,9 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
     // called only once
     function init(robotSetupDataIDs, secretKey) {
         RESTApi_1.sendProgramRequest({
-            secret: { secret: '' },
+            secret: { secret: secretKey },
             programs: robotSetupDataIDs
-        }, loadScenesFromRequest);
+        }, function (request) { return loadScenesFromRequest(request, secretKey); });
     }
     exports.init = init;
     function forEachCyberspace(block) {

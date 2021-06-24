@@ -62,7 +62,7 @@ function setCSSnoUserDragAndSelect(style: CSSStyleDeclaration) {
 	style.setProperty("-webkit-user-drag", "none")
 }
 
-function createCyberspaceData(sceneID: string, groupName: string, programID?: number): CyberspaceData {
+function createCyberspaceData(sceneID: string, groupName: string, programID: number | undefined, secretKey: string): CyberspaceData {
 	const canvas = document.createElement("canvas")
 	const cyberspaceDiv = document.createElement("div")
 	setCSSnoUserDragAndSelect(cyberspaceDiv.style)
@@ -101,7 +101,7 @@ function createCyberspaceData(sceneID: string, groupName: string, programID?: nu
 					}
 					didSendSetScoreRequest = true
 					sendSetScoreRequest({
-						secret: {secret: ""},
+						secret: {secret: secretKey },
 						programID: programID,
 						score: Math.round(scoreScene.score),
 						// maximum signed int32 (2^32 - 1)
@@ -167,12 +167,13 @@ const aspectRatio = {
 
 const debug = DebugGuiRoot
 if (debug != undefined) {
+	const secretKey = ""
 	debug.addButton("Reset and close debug GUI", () => {
-		loadScenes(generateRandomMultiSetupData(sceneCount))
+		loadScenes(generateRandomMultiSetupData(sceneCount), secretKey)
 		DebugGuiRoot?.close()
 	})
 	debug.addButton("Reset", () => {
-		loadScenes(generateRandomMultiSetupData(sceneCount))
+		loadScenes(generateRandomMultiSetupData(sceneCount), secretKey)
 	})
 }
 
@@ -257,7 +258,7 @@ function loadProgramFromXML(name: string, xml: string, callback: (setupData: Rob
 	})
 }
 
-function loadScenesFromRequest(result?: ProgramsRequestResult) {
+function loadScenesFromRequest(result: ProgramsRequestResult | undefined, secretKey: string) {
 
 	if(!result) {
 		alert("Program request failed")
@@ -314,8 +315,7 @@ function loadScenesFromRequest(result?: ProgramsRequestResult) {
 					})
 
 
-
-					loadScenes(setupDataList)
+					loadScenes(setupDataList, secretKey)
 				}
 			})
 		})
@@ -341,7 +341,7 @@ function startPrograms() {
 	cyberspaces.forEach(cyberspace => cyberspace.startPrograms())
 }
 
-function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
+function loadScenes(setupDataList: MultiCyberspaceSetupData[], secretKey: string) {
 
 	// clear complete debug
 	clearDebugGuiRoot()
@@ -351,16 +351,16 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 	if (debug != undefined) {
 		debug.addButton("Add scene", () => {
 			sceneCount += 1
-			loadScenes(generateRandomMultiSetupData(sceneCount))
+			loadScenes(generateRandomMultiSetupData(sceneCount), secretKey)
 		})
 		debug.addButton("Remove scene", () => {
 			if (sceneCount > 0) {
 				sceneCount -= 1
-				loadScenes(generateRandomMultiSetupData(sceneCount))
+				loadScenes(generateRandomMultiSetupData(sceneCount), secretKey)
 			}
 		})
 		debug.addButton("Reload", () => {
-			loadScenes(generateRandomMultiSetupData(sceneCount))
+			loadScenes(generateRandomMultiSetupData(sceneCount), secretKey)
 		})
 		debug.addButton("Start programs", () => {
 			startPrograms()
@@ -371,7 +371,7 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 
 
 	const cyberspaceDataList = setupDataList.map(setupData => {
-		const cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName, setupData.programID)
+		const cyberspaceData = createCyberspaceData(setupData.sceneID, setupData.groupName, setupData.programID, secretKey)
 		cyberspaceData.cyberspace.getScene().runAfterLoading(() => {
 			cyberspaceData.cyberspace.setRobertaRobotSetupData([setupData.robertaRobotSetupData], "") // TODO: Robot type???
 		})
@@ -434,9 +434,9 @@ function loadScenes(setupDataList: MultiCyberspaceSetupData[]) {
 // called only once
 export function init(robotSetupDataIDs: number[], secretKey: string) {
 	sendProgramRequest({
-		secret: {secret: ''},
+		secret: { secret: secretKey },
 		programs: robotSetupDataIDs
-	}, loadScenesFromRequest)
+	}, request => loadScenesFromRequest(request, secretKey))
 }
 
 function forEachCyberspace(block: (cyberspace: Cyberspace) => void) {

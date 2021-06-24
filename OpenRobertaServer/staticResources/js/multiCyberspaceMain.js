@@ -65,9 +65,9 @@ function loadProgramFromXML(name, xml) {
 /**
  * @param json {string}
  */
-function openProgramFromJSON(json) {
+function openProgramFromJSON(json, secret) {
     var programIDList = JSON.parse(json);
-    SIM.init(programIDList)
+    SIM.init(programIDList, secret)
 }
 
 const QUERY_START = '?';
@@ -98,7 +98,9 @@ function handleQuery() {
     // old style queries
     var target = decodeURI(document.location.search).split("?");
     if (target.length >= 2) {
-        openProgramFromJSON(target[1]);
+        const programIDListString = target[1]
+        const secret = target.length >= 3 ? target[2] : ""
+        openProgramFromJSON(programIDListString, secret);
     }
 
     // new style queries
