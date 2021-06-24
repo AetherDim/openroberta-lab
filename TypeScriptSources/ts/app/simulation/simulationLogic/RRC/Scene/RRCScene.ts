@@ -55,12 +55,12 @@ export class RRCScene extends RRCScoreScene {
 			}
 
 			function makeText(color: number, xOffset: number, yOffset: number): PIXI.Text {
-				const text = new PIXI.Text(waypointText, {
+				const text = new PIXI.Text(waypointText, new PIXI.TextStyle({
 					fontFamily: 'ProggyTiny',
 					fontSize: fontSize,
 					fill: color,
 					align: 'center',
-				})
+				}))
 				text.resolution = 4
 				text.position.set(
 					waypoint.position.x - text.width/2 + xOffset,

@@ -24,21 +24,21 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
             _this.loader = new SharedAssetLoader_1.SharedAssetLoader();
             _this.scoreContainer = new PIXI.Container();
             _this.scoreTextContainer = new PIXI.Container();
-            _this.scoreText1 = new PIXI.Text("", {
+            _this.scoreText1 = new PIXI.Text("", new PIXI.TextStyle({
                 fontFamily: 'ProggyTiny',
                 fontSize: 140,
                 fill: 0xf48613
-            });
-            _this.scoreText2 = new PIXI.Text("", {
+            }));
+            _this.scoreText2 = new PIXI.Text("", new PIXI.TextStyle({
                 fontFamily: 'ProggyTiny',
                 fontSize: 140,
                 fill: 0xc00001
-            });
-            _this.scoreText3 = new PIXI.Text("", {
+            }));
+            _this.scoreText3 = new PIXI.Text("", new PIXI.TextStyle({
                 fontFamily: 'ProggyTiny',
                 fontSize: 140,
                 fill: 0x00cb01
-            });
+            }));
             _this.score = 0;
             _this.scoreEventManager = EventManager_1.EventManager.init({
                 onShowHideScore: new EventManager_1.ParameterTypes()

@@ -22,10 +22,11 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
         };
         RobotConfigurationManager.addColorSensor = function (robot, port, scene, configuration) {
             var colorSensor = new ColorSensor_1.ColorSensor(scene.unit, { x: configuration.x, y: configuration.y }, configuration.graphicsRadius);
-            var portText = new PIXI.Text(port);
+            var portText = new PIXI.Text(port, new PIXI.TextStyle({
+                fill: "0x555555"
+            }));
             portText.position.set(scene.unit.getLength(-0.015), 0);
             portText.anchor.set(1, 0.5);
-            portText.style.fill = "0x555555";
             portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50));
             colorSensor.graphics.addChild(portText);
             robot.addColorSensor(port, colorSensor);
@@ -38,7 +39,9 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
         };
         RobotConfigurationManager.addUltrasonicSensor = function (robot, port, scene, configuration) {
             var ultrasonicSensor = new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(configuration.x, configuration.y), Util_1.Util.toRadians(configuration.angle), Util_1.Util.toRadians(configuration.angularRange));
-            var portText = new PIXI.Text(port);
+            var portText = new PIXI.Text(port, new PIXI.TextStyle({
+                fill: "0x555555"
+            }));
             if (configuration.portTextDirection == "againstDriveDirection") {
                 portText.position.set(scene.unit.getLength(-0.015), 0);
                 portText.anchor.set(1, 0.5);
@@ -47,7 +50,6 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
                 portText.position.set(scene.unit.getLength(0.015), 0);
                 portText.anchor.set(0, 0.5);
             }
-            portText.style.fill = "0x555555";
             portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50));
             ultrasonicSensor.graphics.addChild(portText);
             robot.addUltrasonicSensor(port, ultrasonicSensor);

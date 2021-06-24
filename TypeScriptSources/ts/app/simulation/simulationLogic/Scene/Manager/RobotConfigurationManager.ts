@@ -117,10 +117,11 @@ export class RobotConfigurationManager {
 
 	private static addColorSensor(robot: Robot, port: string, scene: Scene, configuration: SensorConfiguration<"COLOR">) {
 		const colorSensor = new ColorSensor(scene.unit, { x: configuration.x, y: configuration.y }, configuration.graphicsRadius)
-		const portText = new PIXI.Text(port)
+		const portText = new PIXI.Text(port, new PIXI.TextStyle({
+			fill: "0x555555"
+		}))
 		portText.position.set(scene.unit.getLength(-0.015), 0)
 		portText.anchor.set(1, 0.5)
-		portText.style.fill = "0x555555"
 		portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50))
 		colorSensor.graphics.addChild(portText)
 		robot.addColorSensor(port, colorSensor)
@@ -142,7 +143,9 @@ export class RobotConfigurationManager {
 			Util.toRadians(configuration.angle),
 			Util.toRadians(configuration.angularRange)
 		)
-		const portText = new PIXI.Text(port)
+		const portText = new PIXI.Text(port, new PIXI.TextStyle({
+			fill: "0x555555"
+		}))
 		if (configuration.portTextDirection == "againstDriveDirection") {
 			portText.position.set(scene.unit.getLength(-0.015), 0)
 			portText.anchor.set(1, 0.5)
@@ -150,7 +153,6 @@ export class RobotConfigurationManager {
 			portText.position.set(scene.unit.getLength(0.015), 0)
 			portText.anchor.set(0, 0.5)
 		}
-		portText.style.fill = "0x555555"
 		portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50))
 		ultrasonicSensor.graphics.addChild(portText)
 		robot.addUltrasonicSensor(port, ultrasonicSensor)
