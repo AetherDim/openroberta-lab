@@ -163,7 +163,7 @@ define(["require", "exports", "dat.gui", "./Timer"], function (require, exports,
             var range = 0.2;
             for (var x = -range; x < range; x += 0.02) {
                 for (var y = -range; y < range; y += 0.02) {
-                    robot.addColorSensor('SP' + count++, x, y, 0.01);
+                    robot.addColorSensor('SP' + count++, { x: x, y: y, graphicsRadius: 0.01 });
                 }
             }
         });

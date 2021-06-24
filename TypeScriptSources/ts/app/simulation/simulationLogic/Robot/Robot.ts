@@ -379,19 +379,17 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	/**
-	 * Sets the color sensor at the position (x,y) in meters
+	 * Adds the color sensor specified by `opts`
 	 * 
 	 * @param port the port of the sensor
-	 * @param x x position of the sensor in meters
-	 * @param y y position of the sensor in meters
-	 * @param graphicsRadius the radius of the circle graphic in meters
+	 * @param opts is either `ColorSensor` or an object of type `{ x: number, y: number, graphicsRadius: number }` where `x` and `y` are position of the sensor in meters and `graphicsRadius` is the radius of the circle graphic in meters
 	 * @returns false if a color sensor at `port` already exists and a new color sensor was not added
 	 */
-	addColorSensor(port: string, x: number, y: number, graphicsRadius: number): boolean {
+	addColorSensor(port: string, opts: ColorSensor | { x: number, y: number, graphicsRadius: number }): boolean {
 		if (this.colorSensors.has(port)) {
 			return false
 		}
-		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y), graphicsRadius)
+		const colorSensor = opts instanceof ColorSensor ? opts : new ColorSensor(this.scene.unit, Vector.create(opts.x, opts.y), opts.graphicsRadius)
 		this.colorSensors.set(port, colorSensor)
 		this.bodyContainer.addChild(colorSensor.graphics)
 		return true

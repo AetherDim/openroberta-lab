@@ -286,19 +286,17 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             return Array.from(this.colorSensors.values());
         };
         /**
-         * Sets the color sensor at the position (x,y) in meters
+         * Adds the color sensor specified by `opts`
          *
          * @param port the port of the sensor
-         * @param x x position of the sensor in meters
-         * @param y y position of the sensor in meters
-         * @param graphicsRadius the radius of the circle graphic in meters
+         * @param opts is either `ColorSensor` or an object of type `{ x: number, y: number, graphicsRadius: number }` where `x` and `y` are position of the sensor in meters and `graphicsRadius` is the radius of the circle graphic in meters
          * @returns false if a color sensor at `port` already exists and a new color sensor was not added
          */
-        Robot.prototype.addColorSensor = function (port, x, y, graphicsRadius) {
+        Robot.prototype.addColorSensor = function (port, opts) {
             if (this.colorSensors.has(port)) {
                 return false;
             }
-            var colorSensor = new ColorSensor_1.ColorSensor(this.scene.unit, matter_js_1.Vector.create(x, y), graphicsRadius);
+            var colorSensor = opts instanceof ColorSensor_1.ColorSensor ? opts : new ColorSensor_1.ColorSensor(this.scene.unit, matter_js_1.Vector.create(opts.x, opts.y), opts.graphicsRadius);
             this.colorSensors.set(port, colorSensor);
             this.bodyContainer.addChild(colorSensor.graphics);
             return true;

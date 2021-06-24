@@ -7,6 +7,8 @@ import { TouchSensor } from "../../Robot/Sensors/TouchSensor";
 import { UltrasonicSensor } from "../../Robot/Sensors/UltrasonicSensor";
 import { GyroSensor } from "../../Robot/Sensors/GyroSensor";
 import { RobotConfiguration } from "../../Robot/RobotConfiguration";
+import "../../pixijs"
+import { ColorSensor } from "../../Robot/Sensors/ColorSensor";
 
 class MaxSensorCount {
 	readonly maxCount: number
@@ -29,7 +31,7 @@ type RobotSensorConfiguration = {
 	TOUCH: {x: number, y: number, width: number, height: number, angle: number, mass: number}[][]
 	GYRO: undefined[],
 	COLOR: {x: number, y: number, graphicsRadius: number}[][]
-	ULTRASONIC: {x: number, y: number, angle: number, angularRange: number}[][]
+	ULTRASONIC: {x: number, y: number, angle: number, angularRange: number, portTextDirection?: "againstDriveDirection" }[][]
 	INFRARED: {x: number, y: number, angle: number}[][]
 	SOUND: undefined[]
 	COMPASS: undefined[]
@@ -74,11 +76,13 @@ export class RobotConfigurationManager {
 					}
 				})
 			),
-		ULTRASONIC: 
+		ULTRASONIC:
 		(() => {
 			const o = RobotConfigurationManager.ultrasonicSensorOffset
+			/** helper function to help the type inference */
+			const h = (c: SensorConfiguration<"ULTRASONIC">) => c
 			return [
-				[{x: 0.095, y: 0, angle: 0, angularRange: 90}],
+				[{x: 0.095, y: 0, angle: 0, angularRange: 90 }],
 				[
 					{x: 0.095, y: o / 2, angle: 20, angularRange: 60},
 					{x: 0.095, y: -o / 2, angle: -20, angularRange: 60}
@@ -91,8 +95,8 @@ export class RobotConfigurationManager {
 				[
 					{x: 0.095, y: 0.04, angle: 45, angularRange: 60},
 					{x: 0.095, y: -0.04, angle: -45, angularRange: 60},
-					{x: -0.095, y: 0.04, angle: 45 + 90, angularRange: 60},
-					{x: -0.095, y: -0.04, angle: -45 - 90, angularRange: 60}
+					h({x: -0.095, y: 0.04, angle: 45 + 90, angularRange: 60, portTextDirection: "againstDriveDirection"}),
+					h({x: -0.095, y: -0.04, angle: -45 - 90, angularRange: 60, portTextDirection: "againstDriveDirection"})
 				]
 			]
 		})(),
@@ -112,7 +116,14 @@ export class RobotConfigurationManager {
 	}
 
 	private static addColorSensor(robot: Robot, port: string, scene: Scene, configuration: SensorConfiguration<"COLOR">) {
-		robot.addColorSensor(port, configuration.x, configuration.y, configuration.graphicsRadius)
+		const colorSensor = new ColorSensor(scene.unit, { x: configuration.x, y: configuration.y }, configuration.graphicsRadius)
+		const portText = new PIXI.Text(port)
+		portText.position.set(scene.unit.getLength(-0.015), 0)
+		portText.anchor.set(1, 0.5)
+		portText.style.fill = "0x555555"
+		portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50))
+		colorSensor.graphics.addChild(portText)
+		robot.addColorSensor(port, colorSensor)
 	}
 
 	private static addTouchSensor(robot: Robot, port: string, scene: Scene, configuration: SensorConfiguration<"TOUCH">) {
@@ -125,14 +136,24 @@ export class RobotConfigurationManager {
 	}
 
 	private static addUltrasonicSensor(robot: Robot, port: string, scene: Scene, configuration: SensorConfiguration<"ULTRASONIC">) {
-		robot.addUltrasonicSensor(port,
-			new UltrasonicSensor(
-				scene.unit,
-				Vector.create(configuration.x, configuration.y),
-				Util.toRadians(configuration.angle),
-				Util.toRadians(configuration.angularRange)
-			)
+		const ultrasonicSensor = new UltrasonicSensor(
+			scene.unit,
+			Vector.create(configuration.x, configuration.y),
+			Util.toRadians(configuration.angle),
+			Util.toRadians(configuration.angularRange)
 		)
+		const portText = new PIXI.Text(port)
+		if (configuration.portTextDirection == "againstDriveDirection") {
+			portText.position.set(scene.unit.getLength(-0.015), 0)
+			portText.anchor.set(1, 0.5)
+		} else {
+			portText.position.set(scene.unit.getLength(0.015), 0)
+			portText.anchor.set(0, 0.5)
+		}
+		portText.style.fill = "0x555555"
+		portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50))
+		ultrasonicSensor.graphics.addChild(portText)
+		robot.addUltrasonicSensor(port, ultrasonicSensor)
 	}
 
 	private static addGyroSensor(robot: Robot, port: string, scene: Scene, configuration: SensorConfiguration<"GYRO">) {

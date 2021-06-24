@@ -190,7 +190,7 @@ export function initGlobalSceneDebug(sceneRenderer: SceneRender) {
 		const range = 0.2
 		for(let x = -range; x < range; x+=0.02) {
 			for(let y = -range; y < range; y+=0.02) {
-				robot.addColorSensor('SP' + count++, x, y, 0.01)
+				robot.addColorSensor('SP' + count++, { x: x, y: y, graphicsRadius: 0.01 })
 			}
 		}
 	})
