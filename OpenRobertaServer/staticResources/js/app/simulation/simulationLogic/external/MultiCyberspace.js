@@ -105,10 +105,10 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
                     RESTApi_1.sendSetScoreRequest({
                         secret: { secret: secretKey },
                         programID: programID,
-                        score: Math.round(scoreScene.score),
+                        score: Math.round(scoreScene.score * 1000),
                         // maximum signed int32 (2^32 - 1)
                         // https://dev.mysql.com/doc/refman/5.6/en/integer-types.html
-                        time: Math.round((_a = scoreScene.getProgramRuntime()) !== null && _a !== void 0 ? _a : 2147483647),
+                        time: Math.round((_a = Util_1.Util.flatMapOptional(scoreScene.getProgramRuntime(), function (runtime) { return runtime * 1000; })) !== null && _a !== void 0 ? _a : 2147483647),
                         comment: "",
                         modifiedBy: "Score scene " + new Date(),
                     }, function (result) {

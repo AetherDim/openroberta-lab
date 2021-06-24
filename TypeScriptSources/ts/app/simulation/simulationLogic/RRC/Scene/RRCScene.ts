@@ -77,9 +77,7 @@ export class RRCScene extends RRCScoreScene {
 	}
 
 	private getTimeBonusScore(): number {
-		return Math.floor(
-			Math.max(0, this.getMaximumTimeBonusScore() - (this.getProgramRuntime() ?? Infinity)) 
-		)
+		return Math.max(0, this.getMaximumTimeBonusScore() - (this.getProgramRuntime() ?? Infinity)) 
 	}
 
 	getMaximumTimeBonusScore(): number {

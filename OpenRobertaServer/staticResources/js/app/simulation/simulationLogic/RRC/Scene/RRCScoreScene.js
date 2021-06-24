@@ -26,17 +26,17 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
             _this.scoreTextContainer = new PIXI.Container();
             _this.scoreText1 = new PIXI.Text("", {
                 fontFamily: 'ProggyTiny',
-                fontSize: 160,
+                fontSize: 140,
                 fill: 0xf48613
             });
             _this.scoreText2 = new PIXI.Text("", {
                 fontFamily: 'ProggyTiny',
-                fontSize: 160,
+                fontSize: 140,
                 fill: 0xc00001
             });
             _this.scoreText3 = new PIXI.Text("", {
                 fontFamily: 'ProggyTiny',
-                fontSize: 160,
+                fontSize: 140,
                 fill: 0x00cb01
             });
             _this.score = 0;
@@ -68,7 +68,7 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Scene/Scene", "..
             chain.next();
         };
         RRCScoreScene.prototype.updateScoreText = function () {
-            var text = "Score: " + this.getScore();
+            var text = "Score: " + String(Math.round(this.getScore() * 1000) / 1000);
             this.scoreText1.text = text;
             this.scoreText2.text = text;
             this.scoreText3.text = text;

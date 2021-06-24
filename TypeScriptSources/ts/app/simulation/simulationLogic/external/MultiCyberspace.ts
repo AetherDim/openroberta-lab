@@ -103,10 +103,10 @@ function createCyberspaceData(sceneID: string, groupName: string, programID: num
 					sendSetScoreRequest({
 						secret: {secret: secretKey },
 						programID: programID,
-						score: Math.round(scoreScene.score),
+						score: Math.round(scoreScene.score * 1000),
 						// maximum signed int32 (2^32 - 1)
 						// https://dev.mysql.com/doc/refman/5.6/en/integer-types.html
-						time: Math.round(scoreScene.getProgramRuntime() ?? 2147483647),
+						time: Math.round(Util.flatMapOptional(scoreScene.getProgramRuntime(), runtime => runtime * 1000) ?? 2147483647),
 						comment: "",
 						modifiedBy: "Score scene " + new Date(),
 					 }, (result) => {
