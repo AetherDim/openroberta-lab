@@ -189,7 +189,7 @@ define(["require", "exports", "./interpreter.constants", "./interpreter.util"], 
             var _this = this;
             var _a;
             (_a = stmt[C.HIGHTLIGHT_PLUS]) === null || _a === void 0 ? void 0 : _a.map(function (blockId) { return stackmachineJsHelper.getBlockById(blockId); }).forEach(function (block) {
-                if (_this.debugMode) {
+                if (_this.debugMode && block !== null) {
                     if (stackmachineJsHelper.getJqueryObject(block === null || block === void 0 ? void 0 : block.svgPath_).hasClass("breakpoint")) {
                         stackmachineJsHelper.getJqueryObject(block === null || block === void 0 ? void 0 : block.svgPath_).removeClass("breakpoint").addClass("selectedBreakpoint");
                     }
@@ -203,7 +203,7 @@ define(["require", "exports", "./interpreter.constants", "./interpreter.util"], 
             var _this = this;
             var _a;
             (_a = stmt[C.HIGHTLIGHT_MINUS]) === null || _a === void 0 ? void 0 : _a.map(function (blockId) { return stackmachineJsHelper.getBlockById(blockId); }).forEach(function (block) {
-                if (_this.debugMode) {
+                if (_this.debugMode && block !== null) {
                     if (stackmachineJsHelper.getJqueryObject(block === null || block === void 0 ? void 0 : block.svgPath_).hasClass("selectedBreakpoint")) {
                         stackmachineJsHelper.getJqueryObject(block === null || block === void 0 ? void 0 : block.svgPath_).removeClass("selectedBreakpoint").addClass("breakpoint");
                     }
@@ -239,7 +239,7 @@ define(["require", "exports", "./interpreter.constants", "./interpreter.util"], 
             var _this = this;
             Array.from(this.currentBlocks)
                 .map(function (blockId) { return stackmachineJsHelper.getBlockById(blockId); })
-                .forEach(function (block) { return _this.highlightBlock(block); });
+                .forEach(function (block) { return block !== null ? _this.highlightBlock(block) : null; });
             breakPoints.forEach(function (id) {
                 var block = stackmachineJsHelper.getBlockById(id);
                 if (block !== null) {
@@ -259,11 +259,13 @@ define(["require", "exports", "./interpreter.constants", "./interpreter.util"], 
             Array.from(this.currentBlocks)
                 .map(function (blockId) { return stackmachineJsHelper.getBlockById(blockId); })
                 .forEach(function (block) {
-                var object = stackmachineJsHelper.getJqueryObject(block);
-                if (object.hasClass("selectedBreakpoint")) {
-                    object.removeClass("selectedBreakpoint").addClass("breakpoint");
+                if (block !== null) {
+                    var object = stackmachineJsHelper.getJqueryObject(block);
+                    if (object.hasClass("selectedBreakpoint")) {
+                        object.removeClass("selectedBreakpoint").addClass("breakpoint");
+                    }
+                    _this.removeBlockHighlight(block);
                 }
-                _this.removeBlockHighlight(block);
             });
             breakPoints
                 .map(function (blockId) { return stackmachineJsHelper.getBlockById(blockId); })

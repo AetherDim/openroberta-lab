@@ -224,7 +224,7 @@ export class State {
         stmt[C.HIGHTLIGHT_PLUS]
             ?.map(blockId => stackmachineJsHelper.getBlockById(blockId))
             .forEach(block => {
-                if (this.debugMode) {
+                if (this.debugMode && block !== null) {
                     if (stackmachineJsHelper.getJqueryObject(block?.svgPath_).hasClass("breakpoint")) {
                         stackmachineJsHelper.getJqueryObject(block?.svgPath_).removeClass("breakpoint").addClass("selectedBreakpoint");
                     }
@@ -239,7 +239,7 @@ export class State {
         stmt[C.HIGHTLIGHT_MINUS]
             ?.map(blockId => stackmachineJsHelper.getBlockById(blockId))
             .forEach(block => {
-                if (this.debugMode) {
+                if (this.debugMode && block !== null) {
                     if (stackmachineJsHelper.getJqueryObject(block?.svgPath_).hasClass("selectedBreakpoint")) {
                         stackmachineJsHelper.getJqueryObject(block?.svgPath_).removeClass("selectedBreakpoint").addClass("breakpoint");
                     }
@@ -278,7 +278,7 @@ export class State {
     public addHighlights(breakPoints: any[]) {
         Array.from(this.currentBlocks)
             .map(blockId => stackmachineJsHelper.getBlockById(blockId))
-            .forEach(block => this.highlightBlock(block));
+            .forEach(block => block !== null ? this.highlightBlock(block) : null);
 
         breakPoints.forEach(id => {
             let block = stackmachineJsHelper.getBlockById(id)
@@ -299,11 +299,13 @@ export class State {
         Array.from(this.currentBlocks)
             .map(blockId => stackmachineJsHelper.getBlockById(blockId))
             .forEach(block => {
-                let object = stackmachineJsHelper.getJqueryObject(block);
-                if (object.hasClass("selectedBreakpoint")) {
-                    object.removeClass("selectedBreakpoint").addClass("breakpoint");
+                if (block !== null) {
+                    let object = stackmachineJsHelper.getJqueryObject(block);
+                    if (object.hasClass("selectedBreakpoint")) {
+                        object.removeClass("selectedBreakpoint").addClass("breakpoint");
+                    }
+                    this.removeBlockHighlight(block);
                 }
-                this.removeBlockHighlight(block);
             });
 
         breakPoints
