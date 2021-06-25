@@ -1,4 +1,4 @@
-define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../Robot/Sensors/TouchSensor", "../../Robot/Sensors/UltrasonicSensor", "../../Robot/Sensors/GyroSensor"], function (require, exports, matter_js_1, Entity_1, Util_1, TouchSensor_1, UltrasonicSensor_1, GyroSensor_1) {
+define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../Robot/Sensors/TouchSensor", "../../Robot/Sensors/UltrasonicSensor", "../../Robot/Sensors/GyroSensor", "../../Robot/Sensors/ColorSensor", "../../pixijs"], function (require, exports, matter_js_1, Entity_1, Util_1, TouchSensor_1, UltrasonicSensor_1, GyroSensor_1, ColorSensor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RobotConfigurationManager = void 0;
@@ -21,7 +21,15 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
             return Math.min(length, (_c = sensorConfiguration === null || sensorConfiguration === void 0 ? void 0 : sensorConfiguration.length) !== null && _c !== void 0 ? _c : 0);
         };
         RobotConfigurationManager.addColorSensor = function (robot, port, scene, configuration) {
-            robot.addColorSensor(port, configuration.x, configuration.y, configuration.graphicsRadius);
+            var colorSensor = new ColorSensor_1.ColorSensor(scene.unit, { x: configuration.x, y: configuration.y }, configuration.graphicsRadius);
+            var portText = new PIXI.Text(port, new PIXI.TextStyle({
+                fill: "0x555555"
+            }));
+            portText.position.set(scene.unit.getLength(-0.015), 0);
+            portText.anchor.set(1, 0.5);
+            portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50));
+            colorSensor.graphics.addChild(portText);
+            robot.addColorSensor(port, colorSensor);
         };
         RobotConfigurationManager.addTouchSensor = function (robot, port, scene, configuration) {
             var touchSensorBody = Entity_1.PhysicsRectEntity.create(scene, configuration.x, configuration.y, configuration.width, configuration.height, { color: 0xFF0000, strokeColor: 0xffffff, strokeWidth: 1, strokeAlpha: 0.5, strokeAlignment: 1 });
@@ -30,7 +38,21 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
             robot.addTouchSensor(port, new TouchSensor_1.TouchSensor(scene, touchSensorBody));
         };
         RobotConfigurationManager.addUltrasonicSensor = function (robot, port, scene, configuration) {
-            robot.addUltrasonicSensor(port, new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(configuration.x, configuration.y), Util_1.Util.toRadians(configuration.angle), Util_1.Util.toRadians(configuration.angularRange)));
+            var ultrasonicSensor = new UltrasonicSensor_1.UltrasonicSensor(scene.unit, matter_js_1.Vector.create(configuration.x, configuration.y), Util_1.Util.toRadians(configuration.angle), Util_1.Util.toRadians(configuration.angularRange));
+            var portText = new PIXI.Text(port, new PIXI.TextStyle({
+                fill: "0x555555"
+            }));
+            if (configuration.portTextDirection == "againstDriveDirection") {
+                portText.position.set(scene.unit.getLength(-0.015), 0);
+                portText.anchor.set(1, 0.5);
+            }
+            else {
+                portText.position.set(scene.unit.getLength(0.015), 0);
+                portText.anchor.set(0, 0.5);
+            }
+            portText.scale.set(scene.unit.getLength(1 / portText.style.fontSize / 50));
+            ultrasonicSensor.graphics.addChild(portText);
+            robot.addUltrasonicSensor(port, ultrasonicSensor);
         };
         RobotConfigurationManager.addGyroSensor = function (robot, port, scene, configuration) {
             robot.addGyroSensor(port, new GyroSensor_1.GyroSensor());
@@ -112,6 +134,8 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
             }),
             ULTRASONIC: (function () {
                 var o = RobotConfigurationManager.ultrasonicSensorOffset;
+                /** helper function to help the type inference */
+                var h = function (c) { return c; };
                 return [
                     [{ x: 0.095, y: 0, angle: 0, angularRange: 90 }],
                     [
@@ -126,8 +150,8 @@ define(["require", "exports", "matter-js", "../../Entity", "../../Util", "../../
                     [
                         { x: 0.095, y: 0.04, angle: 45, angularRange: 60 },
                         { x: 0.095, y: -0.04, angle: -45, angularRange: 60 },
-                        { x: -0.095, y: 0.04, angle: 45 + 90, angularRange: 60 },
-                        { x: -0.095, y: -0.04, angle: -45 - 90, angularRange: 60 }
+                        h({ x: -0.095, y: 0.04, angle: 45 + 90, angularRange: 60, portTextDirection: "againstDriveDirection" }),
+                        h({ x: -0.095, y: -0.04, angle: -45 - 90, angularRange: 60, portTextDirection: "againstDriveDirection" })
                     ]
                 ];
             })(),

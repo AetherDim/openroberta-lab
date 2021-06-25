@@ -14,24 +14,24 @@ export class RRCScoreScene extends Scene {
 	private scoreTextContainer = new PIXI.Container()
 
 	private scoreBackgroundSprite?: PIXI.Sprite
-	private scoreText1 = new PIXI.Text("",
+	private scoreText1 = new PIXI.Text("", new PIXI.TextStyle(
 	{
 		fontFamily: 'ProggyTiny',
-		fontSize: 160,
+		fontSize: 140,
 		fill: 0xf48613
-	})
-	private scoreText2 = new PIXI.Text("",
+	}))
+	private scoreText2 = new PIXI.Text("", new PIXI.TextStyle(
 	{
 		fontFamily: 'ProggyTiny',
-		fontSize: 160,
+		fontSize: 140,
 		fill: 0xc00001
-	})
-	private scoreText3 = new PIXI.Text("",
+	}))
+	private scoreText3 = new PIXI.Text("", new PIXI.TextStyle(
 	{
 		fontFamily: 'ProggyTiny',
-		fontSize: 160,
+		fontSize: 140,
 		fill: 0x00cb01
-	})
+	}))
 
 
 	score: number = 0
@@ -77,7 +77,7 @@ export class RRCScoreScene extends Scene {
 	}
 
 	updateScoreText() {
-		let text = "Score: " + this.getScore();
+		let text = "Score: " + String(Math.round(this.getScore() * 1000) / 1000);
 		this.scoreText1.text = text;
 		this.scoreText2.text = text;
 		this.scoreText3.text = text;

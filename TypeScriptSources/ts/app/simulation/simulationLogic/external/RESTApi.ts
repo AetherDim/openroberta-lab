@@ -1,6 +1,3 @@
-import { DEBUG } from "../GlobalDebug";
-import { Util } from "../Util";
-
 
 function httpAsync(req: string, url: string, data: string|undefined,
 	transferComplete: (this: XMLHttpRequest) => void,
@@ -32,16 +29,16 @@ function httpGetAsync(url: string,
 	httpAsync("GET", url, undefined, transferComplete, error, abort)
 }
 
-// FIX: Change URLs
+
 let PROGRAMS_URL = "/sqlrest/programs"
 let SET_SCORE_URL = "/sqlrest/setScore"
 let GET_STATUS_URL = "/sqlrest/state"
 
-if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && DEBUG) {
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
 	// TODO: change this to a debug address
-	PROGRAMS_URL = "https://next.cyberspace.roborave.de/sqlrest/programs"
-	SET_SCORE_URL = "https://next.cyberspace.roborave.de/sqlrest/setScore"
-	GET_STATUS_URL = "https://next.cyberspace.roborave.de/sqlrest/state"
+	PROGRAMS_URL = "https://dev.cyberspace.roborave.de/sqlrest/programs"
+	SET_SCORE_URL = "https://dev.cyberspace.roborave.de/sqlrest/setScore"
+	GET_STATUS_URL = "https://dev.cyberspace.roborave.de/sqlrest/state"
 }
 
 

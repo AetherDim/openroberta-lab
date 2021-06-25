@@ -1,4 +1,4 @@
-define(["require", "exports", "../GlobalDebug"], function (require, exports, GlobalDebug_1) {
+define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ResultErrorType = exports.sendSetScoreRequest = exports.sendStateRequest = exports.sendProgramRequest = exports.sendRESTRequest = void 0;
@@ -17,15 +17,14 @@ define(["require", "exports", "../GlobalDebug"], function (require, exports, Glo
     function httpGetAsync(url, transferComplete, error, abort) {
         httpAsync("GET", url, undefined, transferComplete, error, abort);
     }
-    // FIX: Change URLs
     var PROGRAMS_URL = "/sqlrest/programs";
     var SET_SCORE_URL = "/sqlrest/setScore";
     var GET_STATUS_URL = "/sqlrest/state";
-    if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && GlobalDebug_1.DEBUG) {
+    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
         // TODO: change this to a debug address
-        PROGRAMS_URL = "https://next.cyberspace.roborave.de/sqlrest/programs";
-        SET_SCORE_URL = "https://next.cyberspace.roborave.de/sqlrest/setScore";
-        GET_STATUS_URL = "https://next.cyberspace.roborave.de/sqlrest/state";
+        PROGRAMS_URL = "https://dev.cyberspace.roborave.de/sqlrest/programs";
+        SET_SCORE_URL = "https://dev.cyberspace.roborave.de/sqlrest/setScore";
+        GET_STATUS_URL = "https://dev.cyberspace.roborave.de/sqlrest/state";
     }
     function sendRESTRequest(url, programRequest, callback) {
         function transferComplete() {

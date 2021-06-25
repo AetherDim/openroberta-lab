@@ -60,6 +60,7 @@ export class SceneRender {
 				forceCanvas: true
 			}
 		);
+		this.app.ticker.maxFPS = 30
 
 		// add mouse/touch control
 		this.scrollView = new ScrollView(this.app.stage, this.app.renderer);
@@ -98,7 +99,6 @@ export class SceneRender {
 
 			}
 		}, this);
-		//this.app.ticker.maxFPS = 30
 
 		initGlobalSceneDebug(this)
 	}
@@ -148,8 +148,8 @@ export class SceneRender {
 		return this.scrollView.getBounds().height;
 	}
 
-	getCanvasFromDisplayObject(object: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement {
-		return this.app.renderer.extract.canvas(object)
+	convertToPixels(object: PIXI.DisplayObject | PIXI.RenderTexture): Uint8Array {
+		return this.app.renderer.extract.pixels(object)
 	}
 
 	zoomIn() {

@@ -61,12 +61,12 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Robot/Robot", "ma
                     fontSize = 50;
                 }
                 function makeText(color, xOffset, yOffset) {
-                    var text = new PIXI.Text(waypointText, {
+                    var text = new PIXI.Text(waypointText, new PIXI.TextStyle({
                         fontFamily: 'ProggyTiny',
                         fontSize: fontSize,
                         fill: color,
                         align: 'center',
-                    });
+                    }));
                     text.resolution = 4;
                     text.position.set(waypoint.position.x - text.width / 2 + xOffset, waypoint.position.y - text.height / 2 + yOffset);
                     return text;
@@ -76,7 +76,7 @@ define(["require", "exports", "../../Scene/AsyncChain", "../../Robot/Robot", "ma
         };
         RRCScene.prototype.getTimeBonusScore = function () {
             var _a;
-            return Math.floor(Math.max(0, this.getMaximumTimeBonusScore() - ((_a = this.getProgramRuntime()) !== null && _a !== void 0 ? _a : Infinity)));
+            return Math.max(0, this.getMaximumTimeBonusScore() - ((_a = this.getProgramRuntime()) !== null && _a !== void 0 ? _a : Infinity));
         };
         RRCScene.prototype.getMaximumTimeBonusScore = function () {
             return 0;

@@ -118,20 +118,24 @@ define(["require", "exports"], function (require, exports) {
             console.log('init color sensor texture');
             var groundVisible = this.groundContainer.visible;
             this.groundContainer.visible = true; // the container needs to be visible for this to work
-            var canvas = (_a = this.scene.getRenderer()) === null || _a === void 0 ? void 0 : _a.getCanvasFromDisplayObject(this.groundContainer);
-            var renderingContext = canvas === null || canvas === void 0 ? void 0 : canvas.getContext("2d");
-            var bounds = this.groundContainer.getBounds();
-            var origin = this.groundContainer.getGlobalPosition();
-            if (renderingContext) {
-                var scaleX = 1 / this.groundContainer.parent.scale.x;
-                var scaleY = 1 / this.groundContainer.parent.scale.y;
-                bounds.x -= origin.x;
-                bounds.y -= origin.y;
-                bounds.x *= scaleX;
-                bounds.y *= scaleY;
-                bounds.width *= scaleX;
-                bounds.height *= scaleY;
-                this.getGroundImageData = function (x, y, w, h) { return renderingContext.getImageData(x - bounds.x, y - bounds.y, w, h); };
+            var bounds = this.groundContainer.getLocalBounds();
+            var width = this.groundContainer.width;
+            var height = this.groundContainer.height;
+            var pixelData = (_a = this.scene.getRenderer()) === null || _a === void 0 ? void 0 : _a.convertToPixels(this.groundContainer);
+            if (pixelData != undefined) {
+                this.getGroundImageData = function (x, y, w, h) {
+                    var newX = x - bounds.x;
+                    var newY = y - bounds.y;
+                    var index = (Math.round(newX) + Math.round(newY) * Math.round(width)) * 4;
+                    if (0 <= newX && newX <= width &&
+                        0 <= newY && newY <= height &&
+                        0 <= index && index + 3 < pixelData.length) {
+                        return [pixelData[index], pixelData[index + 1], pixelData[index + 2], pixelData[index + 3]];
+                    }
+                    else {
+                        return [0, 0, 0, 0];
+                    }
+                };
             }
             this.groundContainer.visible = groundVisible;
         };

@@ -37,6 +37,7 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
                 resolution: Util_1.Util.getPixelRatio(),
                 forceCanvas: true
             });
+            this.app.ticker.maxFPS = 30;
             // add mouse/touch control
             this.scrollView = new ScrollView_1.ScrollView(this.app.stage, this.app.renderer);
             this.scrollView.registerListener(function (ev) {
@@ -64,7 +65,6 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
                     }
                 }
             }, this);
-            //this.app.ticker.maxFPS = 30
             GlobalDebug_1.initGlobalSceneDebug(this);
         }
         SceneRender.prototype.destroy = function () {
@@ -99,8 +99,8 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
         SceneRender.prototype.getViewHeight = function () {
             return this.scrollView.getBounds().height;
         };
-        SceneRender.prototype.getCanvasFromDisplayObject = function (object) {
-            return this.app.renderer.extract.canvas(object);
+        SceneRender.prototype.convertToPixels = function (object) {
+            return this.app.renderer.extract.pixels(object);
         };
         SceneRender.prototype.zoomIn = function () {
             this.scrollView.zoomCenter(Math.sqrt(2));

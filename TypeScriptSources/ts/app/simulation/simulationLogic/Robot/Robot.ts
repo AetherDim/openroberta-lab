@@ -195,8 +195,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			const robotFolder = DebugGui.addFolder('Robot')
 
 			const pos = robotFolder.addFolder('Position')
-			pos.addUpdatable('x', () => this.body.position.x)
-			pos.addUpdatable('y', () => this.body.position.x)
+			pos.addUpdatable('x', () => String(this.body.position.x))
+			pos.addUpdatable('y', () => String(this.body.position.y))
 
 			robotFolder.add(this, "transferWheelForcesToRobotBody")
 			robotFolder.add(this, "pseudoMotorTorqueMultiplier", 1, 20)
@@ -379,19 +379,17 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 	}
 
 	/**
-	 * Sets the color sensor at the position (x,y) in meters
+	 * Adds the color sensor specified by `opts`
 	 * 
 	 * @param port the port of the sensor
-	 * @param x x position of the sensor in meters
-	 * @param y y position of the sensor in meters
-	 * @param graphicsRadius the radius of the circle graphic in meters
+	 * @param opts is either `ColorSensor` or an object of type `{ x: number, y: number, graphicsRadius: number }` where `x` and `y` are position of the sensor in meters and `graphicsRadius` is the radius of the circle graphic in meters
 	 * @returns false if a color sensor at `port` already exists and a new color sensor was not added
 	 */
-	addColorSensor(port: string, x: number, y: number, graphicsRadius: number): boolean {
+	addColorSensor(port: string, opts: ColorSensor | { x: number, y: number, graphicsRadius: number }): boolean {
 		if (this.colorSensors.has(port)) {
 			return false
 		}
-		const colorSensor = new ColorSensor(this.scene.unit, Vector.create(x, y), graphicsRadius)
+		const colorSensor = opts instanceof ColorSensor ? opts : new ColorSensor(this.scene.unit, Vector.create(opts.x, opts.y), opts.graphicsRadius)
 		this.colorSensors.set(port, colorSensor)
 		this.bodyContainer.addChild(colorSensor.graphics)
 		return true
@@ -1006,7 +1004,7 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 		for (const [port, colorSensor] of this.colorSensors) {
 			const colorSensorPosition = this.getAbsolutePosition(colorSensor.position)
 			// the color array might be of length 4 or 16 (rgba with image size 1x1 or 2x2)
-			const color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1).data
+			const color = this.scene.getContainers().getGroundImageData(colorSensorPosition.x, colorSensorPosition.y, 1, 1)
 			const r = color[0], g = color[1], b = color[2]
 			
 			colorSensor.setDetectedColor(r, g, b, this.updateSensorGraphics)

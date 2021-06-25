@@ -314,7 +314,7 @@ define(["require", "exports", "./RRCScene", "../AgeGroup", "../RRAssetLoader", "
          * @returns returns one-dimensional array of the colour (red, green, blue) at pos
          */
         RRCRainbowScene.prototype.getColourFromPosition = function (pos) {
-            return this.getContainers().getGroundImageData(pos.x, pos.y, 1, 1).data;
+            return this.getContainers().getGroundImageData(pos.x, pos.y, 1, 1);
         };
         RRCRainbowScene.prototype.getAsset = function () {
             switch (this.ageGroup) {
