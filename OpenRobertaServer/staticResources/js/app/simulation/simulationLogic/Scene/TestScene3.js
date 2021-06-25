@@ -140,7 +140,6 @@ define(["require", "exports", "../GlobalDebug", "../Robot/Robot", "../Robot/Robo
             }
             var DebugGui = _this.getDebugGuiStatic();
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Download data", function () { return GlobalDebug_1.downloadJSONFile("data.json", _this.data); });
-            DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addButton("Speeeeeed!!!!!", function () { return _this.setSpeedUpFactor(1000); });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("progress", function () { return _this.keyIndex + "/" + _this.keyValues.length; });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("ETA", function () { return Util_1.Util.toTimeString(_this.testTime / _this.keyIndex * (_this.keyValues.length - _this.keyIndex)); });
             DebugGui === null || DebugGui === void 0 ? void 0 : DebugGui.addUpdatable("test timing", function () { return String(_this.testTime); });

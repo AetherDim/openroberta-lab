@@ -288,6 +288,7 @@ export class SceneDebug {
 		gui.add(scene, 'dt').min(0.001).max(0.1).step(0.001).onChange((dt) => scene.setDT(dt))
 		gui.add(scene, 'simSleepTime').min(0.001).max(0.1).step(0.001).onChange((s) => scene.setSimSleepTime(s))
 		gui.add(scene, 'simSpeedupFactor').min(1).max(1000).step(1).onChange((dt) => scene.setDT(dt))
+		gui.addButton("Speeeeeed!!!!!", () => scene.setSpeedUpFactor(1000))
 
 		const unit = gui.addFolder('unit converter')
 		unit.addUpdatable('m', () => scene.unit.getLength(1))

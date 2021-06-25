@@ -198,7 +198,6 @@ export class TestScene3 extends Scene {
 
 		DebugGui?.addButton("Download data", () => downloadJSONFile("data.json", this.data))
 
-		DebugGui?.addButton("Speeeeeed!!!!!", () => this.setSpeedUpFactor(1000))
 		DebugGui?.addUpdatable("progress", () => this.keyIndex + "/" + this.keyValues.length)
 		DebugGui?.addUpdatable("ETA", () => Util.toTimeString(this.testTime/this.keyIndex*(this.keyValues.length - this.keyIndex)))
 		DebugGui?.addUpdatable("test timing", () => String(this.testTime))
