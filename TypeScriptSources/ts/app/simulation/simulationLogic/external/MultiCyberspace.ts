@@ -92,8 +92,12 @@ function createCyberspaceData(sceneID: string, groupName: string, programID: num
 		.addEventHandlerSetter(RRCScoreScene, scoreScene => {
 			let didSendSetScoreRequest = false
 			scoreScene.scoreEventManager.onShowHideScore(state => {
+				if (state == "showScore") {
+					scoreScene.pauseSim()
+				}
 				if (state == "showScore" && everyScoreSceneIsFinished()) {
 					UIManager.showScoreButton.setState("hideScore")
+					UIManager.physicsSimControlButton.setState("start")
 				}
 				if (state == "showScore" && !didSendSetScoreRequest) {
 					if (programID == undefined) {

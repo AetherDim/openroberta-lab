@@ -94,8 +94,12 @@ define(["require", "exports", "../Cyberspace/Cyberspace", "../GlobalDebug", "../
             var didSendSetScoreRequest = false;
             scoreScene.scoreEventManager.onShowHideScore(function (state) {
                 var _a;
+                if (state == "showScore") {
+                    scoreScene.pauseSim();
+                }
                 if (state == "showScore" && everyScoreSceneIsFinished()) {
                     UIManager_1.UIManager.showScoreButton.setState("hideScore");
+                    UIManager_1.UIManager.physicsSimControlButton.setState("start");
                 }
                 if (state == "showScore" && !didSendSetScoreRequest) {
                     if (programID == undefined) {
