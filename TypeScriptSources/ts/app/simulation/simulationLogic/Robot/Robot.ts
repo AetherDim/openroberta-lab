@@ -195,8 +195,8 @@ export class Robot implements IContainerEntity, IUpdatableEntity, IPhysicsCompos
 			const robotFolder = DebugGui.addFolder('Robot')
 
 			const pos = robotFolder.addFolder('Position')
-			pos.addUpdatable('x', () => this.body.position.x)
-			pos.addUpdatable('y', () => this.body.position.x)
+			pos.addUpdatable('x', () => String(this.body.position.x))
+			pos.addUpdatable('y', () => String(this.body.position.y))
 
 			robotFolder.add(this, "transferWheelForcesToRobotBody")
 			robotFolder.add(this, "pseudoMotorTorqueMultiplier", 1, 20)

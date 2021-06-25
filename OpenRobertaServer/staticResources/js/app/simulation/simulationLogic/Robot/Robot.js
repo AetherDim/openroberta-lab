@@ -142,8 +142,8 @@ define(["require", "exports", "matter-js", "./ElectricMotor", "../interpreter.co
             if (DebugGui) {
                 var robotFolder_1 = DebugGui.addFolder('Robot');
                 var pos = robotFolder_1.addFolder('Position');
-                pos.addUpdatable('x', function () { return _this_1.body.position.x; });
-                pos.addUpdatable('y', function () { return _this_1.body.position.x; });
+                pos.addUpdatable('x', function () { return String(_this_1.body.position.x); });
+                pos.addUpdatable('y', function () { return String(_this_1.body.position.y); });
                 robotFolder_1.add(this, "transferWheelForcesToRobotBody");
                 robotFolder_1.add(this, "pseudoMotorTorqueMultiplier", 1, 20);
                 robotFolder_1.add(this, "usePseudoWheelPhysics");
