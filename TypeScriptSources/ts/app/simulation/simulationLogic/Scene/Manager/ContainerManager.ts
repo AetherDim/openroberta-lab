@@ -124,7 +124,7 @@ export class ContainerManager {
 	}
 
 
-	private _initialGroundDataFunction(x: number, y: number, w: number, h: number): ImageData {
+	private _initialGroundDataFunction(x: number, y: number, w: number, h: number): number[] {
 		this.updateGroundImageDataFunction()
 		return this.getGroundImageData(x, y, w, h) // very hacky
 	}
@@ -133,29 +133,31 @@ export class ContainerManager {
 		this.getGroundImageData = this._initialGroundDataFunction
 	}
 
-	getGroundImageData: (x: number, y: number, w: number, h: number) => ImageData = this._initialGroundDataFunction
+	getGroundImageData: (x: number, y: number, w: number, h: number) => number[] = this._initialGroundDataFunction
 
 	updateGroundImageDataFunction() {
 		console.log('init color sensor texture')
 		const groundVisible = this.groundContainer.visible
 		this.groundContainer.visible = true // the container needs to be visible for this to work
-
-		const canvas = this.scene.getRenderer()?.getCanvasFromDisplayObject(this.groundContainer)
-		const renderingContext = canvas?.getContext("2d")
-		const bounds = this.groundContainer.getBounds()
-		const origin = this.groundContainer.getGlobalPosition()
-		if (renderingContext) {
-			const scaleX = 1 / this.groundContainer.parent.scale.x
-			const scaleY = 1 / this.groundContainer.parent.scale.y
-			bounds.x -= origin.x
-			bounds.y -= origin.y
-			bounds.x *= scaleX
-			bounds.y *= scaleY
-			bounds.width *= scaleX
-			bounds.height *= scaleY
-			this.getGroundImageData = (x, y, w, h) => renderingContext.getImageData(
-				x - bounds.x,
-				y - bounds.y, w, h)
+	
+		const bounds = this.groundContainer.getLocalBounds()
+		const width = this.groundContainer.width
+		const height = this.groundContainer.height
+		const pixelData = this.scene.getRenderer()?.convertToPixels(this.groundContainer)
+		if (pixelData != undefined) {
+			this.getGroundImageData = (x, y, w, h) => {
+				const newX = x - bounds.x
+				const newY = y - bounds.y
+				const index = (Math.round(newX) + Math.round(newY) * Math.round(width)) * 4
+				if (
+					0 <= newX && newX <= width &&
+					0 <= newY && newY <= height &&
+					0 <= index && index + 3 < pixelData.length) {
+					return [pixelData[index], pixelData[index+1], pixelData[index+2],pixelData[index+3]]
+				} else {
+					return [0, 0, 0, 0]
+				}
+			}
 		}
 
 		this.groundContainer.visible = groundVisible

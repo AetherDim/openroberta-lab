@@ -99,8 +99,8 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
         SceneRender.prototype.getViewHeight = function () {
             return this.scrollView.getBounds().height;
         };
-        SceneRender.prototype.getCanvasFromDisplayObject = function (object) {
-            return this.app.renderer.extract.canvas(object);
+        SceneRender.prototype.convertToPixels = function (object) {
+            return this.app.renderer.extract.pixels(object);
         };
         SceneRender.prototype.zoomIn = function () {
             this.scrollView.zoomCenter(Math.sqrt(2));

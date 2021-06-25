@@ -148,8 +148,8 @@ export class SceneRender {
 		return this.scrollView.getBounds().height;
 	}
 
-	getCanvasFromDisplayObject(object: PIXI.DisplayObject | PIXI.RenderTexture): HTMLCanvasElement {
-		return this.app.renderer.extract.canvas(object)
+	convertToPixels(object: PIXI.DisplayObject | PIXI.RenderTexture): Uint8Array {
+		return this.app.renderer.extract.pixels(object)
 	}
 
 	zoomIn() {
