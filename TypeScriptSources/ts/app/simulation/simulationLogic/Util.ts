@@ -320,6 +320,18 @@ export class Util {
 		return uid
 	}
 
+	/**
+	 * @see https://codepen.io/ImagineProgramming/post/checksum-algorithms-in-javascript-checksum-js-engine
+	 */
+	static checksumFNV32(array: ArrayLike<number>, previousChecksum: number = 0): number {
+		let len = array.length
+        let fnv = previousChecksum;
+        for(let i = 0; i < len; i++) {
+            fnv = (fnv + (((fnv << 1) + (fnv << 4) + (fnv << 7) + (fnv << 8) + (fnv << 24)) >>> 0)) ^ (array[i] & 0xff);
+        }
+        return fnv >>> 0;
+	}
+
 	static flattenArray<T>(array: T[][]): T[] {
 		const result: T[] = []
 		for (let i = 0; i < array.length; i++) {

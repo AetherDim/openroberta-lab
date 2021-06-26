@@ -193,6 +193,18 @@ define(["require", "exports", "./Random"], function (require, exports, Random_1)
             this.idNumber++;
             return uid;
         };
+        /**
+         * @see https://codepen.io/ImagineProgramming/post/checksum-algorithms-in-javascript-checksum-js-engine
+         */
+        Util.checksumFNV32 = function (array, previousChecksum) {
+            if (previousChecksum === void 0) { previousChecksum = 0; }
+            var len = array.length;
+            var fnv = previousChecksum;
+            for (var i = 0; i < len; i++) {
+                fnv = (fnv + (((fnv << 1) + (fnv << 4) + (fnv << 7) + (fnv << 8) + (fnv << 24)) >>> 0)) ^ (array[i] & 0xff);
+            }
+            return fnv >>> 0;
+        };
         Util.flattenArray = function (array) {
             var result = [];
             for (var i = 0; i < array.length; i++) {

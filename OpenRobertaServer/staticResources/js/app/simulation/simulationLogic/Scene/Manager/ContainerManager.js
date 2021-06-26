@@ -1,4 +1,4 @@
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "../../Util"], function (require, exports, Util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ContainerManager = void 0;
@@ -123,6 +123,7 @@ define(["require", "exports"], function (require, exports) {
             var height = this.groundContainer.height;
             var pixelData = (_a = this.scene.getRenderer()) === null || _a === void 0 ? void 0 : _a.convertToPixels(this.groundContainer);
             if (pixelData != undefined) {
+                console.log("Ground container pixels checksum of " + this.scene.getName() + ": " + Util_1.Util.checksumFNV32(pixelData));
                 this.getGroundImageData = function (x, y, w, h) {
                     var newX = x - bounds.x;
                     var newY = y - bounds.y;
