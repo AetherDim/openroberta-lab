@@ -432,6 +432,12 @@ define([ 'exports', 'log', 'util', 'message', 'comm', 'robot.controller', 'socke
         $('#head-navigation-upload').onWrap('click', '.dropdown-menu li:not(.disabled) a', function(event) {
             switch (event.target.id) {
             case 'menuSubmitSolution':
+
+                if(!GUISTATE_C.isUserLoggedIn()) {
+                    alert("Please login")
+                    return;
+                }
+
                 var form = document.createElement("form");
                 form.setAttribute("method", "post");
                 form.setAttribute("action",
