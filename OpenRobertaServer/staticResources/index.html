@@ -49,8 +49,12 @@ limitations under the License.
 </script>
 
 <!-- Make sure css files are loaded before js files -->
-<script data-main="js/imports" src="js/require.js"></script>
-<body onload="require(['main']);"></body>
+<script src="js/require.js"></script>
+<script src="js/imports.js"></script>
+<script>
+    initRequireJS("v0.11");
+    require(['main']);
+</script>
 
 <link rel="manifest" href="manifest.webapp.json"></link>
 
