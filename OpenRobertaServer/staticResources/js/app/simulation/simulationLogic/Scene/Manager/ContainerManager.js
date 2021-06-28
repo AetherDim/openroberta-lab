@@ -57,6 +57,7 @@ define(["require", "exports", "../../Util"], function (require, exports, Util_1)
                 this.entityTopContainer,
                 this.topContainer
             ];
+            this.pixelData = new Uint8Array();
             this.getGroundImageData = this._initialGroundDataFunction;
             this.scene = scene;
             // setup graphic containers
@@ -113,6 +114,9 @@ define(["require", "exports", "../../Util"], function (require, exports, Util_1)
         ContainerManager.prototype.resetGroundDataFunction = function () {
             this.getGroundImageData = this._initialGroundDataFunction;
         };
+        ContainerManager.prototype._getPixelData = function () {
+            return this.pixelData;
+        };
         ContainerManager.prototype.updateGroundImageDataFunction = function () {
             var _a;
             console.log('init color sensor texture');
@@ -123,6 +127,7 @@ define(["require", "exports", "../../Util"], function (require, exports, Util_1)
             var height = this.groundContainer.height;
             var pixelData = (_a = this.scene.getRenderer()) === null || _a === void 0 ? void 0 : _a.convertToPixels(this.groundContainer);
             if (pixelData != undefined) {
+                this.pixelData = pixelData;
                 console.log("Ground container pixels checksum of " + this.scene.getName() + ": " + Util_1.Util.checksumFNV32(pixelData));
                 this.getGroundImageData = function (x, y, w, h) {
                     var newX = x - bounds.x;

@@ -134,6 +134,10 @@ export class ContainerManager {
 		this.getGroundImageData = this._initialGroundDataFunction
 	}
 
+	private pixelData = new Uint8Array()
+	_getPixelData(): Uint8Array {
+		return this.pixelData
+	}
 	getGroundImageData: (x: number, y: number, w: number, h: number) => number[] = this._initialGroundDataFunction
 
 	updateGroundImageDataFunction() {
@@ -146,6 +150,7 @@ export class ContainerManager {
 		const height = this.groundContainer.height
 		const pixelData = this.scene.getRenderer()?.convertToPixels(this.groundContainer)
 		if (pixelData != undefined) {
+			this.pixelData = pixelData
 			console.log("Ground container pixels checksum of " + this.scene.getName() + ": "+Util.checksumFNV32(pixelData))
 			this.getGroundImageData = (x, y, w, h) => {
 				const newX = x - bounds.x
