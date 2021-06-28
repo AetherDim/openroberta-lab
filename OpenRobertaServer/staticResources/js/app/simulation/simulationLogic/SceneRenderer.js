@@ -67,6 +67,9 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
             }, this);
             GlobalDebug_1.initGlobalSceneDebug(this);
         }
+        SceneRender.prototype.rendererPlugins = function () {
+            return this.app.renderer.plugins;
+        };
         SceneRender.prototype.destroy = function () {
             this.app.stop();
             this.app.destroy();
@@ -100,7 +103,7 @@ define(["require", "exports", "jquery", "./Color", "./ScrollView", "./Util", "./
             return this.scrollView.getBounds().height;
         };
         SceneRender.prototype.convertToPixels = function (object) {
-            return this.app.renderer.extract.pixels(object);
+            return this.rendererPlugins().extract.pixels(object);
         };
         SceneRender.prototype.zoomIn = function () {
             this.scrollView.zoomCenter(Math.sqrt(2));

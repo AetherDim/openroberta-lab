@@ -8,6 +8,24 @@ import { DebugGuiRoot, initGlobalSceneDebug } from './GlobalDebug';
 import { RobotSetupData } from './Robot/RobotSetupData';
 
 
+interface RendererPlugins {
+	/** Support tabbing interactive elements. */
+	accessibility?: PIXI.AccessibilityManager
+	/** Batching of Sprite, Graphics and Mesh objects. */
+	//batch?: PIXI.BatchRenderer	
+	/** Extract image data from renderer. */
+	extract?: PIXI.Extract
+	/** Handles mouse, touch and pointer events. */
+	interaction: PIXI.InteractionManager
+	/** Renderer for ParticleContainer objects. */	
+	particle: PIXI.ParticleRenderer
+	/** Pre-render display objects. */
+	prepare: PIXI.Prepare
+	/** Renderer for TilingSprite objects. */
+	tilingSprite: PIXI.TilingSpriteRenderer
+
+	[key : string]: any
+}
 
 // physics and graphics
 export class SceneRender {
@@ -103,6 +121,10 @@ export class SceneRender {
 		initGlobalSceneDebug(this)
 	}
 
+	private rendererPlugins(): RendererPlugins {
+		return this.app.renderer.plugins
+	}
+
 	destroy() {
 		this.app.stop()
 		this.app.destroy()
@@ -149,7 +171,7 @@ export class SceneRender {
 	}
 
 	convertToPixels(object: PIXI.DisplayObject | PIXI.RenderTexture): Uint8Array {
-		return this.app.renderer.extract.pixels(object)
+		return this.rendererPlugins().extract!.pixels(object)
 	}
 
 	zoomIn() {
